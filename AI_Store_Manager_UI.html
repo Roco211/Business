@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI数字管家 - 全功能原型预览</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            --brand-color: #FA6400; 
+            --brand-gradient: linear-gradient(135deg, #FF7B00 0%, #E64A19 100%);
+            --bg-color: #F4F5F7;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2329;
+            --text-sub: #8F959E;
+            --border-color: #EBEDF0;
+            --green: #24B15C;
+            --danger: #F53F3F;
+            --call-bg: #1A1D21;
+        }
+
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: #2D3136;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .mobile-container {
+            width: 390px;
+            height: 844px;
+            background-color: var(--bg-color);
+            border-radius: 46px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 0 0 10px #111;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #555;
+        }
+
+        /* 视图管理 */
+        .view {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            padding-bottom: 80px; /* 为Tab留空 */
+        }
+        .view.active { display: flex; }
+
+        /* 公用头部 */
+        .page-header {
+            padding: 50px 20px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        /* ------------------ 1. 经营大盘 (Dashboard) ------------------ */
+        #view-dashboard .header-special {
+            padding: 50px 20px 30px;
+            background: var(--brand-gradient);
+            color: white;
+            border-bottom-left-radius: 28px;
+            border-bottom-right-radius: 28px;
+        }
+        .user-greeting { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255,255,255,0.3); }
+        
+        .data-panel { background: white; border-radius: 20px; padding: 20px; margin-top: 20px; display: flex; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+        .data-item { flex: 1; text-align: center; }
+        .data-item:not(:last-child) { border-right: 1px solid var(--border-color); }
+        .data-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .data-value { font-size: 18px; font-weight: 800; color: var(--brand-color); }
+
+        .dashboard-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .card-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        
+        .floating-ai-trigger {
+            position: absolute; bottom: 100px; left: 20px; right: 20px;
+            background: var(--brand-gradient); color: white; padding: 16px;
+            border-radius: 30px; text-align: center; font-weight: 800;
+            box-shadow: 0 8px 20px rgba(250, 100, 0, 0.4); cursor: pointer;
+            animation: breathe 3s infinite;
+        }
+
+        /* ------------------ 2. 业务后台 (Data Center) ------------------ */
+        .backoffice-item { display: flex; align-items: center; gap: 16px; padding: 20px; background: white; border-radius: 16px; margin-bottom: 12px; cursor: pointer; }
+        .icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #f0f2f5; }
+        .item-info { flex: 1; }
+        .item-title { font-weight: 800; font-size: 16px; margin-bottom: 2px; }
+        .item-desc { font-size: 12px; color: var(--text-sub); }
+
+        /* ------------------ 3. 员工管理 (Team) ------------------ */
+        .agent-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+        .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .agent-main { display: flex; gap: 12px; }
+        .agent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: var(--green); font-weight: 800; }
+        .skill-tag { display: inline-block; font-size: 11px; background: #f0f2f5; padding: 4px 10px; border-radius: 12px; margin-right: 6px; margin-top: 6px; font-weight: 600; }
+
+        /* ------------------ 4. 人才市场 (Market) ------------------ */
+        .market-banner { background: #1a1d21; color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .market-banner h3 { font-size: 18px; margin-bottom: 8px; position: relative; z-index: 2; }
+        .market-btn { background: var(--brand-color); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; margin-top: 10px; }
+
+        /* ------------------ 5. 内部群聊 (Chat - Overlay) ------------------ */
+        #view-chat { z-index: 100; background: var(--bg-color); padding-bottom: 0; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .msg { display: flex; gap: 10px; max-width: 85%; }
+        .msg.me { align-self: flex-end; flex-direction: row-reverse; }
+        .msg-content { background: white; padding: 12px 16px; border-radius: 4px 16px 16px 16px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .msg.me .msg-content { background: var(--brand-color); color: white; border-radius: 16px 4px 16px 16px; }
+        .chat-footer { padding: 15px 20px 40px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
+        .chat-input { flex: 1; background: #f0f2f5; height: 44px; border-radius: 22px; padding: 0 16px; display: flex; align-items: center; color: var(--text-sub); font-size: 14px; }
+        .call-btn-trigger { width: 44px; height: 44px; border-radius: 50%; background: var(--green); color: white; display:flex; align-items:center; justify-content:center; font-size: 20px; box-shadow: 0 4px 12px rgba(36,177,92,0.3); cursor: pointer; }
+
+        /* ------------------ 6. 实时通话 (Live Call - Fullscreen) ------------------ */
+        #view-call { z-index: 200; background: var(--call-bg); color: white; padding-bottom: 0; }
+        .call-header { padding: 50px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .call-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .ai-avatar-big { width: 120px; height: 120px; border-radius: 50%; background: var(--brand-gradient); margin-bottom: 20px; display:flex; align-items:center; justify-content:center; font-size: 50px; position: relative; }
+        .ai-avatar-big::after { content: ''; position: absolute; width: 100%; height: 100%; border: 2px solid var(--brand-color); border-radius: 50%; animation: ripple 2s infinite; }
+        .sub-avatars { display: flex; gap: 15px; margin-top: 40px; }
+        .sub-avatar { width: 60px; height: 60px; border-radius: 50%; background: #333; display:flex; align-items:center; justify-content:center; font-size: 24px; border: 2px solid #444; opacity: 0.6; }
+        .subtitle-box { width: 100%; padding: 20px; background: rgba(0,0,0,0.5); min-height: 100px; font-size: 14px; line-height: 1.6; color: #ccc; }
+        .call-footer { padding: 40px 20px 60px; display: flex; justify-content: space-around; }
+        .call-control-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size: 20px; cursor: pointer; }
+        .call-control-btn.end { background: var(--danger); }
+        .btn-label { font-size: 10px; margin-top: 8px; color: #888; }
+
+        /* 底部导航栏 */
+        .tab-bar {
+            position: absolute; bottom: 0; width: 100%; height: 80px;
+            background: white; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: 20px; z-index: 10;
+        }
+        .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sub); cursor: pointer; }
+        .tab-btn.active { color: var(--brand-color); }
+        .tab-btn span:first-child { font-size: 24px; }
+        .tab-btn span:last-child { font-size: 10px; font-weight: 800; }
+
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 12px 28px rgba(250, 100, 0, 0.5); } }
+        @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    
+    <!-- 1. 经营大盘 View -->
+    <div id="view-dashboard" class="view active">
+        <div class="header-special">
+            <div class="user-greeting">
+                <div class="avatar">🏪</div>
+                <span>强盛百货老板，下午好！</span>
+            </div>
+            <div class="data-panel">
+                <div class="data-item">
+                    <div class="data-label">今日流水</div>
+                    <div class="data-value">￥2,450</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">有效利润</div>
+                    <div class="data-value" style="color:var(--text-main)">￥820</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">库存预警</div>
+                    <div class="data-value" style="color:var(--danger)">5款</div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-content">
+            <div class="card" style="background:#FFF3F3; border: 1px solid #FFE4E4;">
+                <div class="card-title" style="color:var(--danger)">⚠️ 紧急推送</div>
+                <p style="font-size:13px; color:#c82a2a; margin-bottom:10px;">红牛(24罐)库存仅剩2箱！建议立即补货。</p>
+                <button style="width:100%; padding:10px; border-radius:12px; border:none; background:var(--brand-gradient); color:white; font-weight:800;">🎙️ 一键呼叫老李采购</button>
+            </div>
+            <div class="card">
+                <div class="card-title">🏆 今日热销榜项</div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>1. 农夫山泉 (550ml)</span><span style="color:var(--brand-color)">48件</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>2. 芙蓉王 (中支)</span><span style="color:var(--brand-color)">12包</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0;"><span>3. 乐事原味 (大包)</span><span style="color:var(--brand-color)">8袋</span></div>
+            </div>
+        </div>
+        <div class="floating-ai-trigger" onclick="showView('view-chat')">💬 进入数字员工对话群</div>
+    </div>
+
+    <!-- 2. 业务后台 View -->
+    <div id="view-data" class="view">
+        <div class="page-header">业务数据后台</div>
+        <div style="padding: 20px; overflow-y: auto;">
+            <p style="color:var(--text-sub); font-size:13px; margin-bottom:20px;">这里是所有数据的“手工柜台”，在AI出错时可手动修改。</p>
+            <div class="backoffice-item">
+                <div class="icon-box">📦</div>
+                <div class="item-info">
+                    <div class="item-title">老李的库房台账</div>
+                    <div class="item-desc">包含所有商品档案、实时库存、进货价</div>
+                </div>
+                <span>→</span>
+            </div>
+            <div class="backoffice-item">
+                <div class="icon-box">💸</div>
+                <div class="item-info">
+                    <div class="item-title">小丽的钱箱流水</div>
+                    <div class="item-desc">每日收支明细、退款、销售单据</div>
+                </div>
+                <span>→</span>
+            </div>
+            <div class="backoffice-item" style="opacity: 0.5;">
+                <div class="icon-box">🔒</div>
+                <div class="item-info">
+                    <div class="item-title">未解锁账本</div>
+                    <div class="item-desc">招募对应的数字员工后开启</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 员工管理 View -->
+    <div id="view-team" class="view">
+        <div class="page-header">数字团队管理</div>
+        <div style="padding:20px; overflow-y: auto;">
+            <div class="agent-card">
+                <div class="agent-header">
+                    <div class="agent-main">
+                        <div style="font-size:32px;">👨🏻‍💼</div>
+                        <div>
+                            <div style="font-weight:800;">首席助理 小雅</div>
+                            <div class="agent-status" style="margin-top:4px;">🟢 实时待命中</div>
+                        </div>
+                    </div>
+                    <button style="font-size:12px; color:var(--brand-color); border:none; background:none; font-weight:800;">设置性格 ></button>
+                </div>
+                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">今日为您处理了 42 次任务分发。</div>
+                <div class="skill-tag">意图识别</div><div class="skill-tag">方言转换</div><div class="skill-tag">全局调度</div>
+            </div>
+            <div class="agent-card">
+                <div class="agent-header">
+                    <div class="agent-main">
+                        <div style="font-size:32px;">📦</div>
+                        <div>
+                            <div style="font-weight:800;">仓管员 老李</div>
+                            <div class="agent-status" style="background:#fff3e0; color:#f57c00;">🟠 正在理货</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">刚刚完成了“红牛啤酒”入库的操作，准确率100%。</div>
+                <div class="skill-tag">拍照识物</div><div class="skill-tag">条码比对</div><div class="skill-tag">进价趋势</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 人才市场 View -->
+    <div id="view-market" class="view">
+        <div class="page-header">人才市场 (Market)</div>
+        <div style="padding:20px; overflow-y: auto;">
+            <div class="market-banner">
+                <div style="position:absolute; right:-20px; top:-10px; font-size:100px; opacity:0.1;">👑</div>
+                <h3>官方金牌套装</h3>
+                <p style="font-size:12px; opacity:0.8;">助理+仓管+收银，全方位解放店主</p>
+                <div style="font-size:20px; font-weight:800; margin-top:10px;">￥99.00 <span style="font-size:12px; font-weight:400;">/月</span></div>
+                <button class="market-btn">一键雇佣全部成员</button>
+            </div>
+            <p style="font-size:14px; font-weight:800; margin-bottom:15px;">按需招募 Skill / 角色</p>
+            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div><div style="font-weight:800;">🗣️ 五种方言播报包</div><div style="font-size:11px; color:var(--text-sub);">四川/广东/东北等，更亲切</div></div>
+                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥5</button>
+            </div>
+            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div><div style="font-weight:800;">📄 极速单据OCR识别</div><div style="font-size:11px; color:var(--text-sub);">再潦草的进货单也能看懂</div></div>
+                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥15</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 工作群聊 (Overlays from floating trigger) -->
+    <div id="view-chat" class="view">
+        <div class="page-header">
+            <span onclick="hideChat()" style="cursor:pointer;">✕</span>
+            <span>数字员工内部群 (3)</span>
+            <span style="font-size:14px; color:var(--brand-color)">设置</span>
+        </div>
+        <div class="chat-messages">
+            <div class="msg">
+                <div class="avatar" style="background:#555; width:36px; height:36px; font-size:16px;">📦</div>
+                <div>
+                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">老李 刚刚</div>
+                    <div class="msg-content">
+                        老板，刚刚拍照那箱矿泉水已经入库了，一共24瓶，进价1.2元/瓶，您看对不？
+                        <div style="margin-top:10px; display:flex; gap:8px;">
+                            <button style="padding:5px 10px; border-radius:8px; border:1px solid #ddd; background:#f9f9f9; font-size:12px;">撤销入库</button>
+                            <button style="padding:5px 10px; border-radius:8px; border:1px solid var(--brand-color); background:white; color:var(--brand-color); font-size:12px;">修改价格</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="msg me">
+                <div class="avatar" style="background:#ddd; width:36px; height:36px; font-size:16px;">🤴</div>
+                <div class="msg-content">对的，就这样记。</div>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <span style="font-size:20px;">⌨️</span>
+            <div class="chat-input" onclick="showCall()">按住说话，或点击发起通话...</div>
+            <div class="call-btn-trigger" onclick="showCall()">📞</div>
+        </div>
+    </div>
+
+    <!-- 6. 实时通话 (Full Overlays) -->
+    <div id="view-call" class="view">
+        <div class="call-header">
+            <span>实时视讯通话已接通</span>
+            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; font-size:12px;">04:35</span>
+        </div>
+        <div class="call-main">
+            <div class="ai-avatar-big">👨🏻‍💼</div>
+            <div style="font-weight:800; font-size:18px;">小雅 正在听您指挥...</div>
+            <div class="sub-avatars">
+                <div class="sub-avatar">📦</div>
+                <div class="sub-avatar" style="opacity:1; border-color:var(--brand-color)">💸</div>
+            </div>
+        </div>
+        <div class="subtitle-box">
+            <div style="color:var(--brand-color); margin-bottom:8px;">小雅：</div>
+            “明白老板，我现在已经让小丽拉出这两天的销售对比了。需要我帮您在屏幕上显示出具体的利润差吗？”
+        </div>
+        <div class="call-footer">
+            <div class="call-control-btn">🔇<div class="btn-label">静音</div></div>
+            <div class="call-control-btn">📱<div class="btn-label">共享</div></div>
+            <div class="call-control-btn">📷<div class="btn-label">相机</div></div>
+            <div class="call-control-btn end" onclick="hideCall()">☎️<div class="btn-label" style="color:white">挂断</div></div>
+        </div>
+    </div>
+
+    <!-- 底部 Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-btn active" onclick="switchTab('dashboard')"><span>📊</span><span>经营大盘</span></div>
+        <div class="tab-btn" onclick="switchTab('data')"><span>🗄️</span><span>业务数据</span></div>
+        <div class="tab-btn" onclick="switchTab('team')"><span>👨🏻‍💼</span><span>员工管理</span></div>
+        <div class="tab-btn" onclick="switchTab('market')"><span>💼</span><span>人才市场</span></div>
+    </div>
+
+</div>
+
+<script>
+    function showView(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    
+    function hideChat() {
+        document.getElementById('view-chat').classList.remove('active');
+    }
+
+    function showCall() {
+        document.getElementById('view-call').classList.add('active');
+    }
+    
+    function hideCall() {
+        document.getElementById('view-call').classList.remove('active');
+    }
+
+    function switchTab(tab) {
+        // 重置所有 view 的 active 状态（排除 chat 和 call 遮罩）
+        document.querySelectorAll('.view:not(#view-chat):not(#view-call)').forEach(v => v.classList.remove('active'));
+        // 重置 Tab 状态
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        const targetViewId = 'view-' + tab;
+        document.getElementById(targetViewId).classList.add('active');
+        
+        // 找到点击的按钮设置 active (这里简单处理)
+        event.currentTarget.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

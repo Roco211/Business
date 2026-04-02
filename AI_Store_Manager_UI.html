@@ -3,390 +3,612 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI数字管家 - 全功能原型预览</title>
+    <title>AI数字店铺大管家 - 会话驱动原型</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-
-        :root {
-            --brand-color: #FA6400; 
-            --brand-gradient: linear-gradient(135deg, #FF7B00 0%, #E64A19 100%);
-            --bg-color: #F4F5F7;
-            --card-bg: #FFFFFF;
-            --text-main: #1F2329;
-            --text-sub: #8F959E;
-            --border-color: #EBEDF0;
-            --green: #24B15C;
-            --danger: #F53F3F;
-            --call-bg: #1A1D21;
-        }
-
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            font-family: 'Inter', -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            background-color: #2D3136;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .mobile-container {
-            width: 390px;
-            height: 844px;
-            background-color: var(--bg-color);
-            border-radius: 46px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 0 0 10px #111;
-            overflow: hidden;
-            position: relative;
-            border: 2px solid #555;
-        }
-
-        /* 视图管理 */
-        .view {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: none;
-            flex-direction: column;
-            padding-bottom: 80px; /* 为Tab留空 */
-        }
-        .view.active { display: flex; }
-
-        /* 公用头部 */
-        .page-header {
-            padding: 50px 20px 20px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 800;
-            font-size: 18px;
-        }
-
-        /* ------------------ 1. 经营大盘 (Dashboard) ------------------ */
-        #view-dashboard .header-special {
-            padding: 50px 20px 30px;
-            background: var(--brand-gradient);
-            color: white;
-            border-bottom-left-radius: 28px;
-            border-bottom-right-radius: 28px;
-        }
-        .user-greeting { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255,255,255,0.3); }
-        
-        .data-panel { background: white; border-radius: 20px; padding: 20px; margin-top: 20px; display: flex; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
-        .data-item { flex: 1; text-align: center; }
-        .data-item:not(:last-child) { border-right: 1px solid var(--border-color); }
-        .data-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        .data-value { font-size: 18px; font-weight: 800; color: var(--brand-color); }
-
-        .dashboard-content { flex: 1; overflow-y: auto; padding: 20px; }
-        .card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .card-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        
-        .floating-ai-trigger {
-            position: absolute; bottom: 100px; left: 20px; right: 20px;
-            background: var(--brand-gradient); color: white; padding: 16px;
-            border-radius: 30px; text-align: center; font-weight: 800;
-            box-shadow: 0 8px 20px rgba(250, 100, 0, 0.4); cursor: pointer;
-            animation: breathe 3s infinite;
-        }
-
-        /* ------------------ 2. 业务后台 (Data Center) ------------------ */
-        .backoffice-item { display: flex; align-items: center; gap: 16px; padding: 20px; background: white; border-radius: 16px; margin-bottom: 12px; cursor: pointer; }
-        .icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #f0f2f5; }
-        .item-info { flex: 1; }
-        .item-title { font-weight: 800; font-size: 16px; margin-bottom: 2px; }
-        .item-desc { font-size: 12px; color: var(--text-sub); }
-
-        /* ------------------ 3. 员工管理 (Team) ------------------ */
-        .agent-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
-        .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .agent-main { display: flex; gap: 12px; }
-        .agent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: var(--green); font-weight: 800; }
-        .skill-tag { display: inline-block; font-size: 11px; background: #f0f2f5; padding: 4px 10px; border-radius: 12px; margin-right: 6px; margin-top: 6px; font-weight: 600; }
-
-        /* ------------------ 4. 人才市场 (Market) ------------------ */
-        .market-banner { background: #1a1d21; color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
-        .market-banner h3 { font-size: 18px; margin-bottom: 8px; position: relative; z-index: 2; }
-        .market-btn { background: var(--brand-color); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; margin-top: 10px; }
-
-        /* ------------------ 5. 内部群聊 (Chat - Overlay) ------------------ */
-        #view-chat { z-index: 100; background: var(--bg-color); padding-bottom: 0; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-        .msg { display: flex; gap: 10px; max-width: 85%; }
-        .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-content { background: white; padding: 12px 16px; border-radius: 4px 16px 16px 16px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .msg.me .msg-content { background: var(--brand-color); color: white; border-radius: 16px 4px 16px 16px; }
-        .chat-footer { padding: 15px 20px 40px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
-        .chat-input { flex: 1; background: #f0f2f5; height: 44px; border-radius: 22px; padding: 0 16px; display: flex; align-items: center; color: var(--text-sub); font-size: 14px; }
-        .call-btn-trigger { width: 44px; height: 44px; border-radius: 50%; background: var(--green); color: white; display:flex; align-items:center; justify-content:center; font-size: 20px; box-shadow: 0 4px 12px rgba(36,177,92,0.3); cursor: pointer; }
-
-        /* ------------------ 6. 实时通话 (Live Call - Fullscreen) ------------------ */
-        #view-call { z-index: 200; background: var(--call-bg); color: white; padding-bottom: 0; }
-        .call-header { padding: 50px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .call-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .ai-avatar-big { width: 120px; height: 120px; border-radius: 50%; background: var(--brand-gradient); margin-bottom: 20px; display:flex; align-items:center; justify-content:center; font-size: 50px; position: relative; }
-        .ai-avatar-big::after { content: ''; position: absolute; width: 100%; height: 100%; border: 2px solid var(--brand-color); border-radius: 50%; animation: ripple 2s infinite; }
-        .sub-avatars { display: flex; gap: 15px; margin-top: 40px; }
-        .sub-avatar { width: 60px; height: 60px; border-radius: 50%; background: #333; display:flex; align-items:center; justify-content:center; font-size: 24px; border: 2px solid #444; opacity: 0.6; }
-        .subtitle-box { width: 100%; padding: 20px; background: rgba(0,0,0,0.5); min-height: 100px; font-size: 14px; line-height: 1.6; color: #ccc; }
-        .call-footer { padding: 40px 20px 60px; display: flex; justify-content: space-around; }
-        .call-control-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size: 20px; cursor: pointer; }
-        .call-control-btn.end { background: var(--danger); }
-        .btn-label { font-size: 10px; margin-top: 8px; color: #888; }
-
-        /* 底部导航栏 */
-        .tab-bar {
-            position: absolute; bottom: 0; width: 100%; height: 80px;
-            background: white; border-top: 1px solid var(--border-color);
-            display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: 20px; z-index: 10;
-        }
-        .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sub); cursor: pointer; }
-        .tab-btn.active { color: var(--brand-color); }
-        .tab-btn span:first-child { font-size: 24px; }
-        .tab-btn span:last-child { font-size: 10px; font-weight: 800; }
-
-        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 12px 28px rgba(250, 100, 0, 0.5); } }
-        @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+        :root { --bg:#110d10; --ink:#20171a; --soft:#73686c; --paper:#fffaf4; --card:rgba(255,255,255,.82); --line:rgba(35,24,18,.08); --fire:#f26b1d; --wine:#8f311f; --gold:#f3c86a; --jade:#1f9d72; --red:#d94f3d; --shadow:0 18px 40px rgba(33,18,12,.16); --radius:24px; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { min-height:100vh; overflow:hidden; font-family:"Noto Sans SC",sans-serif; background:radial-gradient(circle at top left, rgba(255,141,73,.18), transparent 32%),radial-gradient(circle at bottom right, rgba(31,157,114,.14), transparent 26%),linear-gradient(145deg,#0f0b0d,#1e1719 55%,#161113); color:#fffaf6; }
+        .grid,.grid::before { position:fixed; inset:0; pointer-events:none; content:""; }
+        .grid { background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.75), transparent 92%); }
+        .grid::before { background:radial-gradient(circle at 18% 10%, rgba(243,200,106,.14), transparent 20%),radial-gradient(circle at 80% 76%, rgba(242,107,29,.14), transparent 22%); filter:blur(54px); }
+        .workspace { position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; justify-content:center; gap:32px; padding:32px; }
+        .brief { width:332px; padding:28px; border-radius:28px; background:rgba(255,250,244,.08); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(22px); }
+        .kicker,.chip,.mini,.badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+        .kicker { color:#ffd7bf; background:rgba(255,136,71,.12); margin-bottom:18px; }
+        .mini { background:rgba(32,23,26,.06); color:var(--soft); }
+        .badge { background:rgba(255,255,255,.1); color:#fffaf6; }
+        .brief h1 { font-family:"Space Grotesk",sans-serif; font-size:34px; line-height:1.06; margin-bottom:14px; }
+        .brief p { color:rgba(255,250,246,.74); font-size:14px; line-height:1.8; }
+        .rail { display:grid; gap:14px; margin-top:24px; }
+        .rail-item { padding:14px 16px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); }
+        .rail-item strong { display:block; font-size:14px; margin-bottom:6px; }
+        .rail-item span { color:rgba(255,250,246,.66); font-size:12px; line-height:1.7; }
+        .device-shell { position:relative; width:420px; max-width:calc(100vw - 20px); padding:18px; border-radius:44px; background:linear-gradient(165deg, rgba(255,255,255,.14), rgba(255,255,255,.03)); box-shadow:0 30px 90px rgba(0,0,0,.28); }
+        .device-shell::before { position:absolute; inset:8px; border-radius:36px; border:1px solid rgba(255,255,255,.14); content:""; pointer-events:none; }
+        .device { position:relative; height:860px; overflow:hidden; border-radius:36px; background:radial-gradient(circle at top, rgba(255,186,115,.26), transparent 22%),linear-gradient(180deg,#fdf6ef,#f5ede5 58%,#efe8e1); color:var(--ink); }
+        .notch { position:absolute; top:14px; left:50%; width:128px; height:28px; border-radius:0 0 20px 20px; transform:translateX(-50%); background:#171214; z-index:80; }
+        .app { position:absolute; inset:0; padding-bottom:108px; }
+        .view { position:absolute; inset:0; display:none; flex-direction:column; }
+        .view.active { display:flex; }
+        .primary { padding:26px 20px 0; }
+        .scroll { flex:1; overflow-y:auto; padding:22px 0 30px; scrollbar-width:none; }
+        .scroll::-webkit-scrollbar { display:none; }
+        .topbar,.section-head,.card-head,.team-top,.market-top,.chat-head,.call-head { display:flex; justify-content:space-between; gap:12px; }
+        .store { display:flex; gap:12px; align-items:flex-start; }
+        .avatar,.agent-avatar,.msg-avatar,.sub-avatar { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; flex-shrink:0; }
+        .avatar { width:48px; height:48px; background:linear-gradient(135deg,#ff9c60,#d65525); color:#fffaf6; font-size:22px; box-shadow:0 12px 28px rgba(217,79,61,.24); }
+        h2 { font-size:20px; line-height:1.2; font-weight:900; }
+        .muted,.section-note,.meta { color:var(--soft); font-size:12px; line-height:1.65; }
+        .chip { background:rgba(32,23,26,.06); color:var(--ink); }
+        .chip.live,.badge.live { background:rgba(31,157,114,.14); color:var(--jade); }
+        .chip.risk,.badge.risk { background:rgba(217,79,61,.14); color:var(--red); }
+        .hero,.strip,.card,.agent,.ledger,.market-hero,.market-card,.session,.call-box,.subtitle,.dock,.tabbar,.toast { border-radius:var(--radius); box-shadow:var(--shadow); }
+        .hero { padding:20px; background:radial-gradient(circle at top right, rgba(255,214,149,.55), transparent 26%),linear-gradient(150deg,#291716,#4b2316 48%,#7e3319 100%); color:#fffaf6; }
+        .hero h3 { margin-top:14px; font-size:24px; line-height:1.2; }
+        .hero p { margin-top:8px; color:rgba(255,250,246,.78); font-size:13px; line-height:1.75; }
+        .hero-grid,.mini-grid,.confirm-grid { display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .hero-grid { margin-top:18px; gap:12px; }
+        .hero-item,.strip-item,.mini-panel,.confirm-grid div { padding:14px; border-radius:18px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.08); }
+        .hero-item span,.strip-item span,.mini-panel span,.session-line span,.label { display:block; font-size:11px; opacity:.72; margin-bottom:6px; }
+        .hero-item strong,.strip-item strong,.session-line strong { font-size:20px; line-height:1.1; font-weight:900; }
+        .strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:16px; }
+        .strip-item { background:rgba(255,255,255,.78); color:var(--ink); }
+        .strip-item.warn strong { color:var(--red); }
+        .section { margin-top:18px; }
+        .section-head { align-items:center; margin-bottom:12px; }
+        .section-head h3 { font-size:16px; font-weight:900; }
+        .card,.agent,.ledger,.market-card,.session { padding:16px; background:var(--card); border:1px solid var(--line); }
+        .approval-list,.agent-list,.ledger-list,.catalog,.message-list { display:grid; gap:12px; }
+        .approval { display:flex; gap:14px; padding:14px; border-radius:18px; background:#fffaf6; border:1px solid rgba(153,74,28,.08); }
+        .approval-icon { width:44px; height:44px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; background:rgba(242,107,29,.12); color:#a54b16; font-size:18px; flex-shrink:0; }
+        .approval-main { flex:1; }
+        .approval-main strong,.agent-name { font-size:16px; font-weight:900; }
+        .approval-main p,.market-card p { margin-top:6px; color:var(--soft); font-size:12px; line-height:1.65; }
+        .row,.chips,.meta-row { display:flex; flex-wrap:wrap; gap:8px; }
+        .row { margin-top:12px; }
+        .solid,.line,.market-btn,.dock-main,.icon-btn,.call-btn,.tabbtn { border:none; cursor:pointer; font-family:inherit; }
+        .solid,.line,.market-btn,.dock-main { padding:11px 14px; border-radius:14px; font-size:12px; font-weight:800; }
+        .solid,.market-btn,.dock-main { background:linear-gradient(135deg,var(--fire),var(--wine)); color:#fffaf6; box-shadow:0 12px 24px rgba(191,73,40,.24); }
+        .line { background:transparent; color:#a14b23; border:1px solid rgba(161,75,35,.24); }
+        .agent-avatar { width:48px; height:48px; font-size:22px; color:#fffaf6; background:linear-gradient(135deg,#ff9d69,#cc4d29); }
+        .agent-avatar.green { background:linear-gradient(135deg,#53c79e,#167c5a); }
+        .agent-avatar.gold { background:linear-gradient(135deg,#f1c968,#bb8121); }
+        .agent-top { display:flex; gap:12px; }
+        .mini-grid { margin-top:14px; }
+        .mini-panel { background:rgba(255,248,241,.84); color:var(--ink); }
+        .mini-panel strong { display:block; font-size:13px; margin-bottom:6px; }
+        .mini-panel p { color:var(--soft); font-size:12px; line-height:1.6; }
+        .session-line { display:grid; grid-template-columns:1fr auto; gap:10px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.72); }
+        .market-hero { padding:18px; position:relative; overflow:hidden; background:linear-gradient(150deg,#231615,#5e2b1d 60%,#a44720); color:#fffaf6; }
+        .market-hero::after { position:absolute; right:-30px; top:-18px; font-size:100px; opacity:.08; content:"⛭"; }
+        .market-price { display:flex; align-items:baseline; gap:6px; margin-top:18px; }
+        .market-price strong { font-size:28px; font-weight:900; }
+        .market-price span { font-size:12px; opacity:.72; }
+        .market-card footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
+        .overlay { z-index:50; background:linear-gradient(180deg, rgba(255,247,239,.98), rgba(248,239,230,.98)); }
+        .chat-head { align-items:flex-start; padding:34px 20px 18px; border-bottom:1px solid rgba(32,23,26,.08); background:rgba(255,252,248,.75); backdrop-filter:blur(18px); }
+        .icon-btn { width:36px; height:36px; border-radius:50%; background:rgba(32,23,26,.06); color:var(--ink); font-size:16px; }
+        .chat-strip,.chat-footer { padding:14px 20px 0; }
+        .footer-note { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; border-radius:16px; background:rgba(255,255,255,.74); color:var(--soft); font-size:12px; }
+        .message-list { flex:1; padding:16px 20px 20px; overflow-y:auto; }
+        .message { display:flex; gap:10px; align-items:flex-start; }
+        .message.self { flex-direction:row-reverse; }
+        .msg-avatar { width:38px; height:38px; font-size:18px; background:rgba(32,23,26,.08); }
+        .bubble { max-width:82%; padding:14px; border-radius:20px; background:rgba(255,255,255,.92); border:1px solid rgba(32,23,26,.08); box-shadow:var(--shadow); }
+        .message.self .bubble { background:linear-gradient(135deg, rgba(242,107,29,.94), rgba(150,49,28,.94)); color:#fffaf6; }
+        .bubble p { margin-top:8px; font-size:13px; line-height:1.8; }
+        .confirm { padding:14px; margin-top:10px; border-radius:18px; background:linear-gradient(180deg,#fff7ef,#fffefb); border:1px solid rgba(207,109,44,.14); }
+        .confirm h4 { font-size:14px; font-weight:900; }
+        code { padding:2px 6px; border-radius:8px; background:rgba(255,255,255,.08); color:#ffd7bf; }
+        @media (max-width:1080px) { .brief { display:none; } .workspace { padding:16px; } }
+        @media (max-width:480px) { body { overflow:auto; } .workspace { padding:0; min-height:auto; } .device-shell { width:100vw; padding:0; border-radius:0; background:transparent; box-shadow:none; } .device-shell::before { display:none; } .device { height:100vh; border-radius:0; } }
     </style>
 </head>
 <body>
+    <div class="grid"></div>
+    <div class="workspace">
+        <aside class="brief">
+            <div class="kicker">Conversation-Driven Store OS</div>
+            <h1>老板不是在填表，老板是在指挥一家公司。</h1>
+            <p>这版原型把产品从“AI 员工概念图”重构为“可控运行时”的表达：工作群与通话共用会话，所有关键动作必须经过 Tool 与 Hook，人才市场卖的是可启停、可审计的能力包。</p>
+            <div class="rail">
+                <div class="rail-item"><strong>共享会话层</strong><span>群聊、通话、拍照、共享屏幕都写入同一个 Session。</span></div>
+                <div class="rail-item"><strong>工具与 Hook</strong><span>库存、流水、价格不允许由 Agent 直接落账。</span></div>
+                <div class="rail-item"><strong>能力包市场</strong><span>市场页展示 Skill / Tool / Hook 的组合商品。</span></div>
+                <div class="rail-item"><strong>人工兜底账本</strong><span>老板手改永远允许，但必须留下 Correction Event。</span></div>
+            </div>
+        </aside>
 
-<div class="mobile-container">
-    
-    <!-- 1. 经营大盘 View -->
-    <div id="view-dashboard" class="view active">
-        <div class="header-special">
-            <div class="user-greeting">
-                <div class="avatar">🏪</div>
-                <span>强盛百货老板，下午好！</span>
-            </div>
-            <div class="data-panel">
-                <div class="data-item">
-                    <div class="data-label">今日流水</div>
-                    <div class="data-value">￥2,450</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-label">有效利润</div>
-                    <div class="data-value" style="color:var(--text-main)">￥820</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-label">库存预警</div>
-                    <div class="data-value" style="color:var(--danger)">5款</div>
-                </div>
-            </div>
-        </div>
-        <div class="dashboard-content">
-            <div class="card" style="background:#FFF3F3; border: 1px solid #FFE4E4;">
-                <div class="card-title" style="color:var(--danger)">⚠️ 紧急推送</div>
-                <p style="font-size:13px; color:#c82a2a; margin-bottom:10px;">红牛(24罐)库存仅剩2箱！建议立即补货。</p>
-                <button style="width:100%; padding:10px; border-radius:12px; border:none; background:var(--brand-gradient); color:white; font-weight:800;">🎙️ 一键呼叫老李采购</button>
-            </div>
-            <div class="card">
-                <div class="card-title">🏆 今日热销榜项</div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>1. 农夫山泉 (550ml)</span><span style="color:var(--brand-color)">48件</span></div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>2. 芙蓉王 (中支)</span><span style="color:var(--brand-color)">12包</span></div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0;"><span>3. 乐事原味 (大包)</span><span style="color:var(--brand-color)">8袋</span></div>
-            </div>
-        </div>
-        <div class="floating-ai-trigger" onclick="showView('view-chat')">💬 进入数字员工对话群</div>
-    </div>
+        <div class="device-shell">
+            <div class="device">
+                <div class="notch"></div>
+                <div class="app">
+                    <section class="view primary active" id="view-dashboard" data-view="dashboard">
+                        <div class="scroll">
+                            <div class="topbar">
+                                <div class="store">
+                                    <div class="avatar">🏪</div>
+                                    <div>
+                                        <div class="kicker" style="margin-bottom:8px;">Router Agent 已上线</div>
+                                        <h2>强盛百货 · 老板工作台</h2>
+                                        <p class="meta">小雅正在统一调度工作群、通话、账本事件和风险确认。</p>
+                                    </div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                                    <div class="chip live">会话摘要已开启</div>
+                                    <button class="solid" data-toast="今天已有 3 条高风险动作被自动拦截。">风险报告</button>
+                                </div>
+                            </div>
 
-    <!-- 2. 业务后台 View -->
-    <div id="view-data" class="view">
-        <div class="page-header">业务数据后台</div>
-        <div style="padding: 20px; overflow-y: auto;">
-            <p style="color:var(--text-sub); font-size:13px; margin-bottom:20px;">这里是所有数据的“手工柜台”，在AI出错时可手动修改。</p>
-            <div class="backoffice-item">
-                <div class="icon-box">📦</div>
-                <div class="item-info">
-                    <div class="item-title">老李的库房台账</div>
-                    <div class="item-desc">包含所有商品档案、实时库存、进货价</div>
-                </div>
-                <span>→</span>
-            </div>
-            <div class="backoffice-item">
-                <div class="icon-box">💸</div>
-                <div class="item-info">
-                    <div class="item-title">小丽的钱箱流水</div>
-                    <div class="item-desc">每日收支明细、退款、销售单据</div>
-                </div>
-                <span>→</span>
-            </div>
-            <div class="backoffice-item" style="opacity: 0.5;">
-                <div class="icon-box">🔒</div>
-                <div class="item-info">
-                    <div class="item-title">未解锁账本</div>
-                    <div class="item-desc">招募对应的数字员工后开启</div>
-                </div>
-            </div>
-        </div>
-    </div>
+                            <section class="section">
+                                <div class="hero">
+                                    <div class="chips">
+                                        <div class="badge live">Shared Session</div>
+                                        <div class="badge">Task Run #TK-0313</div>
+                                        <div class="badge risk">待确认 2</div>
+                                    </div>
+                                    <h3>今天不是“看报表”，今天是“指挥数字员工干活”。</h3>
+                                    <p>当前会话正在处理补货与入库任务。系统已保留上下文摘要，通话切入后不会丢失工作状态。</p>
+                                    <div class="hero-grid">
+                                        <div class="hero-item"><span>今日流水</span><strong>￥2,450</strong></div>
+                                        <div class="hero-item"><span>有效利润</span><strong>￥820</strong></div>
+                                        <div class="hero-item"><span>活跃任务</span><strong>7 项</strong></div>
+                                        <div class="hero-item"><span>风险动作</span><strong>2 项</strong></div>
+                                    </div>
+                                </div>
 
-    <!-- 3. 员工管理 View -->
-    <div id="view-team" class="view">
-        <div class="page-header">数字团队管理</div>
-        <div style="padding:20px; overflow-y: auto;">
-            <div class="agent-card">
-                <div class="agent-header">
-                    <div class="agent-main">
-                        <div style="font-size:32px;">👨🏻‍💼</div>
-                        <div>
-                            <div style="font-weight:800;">首席助理 小雅</div>
-                            <div class="agent-status" style="margin-top:4px;">🟢 实时待命中</div>
+                                <div class="strip">
+                                    <div class="strip-item"><span>库存告急</span><strong>5 款</strong></div>
+                                    <div class="strip-item"><span>待确认</span><strong>2 项</strong></div>
+                                    <div class="strip-item"><span>会话模式</span><strong>工作群</strong></div>
+                                    <div class="strip-item warn"><span>低置信识别</span><strong>1 次</strong></div>
+                                </div>
+                            </section>
+
+                            <section class="section">
+                                <div class="section-head">
+                                    <h3>待老板确认</h3>
+                                    <p class="section-note">高风险动作不会直接执行，必须先走 Pre-Tool Hook。</p>
+                                </div>
+                                <div class="card approval-list">
+                                    <div class="approval">
+                                        <div class="approval-icon">⚠️</div>
+                                        <div class="approval-main">
+                                            <strong>红牛补货建议准备执行</strong>
+                                            <p>老李建议补 6 箱。库存只剩 2 箱，过去 48 小时动销偏高。是否允许生成采购任务？</p>
+                                            <div class="chips" style="margin-top:8px;">
+                                                <div class="mini">Hook: 库存阈值</div>
+                                                <div class="mini">Tool: create_purchase_task</div>
+                                            </div>
+                                            <div class="row">
+                                                <button class="solid" data-toast="已批准：老李会继续生成补货任务并回写工作群。">批准执行</button>
+                                                <button class="line" data-toast="已转为人工稍后处理，当前不会自动补货。">稍后再说</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="approval">
+                                        <div class="approval-icon">📷</div>
+                                        <div class="approval-main">
+                                            <strong>新扳手型号识别置信度不足</strong>
+                                            <p>小雅想切换到摄像头继续识别，并提示这会触发“新商品建档确认”。</p>
+                                            <div class="chips" style="margin-top:8px;">
+                                                <div class="mini risk">需打开摄像头</div>
+                                                <div class="mini">Hook: 新商品首次建档</div>
+                                            </div>
+                                            <div class="row">
+                                                <button class="solid" data-open="call">进入通话处理</button>
+                                                <button class="line" data-toast="已拒绝切换摄像头，任务保持待确认。">保持文字模式</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="section">
+                                <div class="section-head">
+                                    <h3>共享会话状态</h3>
+                                    <p class="section-note">工作群与通话共享一份上下文、摘要与任务链。</p>
+                                </div>
+                                <div class="session">
+                                    <div class="card-head">
+                                        <div>
+                                            <div class="kicker" style="margin-bottom:8px;">Conversation Session</div>
+                                            <h3 style="font-size:18px;">SESSION #SX-2026-0402-01</h3>
+                                        </div>
+                                        <div class="chip live">Live</div>
+                                    </div>
+                                    <div class="agent-list" style="margin-top:14px;">
+                                        <div class="session-line"><div><span>当前工作</span><strong>处理“可乐与扳手”入库任务</strong></div><div class="chip">Router: 小雅</div></div>
+                                        <div class="session-line"><div><span>最新工具调用</span><strong>recognize_item_from_photo → adjust_inventory</strong></div><div class="chip">已写审计</div></div>
+                                        <div class="session-line"><div><span>会话摘要</span><strong>已压缩历史 12 轮消息，保留最近 4 条原文</strong></div><div class="chip live">可续接</div></div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="section">
+                                <div class="section-head">
+                                    <h3>数字团队引擎</h3>
+                                    <p class="section-note">角色只负责推理，账本必须由工具层落地。</p>
+                                </div>
+                                <div class="agent-list">
+                                    <div class="agent">
+                                        <div class="agent-top">
+                                            <div class="agent-avatar">👨🏻‍💼</div>
+                                            <div style="flex:1;">
+                                                <div class="team-top">
+                                                    <div>
+                                                        <div class="agent-name">首席助理 小雅</div>
+                                                        <p class="muted">负责意图识别、路由、确认请求、会话摘要。</p>
+                                                    </div>
+                                                    <div class="chip live">实时待命</div>
+                                                </div>
+                                                <div class="meta-row" style="margin-top:6px;">
+                                                    <div class="mini">Router Only</div>
+                                                    <div class="mini">不能直接改账</div>
+                                                    <div class="mini">摘要保留中</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-grid">
+                                            <div class="mini-panel"><strong>已装备 Skill</strong><p>意图路由中枢、方言转译、情绪安抚、多模态会话切换。</p></div>
+                                            <div class="mini-panel"><strong>权限边界</strong><p>只能发起工具调用申请，不能绕过 Hook 或直接修改库存。</p></div>
+                                        </div>
+                                    </div>
+                                    <div class="agent">
+                                        <div class="agent-top">
+                                            <div class="agent-avatar green">📦</div>
+                                            <div style="flex:1;">
+                                                <div class="team-top">
+                                                    <div>
+                                                        <div class="agent-name">仓管员 老李</div>
+                                                        <p class="muted">库存域 worker，负责识物、入库、低库存告警。</p>
+                                                    </div>
+                                                    <div class="chip">理货中</div>
+                                                </div>
+                                                <div class="meta-row" style="margin-top:6px;">
+                                                    <div class="mini">Tool: adjust_inventory</div>
+                                                    <div class="mini">Hook: 进价确认</div>
+                                                    <div class="mini">成功率 98%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-grid">
+                                            <div class="mini-panel"><strong>最近任务</strong><p>刚完成矿泉水入库，已附带撤销与修改进价入口。</p></div>
+                                            <div class="mini-panel"><strong>老板规章</strong><p>所有进货动作必须先确认价格；新商品禁止自动建档。</p></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-                    </div>
-                    <button style="font-size:12px; color:var(--brand-color); border:none; background:none; font-weight:800;">设置性格 ></button>
-                </div>
-                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">今日为您处理了 42 次任务分发。</div>
-                <div class="skill-tag">意图识别</div><div class="skill-tag">方言转换</div><div class="skill-tag">全局调度</div>
-            </div>
-            <div class="agent-card">
-                <div class="agent-header">
-                    <div class="agent-main">
-                        <div style="font-size:32px;">📦</div>
-                        <div>
-                            <div style="font-weight:800;">仓管员 老李</div>
-                            <div class="agent-status" style="background:#fff3e0; color:#f57c00;">🟠 正在理货</div>
+                    </section>
+
+                    <section class="view primary" id="view-data" data-view="data">
+                        <div class="scroll">
+                            <div class="topbar" style="display:block;">
+                                <div class="kicker" style="margin-bottom:10px;">Data Center / Human Fallback</div>
+                                <h2>业务账本后台</h2>
+                                <p class="meta">这里不是传统 ERP 表格，而是 AI 账本的人工兜底层。任何手改都会生成 Correction Event。</p>
+                            </div>
+                            <section class="section">
+                                <div class="ledger-list">
+                                    <div class="ledger">
+                                        <div class="card-head">
+                                            <div><strong style="font-size:17px;">📦 老李的库存账本</strong><p class="muted">商品档案、批次、库存变化事件、人工纠错记录。</p></div>
+                                            <div class="chip live">事件式账本</div>
+                                        </div>
+                                        <div class="mini-grid" style="margin-top:14px;">
+                                            <div class="mini-panel"><strong>当前状态</strong><p>3 条入库事件待同步，1 条新商品识别待确认。</p></div>
+                                            <div class="mini-panel"><strong>人工入口</strong><p>支持手改数量、补填批次、修正进价，所有操作自动审计。</p></div>
+                                        </div>
+                                    </div>
+                                    <div class="ledger">
+                                        <div class="card-head">
+                                            <div><strong style="font-size:17px;">💸 小丽的钱箱流水</strong><p class="muted">销售、退款、赊账、核销统一走现金事件表。</p></div>
+                                            <div class="chip">只读查询为主</div>
+                                        </div>
+                                        <div class="mini-grid" style="margin-top:14px;">
+                                            <div class="mini-panel"><strong>今日异常</strong><p>有 1 笔退款尚未补齐原因，系统已标记为待人工核查。</p></div>
+                                            <div class="mini-panel"><strong>自动解释</strong><p>支持把“为什么今天利润少了”拆解成商品结构、退款影响和赊账变化。</p></div>
+                                        </div>
+                                    </div>
+                                    <div class="ledger">
+                                        <div class="card-head">
+                                            <div><strong style="font-size:17px;">🧾 审计时间线</strong><p class="muted">最近所有高风险动作、人工修正和 Hook 拦截记录。</p></div>
+                                            <div class="chip risk">严控中</div>
+                                        </div>
+                                        <div class="agent-list" style="margin-top:14px;">
+                                            <div class="session-line"><div><span>14:22</span><strong>Pre-Tool Hook 拦截批量改价</strong></div><div class="mini">未执行</div></div>
+                                            <div class="session-line"><div><span>13:58</span><strong>人工修正：可乐入库数量 2 箱 → 3 箱</strong></div><div class="mini">已记账</div></div>
+                                            <div class="session-line"><div><span>13:44</span><strong>Post-Tool Hook 追加撤销令牌</strong></div><div class="mini">可回滚</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-                    </div>
-                </div>
-                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">刚刚完成了“红牛啤酒”入库的操作，准确率100%。</div>
-                <div class="skill-tag">拍照识物</div><div class="skill-tag">条码比对</div><div class="skill-tag">进价趋势</div>
-            </div>
-        </div>
-    </div>
+                    </section>
 
-    <!-- 4. 人才市场 View -->
-    <div id="view-market" class="view">
-        <div class="page-header">人才市场 (Market)</div>
-        <div style="padding:20px; overflow-y: auto;">
-            <div class="market-banner">
-                <div style="position:absolute; right:-20px; top:-10px; font-size:100px; opacity:0.1;">👑</div>
-                <h3>官方金牌套装</h3>
-                <p style="font-size:12px; opacity:0.8;">助理+仓管+收银，全方位解放店主</p>
-                <div style="font-size:20px; font-weight:800; margin-top:10px;">￥99.00 <span style="font-size:12px; font-weight:400;">/月</span></div>
-                <button class="market-btn">一键雇佣全部成员</button>
-            </div>
-            <p style="font-size:14px; font-weight:800; margin-bottom:15px;">按需招募 Skill / 角色</p>
-            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div><div style="font-weight:800;">🗣️ 五种方言播报包</div><div style="font-size:11px; color:var(--text-sub);">四川/广东/东北等，更亲切</div></div>
-                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥5</button>
-            </div>
-            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div><div style="font-weight:800;">📄 极速单据OCR识别</div><div style="font-size:11px; color:var(--text-sub);">再潦草的进货单也能看懂</div></div>
-                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥15</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. 工作群聊 (Overlays from floating trigger) -->
-    <div id="view-chat" class="view">
-        <div class="page-header">
-            <span onclick="hideChat()" style="cursor:pointer;">✕</span>
-            <span>数字员工内部群 (3)</span>
-            <span style="font-size:14px; color:var(--brand-color)">设置</span>
-        </div>
-        <div class="chat-messages">
-            <div class="msg">
-                <div class="avatar" style="background:#555; width:36px; height:36px; font-size:16px;">📦</div>
-                <div>
-                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">老李 刚刚</div>
-                    <div class="msg-content">
-                        老板，刚刚拍照那箱矿泉水已经入库了，一共24瓶，进价1.2元/瓶，您看对不？
-                        <div style="margin-top:10px; display:flex; gap:8px;">
-                            <button style="padding:5px 10px; border-radius:8px; border:1px solid #ddd; background:#f9f9f9; font-size:12px;">撤销入库</button>
-                            <button style="padding:5px 10px; border-radius:8px; border:1px solid var(--brand-color); background:white; color:var(--brand-color); font-size:12px;">修改价格</button>
+                    <section class="view primary" id="view-team" data-view="team">
+                        <div class="scroll">
+                            <div class="topbar" style="display:block;">
+                                <div class="kicker" style="margin-bottom:10px;">My Team / Runtime Boundaries</div>
+                                <h2>数字团队管理</h2>
+                                <p class="meta">在这里配置员工人格、默认规章、Skill 装备和高风险动作的确认链路。</p>
+                            </div>
+                            <section class="section">
+                                <div class="agent-list">
+                                    <div class="agent">
+                                        <div class="agent-top">
+                                            <div class="agent-avatar">👨🏻‍💼</div>
+                                            <div style="flex:1;">
+                                                <div class="team-top">
+                                                    <div><div class="agent-name">小雅 · Router Agent</div><p class="muted">连接老板输入层与所有专业员工。</p></div>
+                                                    <div class="chip live">42 次调度</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-grid">
+                                            <div class="mini-panel"><strong>人格配置</strong><p>专业干练 / 四川方言 / 温和安抚风格。</p></div>
+                                            <div class="mini-panel"><strong>默认守则</strong><p>低置信视觉任务必须解释为什么要开摄像头，再请求确认。</p></div>
+                                        </div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">Skill: 意图路由中枢</div><div class="mini">Skill: 会话压缩续接</div><div class="mini">Hook: 风险升级提醒</div></div>
+                                    </div>
+                                    <div class="agent">
+                                        <div class="agent-top">
+                                            <div class="agent-avatar green">📦</div>
+                                            <div style="flex:1;">
+                                                <div class="team-top">
+                                                    <div><div class="agent-name">老李 · Inventory Worker</div><p class="muted">只服务库存域，不得越权修改现金流水。</p></div>
+                                                    <div class="chip">今日 115 件</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-grid">
+                                            <div class="mini-panel"><strong>可装备 Skill</strong><p>包装拍照识别、条码建档、低库存警报、进价趋势对比。</p></div>
+                                            <div class="mini-panel"><strong>老板规章</strong><p>每次进货必须确认价格；新商品建档默认停在待确认状态。</p></div>
+                                        </div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">Hook：进价确认</div><div class="mini">Hook：批量库存变更拦截</div><div class="mini">撤销窗口：10 分钟</div></div>
+                                    </div>
+                                    <div class="agent">
+                                        <div class="agent-top">
+                                            <div class="agent-avatar gold">💸</div>
+                                            <div style="flex:1;">
+                                                <div class="team-top">
+                                                    <div><div class="agent-name">小丽 · Cash & Query Worker</div><p class="muted">负责读写流水、解释利润波动与熟客赊账。</p></div>
+                                                    <div class="chip">查询优先</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mini-grid">
+                                            <div class="mini-panel"><strong>查询边界</strong><p>日常报表默认只读；退款冲销属于高风险动作。</p></div>
+                                            <div class="mini-panel"><strong>风险动作</strong><p>退款、抹账、赊账核销必须保留审计和老板确认。</p></div>
+                                        </div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">Tool: query_daily_revenue</div><div class="mini">Tool: record_cash_event</div><div class="mini">Hook: 退款原因必填</div></div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
+                    </section>
+
+                    <section class="view primary" id="view-market" data-view="market">
+                        <div class="scroll">
+                            <div class="topbar" style="display:block;">
+                                <div class="kicker" style="margin-bottom:10px;">Subscription Market / Plugin Packages</div>
+                                <h2>数字员工人才市场</h2>
+                                <p class="meta">市场卖的是能力包：可启停、可审计、可升级，不是零散功能按钮。</p>
+                            </div>
+                            <section class="section">
+                                <div class="market-hero">
+                                    <div class="chips"><div class="badge">Bundled Pack</div><div class="badge live">Manifest 驱动</div></div>
+                                    <h3 style="margin-top:14px;font-size:22px;">官方金牌管家套装</h3>
+                                    <p>含小雅 + 老李 + 小丽 + 15 个官方 Skill + 6 条默认 Hook，覆盖工作群、通话、识物、流水和审计。</p>
+                                    <div class="market-price"><strong>￥99</strong><span>/ 月</span></div>
+                                    <div class="row"><button class="market-btn" data-toast="已加入雇佣清单：官方金牌管家套装。">一键雇佣</button><button class="line" data-toast="能力包详情已展开：包含 Skill / Tool / Hook / Lifecycle 定义。">查看 manifest</button></div>
+                                </div>
+                            </section>
+                            <section class="section">
+                                <div class="section-head"><h3>官方内置员工</h3><p class="section-note">Builtin 角色，由平台直接维护和升级。</p></div>
+                                <div class="catalog">
+                                    <div class="market-card">
+                                        <div class="market-top"><div><strong>👨🏻‍💼 小雅 · Router 核心包</strong><p>提供意图路由、会话摘要、方言转译、风险升级提示。</p></div><div class="chip live">已启用</div></div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">tools 2</div><div class="mini">hooks 1</div><div class="mini">permissions read</div></div>
+                                        <footer><span class="muted">Builtin / defaultEnabled</span><button class="line" data-toast="小雅属于内置核心角色，不建议禁用。">管理</button></footer>
+                                    </div>
+                                    <div class="market-card">
+                                        <div class="market-top"><div><strong>📦 老李 · 仓储执行包</strong><p>提供识物、入库、库存预警、批次记录、进价校验。</p></div><div class="chip">可升级</div></div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">tools 4</div><div class="mini">hooks 2</div><div class="mini">permissions operate</div></div>
+                                        <footer><span class="muted">Worker / Inventory Domain</span><button class="market-btn" data-toast="已把老李执行包加入升级清单。">升级</button></footer>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="section">
+                                <div class="section-head"><h3>官方打包 Skill</h3><p class="section-note">Bundled packs 可向现有员工追加能力，而不是重新造轮子。</p></div>
+                                <div class="catalog">
+                                    <div class="market-card">
+                                        <div class="market-top"><div><strong>📄 OCR 单据识别大师</strong><p>老李 / 小丽可装备。支持潦草进货单与待确认修正。</p></div><div class="chip">￥15 / 月</div></div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">tool: parse_receipt_ocr</div><div class="mini">hook: 低置信字段确认</div></div>
+                                        <footer><span class="muted">Bundled Pack / 可回滚</span><button class="market-btn" data-toast="已把 OCR 单据识别大师加入购买清单。">雇佣</button></footer>
+                                    </div>
+                                    <div class="market-card">
+                                        <div class="market-top"><div><strong>🗣️ 方言播报包</strong><p>小雅可装备。把结果卡和风险提醒切换为更接地气的口头表达。</p></div><div class="chip">￥5 / 月</div></div>
+                                        <div class="chips" style="margin-top:12px;"><div class="mini">skill: dialect_voice_style</div><div class="mini">permissions read</div></div>
+                                        <footer><span class="muted">Bundled Pack</span><button class="market-btn" data-toast="已把方言播报包加入购买清单。">雇佣</button></footer>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section class="view overlay" id="view-chat">
+                        <div class="chat-head">
+                            <button class="icon-btn" data-close="chat" aria-label="关闭工作群">✕</button>
+                            <div style="flex:1;">
+                                <strong style="font-size:18px;">数字员工内部工作群</strong>
+                                <p class="muted">Shared Session #SX-2026-0402-01 · 老板 / 小雅 / 老李 / 小丽</p>
+                            </div>
+                            <div class="chip live">待命 3</div>
+                        </div>
+                        <div class="chat-strip"><div class="footer-note"><span>本群与通话共用同一会话摘要。最近工具：<strong>adjust_inventory</strong></span><span class="chip risk">待确认 1</span></div></div>
+                        <div class="message-list">
+                            <div class="message self">
+                                <div class="msg-avatar">🤴</div>
+                                <div class="bubble">
+                                    <strong>老板 · 14:18</strong>
+                                    <p>今天进来 3 箱可乐，还有一个新扳手，先帮我入库。要是价格不对先别记。</p>
+                                </div>
+                            </div>
+                            <div class="message">
+                                <div class="msg-avatar">👨🏻‍💼</div>
+                                <div class="bubble">
+                                    <strong>小雅 · 14:18</strong>
+                                    <p>收到老板。可乐入库交给老李，新扳手疑似新商品，我会先走识别和风险确认，不直接建档。</p>
+                                    <div class="chips" style="margin-top:10px;"><div class="mini">Router → Inventory Worker</div><div class="mini">Summary retained</div></div>
+                                </div>
+                            </div>
+                            <div class="message">
+                                <div class="msg-avatar">📦</div>
+                                <div class="bubble">
+                                    <strong>老李 · 14:19</strong>
+                                    <p>可乐已识别为 500ml 经典款，准备写入 3 箱。由于本次进价与上批次相差较大，先请您确认。</p>
+                                    <div class="confirm">
+                                        <h4>待确认：可乐入库动作</h4>
+                                        <div class="confirm-grid" style="margin-top:12px;">
+                                            <div><span class="label">商品</span><strong>可口可乐 500ml</strong></div>
+                                            <div><span class="label">数量</span><strong>3 箱</strong></div>
+                                            <div><span class="label">建议进价</span><strong>￥41 / 箱</strong></div>
+                                            <div><span class="label">拦截原因</span><strong>高于历史进价 21%</strong></div>
+                                        </div>
+                                        <div class="row">
+                                            <button class="solid" data-toast="已确认进价，库存事件会继续写入并刷新大盘。">确认进价</button>
+                                            <button class="line" data-toast="已转入人工修正流程，老李不会直接入库。">改成手工录入</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="message">
+                                <div class="msg-avatar">🧾</div>
+                                <div class="bubble">
+                                    <strong>系统纪要 · 14:20</strong>
+                                    <p>Pre-Tool Hook 已触发：新扳手型号识别置信度低于阈值，建议切换到通话并打开摄像头继续处理。</p>
+                                    <div class="row">
+                                        <button class="solid" data-open="call">开启高阶工作流通话</button>
+                                        <button class="line" data-toast="已保留当前会话状态，稍后可直接续接。">稍后再处理</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-footer">
+                            <div class="footer-note"><span>会话摘要已保留最近 4 条消息原文，退出通话后将自动生成工作纪要。</span><span class="mini">Compact Ready</span></div>
+                            <div style="display:flex;align-items:center;gap:10px;padding:12px 0 28px;">
+                                <div style="flex:1;height:50px;border-radius:18px;background:linear-gradient(90deg, rgba(255,141,73,.16), rgba(255,255,255,.9));display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:var(--soft);font-size:13px;">
+                                    <span>按住说话，或继续发照片 / 单据...</span>
+                                    <span style="font-size:18px;">〰️</span>
+                                </div>
+                                <button class="market-btn" style="width:50px;height:50px;padding:0;border-radius:16px;" data-open="call">📞</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="view" id="view-call">
+                        <div style="padding:34px 20px 30px;height:100%;display:flex;flex-direction:column;background:radial-gradient(circle at top, rgba(243,200,106,.16), transparent 20%),linear-gradient(180deg,#141012,#1b1518 40%,#120f12);color:#fffaf6;">
+                            <div class="call-head">
+                                <div>
+                                    <div class="kicker" style="color:#ffcf9a;background:rgba(255,159,87,.1);margin-bottom:10px;">Live Copilot Call</div>
+                                    <strong style="display:block;font-size:18px;">实时连线已接通</strong>
+                                    <p class="muted" style="color:rgba(255,250,246,.7);">Session #SX-2026-0402-01 · 通话与工作群共享同一任务链</p>
+                                </div>
+                                <button class="icon-btn" data-close="call" style="background:rgba(255,255,255,.08);color:#fffaf6;">✕</button>
+                            </div>
+                            <div style="flex:1;display:grid;gap:18px;margin-top:20px;">
+                                <div class="call-box" style="padding:22px 18px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(24px);text-align:center;">
+                                    <div class="chips" style="justify-content:center;"><div class="badge live">低功耗纯语音</div><div class="badge risk">待视觉确认</div><div class="badge">Active Tool Chain</div></div>
+                                    <div style="position:relative;width:132px;height:132px;margin:12px auto 14px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffac71,#d14f23);font-size:56px;box-shadow:0 0 0 18px rgba(255,255,255,.04);">👨🏻‍💼</div>
+                                    <div style="font-size:20px;font-weight:900;">小雅正在听您指挥</div>
+                                    <p style="margin-top:8px;color:rgba(255,250,246,.74);font-size:13px;line-height:1.7;">当前任务需要看一眼新扳手型号。打开摄像头后，视觉识别结果会继续写回同一会话。</p>
+                                    <div style="display:flex;justify-content:center;gap:14px;margin-top:18px;">
+                                        <div class="sub-avatar" style="width:60px;height:60px;background:rgba(255,255,255,.08);border:1px solid rgba(243,200,106,.4);font-size:24px;">📦</div>
+                                        <div class="sub-avatar" style="width:60px;height:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:24px;opacity:.7;">💸</div>
+                                    </div>
+                                </div>
+                                <div class="call-box" style="padding:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);">
+                                    <strong>当前运行时状态</strong>
+                                    <p style="font-size:13px;line-height:1.8;color:rgba(255,250,246,.76);margin-top:8px;">Step 02 / 05：等待视觉输入。最近已完成的工具调用为 <code>recognize_item_from_photo</code>，下一步若置信度足够，将进入 <code>adjust_inventory</code>。</p>
+                                    <div class="chips" style="margin-top:12px;"><div class="mini">Pre Hook：新商品建档确认</div><div class="mini">Post Hook：结果卡 + 审计日志</div></div>
+                                </div>
+                                <div class="subtitle" style="padding:16px;background:rgba(0,0,0,.26);border:1px solid rgba(255,255,255,.08);">
+                                    <div class="chips"><div class="badge">实时意图流</div><div class="badge live">Summary retained</div></div>
+                                    <p style="font-size:13px;line-height:1.8;color:rgba(255,250,246,.76);margin-top:10px;">小雅：老板，这个扳手型号我没见过。为了避免建错档，我需要您打开摄像头让我看一眼；如果识别还是不稳，我会停在待确认，不会直接写账。</p>
+                                </div>
+                            </div>
+                            <div style="display:flex;justify-content:space-around;gap:10px;margin-top:18px;">
+                                <button class="call-btn" data-toast="麦克风已切换为静音示意状态。" style="width:68px;height:68px;border-radius:22px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#fffaf6;">🔇</button>
+                                <button class="call-btn" data-toast="共享屏幕属于高风险上下文接入，正式版会给出明确解释。" style="width:68px;height:68px;border-radius:22px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#fffaf6;">📱</button>
+                                <button class="call-btn" data-toast="摄像头接入请求已提出，正式版将继续串联视觉识别工具。" style="width:68px;height:68px;border-radius:22px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#fffaf6;">📷</button>
+                                <button class="call-btn" data-close="call" style="width:68px;height:68px;border-radius:22px;background:linear-gradient(135deg,var(--red),#8a231d);color:#fffaf6;">☎️</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="dock" style="position:absolute;left:16px;right:16px;bottom:102px;padding:12px 14px;background:rgba(31,20,18,.9);color:#fffaf6;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;z-index:34;">
+                        <div style="flex:1;">
+                            <strong style="display:block;font-size:14px;font-weight:900;">进入数字员工内部工作群</strong>
+                            <p style="margin-top:4px;color:rgba(255,250,246,.68);font-size:12px;line-height:1.5;">小雅待命：老板，您在群里吩咐，我按岗位和风险等级给您分发。</p>
+                        </div>
+                        <button class="dock-main" data-open="chat">进入工作群</button>
                     </div>
+
+                    <nav class="tabbar" style="position:absolute;left:16px;right:16px;bottom:14px;height:74px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px;background:rgba(255,252,248,.9);border:1px solid rgba(32,23,26,.08);z-index:35;">
+                        <button class="tabbtn active" data-target="dashboard" style="border-radius:18px;background:linear-gradient(135deg, rgba(255,152,88,.18), rgba(255,255,255,.9));color:#9a471f;"><span style="display:block;font-size:22px;">📊</span><span style="font-size:10px;font-weight:800;">经营大盘</span></button>
+                        <button class="tabbtn" data-target="data" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">🗄️</span><span style="font-size:10px;font-weight:800;">业务账本</span></button>
+                        <button class="tabbtn" data-target="team" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">👨🏻‍💼</span><span style="font-size:10px;font-weight:800;">团队架构</span></button>
+                        <button class="tabbtn" data-target="market" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">💼</span><span style="font-size:10px;font-weight:800;">人才市场</span></button>
+                    </nav>
+
+                    <div class="toast" id="toast" style="position:absolute;left:50%;top:24px;transform:translate(-50%,-12px);min-width:240px;max-width:calc(100% - 56px);padding:12px 14px;background:rgba(20,16,18,.92);color:#fffaf6;font-size:12px;line-height:1.6;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:90;"></div>
                 </div>
             </div>
-            <div class="msg me">
-                <div class="avatar" style="background:#ddd; width:36px; height:36px; font-size:16px;">🤴</div>
-                <div class="msg-content">对的，就这样记。</div>
-            </div>
-        </div>
-        <div class="chat-footer">
-            <span style="font-size:20px;">⌨️</span>
-            <div class="chat-input" onclick="showCall()">按住说话，或点击发起通话...</div>
-            <div class="call-btn-trigger" onclick="showCall()">📞</div>
         </div>
     </div>
 
-    <!-- 6. 实时通话 (Full Overlays) -->
-    <div id="view-call" class="view">
-        <div class="call-header">
-            <span>实时视讯通话已接通</span>
-            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; font-size:12px;">04:35</span>
-        </div>
-        <div class="call-main">
-            <div class="ai-avatar-big">👨🏻‍💼</div>
-            <div style="font-weight:800; font-size:18px;">小雅 正在听您指挥...</div>
-            <div class="sub-avatars">
-                <div class="sub-avatar">📦</div>
-                <div class="sub-avatar" style="opacity:1; border-color:var(--brand-color)">💸</div>
-            </div>
-        </div>
-        <div class="subtitle-box">
-            <div style="color:var(--brand-color); margin-bottom:8px;">小雅：</div>
-            “明白老板，我现在已经让小丽拉出这两天的销售对比了。需要我帮您在屏幕上显示出具体的利润差吗？”
-        </div>
-        <div class="call-footer">
-            <div class="call-control-btn">🔇<div class="btn-label">静音</div></div>
-            <div class="call-control-btn">📱<div class="btn-label">共享</div></div>
-            <div class="call-control-btn">📷<div class="btn-label">相机</div></div>
-            <div class="call-control-btn end" onclick="hideCall()">☎️<div class="btn-label" style="color:white">挂断</div></div>
-        </div>
-    </div>
+    <script>
+        const views = [...document.querySelectorAll('[data-view]')];
+        const tabs = [...document.querySelectorAll('.tabbtn')];
+        const chat = document.getElementById('view-chat');
+        const call = document.getElementById('view-call');
+        const toast = document.getElementById('toast');
+        let timer;
 
-    <!-- 底部 Tab Bar -->
-    <div class="tab-bar">
-        <div class="tab-btn active" onclick="switchTab('dashboard')"><span>📊</span><span>经营大盘</span></div>
-        <div class="tab-btn" onclick="switchTab('data')"><span>🗄️</span><span>业务数据</span></div>
-        <div class="tab-btn" onclick="switchTab('team')"><span>👨🏻‍💼</span><span>员工管理</span></div>
-        <div class="tab-btn" onclick="switchTab('market')"><span>💼</span><span>人才市场</span></div>
-    </div>
+        function setView(name) {
+            views.forEach((view) => view.classList.toggle('active', view.dataset.view === name));
+            tabs.forEach((tab) => {
+                const active = tab.dataset.target === name;
+                tab.classList.toggle('active', active);
+                tab.style.background = active ? 'linear-gradient(135deg, rgba(255,152,88,.18), rgba(255,255,255,.9))' : 'transparent';
+                tab.style.color = active ? '#9a471f' : 'var(--soft)';
+            });
+        }
 
-</div>
+        function showToast(message) {
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%,0)';
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%,-12px)';
+            }, 2200);
+        }
 
-<script>
-    function showView(id) {
-        document.getElementById(id).classList.add('active');
-    }
-    
-    function hideChat() {
-        document.getElementById('view-chat').classList.remove('active');
-    }
-
-    function showCall() {
-        document.getElementById('view-call').classList.add('active');
-    }
-    
-    function hideCall() {
-        document.getElementById('view-call').classList.remove('active');
-    }
-
-    function switchTab(tab) {
-        // 重置所有 view 的 active 状态（排除 chat 和 call 遮罩）
-        document.querySelectorAll('.view:not(#view-chat):not(#view-call)').forEach(v => v.classList.remove('active'));
-        // 重置 Tab 状态
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        const targetViewId = 'view-' + tab;
-        document.getElementById(targetViewId).classList.add('active');
-        
-        // 找到点击的按钮设置 active (这里简单处理)
-        event.currentTarget.classList.add('active');
-    }
-</script>
-
+        tabs.forEach((tab) => tab.addEventListener('click', () => setView(tab.dataset.target)));
+        document.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => {
+            if (button.dataset.open === 'chat') chat.classList.add('active');
+            if (button.dataset.open === 'call') call.classList.add('active');
+        }));
+        document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => {
+            if (button.dataset.close === 'chat') chat.classList.remove('active');
+            if (button.dataset.close === 'call') call.classList.remove('active');
+        }));
+        document.querySelectorAll('[data-toast]').forEach((button) => button.addEventListener('click', () => showToast(button.dataset.toast)));
+    </script>
 </body>
 </html>

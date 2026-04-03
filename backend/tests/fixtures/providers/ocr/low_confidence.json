@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "items": [
+      { "name": "可乐", "quantity": 3, "unit": "箱", "price": null }
+    ]
+  },
+  "low_confidence_fields": ["items[0].price"]
+}

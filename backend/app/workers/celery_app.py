@@ -1,3 +1,15 @@
 from celery import Celery
 
-celery_app = Celery("ai_store_manager")
+from app.core.config import get_settings
+
+
+def create_celery_app() -> Celery:
+    settings = get_settings()
+    return Celery(
+        "ai_store_manager",
+        broker=settings.redis_url,
+        backend=settings.redis_url,
+    )
+
+
+celery_app = create_celery_app()

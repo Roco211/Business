@@ -1,1853 +1,298 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI数字店铺大管家 - 会话驱动原型</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-        :root { --bg:#110d10; --ink:#20171a; --soft:#73686c; --paper:#fffaf4; --card:rgba(255,255,255,.82); --line:rgba(35,24,18,.08); --fire:#f26b1d; --wine:#8f311f; --gold:#f3c86a; --jade:#1f9d72; --red:#d94f3d; --shadow:0 18px 40px rgba(33,18,12,.16); --radius:24px; }
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { min-height:100vh; overflow:hidden; font-family:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei UI","Microsoft YaHei",sans-serif; text-rendering:optimizeLegibility; background:radial-gradient(circle at top left, rgba(255,141,73,.18), transparent 32%),radial-gradient(circle at bottom right, rgba(31,157,114,.14), transparent 26%),linear-gradient(145deg,#0f0b0d,#1e1719 55%,#161113); color:#fffaf6; }
-        .grid,.grid::before { position:fixed; inset:0; pointer-events:none; content:""; }
-        .grid { background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.75), transparent 92%); }
-        .grid::before { background:radial-gradient(circle at 18% 10%, rgba(243,200,106,.14), transparent 20%),radial-gradient(circle at 80% 76%, rgba(242,107,29,.14), transparent 22%); filter:blur(54px); }
-        .workspace { position:relative; z-index:1; width:100vw; height:100vh; padding:0; }
-        .brief { display:none; }
-        .kicker,.chip,.mini,.badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800; line-height:1.1; letter-spacing:.02em; word-break:keep-all; white-space:nowrap; }
-        .kicker,.chip,.mini,.badge,.soft-tag { flex-shrink:0; }
-        .kicker { color:#ffd7bf; background:rgba(255,136,71,.12); margin-bottom:18px; }
-        .mini { background:rgba(32,23,26,.06); color:var(--soft); }
-        .badge { background:rgba(255,255,255,.1); color:#fffaf6; }
-        .brief h1 { font-family:inherit; font-size:34px; line-height:1.14; font-weight:900; margin-bottom:14px; }
-        .brief p { color:rgba(255,250,246,.74); font-size:14px; line-height:1.8; }
-        .rail { display:grid; gap:14px; margin-top:24px; }
-        .rail-item { padding:14px 16px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); }
-        .rail-item strong { display:block; font-size:14px; margin-bottom:6px; }
-        .rail-item span { color:rgba(255,250,246,.66); font-size:12px; line-height:1.7; }
-        .device-shell { position:relative; width:100%; height:100%; max-width:none; padding:0; border-radius:0; background:transparent; box-shadow:none; }
-        .device-shell::before { display:none; }
-        .device { position:relative; width:100%; height:100%; overflow:hidden; border-radius:0; background:radial-gradient(circle at top, rgba(255,186,115,.26), transparent 22%),linear-gradient(180deg,#fdf6ef,#f5ede5 58%,#efe8e1); color:var(--ink); }
-        .app { position:absolute; inset:0; padding-bottom:108px; }
-        .view { position:absolute; inset:0; display:none; flex-direction:column; }
-        .view.active { display:flex; }
-        .primary { padding:26px 20px 0; }
-        .scroll { flex:1; overflow-y:auto; padding:22px 0 30px; scrollbar-width:none; }
-        .scroll::-webkit-scrollbar { display:none; }
-        .topbar,.section-head,.card-head,.team-top,.market-top,.chat-head,.call-head { display:flex; justify-content:space-between; gap:12px; }
-        .topbar > *, .section-head > *, .card-head > *, .team-top > *, .market-top > *, .chat-head > *, .call-head > * { min-width:0; }
-        .store { display:flex; gap:12px; align-items:flex-start; }
-        .avatar,.agent-avatar,.msg-avatar,.sub-avatar { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; flex-shrink:0; }
-        .avatar { width:48px; height:48px; background:linear-gradient(135deg,#ff9c60,#d65525); color:#fffaf6; font-size:22px; box-shadow:0 12px 28px rgba(217,79,61,.24); }
-        h2 { font-size:20px; line-height:1.2; font-weight:900; }
-        .muted,.section-note,.meta { color:var(--soft); font-size:12px; line-height:1.65; }
-        .chip { background:rgba(32,23,26,.06); color:var(--ink); }
-        .chip.live,.badge.live { background:rgba(31,157,114,.14); color:var(--jade); }
-        .chip.risk,.badge.risk { background:rgba(217,79,61,.14); color:var(--red); }
-        .hero,.strip,.card,.agent,.ledger,.market-hero,.market-card,.session,.call-box,.subtitle,.dock,.tabbar,.toast { border-radius:var(--radius); box-shadow:var(--shadow); }
-        .hero { padding:20px; background:radial-gradient(circle at top right, rgba(255,214,149,.55), transparent 26%),linear-gradient(150deg,#291716,#4b2316 48%,#7e3319 100%); color:#fffaf6; }
-        .hero h3 { margin-top:14px; font-size:24px; line-height:1.2; }
-        .hero p { margin-top:8px; color:rgba(255,250,246,.78); font-size:13px; line-height:1.75; }
-        .hero-grid,.mini-grid,.confirm-grid { display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
-        .hero-grid { margin-top:18px; gap:12px; }
-        .hero-item,.strip-item,.mini-panel,.confirm-grid div { padding:14px; border-radius:18px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.08); }
-        .hero-item span,.strip-item span,.mini-panel span,.session-line span,.label { display:block; font-size:11px; opacity:.72; margin-bottom:6px; }
-        .hero-item strong,.strip-item strong,.session-line strong { font-size:20px; line-height:1.1; font-weight:900; }
-        .strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:16px; }
-        .strip-item { background:rgba(255,255,255,.78); color:var(--ink); }
-        .strip-item.warn strong { color:var(--red); }
-        .section { margin-top:18px; }
-        .section-head { align-items:center; margin-bottom:12px; }
-        .section-head h3 { font-size:16px; font-weight:900; }
-        .card,.agent,.ledger,.market-card,.session { padding:16px; background:var(--card); border:1px solid var(--line); }
-        .approval-list,.agent-list,.ledger-list,.catalog,.message-list { display:grid; gap:12px; }
-        .approval { display:flex; gap:14px; padding:14px; border-radius:18px; background:#fffaf6; border:1px solid rgba(153,74,28,.08); }
-        .approval-icon { width:44px; height:44px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; background:rgba(242,107,29,.12); color:#a54b16; font-size:18px; flex-shrink:0; }
-        .approval-main { flex:1; }
-        .approval-main strong,.agent-name { font-size:16px; font-weight:900; }
-        .approval-main p,.market-card p { margin-top:6px; color:var(--soft); font-size:12px; line-height:1.65; }
-        .row,.chips,.meta-row { display:flex; flex-wrap:wrap; gap:8px; }
-        .row { margin-top:12px; }
-        .row > *, .chips > *, .meta-row > * { max-width:100%; }
-        .solid,.line,.market-btn,.dock-main,.icon-btn,.call-btn,.tabbtn { border:none; cursor:pointer; font-family:inherit; }
-        .solid,.line,.market-btn,.dock-main { padding:11px 14px; border-radius:14px; font-size:12px; font-weight:800; }
-        .solid,.line,.market-btn,.dock-main,.call-btn,.tabbtn,.switcher button { line-height:1.15; word-break:keep-all; white-space:nowrap; }
-        .solid,.line,.market-btn,.dock-main,.call-btn,.icon-btn { flex-shrink:0; }
-        .solid,.market-btn,.dock-main { background:linear-gradient(135deg,var(--fire),var(--wine)); color:#fffaf6; box-shadow:0 12px 24px rgba(191,73,40,.24); }
-        .line { background:transparent; color:#a14b23; border:1px solid rgba(161,75,35,.24); }
-        .agent-avatar { width:48px; height:48px; font-size:22px; color:#fffaf6; background:linear-gradient(135deg,#ff9d69,#cc4d29); }
-        .agent-avatar.green { background:linear-gradient(135deg,#53c79e,#167c5a); }
-        .agent-avatar.gold { background:linear-gradient(135deg,#f1c968,#bb8121); }
-        .agent-top { display:flex; gap:12px; }
-        .mini-grid { margin-top:14px; }
-        .mini-panel { background:rgba(255,248,241,.84); color:var(--ink); }
-        .mini-panel strong { display:block; font-size:13px; margin-bottom:6px; }
-        .mini-panel p { color:var(--soft); font-size:12px; line-height:1.6; }
-        .session-line { display:grid; grid-template-columns:1fr auto; gap:10px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.72); }
-        .market-hero { padding:18px; position:relative; overflow:hidden; background:linear-gradient(150deg,#231615,#5e2b1d 60%,#a44720); color:#fffaf6; }
-        .market-hero::after { position:absolute; right:-30px; top:-18px; font-size:100px; opacity:.08; content:"⛭"; }
-        .market-price { display:flex; align-items:baseline; gap:6px; margin-top:18px; }
-        .market-price strong { font-size:28px; font-weight:900; }
-        .market-price span { font-size:12px; opacity:.72; }
-        .market-card footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
-        .overlay { z-index:50; background:linear-gradient(180deg, rgba(255,247,239,.98), rgba(248,239,230,.98)); }
-        .chat-head { align-items:center; padding:24px 16px 12px; border-bottom:1px solid rgba(32,23,26,.08); background:rgba(255,252,248,.82); backdrop-filter:blur(18px); }
-        .chat-meta { flex:1; min-width:0; }
-        .chat-title { display:block; font-size:16px; line-height:1.25; font-weight:900; }
-        .chat-subtitle { margin-top:4px; color:var(--soft); font-size:11px; line-height:1.5; }
-        .icon-btn { width:36px; height:36px; border-radius:50%; background:rgba(32,23,26,.06); color:var(--ink); font-size:16px; }
-        .chat-strip,.chat-footer { padding:10px 16px 0; }
-        .chat-strip .footer-note { padding:8px 12px; font-size:11px; }
-        .chat-footer { padding-bottom:16px; background:linear-gradient(180deg, rgba(248,239,230,0), rgba(248,239,230,.82) 18%, rgba(248,239,230,.96) 100%); }
-        .footer-note { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:10px 14px; border-radius:16px; background:rgba(255,255,255,.74); color:var(--soft); font-size:12px; line-height:1.6; }
-        .footer-note > span:first-child { flex:1; min-width:0; }
-        .footer-note strong { white-space:nowrap; }
-        .message-list { flex:1; min-height:0; padding:12px 16px 14px; overflow-y:auto; }
-        .message { display:flex; gap:10px; align-items:flex-start; }
-        .message.self { flex-direction:row-reverse; }
-        .msg-avatar { width:38px; height:38px; font-size:18px; background:rgba(32,23,26,.08); }
-        .bubble { max-width:82%; padding:14px; border-radius:20px; background:rgba(255,255,255,.92); border:1px solid rgba(32,23,26,.08); box-shadow:var(--shadow); word-break:break-word; }
-        .message.self .bubble { background:linear-gradient(135deg, rgba(242,107,29,.94), rgba(150,49,28,.94)); color:#fffaf6; }
-        .bubble p { margin-top:8px; font-size:13px; line-height:1.8; }
-        .confirm { padding:14px; margin-top:10px; border-radius:18px; background:linear-gradient(180deg,#fff7ef,#fffefb); border:1px solid rgba(207,109,44,.14); }
-        .confirm h4 { font-size:14px; font-weight:900; }
-        code { padding:2px 6px; border-radius:8px; background:rgba(255,255,255,.08); color:#ffd7bf; }
-        .top-actions,.quick-grid,.notification-list,.alert-list,.timeline,.ops-grid,.best-list,.query-log,.composer-panel { display:grid; gap:12px; }
-        .top-actions { justify-items:end; }
-        .soft-tag { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800; line-height:1.1; letter-spacing:.02em; word-break:keep-all; white-space:nowrap; background:rgba(255,255,255,.78); color:#8c4f26; }
-        .best-card,.note-card,.query-card,.alert-card,.sheet-card { padding:16px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
-        .best-list { display:grid; gap:10px; }
-        .best-item { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:14px; border-radius:18px; background:rgba(255,248,241,.84); border:1px solid rgba(32,23,26,.08); }
-        .best-rank { width:44px; height:44px; border-radius:14px; background:linear-gradient(135deg,#f3c86a,#cf8a2b); color:#5e3610; font-weight:900; }
-        .quick-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-        .alert-card { background:linear-gradient(180deg,#fff7ef,#fffefb); }
-        .query-card { background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,246,237,.94)); }
-        .query-log { display:grid; gap:10px; margin-top:14px; }
-        .query-line { padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.72); }
-        .bell-btn { position:relative; width:42px; height:42px; border-radius:16px; border:none; background:rgba(255,255,255,.84); color:#a14b23; box-shadow:var(--shadow); cursor:pointer; font-size:18px; }
-        .bell-btn::after { position:absolute; right:7px; top:7px; width:9px; height:9px; border-radius:50%; background:var(--red); content:""; box-shadow:0 0 0 4px rgba(217,79,61,.12); }
-        .panel { padding:28px 20px 22px; }
-        .panel .scroll { padding-top:6px; }
-        .sheet-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; padding-bottom:12px; border-bottom:1px solid rgba(32,23,26,.08); }
-        .sheet-card { margin-top:14px; }
-        .timeline { display:grid; gap:12px; }
-        .timeline-item { display:grid; grid-template-columns:auto 1fr auto; gap:12px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.72); align-items:flex-start; }
-        .timeline-time { min-width:42px; font-size:12px; font-weight:800; color:#8c4e29; }
-        .card-head,.team-top,.market-top { align-items:flex-start; }
-        .voice-btn,.composer-card,.composer-toggle,.composer-plus,.composer-send,.voice-press { border:none; cursor:pointer; font-family:inherit; }
-        .voice-btn { position:relative; width:54px; height:54px; border-radius:18px; padding:0; font-size:22px; background:linear-gradient(135deg,var(--fire),var(--wine)); color:#fffaf6; box-shadow:0 12px 24px rgba(191,73,40,.24); }
-        .voice-btn::before,.pulse-ring::before { position:absolute; inset:-7px; border-radius:inherit; border:1px solid rgba(242,107,29,.22); content:""; animation:ripple 2.4s infinite; }
-        .composer { display:grid; gap:12px; padding:12px 0 28px; }
-        .wechat-composer { padding:12px; border-radius:22px; background:rgba(255,255,255,.76); border:1px solid rgba(32,23,26,.08); box-shadow:var(--shadow); }
-        .composer-main { display:flex; width:100%; align-items:stretch; gap:6px; }
-        .composer-main > * { min-width:0; }
-        .composer-toggle,.composer-plus { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; flex:0 0 44px; overflow:visible; border-radius:14px; background:rgba(255,255,255,.92); border:1px solid rgba(32,23,26,.08); color:#8a451a; font-size:22px; line-height:1; box-shadow:0 10px 20px rgba(32,23,26,.08); }
-        .composer-plus.active,.wechat-composer[data-mode="voice"] .composer-toggle { background:linear-gradient(135deg,var(--fire),var(--wine)); color:#fffaf6; border-color:rgba(242,107,29,.12); }
-        .composer-stack { flex:1; min-width:0; overflow:hidden; }
-        .composer-box { display:flex; align-items:flex-end; gap:6px; width:100%; min-width:0; min-height:48px; border-radius:20px; background:linear-gradient(90deg, rgba(255,141,73,.16), rgba(255,255,255,.92)); border:1px solid rgba(242,107,29,.12); padding:8px 8px 8px 12px; }
-        .composer-box textarea { flex:1; width:0; min-width:0; min-height:24px; max-height:96px; border:none; background:transparent; resize:none; outline:none; font:inherit; font-size:13px; color:var(--ink); line-height:1.5; overflow:hidden; }
-        .composer-send { flex:0 0 auto; padding:9px 10px; border-radius:12px; background:linear-gradient(135deg,var(--fire),var(--wine)); color:#fffaf6; font-size:11px; font-weight:800; line-height:1.1; white-space:nowrap; opacity:.42; pointer-events:none; box-shadow:0 10px 22px rgba(191,73,40,.18); }
-        .wechat-composer.has-text[data-mode="text"] .composer-send { opacity:1; pointer-events:auto; }
-        .voice-press { position:relative; display:none; width:100%; min-height:54px; align-items:center; justify-content:center; overflow:hidden; border-radius:20px; background:linear-gradient(135deg, rgba(255,244,237,.96), rgba(255,255,255,.98)); border:1px dashed rgba(242,107,29,.28); color:#8f451b; font-size:14px; font-weight:800; letter-spacing:.02em; word-break:keep-all; white-space:nowrap; }
-        .wechat-composer[data-mode="voice"] .voice-press { display:flex; }
-        .wechat-composer[data-mode="voice"] .composer-box { display:none; }
-        .composer-panel { grid-template-columns:repeat(3,minmax(0,1fr)); padding-top:4px; }
-        .wechat-composer[data-expanded="false"] .composer-panel { display:none; }
-        .composer-card { padding:10px 6px 8px; border-radius:18px; background:rgba(255,255,255,.9); border:1px solid rgba(32,23,26,.08); color:var(--ink); text-align:center; box-shadow:0 10px 20px rgba(32,23,26,.06); }
-        .composer-card strong { display:flex; align-items:center; justify-content:center; width:44px; height:44px; margin:0 auto 8px; border-radius:14px; font-size:20px; background:linear-gradient(135deg, rgba(255,201,128,.26), rgba(242,107,29,.16)); }
-        .composer-card span { display:block; font-size:12px; font-weight:800; line-height:1.2; color:#6e3a1d; word-break:keep-all; white-space:nowrap; }
-        .composer-card em { display:block; margin-top:4px; font-style:normal; font-size:10px; line-height:1.4; color:var(--soft); }
-        .voice-bubble { display:flex; align-items:center; gap:10px; margin-top:8px; padding:10px 12px; border-radius:16px; background:rgba(255,255,255,.14); }
-        .message:not(.self) .voice-bubble { background:rgba(242,107,29,.08); }
-        .wave { position:relative; width:42px; height:12px; border-radius:999px; overflow:hidden; background:linear-gradient(90deg, rgba(242,107,29,.22), rgba(242,107,29,.75), rgba(242,107,29,.22)); }
-        .wave::after { position:absolute; inset:0; content:""; background:radial-gradient(circle at 14% 50%, rgba(255,255,255,.85) 0 8%, transparent 9%),radial-gradient(circle at 32% 50%, rgba(255,255,255,.55) 0 8%, transparent 9%),radial-gradient(circle at 50% 50%, rgba(255,255,255,.95) 0 8%, transparent 9%),radial-gradient(circle at 68% 50%, rgba(255,255,255,.55) 0 8%, transparent 9%),radial-gradient(circle at 86% 50%, rgba(255,255,255,.85) 0 8%, transparent 9%); animation:slide 1.6s linear infinite; }
-        .call-layout { padding:34px 20px 30px; height:100%; display:flex; flex-direction:column; background:radial-gradient(circle at top, rgba(243,200,106,.16), transparent 20%),linear-gradient(180deg,#141012,#1b1518 40%,#120f12); color:#fffaf6; }
-        .call-panels { flex:1; display:grid; gap:18px; margin-top:20px; }
-        .call-hero { padding:22px 18px 18px; text-align:center; backdrop-filter:blur(24px); }
-        .call-avatar { position:relative; width:132px; height:132px; margin:12px auto 14px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffac71,#d14f23); font-size:56px; box-shadow:0 0 0 18px rgba(255,255,255,.04); animation:pulse 2.6s ease-in-out infinite; }
-        .call-avatar::before { position:absolute; inset:-18px; border-radius:50%; border:1px solid rgba(255,255,255,.08); content:""; animation:ripple 2.8s infinite; }
-        .media-grid { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:14px; }
-        .media-tile { min-height:108px; padding:14px; border-radius:18px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); color:rgba(255,250,246,.78); font-size:12px; line-height:1.7; }
-        .media-tile.active { background:linear-gradient(180deg, rgba(255,172,113,.18), rgba(255,255,255,.08)); border-color:rgba(255,172,113,.32); color:#fffaf6; }
-        .call-controls { display:flex; justify-content:space-around; gap:10px; margin-top:18px; }
-        .call-btn.active { background:linear-gradient(135deg, rgba(243,200,106,.24), rgba(242,107,29,.28)); border-color:rgba(255,172,113,.4); }
-        .call-btn.danger { background:linear-gradient(135deg,var(--red),#8a231d); }
-        .tabbtn span:last-child { display:block; white-space:nowrap; }
-        .field { padding:14px; border-radius:18px; background:rgba(255,248,241,.84); border:1px solid rgba(32,23,26,.08); }
-        .field input,.field textarea,.field select { width:100%; border:none; background:rgba(255,255,255,.86); border-radius:12px; padding:11px 12px; font:inherit; color:var(--ink); outline:none; }
-        .field label { display:block; font-size:11px; opacity:.72; margin-bottom:6px; }
-        .switcher { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-        .switcher button { padding:9px 12px; border-radius:14px; border:1px solid rgba(32,23,26,.08); background:rgba(255,255,255,.86); color:var(--ink); font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
-        .switcher button.active { background:linear-gradient(135deg, rgba(242,107,29,.16), rgba(255,245,238,.96)); color:#9a471f; border-color:rgba(242,107,29,.2); }
-        .locked { opacity:.62; }
-        @keyframes ripple { 0% { transform:scale(.86); opacity:.8; } 100% { transform:scale(1.26); opacity:0; } }
-        @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.04); } }
-        @keyframes slide { 0% { transform:translateX(-18%); } 100% { transform:translateX(18%); } }
-        @media (max-width:480px) { body { overflow:auto; } .workspace { width:100vw; height:auto; min-height:100vh; } .quick-grid,.form-grid,.media-grid,.composer-panel { grid-template-columns:repeat(2,minmax(0,1fr)); } .footer-note { flex-direction:column; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI数字店铺大管家 v2 MVP</title>
+  <style>
+    :root{--bg:#1a120f;--paper:#f7efe3;--card:rgba(255,250,244,.9);--ink:#2d1d16;--muted:#7b685f;--line:rgba(61,39,28,.08);--brand:#d56731;--brand2:#8c3619;--green:#1f916b;--red:#c8513c;--shadow:0 18px 38px rgba(38,23,15,.16);--r:22px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Avenir Next","Microsoft YaHei UI","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(255,194,120,.24),transparent 26%),radial-gradient(circle at bottom right,rgba(31,145,107,.18),transparent 24%),linear-gradient(145deg,#130d0b,#241915 58%,#120d0b)}
+    .phone{width:min(420px,100%);height:min(860px,calc(100vh - 48px));border-radius:30px;overflow:hidden;position:relative;background:radial-gradient(circle at top,rgba(255,203,145,.28),transparent 24%),linear-gradient(180deg,#fbf4ea,#f1e9de 60%,#ebe2d8);box-shadow:0 28px 70px rgba(0,0,0,.34)}
+    .app{height:100%;display:flex;flex-direction:column}
+    .top{display:flex;justify-content:space-between;gap:12px;padding:24px 20px 12px}
+    .brand{display:flex;gap:12px;min-width:0}
+    .logo{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-size:24px;color:#fffaf4;background:linear-gradient(135deg,#f29b5b,#c24d22);box-shadow:0 12px 22px rgba(194,77,34,.22)}
+    .eyebrow,.chip,.mini,.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;line-height:1}
+    .eyebrow{margin-bottom:8px;color:#ffd8bf;background:rgba(213,103,49,.14)}
+    h1{font-size:20px;line-height:1.2;font-weight:900}
+    .top p,.head p,.card p,.msg p,.item p,.audit p{color:var(--muted);font-size:12px;line-height:1.6}
+    .right{display:grid;gap:8px;justify-items:end}
+    .chip{background:rgba(255,255,255,.78);color:var(--brand2)}
+    .chip.ok,.tag.ok{background:rgba(31,145,107,.12);color:var(--green)}
+    .chip.warn,.tag.warn{background:rgba(200,81,60,.12);color:var(--red)}
+    button{border:none;cursor:pointer;font:inherit}
+    .icon{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.84);color:var(--brand2);box-shadow:var(--shadow)}
+    .views{flex:1;position:relative;overflow:hidden}
+    .view{position:absolute;inset:0;display:none;flex-direction:column}
+    .view.active{display:flex}
+    .scroll{flex:1;overflow:auto;padding:8px 20px 110px;scrollbar-width:none}
+    .scroll::-webkit-scrollbar{display:none}
+    .hero,.card,.msgbox,.sheet,.toast{border-radius:var(--r);box-shadow:var(--shadow)}
+    .hero{padding:20px;color:#fffaf4;background:radial-gradient(circle at top right,rgba(255,219,167,.36),transparent 28%),linear-gradient(150deg,#2b1814,#5d2818 60%,#8c3619)}
+    .hero h2{margin-top:12px;font-size:26px;line-height:1.15;font-weight:900}
+    .hero p{margin-top:8px;color:rgba(255,250,244,.78);font-size:13px;line-height:1.7}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+    .metric{padding:14px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1)}
+    .metric span,.field span{display:block;font-size:11px;opacity:.74;margin-bottom:6px}
+    .metric strong,.field strong{font-size:21px;line-height:1.1;font-weight:900}
+    .sec{margin-top:18px}
+    .head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+    .head h3{font-size:16px;font-weight:900}
+    .head p{text-align:right;font-size:11px}
+    .card,.sheet{padding:16px;background:var(--card);border:1px solid var(--line)}
+    .pending{background:linear-gradient(180deg,#fff7ef,#fffefb)}
+    .row,.chips,.list,.msgs,.auditlist{display:grid;gap:12px}
+    .chips{display:flex;flex-wrap:wrap;margin-top:10px}
+    .mini,.tag{background:rgba(255,255,255,.78);color:var(--brand2);border:1px solid rgba(61,39,28,.06)}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .primary,.secondary,.ghost,.action{padding:12px 14px;border-radius:14px;font-size:12px;font-weight:800;line-height:1.15}
+    .primary{color:#fffaf4;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 12px 22px rgba(194,77,34,.22)}
+    .secondary,.action{color:var(--brand2);background:rgba(255,255,255,.86);border:1px solid rgba(140,54,25,.12)}
+    .ghost{color:var(--muted);background:rgba(255,255,255,.56)}
+    .item{padding:14px;border-radius:18px;background:rgba(255,255,255,.82);border:1px solid rgba(61,39,28,.06)}
+    .itemtop,.audittop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+    .field{padding:10px;border-radius:14px;background:rgba(247,239,227,.86)}
+    .msgs{padding-bottom:18px}
+    .msg{display:flex;gap:10px;align-items:flex-start}
+    .msg.self{flex-direction:row-reverse}
+    .ava{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:18px;background:rgba(45,29,22,.08);flex-shrink:0}
+    .msg.self .ava{background:linear-gradient(135deg,#f29b5b,#c24d22);color:#fffaf4}
+    .msgbox{max-width:82%;padding:14px;background:rgba(255,255,255,.94);border:1px solid rgba(45,29,22,.06)}
+    .msg.self .msgbox{background:linear-gradient(135deg,rgba(213,103,49,.96),rgba(140,54,25,.96));color:#fffaf4}
+    .meta{font-size:11px;font-weight:800;opacity:.8}
+    .body{margin-top:8px;font-size:13px;line-height:1.78}
+    .result{margin-top:10px;padding:12px;border-radius:18px;background:linear-gradient(180deg,#fff7ef,#fffefb);border:1px solid rgba(213,103,49,.12)}
+    .resultgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+    .resultgrid div{padding:10px;border-radius:14px;background:rgba(255,255,255,.84)}
+    .resultgrid span{display:block;font-size:11px;opacity:.74;margin-bottom:6px}
+    .composer{margin-top:auto;padding:12px 0 0}
+    .actgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .action strong{display:block;font-size:20px;margin-bottom:6px}
+    .action span{display:block;font-size:11px;line-height:1.4}
+    .form{display:grid;gap:12px;margin-top:14px}
+    .input{padding:12px;border-radius:16px;background:rgba(255,255,255,.86);border:1px solid rgba(61,39,28,.06)}
+    .input label{display:block;margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:800}
+    .input input,.input select,.input textarea{width:100%;border:none;outline:none;resize:none;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:1.5}
+    .audit{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(255,255,255,.82)}
+    .audit strong{font-size:14px}
+    .time{color:var(--brand2);font-size:12px;font-weight:800}
+    .tabs{position:absolute;left:14px;right:14px;bottom:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px;border-radius:24px;background:rgba(255,250,244,.86);backdrop-filter:blur(18px);box-shadow:0 18px 44px rgba(44,24,15,.18)}
+    .tab{padding:12px 8px;border-radius:18px;color:var(--muted);background:transparent}
+    .tab strong{display:block;font-size:19px;margin-bottom:4px}
+    .tab span{display:block;font-size:11px;font-weight:800}
+    .tab.active{color:var(--brand2);background:linear-gradient(135deg,rgba(242,155,91,.18),rgba(255,255,255,.92))}
+    .toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);min-width:220px;max-width:calc(100% - 48px);padding:12px 14px;background:rgba(27,18,15,.94);color:#fffaf4;text-align:center;font-size:12px;line-height:1.5;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+    @media (max-width:480px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0}}
+  </style>
 </head>
 <body>
-    <div class="grid"></div>
-    <div class="workspace">
-        <div class="device-shell">
-            <div class="device">
-                <div class="app">
-                    <section class="view primary active" id="view-dashboard" data-view="dashboard">
-                        <div class="scroll">
-                            <div class="topbar">
-                                <div class="store">
-                                    <div class="avatar">🏪</div>
-                                    <div>
-                                        <div class="kicker" style="margin-bottom:8px;">Router Agent 已上线</div>
-                                        <h2>强盛百货 · 老板工作台</h2>
-                                        <p class="meta">小雅正在统一调度工作群、通话、账本事件和风险确认。</p>
-                                    </div>
-                                </div>
-                                <div class="top-actions">
-                                    <div class="chip live">会话摘要已开启</div>
-                                    <div class="row">
-                                        <button class="bell-btn" data-open="notifications" aria-label="打开通知中心">🔔</button>
-                                        <button class="solid" data-open="ops">运行控制台</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <section class="section">
-                                <div class="hero">
-                                    <div class="chips">
-                                        <div class="badge live">Shared Session</div>
-                                        <div class="badge">Task Run #TK-0313</div>
-                                        <div class="badge risk">待确认 <span data-bind="pending">2</span></div>
-                                    </div>
-                                    <h3>今天不是“看报表”，今天是“指挥数字员工干活”。</h3>
-                                    <p>当前会话正在处理补货、入库、单据核对和利润追问。群聊、通话和账本改动共用一份上下文摘要。</p>
-                                    <div class="hero-grid">
-                                        <div class="hero-item"><span>今日流水</span><strong data-bind="revenue">￥2,450</strong></div>
-                                        <div class="hero-item"><span>有效利润</span><strong data-bind="profit">￥820</strong></div>
-                                        <div class="hero-item"><span>活跃任务</span><strong data-bind="tasks">7 项</strong></div>
-                                        <div class="hero-item"><span>风险动作</span><strong data-bind="risk">2 项</strong></div>
-                                    </div>
-                                </div>
-
-                                <div class="strip">
-                                    <div class="strip-item"><span>库存告急</span><strong data-bind="lowStock">5 款</strong></div>
-                                    <div class="strip-item"><span>待确认</span><strong data-bind="pending">2 项</strong></div>
-                                    <div class="strip-item"><span>会话模式</span><strong data-bind="sessionMode">工作群</strong></div>
-                                    <div class="strip-item warn"><span>低置信识别</span><strong data-bind="lowConfidence">1 次</strong></div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>今日畅销榜</h3>
-                                    <p class="section-note">用 mock 动销数据直观展示老板最关心的热卖品。</p>
-                                </div>
-                                <div class="best-card">
-                                    <div class="best-list">
-                                        <div class="best-item">
-                                            <div class="best-rank">1</div>
-                                            <div>
-                                                <strong>红牛 250ml</strong>
-                                                <p>今日售出 24 罐，近 48 小时复购最快。</p>
-                                            </div>
-                                            <div class="soft-tag">补货优先</div>
-                                        </div>
-                                        <div class="best-item">
-                                            <div class="best-rank">2</div>
-                                            <div>
-                                                <strong>软中华</strong>
-                                                <p>今日售出 10 包，利润率高于均值 14%。</p>
-                                            </div>
-                                            <div class="soft-tag">高毛利</div>
-                                        </div>
-                                        <div class="best-item">
-                                            <div class="best-rank">3</div>
-                                            <div>
-                                                <strong>冰红茶</strong>
-                                                <p>今日售出 15 瓶，夜间时段销量明显抬头。</p>
-                                            </div>
-                                            <div class="soft-tag">夜销强</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>紧急待办与一键回复</h3>
-                                    <p class="section-note">把“告急清单”和“语音回一句”都拉到首页，不逼老板进复杂流程。</p>
-                                </div>
-                                <div class="quick-grid">
-                                    <div class="alert-card">
-                                        <div class="card-head">
-                                            <div>
-                                                <strong>红牛库存只剩 2 罐</strong>
-                                                <p>过去 48 小时动销上升 36%，建议补 6 箱。</p>
-                                            </div>
-                                            <div class="chip risk">需要决策</div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-action="voice-reply">一键语音回复</button>
-                                            <button class="line" data-open="alerts">查看告急清单</button>
-                                        </div>
-                                    </div>
-                                    <div class="alert-card">
-                                        <div class="card-head">
-                                            <div>
-                                                <strong>退款原因缺失 1 笔</strong>
-                                                <p>小丽已经定位到订单，但还缺老板补充说明。</p>
-                                            </div>
-                                            <div class="chip info">账本待核</div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-action="profit-query">问一句昨天赚多少</button>
-                                            <button class="line" data-ledger="cash" data-open="ledger">去钱箱流水</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>待老板确认</h3>
-                                    <p class="section-note">高风险动作不会直接执行，必须先走 Pre-Tool Hook。</p>
-                                </div>
-                                <div class="card approval-list">
-                                    <div class="approval">
-                                        <div class="approval-icon">⚠️</div>
-                                        <div class="approval-main">
-                                            <strong>红牛补货建议准备执行</strong>
-                                            <p>老李建议补 6 箱。库存只剩 2 箱，过去 48 小时动销偏高。是否允许生成采购任务？</p>
-                                            <div class="chips" style="margin-top:8px;">
-                                                <div class="mini">Hook: 库存阈值</div>
-                                                <div class="mini">Tool: create_purchase_task</div>
-                                            </div>
-                                            <div class="row">
-                                                <button class="solid" data-action="approve-purchase">批准执行</button>
-                                                <button class="line" data-toast="已转为人工稍后处理，当前不会自动补货。">稍后再说</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="approval">
-                                        <div class="approval-icon">📷</div>
-                                        <div class="approval-main">
-                                            <strong>新扳手型号识别置信度不足</strong>
-                                            <p>小雅想切换到摄像头继续识别，并提示这会触发“新商品建档确认”。</p>
-                                            <div class="chips" style="margin-top:8px;">
-                                                <div class="mini risk">需打开摄像头</div>
-                                                <div class="mini">Hook: 新商品首次建档</div>
-                                            </div>
-                                            <div class="row">
-                                                <button class="solid" data-open="call">进入通话处理</button>
-                                                <button class="line" data-toast="已拒绝切换摄像头，任务保持待确认。">保持文字模式</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>经营查询演示</h3>
-                                    <p class="section-note">补上“小丽查询链路”，支持“昨天赚了多少”和“为什么少了”的追问。</p>
-                                </div>
-                                <div class="query-card">
-                                    <div class="card-head">
-                                        <div>
-                                            <strong>老板问：昨天赚了多少？</strong>
-                                            <p id="dashboard-query-copy">小丽已准备口语化回答和下钻解释，可一键回放到工作群。</p>
-                                        </div>
-                                        <div class="chip">Query Worker</div>
-                                    </div>
-                                    <div class="query-log">
-                                        <div class="query-line">
-                                            <span class="label">口语回答</span>
-                                            <strong>昨天实赚 ￥668，比前天少了 ￥126。</strong>
-                                        </div>
-                                        <div class="query-line">
-                                            <span class="label">原因拆解</span>
-                                            <strong>矿泉水让利促销少赚 ￥38，退款 1 笔影响 ￥52，熟客赊账挂账 ￥36。</strong>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <button class="solid" data-action="profit-query">把这段发进工作群</button>
-                                        <button class="line" data-ledger="cash" data-open="ledger">查看账本明细</button>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>共享会话状态</h3>
-                                    <p class="section-note">工作群与通话共享一份上下文、摘要与任务链。</p>
-                                </div>
-                                <div class="session">
-                                    <div class="card-head">
-                                        <div>
-                                            <div class="kicker" style="margin-bottom:8px;">Conversation Session</div>
-                                            <h3 style="font-size:18px;">SESSION #SX-2026-0402-01</h3>
-                                        </div>
-                                        <div class="chip live">Live</div>
-                                    </div>
-                                    <div class="agent-list" style="margin-top:14px;">
-                                        <div class="session-line"><div><span>当前工作</span><strong id="session-current-work">处理“可乐与扳手”入库任务</strong></div><div class="chip">Router: 小雅</div></div>
-                                        <div class="session-line"><div><span>最新工具调用</span><strong id="session-last-tool">recognize_item_from_photo → adjust_inventory</strong></div><div class="chip">已写审计</div></div>
-                                        <div class="session-line"><div><span>会话摘要</span><strong id="session-summary-text">已压缩历史 12 轮消息，保留最近 4 条原文</strong></div><div class="chip live" id="session-summary-badge">可续接</div></div>
-                                        <div class="session-line"><div><span>通话纪要</span><strong id="session-memo-status">尚未生成新的连线纪要</strong></div><div class="chip" id="session-memo-badge">待生成</div></div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section class="section">
-                                <div class="section-head">
-                                    <h3>数字员工大厅预览</h3>
-                                    <p class="section-note">首页直接看到团队状态、技能装备和去市场招募的入口。</p>
-                                </div>
-                                <div class="agent-list">
-                                    <div class="agent">
-                                        <div class="agent-top">
-                                            <div class="agent-avatar">👨🏻‍💼</div>
-                                            <div style="flex:1;">
-                                                <div class="team-top">
-                                                    <div>
-                                                        <div class="agent-name">首席助理 小雅</div>
-                                                        <p class="muted">负责意图识别、路由、确认请求、会话摘要。</p>
-                                                    </div>
-                                                    <div class="chip live">实时待命</div>
-                                                </div>
-                                                <div class="meta-row" style="margin-top:6px;">
-                                                    <div class="mini">Router Only</div>
-                                                    <div class="mini">不能直接改账</div>
-                                                    <div class="mini" id="dashboard-tone-chip">语调：专业干练</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mini-grid">
-                                            <div class="mini-panel"><strong>已装备 Skill</strong><p id="dashboard-xiaoya-skills">意图路由中枢、会话压缩续接、风险升级提醒。</p></div>
-                                            <div class="mini-panel"><strong>权限边界</strong><p>只能发起工具调用申请，不能绕过 Hook 或直接修改库存。</p></div>
-                                        </div>
-                                    </div>
-                                    <div class="agent">
-                                        <div class="agent-top">
-                                            <div class="agent-avatar green">📦</div>
-                                            <div style="flex:1;">
-                                                <div class="team-top">
-                                                    <div>
-                                                        <div class="agent-name">仓管员 老李</div>
-                                                        <p class="muted">库存域 worker，负责识物、入库、扫码和低库存告警。</p>
-                                                    </div>
-                                                    <div class="chip">理货中</div>
-                                                </div>
-                                                <div class="meta-row" style="margin-top:6px;">
-                                                    <div class="mini">Tool: adjust_inventory</div>
-                                                    <div class="mini">Hook: 进价确认</div>
-                                                    <div class="mini" id="dashboard-laoli-skill-chip">扫码建档：已启用</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mini-grid">
-                                            <div class="mini-panel"><strong>最近任务</strong><p>刚完成矿泉水入库，支持撤销、修改进价和扫码追溯。</p></div>
-                                            <div class="mini-panel"><strong>老板规章</strong><p>所有进货动作必须先确认价格；新商品禁止自动建档。</p></div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <button class="solid" data-target-view="team">去团队管理</button>
-                                        <button class="line" data-target-view="market">去市场招募更多员工</button>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
-
-                    <section class="view primary" id="view-data" data-view="data">
-                        <div class="scroll">
-                            <div class="topbar" style="display:block;">
-                                <div class="kicker" style="margin-bottom:10px;">Data Center / Human Fallback</div>
-                                <h2>业务账本后台</h2>
-                                <p class="meta">这里不是传统 ERP 表格，而是 AI 账本的人工兜底层。任何手改都会生成 Correction Event，并回写审计与权限策略。</p>
-                            </div>
-                            <section class="section">
-                                <div class="ledger-list">
-                                    <div class="ledger">
-                                        <div class="card-head">
-                                            <div><strong style="font-size:17px;">📦 老李的库存账本</strong><p class="muted">商品档案、批次、库存变化事件、人工纠错记录。</p></div>
-                                            <div class="chip live">事件式账本</div>
-                                        </div>
-                                        <div class="mini-grid" style="margin-top:14px;">
-                                            <div class="mini-panel"><strong>当前状态</strong><p id="inventory-ledger-status">3 条入库事件待同步，1 条新商品识别待确认。</p></div>
-                                            <div class="mini-panel"><strong>人工入口</strong><p>支持手改数量、补填批次、修正进价，保存后自动追加 Correction Event。</p></div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-ledger="inventory" data-open="ledger">翻阅他的账本</button>
-                                            <button class="line" data-action="open-correction">直接改一笔数量</button>
-                                        </div>
-                                    </div>
-                                    <div class="ledger">
-                                        <div class="card-head">
-                                            <div><strong style="font-size:17px;">💸 小丽的钱箱流水</strong><p class="muted">销售、退款、赊账、核销统一走现金事件表。</p></div>
-                                            <div class="chip">只读查询为主</div>
-                                        </div>
-                                        <div class="mini-grid" style="margin-top:14px;">
-                                            <div class="mini-panel"><strong>今日异常</strong><p>有 1 笔退款尚未补齐原因，系统已标记为待人工核查。</p></div>
-                                            <div class="mini-panel"><strong>自动解释</strong><p>支持把“为什么今天利润少了”拆解成商品结构、退款影响和赊账变化。</p></div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-ledger="cash" data-open="ledger">翻阅她的账本</button>
-                                            <button class="line" data-action="profit-query">发起一次经营查询</button>
-                                        </div>
-                                    </div>
-                                    <div class="ledger locked">
-                                        <div class="card-head">
-                                            <div><strong style="font-size:17px;">🔒 财务老赵的报表柜</strong><p class="muted">多维利润表、税务汇总和月度经营诊断尚未解锁。</p></div>
-                                            <div class="chip">待招募</div>
-                                        </div>
-                                        <div class="mini-grid" style="margin-top:14px;">
-                                            <div class="mini-panel"><strong>当前状态</strong><p>还未雇佣“财务老赵”，只能看到锁定预览。</p></div>
-                                            <div class="mini-panel"><strong>市场入口</strong><p>去人才市场购买财务型能力包后，这里会变成可下钻的报表柜。</p></div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-target-view="market">去市场招募</button>
-                                            <button class="line" data-ledger="finance" data-open="ledger">查看锁定预览</button>
-                                        </div>
-                                    </div>
-                                    <div class="ledger">
-                                        <div class="card-head">
-                                            <div><strong style="font-size:17px;">🧾 审计时间线</strong><p class="muted">最近所有高风险动作、人工修正和 Hook 拦截记录。</p></div>
-                                            <div class="chip risk">严控中</div>
-                                        </div>
-                                        <div class="timeline" style="margin-top:14px;" id="audit-timeline"></div>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
-
-                    <section class="view primary" id="view-team" data-view="team">
-                        <div class="scroll">
-                            <div class="topbar" style="display:block;">
-                                <div class="kicker" style="margin-bottom:10px;">My Team / Runtime Boundaries</div>
-                                <h2>数字团队管理</h2>
-                                <p class="meta">在这里配置员工人格、默认规章、Skill 装备和高风险动作的确认链路。团队页负责装备、配置、禁用；市场页负责购买与启停。</p>
-                            </div>
-                            <section class="section">
-                                <div class="agent-list">
-                                    <div class="agent">
-                                        <div class="agent-top">
-                                            <div class="agent-avatar">👨🏻‍💼</div>
-                                            <div style="flex:1;">
-                                                <div class="team-top">
-                                                    <div><div class="agent-name">小雅 · Router Agent</div><p class="muted">连接老板输入层与所有专业员工。</p></div>
-                                                    <div class="chip live">42 次调度</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mini-grid">
-                                            <div class="mini-panel"><strong>人格配置</strong><p id="tone-copy">专业干练</p></div>
-                                            <div class="mini-panel"><strong>默认守则</strong><p>低置信视觉任务必须解释为什么要开摄像头，再请求确认。</p></div>
-                                        </div>
-                                        <div class="switcher" id="tone-switcher">
-                                            <button data-tone="专业干练" class="active">专业干练</button>
-                                            <button data-tone="四川方言">四川方言</button>
-                                            <button data-tone="温和安抚">温和安抚</button>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-package="dialect" data-action="toggle-package" id="dialect-toggle-team">启用方言播报包</button>
-                                            <button class="line" data-action="open-ops">查看风险升级链路</button>
-                                        </div>
-                                    </div>
-                                    <div class="agent">
-                                        <div class="agent-top">
-                                            <div class="agent-avatar green">📦</div>
-                                            <div style="flex:1;">
-                                                <div class="team-top">
-                                                    <div><div class="agent-name">老李 · Inventory Worker</div><p class="muted">只服务库存域，不得越权修改现金流水。</p></div>
-                                                    <div class="chip">今日 115 件</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mini-grid">
-                                            <div class="mini-panel"><strong>可装备 Skill</strong><p id="laoli-skill-copy">包装拍照识别、条码建档、低库存警报、进价趋势对比。</p></div>
-                                            <div class="mini-panel"><strong>老板规章</strong><p>每次进货必须确认价格；新商品建档默认停在待确认状态。</p></div>
-                                        </div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">Hook：进价确认</div><div class="mini">Hook：批量库存变更拦截</div><div class="mini">撤销窗口：10 分钟</div></div>
-                                        <div class="row">
-                                            <button class="solid" data-package="ocr" data-action="toggle-package" id="ocr-toggle-team">安装 OCR 单据包</button>
-                                            <button class="line" data-action="toggle-skill" data-skill="barcode" id="barcode-toggle-team">停用扫码建档</button>
-                                        </div>
-                                    </div>
-                                    <div class="agent">
-                                        <div class="agent-top">
-                                            <div class="agent-avatar gold">💸</div>
-                                            <div style="flex:1;">
-                                                <div class="team-top">
-                                                    <div><div class="agent-name">小丽 · Cash & Query Worker</div><p class="muted">负责读写流水、解释利润波动与熟客赊账。</p></div>
-                                                    <div class="chip">查询优先</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mini-grid">
-                                            <div class="mini-panel"><strong>查询边界</strong><p>日常报表默认只读；退款冲销属于高风险动作。</p></div>
-                                            <div class="mini-panel"><strong>风险动作</strong><p>退款、抹账、赊账核销必须保留审计和老板确认。</p></div>
-                                        </div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">Tool: query_daily_revenue</div><div class="mini">Tool: record_cash_event</div><div class="mini">Hook: 退款原因必填</div></div>
-                                        <div class="row">
-                                            <button class="solid" data-package="credit" data-action="toggle-package" id="credit-toggle-team">启用赊账理赔管家</button>
-                                            <button class="line" data-action="disable-high-risk">禁用高风险赊账能力</button>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <button class="solid" data-target-view="market">逛逛市场，招募更多员工</button>
-                                        <button class="line" data-open="ops">打开内部控制台</button>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
-
-                    <section class="view primary" id="view-market" data-view="market">
-                        <div class="scroll">
-                            <div class="topbar" style="display:block;">
-                                <div class="kicker" style="margin-bottom:10px;">Subscription Market / Plugin Packages</div>
-                                <h2>数字员工人才市场</h2>
-                                <p class="meta">市场卖的是能力包：可购买、可启停、可升级、可审计，不是零散功能按钮。</p>
-                            </div>
-                            <section class="section">
-                                <div class="market-hero">
-                                    <div class="chips"><div class="badge">Bundled Pack</div><div class="badge live">Manifest 驱动</div></div>
-                                    <h3 style="margin-top:14px;font-size:22px;">官方金牌管家套装</h3>
-                                    <p>含小雅 + 老李 + 小丽 + 15 个官方 Skill + 6 条默认 Hook，覆盖工作群、通话、识物、流水和审计。</p>
-                                    <div class="market-price"><strong>￥99</strong><span>/ 月</span></div>
-                                    <div class="row"><button class="market-btn" data-action="hire-bundle">一键雇佣</button><button class="line" data-open="ops">查看 manifest</button></div>
-                                </div>
-                            </section>
-                            <section class="section">
-                                <div class="section-head"><h3>官方内置员工</h3><p class="section-note">Builtin 角色由平台维护。状态会同步到团队管理页。</p></div>
-                                <div class="catalog">
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>👨🏻‍💼 小雅 · Router 核心包</strong><p>提供意图路由、会话摘要、方言转译、风险升级提示。</p></div><div class="chip live">已启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">tools 2</div><div class="mini">hooks 1</div><div class="mini">permissions read</div></div>
-                                        <footer><span class="muted">Builtin / defaultEnabled</span><button class="line" data-toast="小雅属于内置核心角色，不建议禁用。">管理</button></footer>
-                                    </div>
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>📦 老李 · 仓储执行包</strong><p>提供识物、入库、库存预警、批次记录、进价校验。</p></div><div class="chip" id="market-laoli-status">已启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">tools 4</div><div class="mini">hooks 2</div><div class="mini">permissions operate</div></div>
-                                        <footer><span class="muted">Worker / Inventory Domain</span><button class="market-btn" data-toast="老李执行包已是当前激活版本。">升级</button></footer>
-                                    </div>
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>💸 小丽 · Cash & Query Worker</strong><p>提供利润查询、退款解释、赊账核销与口语化报表。</p></div><div class="chip live">已启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">tools 3</div><div class="mini">hooks 2</div><div class="mini">permissions review</div></div>
-                                        <footer><span class="muted">Worker / Cash Domain</span><button class="line" data-action="profit-query">试跑查询</button></footer>
-                                    </div>
-                                </div>
-                            </section>
-                            <section class="section">
-                                <div class="section-head"><h3>官方打包 Skill</h3><p class="section-note">已购商品可以启停，团队页负责禁用或重新装备。</p></div>
-                                <div class="catalog">
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>📄 OCR 单据识别大师</strong><p>老李 / 小丽可装备。支持潦草进货单与待确认修正。</p></div><div class="chip" id="market-ocr-status">未启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">tool: parse_receipt_ocr</div><div class="mini">hook: 低置信字段确认</div></div>
-                                        <footer><span class="muted">Bundled Pack / 可回滚</span><button class="market-btn" data-package="ocr" data-action="toggle-package" id="market-ocr-button">雇佣并启用</button></footer>
-                                    </div>
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>🗣️ 方言播报包</strong><p>小雅可装备。把结果卡和风险提醒切换为更接地气的口头表达。</p></div><div class="chip" id="market-dialect-status">未启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">skill: dialect_voice_style</div><div class="mini">permissions read</div></div>
-                                        <footer><span class="muted">Bundled Pack</span><button class="market-btn" data-package="dialect" data-action="toggle-package" id="market-dialect-button">雇佣并启用</button></footer>
-                                    </div>
-                                    <div class="market-card">
-                                        <div class="market-top"><div><strong>💸 熟客白条赊账理赔管家</strong><p>小丽可装备。支持赊账提醒、坏账风险提示和老板确认式核销。</p></div><div class="chip" id="market-credit-status">未启用</div></div>
-                                        <div class="chips" style="margin-top:12px;"><div class="mini">tool: reconcile_credit_note</div><div class="mini">hook: 赊账上限确认</div></div>
-                                        <footer><span class="muted">Bundled Pack / 高风险</span><button class="market-btn" data-package="credit" data-action="toggle-package" id="market-credit-button">雇佣并启用</button></footer>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
-
-                    <section class="view overlay" id="view-chat">
-                        <div class="chat-head">
-                            <button class="icon-btn" data-close="chat" aria-label="关闭工作群">✕</button>
-                            <div class="chat-meta">
-                                <strong class="chat-title">内部工作群</strong>
-                                <p class="chat-subtitle">Session #SX-2026-0402-01 · 老板 / 小雅 / 老李 / 小丽</p>
-                            </div>
-                            <div class="chip live">3 人待命</div>
-                        </div>
-                        <div class="chat-strip"><div class="footer-note"><span>本群与通话共用同一会话摘要。最近工具：<strong id="chat-tool-copy">adjust_inventory</strong></span><span class="chip risk">待确认 <span data-bind="pending">1</span></span></div></div>
-                        <div class="message-list" id="chat-message-list">
-                            <div class="message self">
-                                <div class="msg-avatar">🤴</div>
-                                <div class="bubble">
-                                    <strong>老板 · 14:18</strong>
-                                    <div class="voice-bubble">
-                                        <div class="wave"></div>
-                                        <span>语音 6"</span>
-                                    </div>
-                                    <p>今天进来 3 箱可乐，还有一个新扳手，先帮我入库。要是价格不对先别记。</p>
-                                </div>
-                            </div>
-                            <div class="message">
-                                <div class="msg-avatar">👨🏻‍💼</div>
-                                <div class="bubble">
-                                    <strong>小雅 · 14:18</strong>
-                                    <p>收到老板。可乐入库交给老李，新扳手疑似新商品，我会先走识别和风险确认，不直接建档。</p>
-                                    <div class="chips" style="margin-top:10px;"><div class="mini">Router → Inventory Worker</div><div class="mini">Summary retained</div></div>
-                                </div>
-                            </div>
-                            <div class="message">
-                                <div class="msg-avatar">📦</div>
-                                <div class="bubble">
-                                    <strong>老李 · 14:19</strong>
-                                    <p>可乐已识别为 500ml 经典款，准备写入 3 箱。由于本次进价与上批次相差较大，先请您确认。</p>
-                                    <div class="confirm">
-                                        <h4>待确认：可乐入库动作</h4>
-                                        <div class="confirm-grid" style="margin-top:12px;">
-                                            <div><span class="label">商品</span><strong>可口可乐 500ml</strong></div>
-                                            <div><span class="label">数量</span><strong>3 箱</strong></div>
-                                            <div><span class="label">建议进价</span><strong>￥41 / 箱</strong></div>
-                                            <div><span class="label">拦截原因</span><strong>高于历史进价 21%</strong></div>
-                                        </div>
-                                        <div class="row">
-                                            <button class="solid" data-action="confirm-price">确认进价</button>
-                                            <button class="line" data-action="open-correction">改成手工录入</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="message">
-                                <div class="msg-avatar">🧾</div>
-                                <div class="bubble">
-                                    <strong>系统纪要 · 14:20</strong>
-                                    <p>Pre-Tool Hook 已触发：新扳手型号识别置信度低于阈值，建议切换到通话并打开摄像头继续处理。</p>
-                                    <div class="row">
-                                        <button class="solid" data-open="call">开启高阶工作流通话</button>
-                                        <button class="line" data-toast="已保留当前会话状态，稍后可直接续接。">稍后再处理</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chat-footer">
-                            <div class="footer-note"><span id="chat-footer-copy">会话摘要已保留最近 4 条消息原文，退出通话后将自动生成工作纪要。</span><span class="mini">Compact Ready</span></div>
-                            <div class="composer wechat-composer has-text" id="chat-composer" data-mode="text" data-expanded="false">
-                                <div class="composer-main">
-                                    <button class="composer-toggle" id="chat-mode-toggle" data-action="toggle-composer-mode" aria-label="切换到语音输入">🎙️</button>
-                                    <div class="composer-stack">
-                                        <div class="composer-box">
-                                            <textarea id="chat-input" placeholder="输入消息，或问问今天赚了多少…"></textarea>
-                                            <button class="composer-send" id="chat-send-button" data-action="send-message">发送</button>
-                                        </div>
-                                        <button class="voice-press pulse-ring" id="chat-voice-trigger" data-action="voice-stockin" aria-label="按住说话">按住说话，继续交代工作</button>
-                                    </div>
-                                    <button class="composer-plus" id="chat-plus-toggle" data-action="toggle-composer-panel" aria-label="展开更多操作">+</button>
-                                </div>
-                                <div class="composer-panel" id="chat-plus-panel" hidden>
-                                    <button class="composer-card" data-action="album-upload">
-                                        <strong>🖼️</strong>
-                                        <span>相册</span>
-                                        <em>从库存照片继续识别</em>
-                                    </button>
-                                    <button class="composer-card" data-action="camera-shot">
-                                        <strong>📷</strong>
-                                        <span>拍摄</span>
-                                        <em>直接拍商品或单据</em>
-                                    </button>
-                                    <button class="composer-card" data-open="call">
-                                        <strong>📞</strong>
-                                        <span>语音通话</span>
-                                        <em>拉起高阶工作流</em>
-                                    </button>
-                                    <button class="composer-card" data-action="attach-invoice">
-                                        <strong>📎</strong>
-                                        <span>附件</span>
-                                        <em>上传进货单和票据</em>
-                                    </button>
-                                    <button class="composer-card" data-action="scan-stockin">
-                                        <strong>🔳</strong>
-                                        <span>扫一扫</span>
-                                        <em>扫码入库或建档</em>
-                                    </button>
-                                    <button class="composer-card" data-action="profit-query">
-                                        <strong>💹</strong>
-                                        <span>利润查询</span>
-                                        <em>昨天赚了多少</em>
-                                    </button>
-                                    <button class="composer-card" data-action="daily-summary">
-                                        <strong>📝</strong>
-                                        <span>今日总结</span>
-                                        <em>一键生成工作摘要</em>
-                                    </button>
-                                    <button class="composer-card" data-action="voice-stockin">
-                                        <strong>🎙️</strong>
-                                        <span>语音入库</span>
-                                        <em>直接交代收货任务</em>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="view overlay" id="view-call">
-                        <div class="call-layout">
-                            <div class="call-head">
-                                <div>
-                                    <div class="kicker" style="color:#ffcf9a;background:rgba(255,159,87,.1);margin-bottom:10px;">Live Copilot Call</div>
-                                    <strong style="display:block;font-size:18px;">实时连线已接通</strong>
-                                    <p class="muted" style="color:rgba(255,250,246,.7);">Session #SX-2026-0402-01 · 通话与工作群共享同一任务链</p>
-                                </div>
-                                <button class="icon-btn" data-close="call" style="background:rgba(255,255,255,.08);color:#fffaf6;">✕</button>
-                            </div>
-                            <div class="call-panels">
-                                <div class="call-box call-hero">
-                                    <div class="chips" style="justify-content:center;">
-                                        <div class="badge live">低功耗纯语音</div>
-                                        <div class="badge risk">待视觉确认</div>
-                                        <div class="badge">Active Tool Chain</div>
-                                    </div>
-                                    <div class="call-avatar">👨🏻‍💼</div>
-                                    <div style="font-size:20px;font-weight:900;">小雅正在听您指挥</div>
-                                    <p style="margin-top:8px;color:rgba(255,250,246,.74);font-size:13px;line-height:1.7;" id="call-sub-copy">当前任务需要看一眼新扳手型号。打开摄像头后，视觉识别结果会继续写回同一会话。</p>
-                                    <div style="display:flex;justify-content:center;gap:14px;margin-top:18px;">
-                                        <div class="sub-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(243,200,106,.4);font-size:24px;">📦</div>
-                                        <div class="sub-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:24px;opacity:.7;">💸</div>
-                                    </div>
-                                </div>
-                                <div class="call-box">
-                                    <strong id="call-stage-copy">Step 02 / 05：等待视觉输入</strong>
-                                    <p style="font-size:13px;line-height:1.8;color:rgba(255,250,246,.76);margin-top:8px;" id="call-runtime-copy">最近已完成的工具调用为 <code>recognize_item_from_photo</code>，下一步若置信度足够，将进入 <code>adjust_inventory</code>。</p>
-                                    <div class="chips" style="margin-top:12px;"><div class="mini">Pre Hook：新商品建档确认</div><div class="mini">Post Hook：结果卡 + 审计日志</div></div>
-                                    <div class="media-grid">
-                                        <div class="media-tile" id="camera-tile">
-                                            <strong style="display:block;margin-bottom:8px;">摄像头画面</strong>
-                                            尚未接入。点击下方摄像头后，会模拟识别到“得力活动扳手 12 寸”并回写库存流。
-                                        </div>
-                                        <div class="media-tile" id="screen-tile">
-                                            <strong style="display:block;margin-bottom:8px;">共享屏幕</strong>
-                                            尚未接入。点击屏幕共享后，会模拟核对到进货单与系统数量一致。
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="subtitle">
-                                    <div class="chips"><div class="badge">实时意图流</div><div class="badge live">Summary retained</div></div>
-                                    <p style="font-size:13px;line-height:1.8;color:rgba(255,250,246,.76);margin-top:10px;" id="call-subtitle-copy">小雅：老板，这个扳手型号我没见过。为了避免建错档，我需要您打开摄像头让我看一眼；如果识别还是不稳，我会停在待确认，不会直接写账。</p>
-                                </div>
-                            </div>
-                            <div class="call-controls">
-                                <button class="call-btn" id="call-mic-button" data-action="toggle-mic">🔇</button>
-                                <button class="call-btn" id="call-screen-button" data-action="screen-on">📱</button>
-                                <button class="call-btn" id="call-camera-button" data-action="camera-on">📷</button>
-                                <button class="call-btn danger" data-action="exit-call">☎️</button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="view overlay panel" id="view-notifications">
-                        <div class="sheet-head">
-                            <div>
-                                <div class="kicker" style="margin-bottom:8px;">Notifications Center</div>
-                                <h2>老板通知中心</h2>
-                                <p class="meta">首页铃铛聚合库存告急、退款补因、待确认和纪要回执。</p>
-                            </div>
-                            <button class="icon-btn" data-close="notifications">✕</button>
-                        </div>
-                        <div class="scroll">
-                            <div class="sheet-card">
-                                <div class="notification-list" id="notification-list"></div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="view overlay panel" id="view-alerts">
-                        <div class="sheet-head">
-                            <div>
-                                <div class="kicker" style="margin-bottom:8px;">Urgent SKUs</div>
-                                <h2>库存告急清单</h2>
-                                <p class="meta">所有低库存商品都会给出建议补货量、风险等级和一键回群操作。</p>
-                            </div>
-                            <button class="icon-btn" data-close="alerts">✕</button>
-                        </div>
-                        <div class="scroll">
-                            <div class="sheet-card">
-                                <div class="alert-list" id="alert-list"></div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="view overlay panel" id="view-ledger">
-                        <div class="sheet-head">
-                            <div>
-                                <div class="kicker" style="margin-bottom:8px;">Ledger Drilldown</div>
-                                <h2 id="ledger-title">账本详情</h2>
-                                <p class="meta" id="ledger-description">账本下钻支持人工更正、只读查询和锁定预览。</p>
-                            </div>
-                            <button class="icon-btn" data-close="ledger">✕</button>
-                        </div>
-                        <div class="scroll">
-                            <div class="sheet-card" id="ledger-content"></div>
-                        </div>
-                    </section>
-
-                    <section class="view overlay panel" id="view-ops">
-                        <div class="sheet-head">
-                            <div>
-                                <div class="kicker" style="margin-bottom:8px;">Internal Ops Console</div>
-                                <h2>内部运营控制台</h2>
-                                <p class="meta">用户不可见，但产品必须具备。这里演示链路回放、告警原因、纪要导出和高风险 Skill 禁用。</p>
-                            </div>
-                            <button class="icon-btn" data-close="ops">✕</button>
-                        </div>
-                        <div class="scroll">
-                            <div class="ops-grid">
-                                <div class="sheet-card">
-                                    <div class="card-head">
-                                        <div><strong>最近一次工具执行链路</strong><p class="muted">查看 Session → Router → Worker → Tool → Hook → Audit 的回放。</p></div>
-                                        <button class="line" data-action="replay-chain">回放链路</button>
-                                    </div>
-                                    <div class="timeline" style="margin-top:14px;" id="ops-chain"></div>
-                                </div>
-                                <div class="sheet-card">
-                                    <div class="card-head">
-                                        <div><strong>通话纪要与导出</strong><p class="muted">通话退出后自动生成纪要，并可在控制台导出完整回放文本。</p></div>
-                                        <button class="solid" data-action="export-memo">导出纪要</button>
-                                    </div>
-                                    <div class="query-log" style="margin-top:14px;">
-                                        <div class="query-line"><span class="label">最新纪要状态</span><strong id="ops-memo-status">尚未导出新纪要</strong></div>
-                                        <div class="query-line"><span class="label">共享摘要</span><strong id="ops-summary-status">最近 4 条原文 + 自动压缩摘要保留中</strong></div>
-                                    </div>
-                                </div>
-                                <div class="sheet-card">
-                                    <div class="card-head">
-                                        <div><strong>告警为什么触发</strong><p class="muted">可观测性要求：每次告警都能解释给客服、风控和老板听。</p></div>
-                                        <button class="line" data-action="why-alert">解释原因</button>
-                                    </div>
-                                    <div class="query-log" style="margin-top:14px;">
-                                        <div class="query-line"><span class="label">红牛补货</span><strong>过去 48 小时销量 24 罐，库存只剩 2 罐，安全库存阈值为 6 罐。</strong></div>
-                                        <div class="query-line"><span class="label">退款待补因</span><strong>退款金额 ￥52，缺失退款说明字段，触发小丽的“原因必填” Hook。</strong></div>
-                                    </div>
-                                </div>
-                                <div class="sheet-card">
-                                    <div class="card-head">
-                                        <div><strong>高风险 Skill 管控</strong><p class="muted">支持一键禁用赊账类高风险能力，并回写团队页和市场页状态。</p></div>
-                                        <button class="solid" data-action="disable-high-risk">禁用赊账理赔管家</button>
-                                    </div>
-                                    <div class="query-log" style="margin-top:14px;">
-                                        <div class="query-line"><span class="label">当前状态</span><strong id="ops-credit-status">赊账理赔管家未启用</strong></div>
-                                        <div class="query-line"><span class="label">最近处理人</span><strong>小丽 · Cash & Query Worker</strong></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <div class="dock" style="position:absolute;left:16px;right:16px;bottom:102px;padding:12px 14px;background:rgba(31,20,18,.9);color:#fffaf6;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;z-index:34;">
-                        <button class="voice-btn pulse-ring" data-action="voice-reply" aria-label="快速语音回复">🎙️</button>
-                        <div style="flex:1;">
-                            <strong style="display:block;font-size:14px;font-weight:900;">进入数字员工内部工作群</strong>
-                            <p style="margin-top:4px;color:rgba(255,250,246,.68);font-size:12px;line-height:1.5;">小雅待命：老板，您在群里吩咐，我按岗位和风险等级给您分发。现在支持语音、拍照、扫码、附件和经营查询。</p>
-                        </div>
-                        <button class="dock-main" data-open="chat">进入工作群</button>
-                    </div>
-
-                    <nav class="tabbar" style="position:absolute;left:16px;right:16px;bottom:14px;height:74px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px;background:rgba(255,252,248,.9);border:1px solid rgba(32,23,26,.08);z-index:35;">
-                        <button class="tabbtn active" data-target="dashboard" style="border-radius:18px;background:linear-gradient(135deg, rgba(255,152,88,.18), rgba(255,255,255,.9));color:#9a471f;"><span style="display:block;font-size:22px;">📊</span><span style="font-size:10px;font-weight:800;">经营大盘</span></button>
-                        <button class="tabbtn" data-target="data" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">🗄️</span><span style="font-size:10px;font-weight:800;">业务账本</span></button>
-                        <button class="tabbtn" data-target="team" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">👨🏻‍💼</span><span style="font-size:10px;font-weight:800;">团队架构</span></button>
-                        <button class="tabbtn" data-target="market" style="border-radius:18px;background:transparent;color:var(--soft);"><span style="display:block;font-size:22px;">💼</span><span style="font-size:10px;font-weight:800;">人才市场</span></button>
-                    </nav>
-
-                    <div class="toast" id="toast" style="position:absolute;left:50%;top:24px;transform:translate(-50%,-12px);min-width:240px;max-width:calc(100% - 56px);padding:12px 14px;background:rgba(20,16,18,.92);color:#fffaf6;font-size:12px;line-height:1.6;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:90;"></div>
-                </div>
-            </div>
+  <div class="phone">
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <div class="logo">🏪</div>
+          <div>
+            <div class="eyebrow">v2 MVP · 只做库存闭环</div>
+            <h1>AI数字店铺大管家</h1>
+            <p>三屏就够了：工作台、工作群、账本。先把说话入库、拍照建档、库存查询、人工纠错做稳。</p>
+          </div>
         </div>
+        <div class="right">
+          <div class="chip ok">可审计</div>
+          <button class="icon" data-action="scope" aria-label="查看范围">◎</button>
+        </div>
+      </header>
+
+      <main class="views">
+        <section class="view active" data-view="dashboard">
+          <div class="scroll">
+            <div class="hero">
+              <div class="chips">
+                <div class="chip">小雅在线</div>
+                <div class="chip ok">库存链路已接通</div>
+                <div class="chip warn">待确认 <span id="heroPending">1</span></div>
+              </div>
+              <h2>老板今天不用填表，先把货记对。</h2>
+              <p>当前原型只围绕库存主链路。你在工作群里说一句、拍一张，结果会直接回到群里，并同步到账本。</p>
+              <div class="grid">
+                <div class="metric"><span>今日营业额</span><strong id="mRevenue">￥2,450</strong></div>
+                <div class="metric"><span>今日入库任务</span><strong id="mInbound">3 次</strong></div>
+                <div class="metric"><span>低库存商品</span><strong id="mLow">2 款</strong></div>
+                <div class="metric"><span>待确认任务</span><strong id="mPending">1 项</strong></div>
+              </div>
+            </div>
+
+            <section class="sec">
+              <div class="head">
+                <h3>现在最该处理</h3>
+                <p>只留一个真实待办，不堆入口。</p>
+              </div>
+              <div class="card pending">
+                <strong id="pendingTitle">新扳手待确认建档</strong>
+                <p id="pendingCopy">无码五金件，系统识别到“活动扳手”但不敢直接写库。需要老板确认名称、数量和进价后再入账。</p>
+                <div class="chips">
+                  <div class="mini">新商品先确认</div>
+                  <div class="mini">价格不明不写库</div>
+                  <div class="mini">写入后可追溯</div>
+                </div>
+                <div class="btns">
+                  <button class="primary" data-action="confirm">确认扳手建档</button>
+                  <button class="secondary" data-view-target="chat">去工作群看上下文</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>库存提醒</h3>
+                <p>先做提醒，不做自动下单。</p>
+              </div>
+              <div class="list" id="lowList"></div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>这版故意没做什么</h3>
+                <p>先把核心闭环做深。</p>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <div class="item"><strong>P0</strong><p>工作台、工作群、账本，跑通库存闭环。</p></div>
+                  <div class="item"><strong>P1</strong><p>再加 OCR、经营问答和会话摘要续接。</p></div>
+                  <div class="item"><strong>P2</strong><p>最后才做通话、团队和人才市场。</p></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" data-view="chat">
+          <div class="scroll">
+            <div class="card">
+              <div class="head" style="margin-bottom:0">
+                <div>
+                  <h3>数字员工工作群</h3>
+                  <p style="text-align:left">小雅是唯一入口，老李只负责库存执行。v2 不再做通话页。</p>
+                </div>
+                <div class="chip">统一 Session</div>
+              </div>
+            </div>
+
+            <section class="sec">
+              <div class="msgs" id="msgs"></div>
+            </section>
+
+            <div class="composer">
+              <div class="head">
+                <div>
+                  <h3>群里只演示三条链路</h3>
+                  <p style="text-align:left">语音入库、拍照建档、库存查询。</p>
+                </div>
+                <div class="chip ok">MVP</div>
+              </div>
+              <div class="actgrid">
+                <button class="action" data-action="voice"><strong>🎙️</strong><span>模拟语音入库</span></button>
+                <button class="action" data-action="photo"><strong>📷</strong><span>模拟拍照建档</span></button>
+                <button class="action" data-action="query"><strong>📦</strong><span>查询红牛库存</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="ledger">
+          <div class="scroll">
+            <div class="card">
+              <div class="head" style="margin-bottom:0">
+                <div>
+                  <h3>库存账本</h3>
+                  <p style="text-align:left">AI 可以记错，但不能静默改。手工修正必须带原因。</p>
+                </div>
+                <div class="chip warn">Correction Event</div>
+              </div>
+            </div>
+
+            <section class="sec">
+              <div class="list" id="inventory"></div>
+            </section>
+
+            <section class="sec">
+              <div class="sheet">
+                <strong>手工纠错</strong>
+                <p>改库存时必须记录改前值、改后值和原因，并回写到工作群。</p>
+                <div class="form">
+                  <div class="input"><label for="item">商品</label><select id="item"></select></div>
+                  <div class="input"><label for="qty">改成多少</label><input id="qty" type="number" min="0" step="1" value="3"></div>
+                  <div class="input"><label for="reason">修改原因</label><textarea id="reason" rows="3">实际清点数量与 AI 入库结果不一致</textarea></div>
+                  <button class="primary" id="save">保存人工修正</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="sheet">
+                <div class="head">
+                  <div>
+                    <h3>审计时间线</h3>
+                    <p style="text-align:left">只保留关键库存动作，不做大而全的控制台。</p>
+                  </div>
+                  <div class="mini">最近 6 条</div>
+                </div>
+                <div class="auditlist" id="audit"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <nav class="tabs">
+        <button class="tab active" data-view-target="dashboard"><strong>🏠</strong><span>工作台</span></button>
+        <button class="tab" data-view-target="chat"><strong>💬</strong><span>工作群</span></button>
+        <button class="tab" data-view-target="ledger"><strong>🧾</strong><span>账本</span></button>
+      </nav>
     </div>
-
-    <script>
-        const views = [...document.querySelectorAll("[data-view]")];
-        const tabs = [...document.querySelectorAll(".tabbtn")];
-        const toast = document.getElementById("toast");
-        const overlays = {
-            chat: document.getElementById("view-chat"),
-            call: document.getElementById("view-call"),
-            notifications: document.getElementById("view-notifications"),
-            alerts: document.getElementById("view-alerts"),
-            ledger: document.getElementById("view-ledger"),
-            ops: document.getElementById("view-ops")
-        };
-        const chatMessageList = document.getElementById("chat-message-list");
-        const chatInput = document.getElementById("chat-input");
-        const chatComposer = document.getElementById("chat-composer");
-        const chatModeToggle = document.getElementById("chat-mode-toggle");
-        const chatPlusToggle = document.getElementById("chat-plus-toggle");
-        const chatPlusPanel = document.getElementById("chat-plus-panel");
-        const chatVoiceTrigger = document.getElementById("chat-voice-trigger");
-        const chatSendButton = document.getElementById("chat-send-button");
-        const auditTimeline = document.getElementById("audit-timeline");
-        const notificationList = document.getElementById("notification-list");
-        const alertList = document.getElementById("alert-list");
-        const ledgerTitle = document.getElementById("ledger-title");
-        const ledgerDescription = document.getElementById("ledger-description");
-        const ledgerContent = document.getElementById("ledger-content");
-        const opsChain = document.getElementById("ops-chain");
-        let toastTimer;
-        let minuteCursor = 20;
-        let audioContext;
-
-        const state = {
-            metrics: { revenue: 2450, profit: 820, tasks: 7, risk: 2, lowStock: 5, pending: 2, lowConfidence: 1 },
-            session: {
-                mode: "工作群",
-                currentWork: "处理“可乐与扳手”入库任务",
-                lastTool: "recognize_item_from_photo → adjust_inventory",
-                summary: "已压缩历史 12 轮消息，保留最近 4 条原文",
-                memoStatus: "尚未生成新的连线纪要",
-                memoReady: false
-            },
-            ledgers: {
-                inventory: { sku: "可口可乐 500ml", quantity: 3, price: 41, batch: "2026-04-A7", reason: "入库数量与实际搬运箱数不一致" },
-                cash: { yesterdayProfit: 668, gap: 126, refund: 52, credit: 36, promo: 38 }
-            },
-            packages: { ocr: false, dialect: false, credit: false, barcode: true },
-            tone: "专业干练",
-            composer: { mode: "text", expanded: false },
-            inventoryConfirmed: false,
-            inventoryUndone: false,
-            purchaseApproved: false,
-            currentLedger: "inventory",
-            call: { muted: false, camera: false, screen: false, memoGenerated: false },
-            notifications: [
-                { title: "红牛库存告急", body: "库存只剩 2 罐，建议补 6 箱。", tag: "库存", action: "alerts" },
-                { title: "退款原因待补充", body: "小丽标记到 1 笔退款缺老板说明。", tag: "账本", action: "cash-ledger" },
-                { title: "扳手建档待确认", body: "建议切换通话并打开摄像头继续识别。", tag: "通话", action: "call" }
-            ],
-            alerts: [
-                { name: "红牛 250ml", stock: 2, suggestion: "补 6 箱", risk: "高" },
-                { name: "矿泉水 550ml", stock: 4, suggestion: "补 3 箱", risk: "中" },
-                { name: "软中华", stock: 3, suggestion: "补 2 条", risk: "中" },
-                { name: "一次性纸杯", stock: 1, suggestion: "补 4 包", risk: "高" }
-            ],
-            audit: [
-                { time: "14:22", title: "Pre-Tool Hook 拦截批量改价", tag: "未执行" },
-                { time: "13:58", title: "人工修正：可乐入库数量 2 箱 → 3 箱", tag: "已记账" },
-                { time: "13:44", title: "Post-Tool Hook 追加撤销令牌", tag: "可回滚" }
-            ],
-            ops: [
-                { time: "14:18", title: "小雅识别到入库意图，分发给老李", tag: "Router" },
-                { time: "14:19", title: "老李调用进价校验 Hook，要求老板确认", tag: "Hook" },
-                { time: "14:20", title: "系统建议切换到通话处理新扳手建档", tag: "Runtime" }
-            ]
-        };
-
-        function nextTime() {
-            minuteCursor += 1;
-            return `14:${String(minuteCursor).padStart(2, "0")}`;
-        }
-
-        function setView(name) {
-            views.forEach((view) => view.classList.toggle("active", view.dataset.view === name));
-            tabs.forEach((tab) => {
-                const active = tab.dataset.target === name;
-                tab.classList.toggle("active", active);
-                tab.style.background = active ? "linear-gradient(135deg, rgba(255,152,88,.18), rgba(255,255,255,.9))" : "transparent";
-                tab.style.color = active ? "#9a471f" : "var(--soft)";
-            });
-        }
-
-        function openOverlay(name) {
-            const overlay = overlays[name];
-            if (!overlay) return;
-            Object.values(overlays).forEach((item) => item.classList.remove("active"));
-            overlay.classList.add("active");
-        }
-
-        function closeOverlay(name) {
-            const overlay = overlays[name];
-            if (overlay) overlay.classList.remove("active");
-        }
-
-        function showToast(message) {
-            toast.textContent = message;
-            toast.style.opacity = "1";
-            toast.style.transform = "translate(-50%,0)";
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transform = "translate(-50%,-12px)";
-            }, 2200);
-        }
-
-        function formatMoney(value) {
-            return `￥${value.toLocaleString("zh-CN")}`;
-        }
-
-        function playTone(kind) {
-            const Context = window.AudioContext || window.webkitAudioContext;
-            if (!Context) return;
-            audioContext = audioContext || new Context();
-            const patterns = { success: [523.25, 659.25, 783.99], warn: [392, 329.63], undo: [659.25, 523.25], scan: [740, 988] };
-            const notes = patterns[kind] || patterns.success;
-            const start = audioContext.currentTime;
-
-            notes.forEach((frequency, index) => {
-                const oscillator = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                oscillator.type = kind === "scan" ? "square" : "sine";
-                oscillator.frequency.value = frequency;
-                gain.gain.setValueAtTime(0.0001, start + index * 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.08, start + index * 0.08 + 0.01);
-                gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.08 + 0.18);
-                oscillator.connect(gain);
-                gain.connect(audioContext.destination);
-                oscillator.start(start + index * 0.08);
-                oscillator.stop(start + index * 0.08 + 0.18);
-            });
-        }
-
-        function addAudit(title, tag) {
-            state.audit = [{ time: nextTime(), title, tag }, ...state.audit].slice(0, 6);
-            renderAudit();
-        }
-
-        function addOps(title, tag) {
-            state.ops = [{ time: nextTime(), title, tag }, ...state.ops].slice(0, 6);
-            renderOps();
-        }
-
-        function avatarFor(actor) {
-            return { "老板": "🤴", "小雅": "👨🏻‍💼", "老李": "📦", "小丽": "💸", "系统纪要": "🧾" }[actor] || "🧾";
-        }
-
-        function appendMessage(actor, html, self = false) {
-            const time = nextTime();
-            const wrapper = document.createElement("div");
-            wrapper.className = `message${self ? " self" : ""}`;
-            wrapper.innerHTML = `
-                <div class="msg-avatar">${avatarFor(actor)}</div>
-                <div class="bubble">
-                    <strong>${actor} · ${time}</strong>
-                    ${html}
-                </div>
-            `;
-            chatMessageList.appendChild(wrapper);
-            chatMessageList.scrollTop = chatMessageList.scrollHeight;
-        }
-
-        function bindText(name, value) {
-            document.querySelectorAll(`[data-bind="${name}"]`).forEach((node) => {
-                node.textContent = value;
-            });
-        }
-
-        function updateDashboard() {
-            bindText("revenue", formatMoney(state.metrics.revenue));
-            bindText("profit", formatMoney(state.metrics.profit));
-            bindText("tasks", `${state.metrics.tasks} 项`);
-            bindText("risk", `${state.metrics.risk} 项`);
-            bindText("lowStock", `${state.metrics.lowStock} 款`);
-            bindText("pending", `${state.metrics.pending}`);
-            bindText("lowConfidence", `${state.metrics.lowConfidence} 次`);
-            bindText("sessionMode", state.session.mode);
-            document.getElementById("session-current-work").textContent = state.session.currentWork;
-            document.getElementById("session-last-tool").textContent = state.session.lastTool;
-            document.getElementById("session-summary-text").textContent = state.session.summary;
-            document.getElementById("session-summary-badge").textContent = state.session.memoReady ? "已续接" : "可续接";
-            document.getElementById("session-memo-status").textContent = state.session.memoStatus;
-            document.getElementById("session-memo-badge").textContent = state.session.memoReady ? "已生成" : "待生成";
-            document.getElementById("chat-tool-copy").textContent = state.session.lastTool.split(" → ").slice(-1)[0];
-            document.getElementById("ops-summary-status").textContent = state.session.summary;
-            document.getElementById("dashboard-tone-chip").textContent = `语调：${state.tone}`;
-            document.getElementById("dashboard-xiaoya-skills").textContent = state.packages.dialect
-                ? "意图路由中枢、会话压缩续接、风险升级提醒、方言播报。"
-                : "意图路由中枢、会话压缩续接、风险升级提醒。";
-            document.getElementById("dashboard-laoli-skill-chip").textContent = state.packages.barcode ? "扫码建档：已启用" : "扫码建档：已停用";
-            document.getElementById("inventory-ledger-status").textContent = state.inventoryConfirmed
-                ? "最近 1 条入库事件已写入，扳手识别仍待通话确认。"
-                : "3 条入库事件待同步，1 条新商品识别待确认。";
-        }
-
-        function renderComposer() {
-            const hasText = Boolean(chatInput.value.trim());
-            chatComposer.dataset.mode = state.composer.mode;
-            chatComposer.dataset.expanded = state.composer.expanded ? "true" : "false";
-            chatComposer.classList.toggle("has-text", hasText);
-            chatModeToggle.textContent = state.composer.mode === "text" ? "🎙️" : "⌨️";
-            chatModeToggle.setAttribute("aria-label", state.composer.mode === "text" ? "切换到语音输入" : "切换到文字输入");
-            chatPlusToggle.textContent = state.composer.expanded ? "−" : "+";
-            chatPlusToggle.classList.toggle("active", state.composer.expanded);
-            chatPlusPanel.hidden = !state.composer.expanded;
-            chatVoiceTrigger.hidden = state.composer.mode !== "voice";
-            chatSendButton.disabled = !hasText || state.composer.mode !== "text";
-        }
-
-        function closeComposerPanel() {
-            if (!state.composer.expanded) return;
-            state.composer = { ...state.composer, expanded: false };
-            renderComposer();
-        }
-
-        function toggleComposerMode() {
-            const nextMode = state.composer.mode === "text" ? "voice" : "text";
-            state.composer = { ...state.composer, mode: nextMode, expanded: false };
-            renderComposer();
-            if (nextMode === "text") chatInput.focus();
-            showToast(nextMode === "voice" ? "已切到语音输入，按住即可继续交代工作。" : "已切回文字输入。");
-        }
-
-        function toggleComposerPanel() {
-            state.composer = { ...state.composer, expanded: !state.composer.expanded };
-            renderComposer();
-        }
-
-        function renderAudit() {
-            auditTimeline.innerHTML = state.audit.map((item) => `
-                <div class="timeline-item">
-                    <div class="timeline-time">${item.time}</div>
-                    <div><strong>${item.title}</strong></div>
-                    <div class="mini">${item.tag}</div>
-                </div>
-            `).join("");
-        }
-
-        function renderNotifications() {
-            notificationList.innerHTML = state.notifications.map((item, index) => `
-                <div class="note-card">
-                    <div class="card-head">
-                        <div>
-                            <strong>${item.title}</strong>
-                            <p>${item.body}</p>
-                        </div>
-                        <div class="chip ${index === 0 ? "risk" : index === 1 ? "" : "info"}">${item.tag}</div>
-                    </div>
-                    <div class="row">
-                        <button class="solid" data-note-action="${item.action}">立即处理</button>
-                        <button class="line" data-toast="通知已标记为稍后处理。">稍后提醒</button>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        function renderAlerts() {
-            alertList.innerHTML = state.alerts.map((item) => `
-                <div class="alert-card">
-                    <div class="card-head">
-                        <div>
-                            <strong>${item.name}</strong>
-                            <p>当前库存 ${item.stock}，建议 ${item.suggestion}。</p>
-                        </div>
-                        <div class="chip ${item.risk === "高" ? "risk" : ""}">${item.risk} 风险</div>
-                    </div>
-                    <div class="row">
-                        <button class="solid" data-action="approve-purchase">回群批准补货</button>
-                        <button class="line" data-action="voice-reply">语音吩咐老李</button>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        function renderOps() {
-            opsChain.innerHTML = state.ops.map((item) => `
-                <div class="timeline-item">
-                    <div class="timeline-time">${item.time}</div>
-                    <div><strong>${item.title}</strong></div>
-                    <div class="mini">${item.tag}</div>
-                </div>
-            `).join("");
-            document.getElementById("ops-memo-status").textContent = state.session.memoStatus;
-            document.getElementById("ops-credit-status").textContent = state.packages.credit
-                ? "赊账理赔管家已启用，核销前必须老板确认"
-                : "赊账理赔管家未启用";
-        }
-
-        function renderTeamAndMarket() {
-            const dialectActive = state.packages.dialect;
-            const ocrActive = state.packages.ocr;
-            const creditActive = state.packages.credit;
-            const barcodeActive = state.packages.barcode;
-
-            document.getElementById("tone-copy").textContent = state.tone;
-            document.querySelectorAll("#tone-switcher button").forEach((button) => {
-                button.classList.toggle("active", button.dataset.tone === state.tone);
-            });
-            document.getElementById("laoli-skill-copy").textContent = `${ocrActive ? "OCR 单据识别、" : ""}包装拍照识别、${barcodeActive ? "条码建档" : "条码建档（已停用）"}、低库存警报、进价趋势对比。`;
-            document.getElementById("dialect-toggle-team").textContent = dialectActive ? "停用方言播报包" : "启用方言播报包";
-            document.getElementById("ocr-toggle-team").textContent = ocrActive ? "停用 OCR 单据包" : "安装 OCR 单据包";
-            document.getElementById("credit-toggle-team").textContent = creditActive ? "停用赊账理赔管家" : "启用赊账理赔管家";
-            document.getElementById("barcode-toggle-team").textContent = barcodeActive ? "停用扫码建档" : "恢复扫码建档";
-            document.getElementById("market-ocr-status").textContent = ocrActive ? "已启用" : "未启用";
-            document.getElementById("market-dialect-status").textContent = dialectActive ? "已启用" : "未启用";
-            document.getElementById("market-credit-status").textContent = creditActive ? "已启用" : "未启用";
-            document.getElementById("market-ocr-button").textContent = ocrActive ? "停用" : "雇佣并启用";
-            document.getElementById("market-dialect-button").textContent = dialectActive ? "停用" : "雇佣并启用";
-            document.getElementById("market-credit-button").textContent = creditActive ? "停用" : "雇佣并启用";
-        }
-
-        function renderCall() {
-            const callStage = document.getElementById("call-stage-copy");
-            const runtimeCopy = document.getElementById("call-runtime-copy");
-            const subtitleCopy = document.getElementById("call-subtitle-copy");
-            const subCopy = document.getElementById("call-sub-copy");
-            const cameraTile = document.getElementById("camera-tile");
-            const screenTile = document.getElementById("screen-tile");
-            const micButton = document.getElementById("call-mic-button");
-            const cameraButton = document.getElementById("call-camera-button");
-            const screenButton = document.getElementById("call-screen-button");
-
-            if (!state.call.camera) {
-                callStage.innerHTML = "Step 02 / 05：等待视觉输入";
-                runtimeCopy.innerHTML = "最近已完成的工具调用为 <code>recognize_item_from_photo</code>，下一步若置信度足够，将进入 <code>adjust_inventory</code>。";
-                subtitleCopy.textContent = "小雅：老板，这个扳手型号我没见过。为了避免建错档，我需要您打开摄像头让我看一眼；如果识别还是不稳，我会停在待确认，不会直接写账。";
-                subCopy.textContent = "当前任务需要看一眼新扳手型号。打开摄像头后，视觉识别结果会继续写回同一会话。";
-                cameraTile.classList.remove("active");
-                screenTile.classList.remove("active");
-                cameraTile.innerHTML = "<strong style='display:block;margin-bottom:8px;'>摄像头画面</strong>尚未接入。点击下方摄像头后，会模拟识别到“得力活动扳手 12 寸”并回写库存流。";
-                screenTile.innerHTML = "<strong style='display:block;margin-bottom:8px;'>共享屏幕</strong>尚未接入。点击屏幕共享后，会模拟核对到进货单与系统数量一致。";
-            }
-
-            if (state.call.camera) {
-                callStage.innerHTML = state.call.screen ? "Step 04 / 05：票据核对完成" : "Step 03 / 05：视觉识别完成";
-                runtimeCopy.innerHTML = state.call.screen
-                    ? "视觉识别已确认 <code>得力活动扳手 12 寸</code>，共享屏幕已核对单据数量与进价一致，下一步等待结束通话并生成纪要。"
-                    : "摄像头已接入，模型识别到 <code>得力活动扳手 12 寸</code>，建议写入 1 件并提示老板确认单据。";
-                subtitleCopy.textContent = state.call.screen
-                    ? "小雅：我已经核对过进货单，数量 1 件、进价 ￥18.5，退出通话后我会把纪要和结果卡同步回工作群。"
-                    : "小雅：看清楚了，是得力活动扳手 12 寸。为了避免进价写错，请您再共享一下单据，我核对后再回群里出结果卡。";
-                subCopy.textContent = state.call.screen
-                    ? "识别与单据核对都完成了。退出通话后会自动生成连线纪要，并回写工作群。"
-                    : "视觉识别已经完成。现在建议共享屏幕给我看一眼进货单，再完成整笔入库。";
-                cameraTile.classList.add("active");
-                cameraTile.innerHTML = "<strong style='display:block;margin-bottom:8px;'>摄像头画面</strong>识别结果：得力活动扳手 12 寸，规格匹配成功，建档置信度 92%。";
-            }
-
-            if (state.call.screen) {
-                screenTile.classList.add("active");
-                screenTile.innerHTML = "<strong style='display:block;margin-bottom:8px;'>共享屏幕</strong>单据核对完成：数量 1 件，进价 ￥18.5，供应商“永发五金”。";
-            }
-
-            micButton.classList.toggle("active", state.call.muted);
-            cameraButton.classList.toggle("active", state.call.camera);
-            screenButton.classList.toggle("active", state.call.screen);
-        }
-
-        function renderLedger() {
-            if (state.currentLedger === "inventory") {
-                ledgerTitle.textContent = "老李的库存账本";
-                ledgerDescription.textContent = "支持手动修正数量、批次与进价。保存后会生成 Correction Event，并写入审计时间线。";
-                ledgerContent.innerHTML = `
-                    <div class="form-grid">
-                        <div class="field">
-                            <label>商品名称</label>
-                            <input id="ledger-sku" value="${state.ledgers.inventory.sku}">
-                        </div>
-                        <div class="field">
-                            <label>库存数量（箱）</label>
-                            <input id="ledger-quantity" type="number" value="${state.ledgers.inventory.quantity}">
-                        </div>
-                        <div class="field">
-                            <label>进价（元 / 箱）</label>
-                            <input id="ledger-price" type="number" step="0.1" value="${state.ledgers.inventory.price}">
-                        </div>
-                        <div class="field">
-                            <label>批次</label>
-                            <input id="ledger-batch" value="${state.ledgers.inventory.batch}">
-                        </div>
-                    </div>
-                    <div class="field" style="margin-top:12px;">
-                        <label>人工修正原因</label>
-                        <textarea id="ledger-reason" rows="3">${state.ledgers.inventory.reason}</textarea>
-                    </div>
-                    <div class="row">
-                        <button class="solid" data-action="save-correction">保存并写入审计</button>
-                        <button class="line" data-action="undo-last">撤销最近一次入库</button>
-                    </div>
-                    <div class="query-log" style="margin-top:14px;">
-                        <div class="query-line"><span class="label">最近事件</span><strong>可口可乐 500ml 入库 ${state.ledgers.inventory.quantity} 箱，批次 ${state.ledgers.inventory.batch}</strong></div>
-                        <div class="query-line"><span class="label">撤销策略</span><strong>10 分钟内支持一键撤销，超过窗口则必须人工更正。</strong></div>
-                    </div>
-                `;
-                return;
-            }
-
-            if (state.currentLedger === "cash") {
-                ledgerTitle.textContent = "小丽的钱箱流水";
-                ledgerDescription.textContent = "这里重点演示“昨天赚了多少”“为什么少了”的查询闭环，以及退款/赊账的只读说明。";
-                ledgerContent.innerHTML = `
-                    <div class="query-log">
-                        <div class="query-line"><span class="label">昨天利润</span><strong>${formatMoney(state.ledgers.cash.yesterdayProfit)}</strong></div>
-                        <div class="query-line"><span class="label">较前天减少</span><strong>${formatMoney(state.ledgers.cash.gap)}</strong></div>
-                        <div class="query-line"><span class="label">构成</span><strong>促销让利 ${formatMoney(state.ledgers.cash.promo)} + 退款 ${formatMoney(state.ledgers.cash.refund)} + 赊账挂账 ${formatMoney(state.ledgers.cash.credit)}</strong></div>
-                        <div class="query-line"><span class="label">退款待核</span><strong>订单 #R-2041 缺失原因，等待老板补充说明。</strong></div>
-                    </div>
-                    <div class="row">
-                        <button class="solid" data-action="profit-query">把解释发回工作群</button>
-                        <button class="line" data-toast="当前为只读查询，退款冲销必须在老板确认后执行。">查看退款边界</button>
-                    </div>
-                `;
-                return;
-            }
-
-            ledgerTitle.textContent = "财务老赵的报表柜";
-            ledgerDescription.textContent = "MVP 里先给出锁定预览，让老板知道未来会扩展到更完整的财务能力。";
-            ledgerContent.innerHTML = `
-                <div class="note-card locked">
-                    <div class="card-head">
-                        <div>
-                            <strong>报表柜暂未解锁</strong>
-                            <p>这里未来会承载利润表、现金流汇总、税务简报和月度经营体检。</p>
-                        </div>
-                        <div class="chip">待招募</div>
-                    </div>
-                    <div class="query-log" style="margin-top:14px;">
-                        <div class="query-line"><span class="label">未来内容</span><strong>月度利润拆解、税务估算、供应商账期建议。</strong></div>
-                        <div class="query-line"><span class="label">当前建议</span><strong>去人才市场购买财务型能力包，或先用小丽的查询能力完成轻量核算。</strong></div>
-                    </div>
-                    <div class="row">
-                        <button class="solid" data-target-view="market">去市场招募</button>
-                        <button class="line" data-close="ledger">先返回</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function syncAll() {
-            updateDashboard();
-            renderComposer();
-            renderAudit();
-            renderNotifications();
-            renderAlerts();
-            renderOps();
-            renderTeamAndMarket();
-            renderCall();
-            renderLedger();
-        }
-
-        function sendProfitQueryFlow(skipBossMessage = false) {
-            closeComposerPanel();
-            openOverlay("chat");
-            if (!skipBossMessage) {
-                appendMessage("老板", "<p>昨天赚了多少？为什么比前天少？</p>", true);
-            }
-            appendMessage("小雅", "<p>收到，这是经营查询，我交给小丽只读查询，不会改任何账本。</p><div class='chips' style='margin-top:10px;'><div class='mini'>Router → Cash Worker</div><div class='mini'>只读模式</div></div>");
-            appendMessage("小丽", `<p>昨天实赚 <strong>${formatMoney(state.ledgers.cash.yesterdayProfit)}</strong>，比前天少了 <strong>${formatMoney(state.ledgers.cash.gap)}</strong>。</p><div class="confirm"><h4>原因说明</h4><div class="confirm-grid" style="margin-top:12px;"><div><span class="label">促销让利</span><strong>${formatMoney(state.ledgers.cash.promo)}</strong></div><div><span class="label">退款影响</span><strong>${formatMoney(state.ledgers.cash.refund)}</strong></div><div><span class="label">赊账挂账</span><strong>${formatMoney(state.ledgers.cash.credit)}</strong></div><div><span class="label">建议动作</span><strong>先补退款原因，再核对熟客白条</strong></div></div></div>`);
-            state.session.currentWork = "处理经营查询与退款说明";
-            state.session.lastTool = "query_daily_revenue → explain_profit_gap";
-            state.session.summary = "新增 1 条经营查询结果，小丽已返回利润差异构成。";
-            document.getElementById("dashboard-query-copy").textContent = "刚刚已把利润解释回放到工作群，小丽会保持只读查询。";
-            addOps("小丽完成利润查询并生成口语化解释", "Query");
-            syncAll();
-        }
-
-        function confirmInventory() {
-            if (state.inventoryConfirmed && !state.inventoryUndone) {
-                showToast("这笔可乐入库已经确认过了。");
-                return;
-            }
-            state.inventoryConfirmed = true;
-            state.inventoryUndone = false;
-            state.metrics.lowStock = 4;
-            state.metrics.pending = 1;
-            state.metrics.tasks = 6;
-            state.session.currentWork = "可乐入库完成，等待扳手通话确认";
-            state.session.lastTool = "adjust_inventory → refresh_alerts";
-            state.session.summary = "可乐入库已确认，库存告急商品从 5 款降到 4 款。";
-            appendMessage("老李", `<p>已按您确认的价格完成入库，库存已刷新。</p><div class="confirm"><h4>结果卡：可乐入库成功</h4><div class="confirm-grid" style="margin-top:12px;"><div><span class="label">商品</span><strong>可口可乐 500ml</strong></div><div><span class="label">最新库存</span><strong>18 箱</strong></div><div><span class="label">进价</span><strong>￥41 / 箱</strong></div><div><span class="label">预警状态</span><strong>已解除</strong></div></div><div class="row"><button class="solid" data-action="undo-last">撤销本次操作</button><button class="line" data-action="open-correction">修改进价</button></div></div>`);
-            addAudit("库存事件写入：可口可乐 500ml +3 箱", "AI执行");
-            addOps("老李确认后写入库存事件，并刷新库存预警", "Tool");
-            playTone("success");
-            syncAll();
-            showToast("已确认进价，库存事件已写入并刷新大盘。");
-        }
-
-        function undoLastInventory() {
-            if (!state.inventoryConfirmed || state.inventoryUndone) {
-                showToast("当前没有可撤销的最近入库操作。");
-                return;
-            }
-            state.inventoryUndone = true;
-            state.metrics.lowStock = 5;
-            state.metrics.pending = 2;
-            state.metrics.tasks = 7;
-            state.session.currentWork = "已撤销可乐入库，等待老板重新确认";
-            state.session.lastTool = "undo_inventory_event → restore_alerts";
-            state.session.summary = "最近一次可乐入库已撤销，库存与告急指标回滚。";
-            appendMessage("系统纪要", "<p>已执行撤销：可乐入库事件已回滚，库存告急恢复，老李等待老板重新确认。</p>");
-            addAudit("撤销库存事件：可口可乐 500ml -3 箱", "已回滚");
-            addOps("系统执行撤销令牌，回滚最近一次可乐入库", "Undo");
-            playTone("undo");
-            syncAll();
-            showToast("最近一次入库已撤销。");
-        }
-
-        function sendVoiceReplyFlow() {
-            closeComposerPanel();
-            openOverlay("chat");
-            appendMessage("老板", "<div class='voice-bubble'><div class='wave'></div><span>语音 4\"</span></div><p>老李，红牛补 6 箱，先比一下进价，别买贵了。</p>", true);
-            appendMessage("小雅", "<p>收到，我把这条命令路由给老李，并保留“先比价、别买贵”的老板规章。</p>");
-            addOps("老板在首页一键语音回复库存告急", "Voice");
-            playTone("scan");
-            showToast("已把语音回复送进工作群。");
-        }
-
-        function simulateVoiceStockIn() {
-            closeComposerPanel();
-            openOverlay("chat");
-            appendMessage("老板", "<div class='voice-bubble'><div class='wave'></div><span>语音 5\"</span></div><p>冰红茶刚到 2 箱，给我入一下库。</p>", true);
-            appendMessage("小雅", "<p>收到，按语音入库流程走：先识别商品档案，再决定要不要补充照片或扫码。</p>");
-            appendMessage("老李", "<p>冰红茶已匹配到现有商品档案。当前条码建档功能可用，如果想更快，老板也可以直接扫一下外箱码。</p><div class='row'><button class='solid' data-action='scan-stockin'>立即扫码入库</button><button class='line' data-action='photo-upload'>改为拍照识别</button></div>");
-            addOps("触发一条新的语音入库 mock 流程", "Voice");
-        }
-
-        function simulatePhotoUpload(source = "拍摄") {
-            closeComposerPanel();
-            openOverlay("chat");
-            appendMessage("老板", `<p>${source === "相册" ? "从相册选中" : "现场拍摄"} 1 张照片：扳手包装外观。</p>`, true);
-            appendMessage("老李", "<p>照片收到，识别到品牌和尺寸，但新商品建档仍需要老板确认；如果继续不稳，建议进通话开摄像头。</p><div class='chips' style='margin-top:10px;'><div class='mini'>Photo → Vision Parse</div><div class='mini'>置信度 72%</div></div>");
-            state.metrics.lowConfidence = 1;
-            state.session.lastTool = "parse_item_photo → request_confirmation";
-            state.session.summary = `新增 1 次${source}图片识别，模型要求老板进一步确认。`;
-            addOps(`老板通过${source}发送商品照片，老李给出低置信结果`, "Vision");
-            syncAll();
-        }
-
-        function simulateScanStockIn() {
-            closeComposerPanel();
-            openOverlay("chat");
-            if (!state.packages.barcode) {
-                appendMessage("老李", "<p>老板，扫码建档功能目前被停用了。您可以先去团队页恢复，或者改用拍照识别。</p>");
-                showToast("扫码建档当前已停用。");
-                return;
-            }
-            appendMessage("老板", "<p>已扫码：6901028075543</p>", true);
-            appendMessage("老李", "<p>扫码成功，识别到“农夫山泉 550ml”。系统已自动匹配商品档案并准备入库 1 箱。</p><div class='confirm'><h4>扫码结果卡</h4><div class='confirm-grid' style='margin-top:12px;'><div><span class='label'>商品</span><strong>农夫山泉 550ml</strong></div><div><span class='label'>数量</span><strong>1 箱</strong></div><div><span class='label'>进价</span><strong>￥22 / 箱</strong></div><div><span class='label'>来源</span><strong>条码建档</strong></div></div><div class='row'><button class='solid' data-action='undo-last'>撤销本次操作</button><button class='line' data-action='open-correction'>改成手工修正</button></div></div>");
-            state.session.currentWork = "处理扫码入库与扳手建档确认";
-            state.session.lastTool = "scan_barcode → adjust_inventory";
-            state.session.summary = "新增 1 次扫码入库，老李已直接匹配条码档案。";
-            addAudit("扫码入库：农夫山泉 550ml +1 箱", "AI执行");
-            addOps("扫码建档命中现有商品档案，直接进入入库", "Barcode");
-            playTone("scan");
-            syncAll();
-            showToast("扫码演示已完成。");
-        }
-
-        function simulateAttachmentFlow() {
-            closeComposerPanel();
-            openOverlay("chat");
-            appendMessage("老板", "<p>发来附件：进货单_0402.pdf</p>", true);
-            appendMessage("小丽", "<p>附件收到。如果 OCR 包已启用，我会直接提取金额和数量；如果没启用，我会建议老板去市场先装一个。</p>");
-            if (state.packages.ocr) {
-                appendMessage("小丽", "<p>OCR 已解析完成：可乐 3 箱、活动扳手 1 件、总额 ￥141.5。需要的话，可以让小雅在通话里共享屏幕再核一次。</p>");
-                addOps("OCR 单据识别包解析了进货单附件", "OCR");
-                state.session.lastTool = "parse_receipt_ocr → verify_fields";
-            } else {
-                appendMessage("系统纪要", "<p>OCR 单据识别包尚未启用。当前只保留附件，不自动抽字段。</p><div class='row'><button class='solid' data-package='ocr' data-action='toggle-package'>去启用 OCR 包</button><button class='line' data-toast='附件已挂在当前会话，稍后仍可处理。'>稍后处理</button></div>");
-            }
-            state.session.summary = "新增 1 个附件，系统根据 OCR 包状态决定是否自动抽字段。";
-            syncAll();
-        }
-
-        function sendDailySummaryFlow() {
-            closeComposerPanel();
-            openOverlay("chat");
-            appendMessage("老板", "<p>给我一份今天的工作总结。</p>", true);
-            appendMessage("小雅", "<p>收到，我正在汇总今天工作群、通话、账本和告警处理记录，整理成一条可回看的老板摘要。</p>");
-            appendMessage("系统纪要", `<div class="confirm"><h4>今日工作总结</h4><div class="confirm-grid" style="margin-top:12px;"><div><span class="label">已完成</span><strong>可乐入库确认、红牛补货建议、票据附件挂载</strong></div><div><span class="label">待确认</span><strong>得力活动扳手新建档、退款原因补充</strong></div><div><span class="label">风险提醒</span><strong>仍有 ${state.metrics.risk} 项高风险动作需要老板点头</strong></div><div><span class="label">推荐动作</span><strong>先结束扳手通话，再看今日利润差异</strong></div></div><div class="row"><button class='solid' data-open='ops'>查看执行链路</button><button class='line' data-ledger='cash' data-open='ledger'>查看利润解释</button></div></div>`);
-            state.session.currentWork = "输出今日工作总结";
-            state.session.lastTool = "summarize_today_session → write_back_to_chat";
-            state.session.summary = "新增 1 条今日工作总结，覆盖工作群、通话、账本与告警处理。";
-            document.getElementById("chat-footer-copy").textContent = "已新增微信式快捷入口，可从 + 号菜单继续触发今日总结、相册、拍摄和通话。";
-            addOps("老板从 + 号快捷入口发起今日工作总结", "Summary");
-            syncAll();
-            showToast("今日工作总结已回写工作群。");
-        }
-
-        function saveCorrection() {
-            const sku = document.getElementById("ledger-sku").value.trim();
-            const quantity = Number(document.getElementById("ledger-quantity").value || state.ledgers.inventory.quantity);
-            const price = Number(document.getElementById("ledger-price").value || state.ledgers.inventory.price);
-            const batch = document.getElementById("ledger-batch").value.trim();
-            const reason = document.getElementById("ledger-reason").value.trim();
-            state.ledgers.inventory = { sku, quantity, price, batch, reason };
-            state.session.currentWork = "人工纠错已完成，等待系统回收学习";
-            state.session.lastTool = "save_correction_event → tighten_permissions";
-            state.session.summary = "老板在库存账本中进行了 1 次人工修正，系统已记录原因并降低类似场景自动执行权限。";
-            addAudit(`人工修正：${sku} 数量改为 ${quantity} 箱`, "Correction");
-            addOps(`老板手改库存账本：${sku} → ${quantity} 箱`, "Human");
-            playTone("success");
-            renderLedger();
-            syncAll();
-            showToast("人工修正已写入审计。");
-        }
-
-        function approvePurchase() {
-            state.purchaseApproved = true;
-            state.metrics.pending = Math.max(0, state.metrics.pending - 1);
-            state.session.currentWork = "红牛补货任务已批准，老李将继续执行";
-            state.session.lastTool = "create_purchase_task";
-            state.session.summary = "老板批准了红牛补货建议，任务已回写工作群。";
-            appendMessage("系统纪要", "<p>红牛补货建议已批准。老李会继续生成采购任务，并把结果卡回写到工作群。</p>");
-            addAudit("批准补货任务：红牛 +6 箱", "老板确认");
-            addOps("老板批准红牛补货任务", "Approval");
-            playTone("success");
-            syncAll();
-            showToast("补货任务已批准。");
-        }
-
-        function togglePackage(packageKey) {
-            const nextValue = !state.packages[packageKey];
-            state.packages = { ...state.packages, [packageKey]: nextValue };
-            if (packageKey === "dialect" && nextValue) state.tone = "四川方言";
-            if (packageKey === "dialect" && !nextValue && state.tone === "四川方言") state.tone = "专业干练";
-            state.session.summary = "团队装备和市场商品状态已同步。";
-            addOps(`${packageKey} 能力包${nextValue ? "启用" : "停用"}完成`, "Package");
-            renderTeamAndMarket();
-            syncAll();
-            showToast(`${packageKey === "ocr" ? "OCR 单据包" : packageKey === "dialect" ? "方言播报包" : "赊账理赔管家"}已${nextValue ? "启用" : "停用"}。`);
-        }
-
-        function toggleBarcode() {
-            state.packages = { ...state.packages, barcode: !state.packages.barcode };
-            addOps(`扫码建档已${state.packages.barcode ? "恢复" : "停用"}`, "Skill");
-            renderTeamAndMarket();
-            updateDashboard();
-            showToast(`扫码建档已${state.packages.barcode ? "恢复" : "停用"}。`);
-        }
-
-        function openCorrectionLedger() {
-            state.currentLedger = "inventory";
-            renderLedger();
-            openOverlay("ledger");
-        }
-
-        function disableHighRisk() {
-            if (!state.packages.credit) {
-                showToast("赊账理赔管家当前未启用。");
-                return;
-            }
-            state.packages = { ...state.packages, credit: false };
-            state.session.summary = "高风险赊账能力已被控制台禁用。";
-            addAudit("禁用高风险 Skill：赊账理赔管家", "风控");
-            addOps("控制台禁用赊账理赔管家", "Risk");
-            renderTeamAndMarket();
-            syncAll();
-            showToast("赊账理赔管家已禁用。");
-        }
-
-        function replayChain() {
-            openOverlay("ops");
-            showToast("已定位到最近一次工具执行链路。");
-        }
-
-        function exportMemo() {
-            if (!state.call.memoGenerated) {
-                showToast("当前还没有新的通话纪要可导出。");
-                return;
-            }
-            addOps("导出最近一次通话纪要", "Export");
-            showToast("已导出 mock 通话纪要。");
-        }
-
-        function explainAlert() {
-            openOverlay("ops");
-            showToast("告警触发原因已展示在控制台。");
-        }
-
-        function openLedger(key) {
-            state.currentLedger = key;
-            renderLedger();
-            openOverlay("ledger");
-        }
-
-        function handleCallCamera() {
-            if (state.call.camera) {
-                showToast("摄像头已经接入。");
-                return;
-            }
-            state.call = { ...state.call, camera: true };
-            state.session.mode = "通话";
-            state.session.currentWork = "通话中识别新扳手型号";
-            state.session.lastTool = "live_camera_stream → recognize_item_from_photo";
-            state.session.summary = "通话已接入摄像头，识别到新扳手型号并等待票据核对。";
-            addOps("通话切换到摄像头模式，识别新扳手", "Call");
-            playTone("scan");
-            renderCall();
-            updateDashboard();
-            showToast("摄像头已接入，已识别新扳手型号。");
-        }
-
-        function handleCallScreen() {
-            if (!state.call.camera) {
-                showToast("先打开摄像头完成商品识别，再共享屏幕核对单据。");
-                return;
-            }
-            if (state.call.screen) {
-                showToast("共享屏幕已经接入。");
-                return;
-            }
-            state.call = { ...state.call, screen: true };
-            state.session.lastTool = "screen_share_verify → build_call_memo";
-            state.session.summary = "通话已核对单据字段，退出后可直接生成纪要。";
-            addOps("通话共享屏幕，已核对扳手单据字段", "Call");
-            renderCall();
-            updateDashboard();
-            showToast("屏幕共享已接入，单据核对完成。");
-        }
-
-        function handleMicToggle() {
-            state.call = { ...state.call, muted: !state.call.muted };
-            renderCall();
-            showToast(state.call.muted ? "麦克风已切到静音示意状态。" : "麦克风已恢复。");
-        }
-
-        function exitCallFlow() {
-            const canGenerateMemo = state.call.camera || state.call.screen;
-            if (canGenerateMemo && !state.call.memoGenerated) {
-                state.call = { ...state.call, memoGenerated: true };
-                state.session.mode = "工作群";
-                state.session.memoReady = true;
-                state.session.memoStatus = "已生成 1 份连线工作纪要，并回写工作群";
-                state.session.currentWork = "扳手通话任务已收尾，等待老板下一条指令";
-                state.session.lastTool = "generate_call_memo → write_back_to_chat";
-                state.session.summary = "通话已结束，纪要、结果卡和审计回执都已写回工作群。";
-                appendMessage("系统纪要", "<p>连线工作纪要已生成：识别到“得力活动扳手 12 寸”，核对单据数量 1 件、进价 ￥18.5，供应商“永发五金”。已建议回群确认建档。</p><div class='confirm'><h4>连线工作纪要</h4><div class='confirm-grid' style='margin-top:12px;'><div><span class='label'>商品</span><strong>得力活动扳手 12 寸</strong></div><div><span class='label'>数量</span><strong>1 件</strong></div><div><span class='label'>进价</span><strong>￥18.5</strong></div><div><span class='label'>状态</span><strong>待老板确认建档</strong></div></div><div class='row'><button class='solid' data-ledger='inventory' data-open='ledger'>去账本查看</button><button class='line' data-action='export-memo'>导出纪要</button></div></div>");
-                addAudit("生成连线工作纪要并回写工作群", "纪要");
-                addOps("通话结束，纪要与结果卡回写工作群", "Memo");
-                document.getElementById("chat-footer-copy").textContent = "已生成新的通话纪要，群聊和后台账本都可继续下钻。";
-                playTone("success");
-            }
-            state.call = { muted: false, camera: false, screen: false, memoGenerated: state.call.memoGenerated };
-            renderCall();
-            updateDashboard();
-            closeOverlay("call");
-            showToast(canGenerateMemo ? "通话已结束，纪要已回写工作群。" : "通话已结束。");
-        }
-
-        function sendFreeTextMessage() {
-            const value = chatInput.value.trim();
-            if (!value) {
-                showToast("先输入一句话，再发给工作群。");
-                return;
-            }
-            closeComposerPanel();
-            appendMessage("老板", `<p>${value}</p>`, true);
-            chatInput.value = "";
-            renderComposer();
-            if (value.includes("赚")) {
-                sendProfitQueryFlow(true);
-                return;
-            }
-            if (value.includes("可乐") || value.includes("入库")) {
-                appendMessage("小雅", "<p>识别到这是入库类指令，我会先交给老李，再根据风险规则决定是否请求确认。</p>");
-                addOps("自由输入命中入库意图", "Router");
-                return;
-            }
-            appendMessage("小雅", "<p>收到老板，我已经记录在当前共享会话里，会按岗位和风险等级继续分发。</p>");
-        }
-
-        function handleTargetView(target) {
-            closeComposerPanel();
-            setView(target);
-            Object.values(overlays).forEach((overlay) => overlay.classList.remove("active"));
-        }
-
-        document.addEventListener("click", (event) => {
-            const openButton = event.target.closest("[data-open]");
-            if (openButton) {
-                closeComposerPanel();
-                const openTarget = openButton.dataset.open;
-                if (openTarget === "ledger") {
-                    openLedger(openButton.dataset.ledger || "inventory");
-                    return;
-                }
-                if (openTarget === "ops") {
-                    openOverlay("ops");
-                    return;
-                }
-                openOverlay(openTarget);
-                return;
-            }
-
-            const closeButton = event.target.closest("[data-close]");
-            if (closeButton) {
-                closeOverlay(closeButton.dataset.close);
-                return;
-            }
-
-            const viewButton = event.target.closest("[data-target-view]");
-            if (viewButton) {
-                handleTargetView(viewButton.dataset.targetView);
-                return;
-            }
-
-            const toastButton = event.target.closest("[data-toast]");
-            if (toastButton) {
-                showToast(toastButton.dataset.toast);
-                return;
-            }
-
-            const noteAction = event.target.closest("[data-note-action]");
-            if (noteAction) {
-                const action = noteAction.dataset.noteAction;
-                if (action === "alerts") openOverlay("alerts");
-                if (action === "cash-ledger") openLedger("cash");
-                if (action === "call") openOverlay("call");
-                return;
-            }
-
-            const toneButton = event.target.closest("[data-tone]");
-            if (toneButton) {
-                state.tone = toneButton.dataset.tone;
-                renderTeamAndMarket();
-                updateDashboard();
-                showToast(`小雅语调已切换为“${state.tone}”。`);
-                return;
-            }
-
-            const actionButton = event.target.closest("[data-action]");
-            if (!actionButton) return;
-            const action = actionButton.dataset.action;
-            if (action === "toggle-composer-mode") toggleComposerMode();
-            if (action === "toggle-composer-panel") toggleComposerPanel();
-            if (action === "voice-reply") sendVoiceReplyFlow();
-            if (action === "voice-stockin") simulateVoiceStockIn();
-            if (action === "album-upload") simulatePhotoUpload("相册");
-            if (action === "camera-shot") simulatePhotoUpload("拍摄");
-            if (action === "photo-upload") simulatePhotoUpload();
-            if (action === "scan-stockin") simulateScanStockIn();
-            if (action === "attach-invoice") simulateAttachmentFlow();
-            if (action === "daily-summary") sendDailySummaryFlow();
-            if (action === "profit-query") sendProfitQueryFlow();
-            if (action === "confirm-price") confirmInventory();
-            if (action === "undo-last") undoLastInventory();
-            if (action === "open-correction") openCorrectionLedger();
-            if (action === "save-correction") saveCorrection();
-            if (action === "approve-purchase") approvePurchase();
-            if (action === "toggle-package") togglePackage(actionButton.dataset.package);
-            if (action === "toggle-skill") toggleBarcode();
-            if (action === "disable-high-risk") disableHighRisk();
-            if (action === "replay-chain") replayChain();
-            if (action === "export-memo") exportMemo();
-            if (action === "why-alert") explainAlert();
-            if (action === "open-ops") openOverlay("ops");
-            if (action === "camera-on") handleCallCamera();
-            if (action === "screen-on") handleCallScreen();
-            if (action === "toggle-mic") handleMicToggle();
-            if (action === "exit-call") exitCallFlow();
-            if (action === "send-message") sendFreeTextMessage();
-            if (action === "hire-bundle") {
-                if (!state.packages.ocr) togglePackage("ocr");
-                if (!state.packages.dialect) togglePackage("dialect");
-                if (!state.packages.credit) togglePackage("credit");
-                showToast("官方金牌管家套装已用 mock 方式全部启用。");
-            }
-        });
-
-        tabs.forEach((tab) => tab.addEventListener("click", () => setView(tab.dataset.target)));
-        chatInput.addEventListener("input", renderComposer);
-        chatInput.addEventListener("focus", closeComposerPanel);
-        chatInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                sendFreeTextMessage();
-            }
-        });
-
-        syncAll();
-    </script>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    const state={view:"dashboard",revenue:2450,inbound:3,pending:1,wrenchPending:true,items:[{id:"coke",name:"可口可乐 500ml",stock:18,unit:"箱",threshold:6,price:41,note:"常卖商品，语音入库最稳定。"},
+    {id:"redbull",name:"红牛 250ml",stock:2,unit:"罐",threshold:6,price:6,note:"低库存，建议补 6 箱。"},
+    {id:"water",name:"农夫山泉 550ml",stock:5,unit:"箱",threshold:3,price:22,note:"条码命中率高。"}],
+    msgs:[{actor:"老板",self:true,meta:"语音 6 秒",text:"今天进来 3 箱可乐。"},
+    {actor:"小雅",self:false,meta:"已路由",text:"收到，我已经把这条入库任务交给老李处理。价格沿用上次进货价，先给您出结果卡。"},
+    {actor:"老李",self:false,meta:"库存已写入",text:"可乐已经入库完成。",card:[["商品","可口可乐 500ml"],["数量","3 箱"],["进价","￥41 / 箱"],["当前库存","18 箱"]]},
+    {actor:"老板",self:true,meta:"照片",text:"这个扳手也入一下库。"},
+    {actor:"小雅",self:false,meta:"待确认",text:"我看到了，是一个无码五金件。为了避免建错档，我先停在待确认，等您确认名称、数量和进价后再入账。"}],
+    audit:[{time:"14:21",title:"语音入库：可口可乐 500ml +3 箱",tag:"AI执行"},{time:"14:17",title:"拍照识物：扳手建档进入待确认",tag:"需确认"},{time:"14:08",title:"库存提醒：红牛触发低库存阈值",tag:"提醒"}]};
+
+    const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s); let cursor=22,timer;
+    const toast=$("#toast"),msgs=$("#msgs"),lowList=$("#lowList"),inventory=$("#inventory"),audit=$("#audit"),item=$("#item"),qty=$("#qty"),reason=$("#reason");
+    const money=n=>`￥${n.toLocaleString("zh-CN")}`, now=()=>`14:${String(++cursor).padStart(2,"0")}`;
+    const low=()=>state.items.filter(i=>i.stock<=i.threshold);
+    const tag=i=>i.stock<=i.threshold?["低库存","warn"]:["正常","ok"];
+    const avatar=a=>({老板:"🤴",小雅:"👩‍💼",老李:"📦",系统:"🧾"}[a]||"🧾");
+    function say(t){toast.textContent=t;toast.style.opacity="1";toast.style.transform="translate(-50%,0)";clearTimeout(timer);timer=setTimeout(()=>{toast.style.opacity="0";toast.style.transform="translate(-50%,14px)"},2200)}
+    function addAudit(title,tag){state.audit.unshift({time:now(),title,tag});state.audit=state.audit.slice(0,6)}
+    function addMsg(m){state.msgs.push(m)}
+    function view(name){state.view=name;$$(".view").forEach(v=>v.classList.toggle("active",v.dataset.view===name));$$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.viewTarget===name))}
+    function renderTop(){ const confirmBtn=$('[data-action="confirm"]'); $("#mRevenue").textContent=money(state.revenue); $("#mInbound").textContent=`${state.inbound} 次`; $("#mLow").textContent=`${low().length} 款`; $("#mPending").textContent=`${state.pending} 项`; $("#heroPending").textContent=state.pending;
+      if(state.wrenchPending){$("#pendingTitle").textContent="新扳手待确认建档";$("#pendingCopy").textContent="无码五金件，系统识别到“活动扳手”但不敢直接写库。需要老板确认名称、数量和进价后再入账。"; confirmBtn.disabled=false; confirmBtn.style.opacity="1"; confirmBtn.textContent="确认扳手建档";} else {$("#pendingTitle").textContent="当前没有待确认的新商品";$("#pendingCopy").textContent="这版 MVP 只要把待确认任务清掉，库存主链路就算跑通。下一步建议去工作群继续试语音入库或库存查询。"; confirmBtn.disabled=true; confirmBtn.style.opacity=".55"; confirmBtn.textContent="已完成确认";}}
+    function renderLow(){lowList.innerHTML=low().map(i=>`<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag warn">建议补货</div></div><div class="stats"><div class="field"><span>当前库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>提醒阈值</span><strong>${i.threshold} ${i.unit}</strong></div><div class="field"><span>建议动作</span><strong>补货</strong></div></div></div>`).join("")}
+    function renderMsgs(){msgs.innerHTML=state.msgs.map(m=>`<div class="msg${m.self?" self":""}"><div class="ava">${avatar(m.actor)}</div><div class="msgbox"><div class="meta">${m.actor} · ${m.meta}</div><div class="body"><p>${m.text}</p>${m.card?`<div class="result"><strong>结果卡</strong><div class="resultgrid">${m.card.map(([k,v])=>`<div><span>${k}</span><strong>${v}</strong></div>`).join("")}</div></div>`:""}</div></div></div>`).join("")}
+    function renderLedger(){inventory.innerHTML=state.items.map(i=>{const [txt,cls]=tag(i);return `<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag ${cls}">${txt}</div></div><div class="stats"><div class="field"><span>库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>进价</span><strong>${money(i.price)}</strong></div><div class="field"><span>阈值</span><strong>${i.threshold} ${i.unit}</strong></div></div></div>`}).join(""); item.innerHTML=state.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join("")}
+    function renderAudit(){audit.innerHTML=state.audit.map(a=>`<div class="audit"><div class="time">${a.time}</div><div><strong>${a.title}</strong></div><div class="mini">${a.tag}</div></div>`).join("")}
+    function render(){renderTop();renderLow();renderMsgs();renderLedger();renderAudit();view(state.view)}
+
+    function confirm(){if(!state.wrenchPending){say("扳手已经确认过了。");return} state.wrenchPending=false;state.pending=0;state.inbound+=1;state.items.push({id:"wrench",name:"得力活动扳手 12 寸",stock:1,unit:"件",threshold:2,price:18.5,note:"新商品已由老板确认建档。"}); addMsg({actor:"老李",self:false,meta:"确认后入账",text:"扳手已经按您确认的信息建档并入库。我把这次写入也同步到了账本。",card:[["商品","得力活动扳手 12 寸"],["数量","1 件"],["进价","￥18.5"],["状态","已建档"]]}); addAudit("人工确认后建档：得力活动扳手 12 寸 +1 件","老板确认"); render(); say("扳手已确认建档，账本与工作群已同步。")}
+    function voice(){const water=state.items.find(i=>i.id==="water"); water.stock+=1; state.inbound+=1; addMsg({actor:"老板",self:true,meta:"语音 4 秒",text:"再加 1 箱农夫山泉。"}); addMsg({actor:"小雅",self:false,meta:"已路由",text:"收到，这条是已有商品入库，我直接让老李按既有档案处理。"}); addMsg({actor:"老李",self:false,meta:"入库完成",text:"农夫山泉已经补进去了。",card:[["商品","农夫山泉 550ml"],["数量","1 箱"],["进价","￥22 / 箱"],["当前库存",`${water.stock} 箱`]]}); addAudit("语音入库：农夫山泉 550ml +1 箱","AI执行"); render(); say("已模拟一条语音入库。")}
+    function photo(){if(state.wrenchPending){say("工作群里已经有一个待确认的新商品了。");return} state.wrenchPending=true; state.pending=1; addMsg({actor:"老板",self:true,meta:"照片",text:"这个新工具也帮我入库。"}); addMsg({actor:"小雅",self:false,meta:"待确认",text:"这又是一个无码商品。我先不直接写库，等您确认名称、数量和价格后再入账。"}); addAudit("拍照识物：新增 1 条新商品待确认任务","需确认"); render(); say("已生成新的拍照建档待确认任务。")}
+    function query(){const rb=state.items.find(i=>i.id==="redbull"); addMsg({actor:"老板",self:true,meta:"文字",text:"红牛还剩多少？"}); addMsg({actor:"小雅",self:false,meta:"只读查询",text:`红牛现在还剩 ${rb.stock} 罐，已经低于提醒阈值 ${rb.threshold} 罐。我建议您今天就补货，不自动下单。`}); addAudit("库存查询：红牛 250ml","只读"); render(); say("已把库存查询结果回到工作群。")}
+    function save(){const id=item.value,n=Number(qty.value),r=reason.value.trim(),it=state.items.find(i=>i.id===id); if(!it||Number.isNaN(n)||n<0||!r){say("请补全商品、数量和修改原因。");return} const prev=it.stock; it.stock=n; addAudit(`人工修正：${it.name} ${prev}${it.unit} -> ${n}${it.unit}`,"Correction"); addMsg({actor:"系统",self:false,meta:"账本回执",text:`老板刚刚在账本里把 ${it.name} 从 ${prev}${it.unit} 改成了 ${n}${it.unit}。原因是：${r}。`}); render(); say("人工修正已保存，并回写到工作群。")}
+
+    document.addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; if(b.dataset.viewTarget) return view(b.dataset.viewTarget); const a=b.dataset.action; if(a==="scope") say("v2 只做工作台、工作群、账本三屏；通话、团队、市场都延后。"); if(a==="confirm") confirm(); if(a==="voice") voice(); if(a==="photo") photo(); if(a==="query") query();});
+    $("#save").addEventListener("click",save);
+    render();
+  </script>
 </body>
 </html>

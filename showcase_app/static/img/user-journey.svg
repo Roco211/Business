@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <rect width="1200" height="720" rx="28" fill="#FFF9F2"/>
+  <text x="70" y="92" fill="#2E1E17" font-family="Segoe UI, Arial" font-size="34" font-weight="700">用户使用旅程</text>
+  <text x="70" y="126" fill="#7A665B" font-family="Segoe UI, Arial" font-size="18">老板最理想的感受应该是：不用学系统，只要像在微信里交代工作一样开口和补图。</text>
+  <line x1="140" y1="360" x2="1060" y2="360" stroke="#D9C9BA" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="180" cy="360" r="30" fill="#D1642E"/>
+  <circle cx="410" cy="360" r="30" fill="#F1C86E"/>
+  <circle cx="640" cy="360" r="30" fill="#1D8F69"/>
+  <circle cx="870" cy="360" r="30" fill="#D1642E"/>
+  <circle cx="1040" cy="360" r="30" fill="#2B1B16"/>
+  <rect x="84" y="180" width="192" height="120" rx="22" fill="#FFFFFF" stroke="#E3D4C8"/>
+  <text x="108" y="224" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">先语音</text>
+  <text x="108" y="258" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">“今天进来 3 箱可乐”</text>
+  <rect x="312" y="436" width="196" height="132" rx="22" fill="#FFFFFF" stroke="#E3D4C8"/>
+  <text x="336" y="480" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">再补图</text>
+  <text x="336" y="514" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">商品图 / 货架图</text>
+  <text x="336" y="544" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">进货单照片</text>
+  <rect x="540" y="180" width="204" height="120" rx="22" fill="#FFFFFF" stroke="#E3D4C8"/>
+  <text x="566" y="224" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">系统理解</text>
+  <text x="566" y="258" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">ASR / 识图 / OCR</text>
+  <rect x="772" y="436" width="196" height="132" rx="22" fill="#FFFFFF" stroke="#E3D4C8"/>
+  <text x="798" y="480" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">确认或回执</text>
+  <text x="798" y="514" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">结果卡 / 确认卡</text>
+  <text x="798" y="544" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">OCR 卡</text>
+  <rect x="946" y="180" width="184" height="120" rx="22" fill="#FFFFFF" stroke="#E3D4C8"/>
+  <text x="972" y="224" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">账本同步</text>
+  <text x="972" y="258" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">库存 + 审计</text>
+  <text x="116" y="410" fill="#7A665B" font-family="Segoe UI, Arial" font-size="16">01</text>
+  <text x="346" y="410" fill="#7A665B" font-family="Segoe UI, Arial" font-size="16">02</text>
+  <text x="576" y="410" fill="#7A665B" font-family="Segoe UI, Arial" font-size="16">03</text>
+  <text x="806" y="410" fill="#7A665B" font-family="Segoe UI, Arial" font-size="16">04</text>
+  <text x="1012" y="410" fill="#7A665B" font-family="Segoe UI, Arial" font-size="16">05</text>
+</svg>

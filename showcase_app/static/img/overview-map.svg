@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <rect width="1200" height="720" rx="28" fill="#FFF9F2"/>
+  <rect x="40" y="40" width="1120" height="640" rx="24" fill="#F7ECDD" stroke="#E7D6C1"/>
+  <text x="72" y="98" fill="#2E1E17" font-family="Segoe UI, Arial" font-size="34" font-weight="700">产品全景：三个主页面 + 六条核心链路</text>
+  <text x="72" y="132" fill="#7A665B" font-family="Segoe UI, Arial" font-size="18">这个 MVP 要解决的不是“功能堆多少”，而是“老板能否直接开口，让系统把库存链路跑通”。</text>
+  <rect x="72" y="190" width="300" height="196" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="100" y="238" fill="#8A331A" font-family="Segoe UI, Arial" font-size="24" font-weight="700">工作台</text>
+  <text x="100" y="272" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">看今天状态、低库存、待确认卡</text>
+  <text x="100" y="306" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">最醒目的入口应该是语音</text>
+  <text x="100" y="340" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">一键进入工作群或账本</text>
+  <rect x="450" y="170" width="300" height="236" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="478" y="218" fill="#8A331A" font-family="Segoe UI, Arial" font-size="24" font-weight="700">工作群</text>
+  <text x="478" y="252" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">微信式聊天体验</text>
+  <text x="478" y="286" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">语音主输入</text>
+  <text x="478" y="320" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">拍照建档 / 拍照查询 / OCR</text>
+  <text x="478" y="354" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">结果卡、确认卡、OCR 卡</text>
+  <rect x="828" y="190" width="300" height="196" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="856" y="238" fill="#8A331A" font-family="Segoe UI, Arial" font-size="24" font-weight="700">账本</text>
+  <text x="856" y="272" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">库存真相源的可视化入口</text>
+  <text x="856" y="306" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">人工纠错 + 审计时间线</text>
+  <text x="856" y="340" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">AI 出错时的最终兜底</text>
+  <rect x="110" y="468" width="980" height="146" rx="26" fill="#2B1B16"/>
+  <text x="144" y="514" fill="#FFF9F2" font-family="Segoe UI, Arial" font-size="24" font-weight="700">六条核心链路</text>
+  <text x="144" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">1. 语音入库</text>
+  <text x="278" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">2. 语音查询</text>
+  <text x="412" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">3. 拍照建档</text>
+  <text x="564" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">4. 拍照查询</text>
+  <text x="712" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">5. 进货单 OCR</text>
+  <text x="882" y="552" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">6. 人工纠错</text>
+  <text x="144" y="588" fill="#F2C46D" font-family="Segoe UI, Arial" font-size="18">语音是主入口，多模态是补盲，账本是最终纠错和审计承接层。</text>
+  <path d="M372 288H450" stroke="#D1642E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M750 288H828" stroke="#D1642E" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="411" cy="288" r="9" fill="#D1642E"/>
+  <circle cx="789" cy="288" r="9" fill="#D1642E"/>
+</svg>
+

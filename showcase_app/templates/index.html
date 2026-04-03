@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI数字店铺大管家 - 项目介绍站</title>
+  <link rel="stylesheet" href="{{ request.url_for('static', path='styles.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">AI</div>
+        <div>
+          <strong>AI数字店铺大管家</strong>
+          <span>FastAPI 项目介绍站</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button data-target="hero">总览</button>
+        <button data-target="users">用户使用</button>
+        <button data-target="screens">页面设计</button>
+        <button data-target="backend">开发实现</button>
+        <button data-target="docs">文档地图</button>
+        <button data-target="optimize">优化清单</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section id="hero" class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">React Native + FastAPI + MySQL</div>
+          <h1>一个给产品方和开发方同时看的项目介绍站</h1>
+          <p>
+            这个页面把当前 MVP 用 Web 的形式重新讲清楚：
+            用户怎么用、为什么要这样设计、FastAPI 在系统里扮演什么角色，以及下一步最值得优化的地方。
+          </p>
+          <div class="tag-row">
+            {% for tag in hero_tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          <div class="hero-actions">
+            <a href="#users" class="btn btn-primary">先看用户使用</a>
+            <a href="#backend" class="btn btn-secondary">再看开发实现</a>
+          </div>
+        </div>
+        <div class="hero-panel">
+          {% for item in quick_metrics %}
+          <div class="metric-card">
+            <span>{{ item["label"] }}</span>
+            <strong>{{ item["value"] }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>项目定位</h2>
+            <p>当前 MVP 的核心不是“很多智能体”，而是“老板能直接说，系统能稳稳地做”。</p>
+          </div>
+        </div>
+        <div class="card-grid three">
+          {% for item in user_outcomes %}
+          <article class="info-card">
+            <h3>{{ item["title"] }}</h3>
+            <p>{{ item["body"] }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="users" class="section">
+        <div class="section-header">
+          <div>
+            <h2>用户怎么使用这个产品</h2>
+            <p>用户视角的核心逻辑是：先语音，再补图像，最后通过结果卡和确认卡完成闭环。</p>
+          </div>
+        </div>
+        <div class="visual-shell">
+          <img class="visual" src="{{ request.url_for('static', path='img/user-journey.svg') }}" alt="用户使用旅程图">
+          <div class="step-list">
+            {% for step in journey_steps %}
+            <article class="step-card">
+              <span class="step-index">0{{ loop.index }}</span>
+              <div>
+                <h3>{{ step["title"] }}</h3>
+                <p>{{ step["body"] }}</p>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section id="screens" class="section">
+        <div class="section-header">
+          <div>
+            <h2>页面设计与产品承接</h2>
+            <p>三个主页面分别服务老板的“看状态、发任务、改结果”三种核心行为。</p>
+          </div>
+        </div>
+        <div class="visual-shell reverse">
+          <div class="screen-grid">
+            {% for card in screen_cards %}
+            <article class="screen-card">
+              <h3>{{ card["name"] }}</h3>
+              <p>{{ card["goal"] }}</p>
+              <ul>
+                {% for bullet in card["highlights"] %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+              </ul>
+            </article>
+            {% endfor %}
+          </div>
+          <img class="visual" src="{{ request.url_for('static', path='img/overview-map.svg') }}" alt="产品页面和链路概览图">
+        </div>
+      </section>
+
+      <section id="backend" class="section">
+        <div class="section-header">
+          <div>
+            <h2>开发实现：FastAPI 在这里做什么</h2>
+            <p>FastAPI 不是单纯的接口网关，而是首版会话编排、任务调度、确认链和审计链的中心。</p>
+          </div>
+        </div>
+        <div class="visual-shell">
+          <img class="visual" src="{{ request.url_for('static', path='img/fastapi-architecture.svg') }}" alt="FastAPI 架构图">
+          <div class="step-list">
+            {% for item in backend_roles %}
+            <article class="step-card compact">
+              <h3>{{ item["title"] }}</h3>
+              <p>{{ item["body"] }}</p>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>接口与数据对象</h2>
+            <p>下面这些内容来自 project_docs，是开发真正会落地的边界。</p>
+          </div>
+        </div>
+        <div class="card-grid two">
+          <article class="info-card">
+            <h3>核心 API 组</h3>
+            {% for group in api_groups %}
+            <div class="group-block">
+              <strong>{{ group["name"] }}</strong>
+              <ul class="api-list">
+                {% for item in group["items"] %}
+                <li><code>{{ item }}</code></li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endfor %}
+          </article>
+          <article class="info-card">
+            <h3>核心数据模型</h3>
+            <div class="pill-grid">
+              {% for model in data_models %}
+              <span class="pill">{{ model }}</span>
+              {% endfor %}
+            </div>
+            <p class="muted">
+              这些对象负责把“会话、任务、库存、确认、OCR、审计”串成一个可追踪的系统，而不是把 AI 当成一个黑箱。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="docs" class="section">
+        <div class="section-header">
+          <div>
+            <h2>project_docs 文档地图</h2>
+            <p>如果你想继续优化，最直接的方式就是先点开这些文档，再回来对照页面看缺了什么。</p>
+          </div>
+        </div>
+        <div class="doc-grid">
+          {% for doc in docs_index %}
+          <article class="doc-card">
+            <code>{{ doc["path"] }}</code>
+            <p>{{ doc["summary"] }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="optimize" class="section">
+        <div class="section-header">
+          <div>
+            <h2>下一步最值得优化的点</h2>
+            <p>这个区块就是给你“挑刺”的。你可以按卡片逐条看，哪些应该继续调，哪些已经够用了。</p>
+          </div>
+        </div>
+        <div class="card-grid three">
+          {% for item in optimize_points %}
+          <article class="info-card warning">
+            <h3>{{ item["title"] }}</h3>
+            <p>{{ item["body"] }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ request.url_for('static', path='app.js') }}"></script>
+</body>
+</html>

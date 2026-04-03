@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.contracts.system import HealthResponse
+from app.api.router import api_router
 
 
 def create_app() -> FastAPI:
@@ -8,9 +8,5 @@ def create_app() -> FastAPI:
         title="AI Store Manager Backend",
         version="0.1.0",
     )
-
-    @app.get("/health", response_model=HealthResponse)
-    def health() -> HealthResponse:
-        return HealthResponse(status="ok")
-
+    app.include_router(api_router)
     return app

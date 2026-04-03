@@ -2,4 +2,4 @@ __pycache__/
 *.pyc
 showcase_app/.deps/
 showcase_app/__pycache__/
-
+.worktrees/

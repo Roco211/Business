@@ -8,3 +8,4 @@ apps/mobile/.expo/
 apps/mobile/dist/
 backend/.pytest_cache/
 backend/.venv/
+pytest-cache-files-*/

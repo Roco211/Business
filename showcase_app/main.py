@@ -17,7 +17,7 @@ def block(text: str) -> str:
 app = FastAPI(
     title="AI数字店铺大管家 - 原型总控台",
     description="把 project_docs 重组为一张可从上帝视角审视产品、系统和交付的全局总览页。",
-    version="0.3.0",
+    version="0.4.0",
 )
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -40,7 +40,7 @@ SHOWCASE_DATA = {
         {"label": "可见员工", "value": "2", "detail": "小雅 / 老李"},
         {"label": "内部角色", "value": "5-6", "detail": "Router 到 Summarizer"},
         {"label": "主栈", "value": "RN + FastAPI", "detail": "客户端与编排服务端双中心"},
-        {"label": "交付节奏", "value": "4 Sprints", "detail": "从骨架到可试点"},
+        {"label": "施工包", "value": "14 Docs", "detail": "00-13 已覆盖到可施工层"},
     ],
     "review_lenses": [
         {
@@ -351,6 +351,44 @@ SHOWCASE_DATA = {
         "完整手机号登录系统",
         "Kubernetes",
     ],
+    "implementation_defaults": [
+        {
+            "title": "当前施工目标",
+            "body": "这轮不是只搭壳，也不是直接接全套真实 AI，而是做一个“真实骨架 + mock AI provider”的端到端闭环。",
+        },
+        {
+            "title": "默认实施策略",
+            "body": "基础设施、数据库、WebSocket、任务编排都按真实系统搭；ASR / OCR / 识图先走 mock-first provider。",
+        },
+        {
+            "title": "推荐落地顺序",
+            "body": "先后端骨架与 runtime 合同，再接 React Native 最小壳层，避免前端先做成没有真相层的聊天皮。",
+        },
+    ],
+    "scope_boundaries": [
+        {
+            "title": "当前阶段纳入范围",
+            "items": [
+                "默认工作群 session bootstrap",
+                "媒体上传申请与消息发送",
+                "voice-stock-in / voice-stock-query",
+                "确认链、InventoryEvent 与 AuditLog",
+                "WebSocket 实时回写",
+                "后端、Worker、对象存储与 RN 骨架",
+            ],
+        },
+        {
+            "title": "当前阶段暂不纳入",
+            "items": [
+                "多店铺与正式账号体系",
+                "多供应商并行路由",
+                "流式模型输出",
+                "平台化员工包 / 能力包市场",
+                "复杂离线同步与实时通话",
+                "开放式自由子代理",
+            ],
+        },
+    ],
     "module_blueprint": block(
         """
         src/
@@ -377,6 +415,27 @@ SHOWCASE_DATA = {
             utils/
             constants/
             types/
+        """
+    ),
+    "repo_blueprint": block(
+        """
+        apps/
+          mobile/
+        backend/
+          app/
+            api/
+            agent_runtime/
+            db/
+            models/
+            repositories/
+            services/
+            workers/
+            websocket/
+          tests/
+        infra/
+          docker/
+        project_docs/
+        showcase_app/
         """
     ),
     "core_model_schemas": [
@@ -563,11 +622,28 @@ SHOWCASE_DATA = {
     ],
     "index_recommendations": [
         "messages(session_id, created_at desc)",
+        "messages(client_request_id)",
         "task_runs(session_id, updated_at desc)",
+        "task_runs(source_message_id)",
         "inventory_items(shop_id, name)",
+        "inventory_items(shop_id, barcode)",
         "inventory_events(shop_id, item_id, created_at desc)",
+        "confirmations(status, created_at desc)",
         "alerts(shop_id, status, alert_type)",
         "audit_logs(shop_id, created_at desc)",
+    ],
+    "db_defaults": [
+        {"name": "主键策略", "body": "统一用带前缀的字符串主键，建议 `prefix + ULID`，字段类型 `VARCHAR(40)`。"},
+        {"name": "时间字段", "body": "统一用 `DATETIME(3)` 存 UTC，API 再按店铺时区解释。"},
+        {"name": "数量与价格", "body": "库存数量用 `DECIMAL(12,3)`，价格用 `DECIMAL(12,2)`。"},
+        {"name": "JSON 字段", "body": "participants、media_ids、fields、metadata 等直接用 JSON 存。"},
+        {"name": "删除策略", "body": "当前 MVP 不做全局软删除，状态通过 `status` 和 `is_active` 表达。"},
+    ],
+    "migration_batches": [
+        {"name": "Migration 001", "items": ["shops", "sessions", "media_uploads"]},
+        {"name": "Migration 002", "items": ["messages", "task_runs"]},
+        {"name": "Migration 003", "items": ["inventory_items", "inventory_events"]},
+        {"name": "Migration 004", "items": ["confirmations", "ocr_documents", "alerts", "audit_logs"]},
     ],
     "boundary_cards": [
         {
@@ -627,6 +703,91 @@ SHOWCASE_DATA = {
         {"name": "needs_confirmation", "body": "新商品、低置信识别、缺价格等动作必须先进入确认链。"},
         {"name": "committable", "body": "已确认或低风险动作允许正式落账，并同步写审计。"},
         {"name": "forbidden", "body": "越界角色无权执行，即使模型主观上“觉得应该做”。"},
+    ],
+    "tool_specs": [
+        {
+            "tool": "transcribe_audio",
+            "risk": "read_only",
+            "roles": "小雅 / Router / ToolRunner",
+            "note": "只返回文本与置信度，不直接制造业务结论。",
+        },
+        {
+            "tool": "recognize_product",
+            "risk": "read_only",
+            "roles": "小雅 / 老李 / ToolRunner",
+            "note": "返回候选与置信度，低置信不能直接入库。",
+        },
+        {
+            "tool": "extract_receipt_fields",
+            "risk": "read_only",
+            "roles": "小雅 / 老李 / ToolRunner",
+            "note": "OCR 只产生辅助字段，不等于库存真相。",
+        },
+        {
+            "tool": "query_inventory",
+            "risk": "read_only",
+            "roles": "小雅 / 老李 / ToolRunner",
+            "note": "查询可以直接执行，但结果仍需口语化回执。",
+        },
+        {
+            "tool": "create_confirmation",
+            "risk": "needs_confirmation",
+            "roles": "小雅 / ToolRunner",
+            "note": "把高风险动作显式抬到确认链。",
+        },
+        {
+            "tool": "append_inventory_event",
+            "risk": "committable",
+            "roles": "老李 / ToolRunner",
+            "note": "只能在已确认或低风险前提下执行。",
+        },
+        {
+            "tool": "write_audit_log",
+            "risk": "committable",
+            "roles": "ToolRunner",
+            "note": "业务写入完成后必须追加审计记录。",
+        },
+        {
+            "tool": "push_session_update",
+            "risk": "read_only",
+            "roles": "ToolRunner / Summarizer",
+            "note": "实时层负责增量回写，不承担真相存储。",
+        },
+    ],
+    "policy_rule_cards": [
+        {
+            "title": "new_item_requires_confirmation",
+            "body": "识别结果不存在现有商品档案时，直接转入确认态，而不是让模型帮忙脑补建档。",
+        },
+        {
+            "title": "low_confidence_requires_confirmation",
+            "body": "识图或 OCR 置信度低于店铺阈值时，系统必须要求确认。",
+        },
+        {
+            "title": "missing_price_requires_confirmation",
+            "body": "入库缺价格且店铺开启价格确认时，不允许直接写库存。",
+        },
+        {
+            "title": "manual_correction_requires_reason",
+            "body": "人工纠错没有原因就直接阻断，避免账本丢失修正上下文。",
+        },
+        {
+            "title": "inventory_write_requires_task_run",
+            "body": "任何库存写入都必须带 `task_run_id`，否则直接视为无来源写库。",
+        },
+        {
+            "title": "very_low_confidence_escalates_review",
+            "body": "极低置信时不仅要确认，还要升级到 Reviewer 做最后一层卡口。",
+        },
+    ],
+    "task_state_transitions": [
+        {"from": "created", "to": "processing", "rule": "runtime 开始处理"},
+        {"from": "processing", "to": "awaiting-confirmation", "rule": "PolicyGuard 触发确认"},
+        {"from": "processing", "to": "completed", "rule": "只读任务完成或低风险写入完成"},
+        {"from": "processing", "to": "failed", "rule": "provider 失败、校验失败或系统异常"},
+        {"from": "awaiting-confirmation", "to": "completed", "rule": "确认通过后写库成功"},
+        {"from": "awaiting-confirmation", "to": "rejected", "rule": "用户拒绝确认"},
+        {"from": "awaiting-confirmation", "to": "failed", "rule": "确认后提交失败或冲突"},
     ],
     "visible_agents": [
         {
@@ -830,6 +991,70 @@ SHOWCASE_DATA = {
             ),
         },
     ],
+    "ws_endpoint": "WS /api/v1/ws/sessions/:session_id?token=<mock_token>",
+    "ws_principles": [
+        "REST 负责拉真相，WebSocket 只负责增量回写。",
+        "结果卡、确认卡、OCR 卡都作为新消息追加，不做复杂 patch。",
+        "聊天页、工作台、账本优先复用同一条 session stream。",
+        "一旦 seq 断档或重连成功，前端统一走 REST 补偿同步。",
+    ],
+    "ws_event_envelope": block(
+        """
+        {
+          "event_id": "evt_01HY9X...",
+          "seq": 12,
+          "event_type": "task.updated",
+          "session_id": "sess_01HY9X...",
+          "task_run_id": "task_01HY9X...",
+          "message_id": null,
+          "occurred_at": "2026-04-03T14:22:31.123Z",
+          "data": {}
+        }
+        """
+    ),
+    "ws_event_types": [
+        {"name": "session.ready", "use": "连接建立后的初始化确认。"},
+        {"name": "message.created", "use": "有新消息、结果卡、确认卡或 OCR 卡。"},
+        {"name": "task.updated", "use": "TaskRun 状态变化。"},
+        {"name": "confirmation.created", "use": "新待确认生成。"},
+        {"name": "confirmation.resolved", "use": "确认被通过或拒绝。"},
+        {"name": "ocr.updated", "use": "OCR 完成或失败。"},
+        {"name": "inventory.updated", "use": "库存事件或纠错事件已写入。"},
+        {"name": "alert.updated", "use": "低库存提醒状态变化。"},
+        {"name": "stream.keepalive", "use": "保活事件。"},
+        {"name": "error", "use": "流程级错误通知。"},
+    ],
+    "ws_refresh_rules": [
+        {
+            "screen": "ChatScreen",
+            "items": [
+                "message.created -> 追加或失效消息流",
+                "task.updated -> 更新当前任务状态",
+                "confirmation.created -> 刷新待确认列表",
+                "confirmation.resolved -> 关闭确认 UI 并刷新消息流",
+            ],
+        },
+        {
+            "screen": "DashboardScreen",
+            "items": [
+                "inventory.updated -> 刷新 summary / low stock",
+                "alert.updated -> 刷新低库存提醒",
+                "confirmation.created / resolved -> 刷新待确认卡",
+            ],
+        },
+        {
+            "screen": "LedgerScreen",
+            "items": [
+                "inventory.updated -> 刷新库存列表",
+                "confirmation.resolved -> 刷新审计时间线",
+            ],
+        },
+    ],
+    "ws_reconnect_steps": [
+        "首次失败 1s，第二次 2s，第三次 5s，后续最大回退 10s。",
+        "连续 3 次失败后提示“实时连接已断开，正在重试”。",
+        "重连成功后强制失效消息、待确认、库存和审计相关 query。",
+    ],
     "api_groups": [
         {
             "name": "会话与消息",
@@ -1028,6 +1253,20 @@ SHOWCASE_DATA = {
             "items": ["ASR 接入", "商品识别策略", "OCR 抽取策略", "低置信规则"],
         },
     ],
+    "provider_matrix": [
+        {"capability": "Auth", "current": "MockAuthProvider", "later": "正式账号体系"},
+        {"capability": "Object Storage", "current": "MinIO", "later": "S3 兼容云存储"},
+        {"capability": "Router", "current": "RuleFirstRouter", "later": "可选 LLM Router"},
+        {"capability": "Summarizer", "current": "TemplateSummarizer", "later": "可选 LLM Summarizer"},
+        {"capability": "ASR", "current": "MockAsrProvider", "later": "单一真实 ASR 供应商"},
+        {"capability": "OCR", "current": "MockOcrProvider", "later": "单一真实 OCR 供应商"},
+        {"capability": "Vision", "current": "MockVisionProvider", "later": "单一真实识图供应商"},
+    ],
+    "provider_rules": [
+        "当前阶段每类能力只保留一个接口，不做多 provider 并行竞争。",
+        "mock provider 也必须覆盖 success / low_confidence / failure 三类场景。",
+        "进入试点前再选择真实 vendor，前提是主链路和测试基线已经稳定。",
+    ],
     "demo_scope": [
         "工作台",
         "微信感工作群",
@@ -1095,16 +1334,25 @@ SHOWCASE_DATA = {
             "body": "如果只是演示版可单店单账号；如果准备试点，应尽早加账号与店铺上下文。",
         },
     ],
+    "definition_of_done": [
+        "能启动 FastAPI、Worker、MySQL、Redis 与 MinIO。",
+        "能 bootstrap 出默认工作群 session。",
+        "能通过消息接口创建 `TaskRun`。",
+        "`voice-stock-in` 能走到确认态并确认后写入库存事件。",
+        "`voice-stock-query` 能返回只读结果卡。",
+        "聊天页能通过 WebSocket 收到任务状态和结果回写。",
+        "所有 AI 能力都通过 provider interface，而不是散落在业务代码里。",
+    ],
     "workspace_status": [
         {
             "title": "文档蓝图",
-            "status": "已成体系",
-            "body": "00-08 已经把技术栈、架构、API、数据、AI 系统、风险和 Claw 适配都写出来了。",
+            "status": "已成施工包",
+            "body": "00-13 已经把技术栈、架构、API、数据、AI 系统、实时合同、DB schema 和 provider 策略补到可施工层。",
         },
         {
             "title": "showcase 页面",
             "status": "可俯瞰审视",
-            "body": "现在它承担的是总控台角色，帮助你从上帝视角看原型，而不是仅仅做项目介绍。",
+            "body": "现在它不仅做总控台，还同步了当前施工范围、runtime 合同、实时事件、DB 施工约定和 provider 策略。",
         },
         {
             "title": "React Native 客户端",
@@ -1183,6 +1431,31 @@ SHOWCASE_DATA = {
             "summary": "Claw Code 可借与不可借之处，以及如何转译成业务 agent runtime。",
             "answers": "该借什么框架思想，哪些不能直接搬。",
         },
+        {
+            "path": "project_docs/09-implementation-scope.md",
+            "summary": "当前施工目标、纳入范围、明确不做项、推荐仓库结构和完成定义。",
+            "answers": "这轮正式施工到底做什么、不做什么，以及做到什么算第一阶段完成。",
+        },
+        {
+            "path": "project_docs/10-runtime-contracts.md",
+            "summary": "EmployeeProfile、ToolSpec、PolicyRule、TaskRun 迁移和 handoff 约束。",
+            "answers": "runtime 到底如何按合同实现，而不是停留在 agent 理念层。",
+        },
+        {
+            "path": "project_docs/11-realtime-contract.md",
+            "summary": "WebSocket 入口、事件包结构、事件类型、前端失效刷新和重连补偿。",
+            "answers": "聊天、确认、OCR、库存更新到底通过什么实时协议回写。",
+        },
+        {
+            "path": "project_docs/12-db-schema.md",
+            "summary": "MySQL 施工级表结构、索引、字段精度、迁移顺序和物理约束。",
+            "answers": "Alembic 和 SQLAlchemy 该按什么 schema 真正开工。",
+        },
+        {
+            "path": "project_docs/13-provider-decisions.md",
+            "summary": "mock-first provider 策略、接口边界、切换真实供应商的时机和约束。",
+            "answers": "这轮 provider 怎么定，什么时候再切真实 ASR / OCR / 识图能力。",
+        },
     ],
 }
 
@@ -1197,8 +1470,11 @@ async def overview():
     return {
         "project": "AI数字店铺大管家",
         "mode": "god-view-prototype-console",
+        "implementation_mode": "real-backbone-with-mock-ai-providers",
         "frontend": "React Native + Expo",
         "backend": "FastAPI + MySQL + Celery + Redis + WebSocket",
+        "provider_strategy": "mock-first",
+        "realtime_transport": "session-scoped WebSocket",
         "visible_agents": ["小雅", "老李"],
         "core_flows": [
             "语音入库",

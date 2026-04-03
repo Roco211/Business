@@ -34,10 +34,10 @@ uvicorn showcase_app.main:app --reload
 - 原型判词与总览指标
 - 审视镜头与四层上帝视角拆解
 - 三主页面、六条主链路、客户端状态边界
-- 技术栈、RN 工程蓝图、系统分层与职责边界
-- AI 员工合同、内部 Runtime Loop、Claw 启发与权限模型
-- API 合同、核心 schema、存储建议与一致性铁律
-- Sprint 路线图、风险、关键决策、最小 Demo 范围
+- 技术栈、RN 工程蓝图、施工范围、仓库结构与系统职责边界
+- AI 员工合同、ToolSpec、PolicyRule、TaskRun 状态迁移与权限模型
+- API 合同、WebSocket 实时事件、核心 schema、DB 约定与迁移顺序
+- Sprint 路线图、风险、provider 策略、完成定义与最小 Demo 范围
 - 工作区真实现状与 `project_docs` 文档索引
 
 ## 接口

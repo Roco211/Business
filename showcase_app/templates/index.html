@@ -344,6 +344,45 @@
           </article>
           {% endfor %}
         </div>
+
+        <div class="card-grid three">
+          {% for item in implementation_defaults %}
+          <article class="info-card">
+            <span class="card-kicker">施工默认项 {{ loop.index }}</span>
+            <h3>{{ item["title"] }}</h3>
+            <p>{{ item["body"] }}</p>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="section-subgrid">
+          {% for group in scope_boundaries %}
+          <article class="info-card">
+            <span class="card-kicker">{{ group["title"] }}</span>
+            <h3>施工边界</h3>
+            <ul class="check-list">
+              {% for item in group["items"] %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">建议仓库结构</span>
+            <h3>从文档进入真正工程目录的落点</h3>
+            <pre><code>{{ repo_blueprint }}</code></pre>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">阶段策略</span>
+            <h3>这轮不是接真 AI，而是先把系统骨架搭真</h3>
+            <p>数据库、对象存储、Worker 和 WebSocket 都按真实系统搭；真正先假的，是可替换的 ASR / OCR / 识图 provider。</p>
+            <p>这样一来，我们优先验证的是“任务状态机、确认链、账本和审计是否成立”，而不是被供应商波动拖住施工节奏。</p>
+          </article>
+        </div>
       </section>
 
       <section id="agents" class="section">
@@ -491,6 +530,49 @@
             </div>
           </article>
         </div>
+
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">ToolSpec 施工视图</span>
+            <h3>真正要受控实现的工具集</h3>
+            <div class="stack-list">
+              {% for item in tool_specs %}
+              <div class="stack-item">
+                <strong><code>{{ item["tool"] }}</code></strong>
+                <p><strong>风险等级：</strong>{{ item["risk"] }}</p>
+                <p><strong>允许角色：</strong>{{ item["roles"] }}</p>
+                <p>{{ item["note"] }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">PolicyRule 施工视图</span>
+            <h3>Guard 真正要落成的规则卡</h3>
+            <div class="stack-list">
+              {% for item in policy_rule_cards %}
+              <div class="stack-item">
+                <strong><code>{{ item["title"] }}</code></strong>
+                <p>{{ item["body"] }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
+
+        <article class="info-card">
+          <span class="card-kicker">TaskRun 状态迁移</span>
+          <h3>任务状态机在施工时必须保持单向清晰</h3>
+          <div class="timeline-grid">
+            {% for item in task_state_transitions %}
+            <div class="timeline-card">
+              <strong><code>{{ item["from"] }}</code> -> <code>{{ item["to"] }}</code></strong>
+              <p>{{ item["rule"] }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
       </section>
 
       <section id="api" class="section">
@@ -556,6 +638,65 @@
           </article>
         </div>
 
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">实时入口</span>
+            <h3>WebSocket 只做增量回写，不做真相拉取</h3>
+            <p><code>{{ ws_endpoint }}</code></p>
+            <ul class="check-list">
+              {% for item in ws_principles %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">统一事件包</span>
+            <h3>session stream 的基础 envelope</h3>
+            <pre><code>{{ ws_event_envelope }}</code></pre>
+          </article>
+        </div>
+
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">事件类型</span>
+            <h3>MVP 必须先支持的实时事件</h3>
+            <div class="stack-list">
+              {% for item in ws_event_types %}
+              <div class="stack-item">
+                <strong><code>{{ item["name"] }}</code></strong>
+                <p>{{ item["use"] }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">前端刷新规则</span>
+            <h3>不同页面收到事件后该失效什么</h3>
+            <div class="stack-list">
+              {% for item in ws_refresh_rules %}
+              <div class="stack-item">
+                <strong>{{ item["screen"] }}</strong>
+                <ul class="bullet-list compact">
+                  {% for bullet in item["items"] %}
+                  <li>{{ bullet }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="stack-item">
+              <strong>重连与补偿</strong>
+              <ul class="bullet-list compact">
+                {% for item in ws_reconnect_steps %}
+                <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </article>
+        </div>
+
         <div class="card-grid three">
           {% for group in data_groups %}
           <article class="info-card">
@@ -603,6 +744,38 @@
               <li><code>{{ item }}</code></li>
               {% endfor %}
             </ul>
+          </article>
+        </div>
+
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">DB 默认约定</span>
+            <h3>进入 Alembic 前必须先统一的建模口径</h3>
+            <div class="stack-list">
+              {% for item in db_defaults %}
+              <div class="stack-item">
+                <strong>{{ item["name"] }}</strong>
+                <p>{{ item["body"] }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">迁移顺序</span>
+            <h3>首批 migration 应该按什么节奏出</h3>
+            <div class="stack-list">
+              {% for item in migration_batches %}
+              <div class="stack-item">
+                <strong>{{ item["name"] }}</strong>
+                <ul class="bullet-list compact">
+                  {% for table in item["items"] %}
+                  <li><code>{{ table }}</code></li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endfor %}
+            </div>
           </article>
         </div>
 
@@ -751,6 +924,40 @@
             </div>
           </article>
         </div>
+
+        <div class="section-subgrid">
+          <article class="info-card">
+            <span class="card-kicker">Provider 策略</span>
+            <h3>基础设施真实，AI 能力 mock-first</h3>
+            <div class="stack-list">
+              {% for item in provider_matrix %}
+              <div class="stack-item">
+                <strong>{{ item["capability"] }}</strong>
+                <p><strong>当前：</strong>{{ item["current"] }}</p>
+                <p><strong>后续：</strong>{{ item["later"] }}</p>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="stack-item">
+              <strong>当前规则</strong>
+              <ul class="bullet-list compact">
+                {% for item in provider_rules %}
+                <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </article>
+
+          <article class="info-card">
+            <span class="card-kicker">第一阶段完成定义</span>
+            <h3>做到这里，才算真的可以往真实落地推进</h3>
+            <ul class="check-list">
+              {% for item in definition_of_done %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </article>
+        </div>
       </section>
 
       <section id="reality" class="section">
@@ -788,7 +995,7 @@
         <div class="section-header">
           <div>
             <h2>文档索引</h2>
-            <p>`project_docs` 的 9 份文档已经被重组进上面的总控台；这里保留它们各自回答的问题，方便回到原始语境继续推演。</p>
+            <p>`project_docs` 的 {{ docs_index|length }} 份文档已经被重组进上面的总控台；这里保留它们各自回答的问题，方便回到原始语境继续推演。</p>
           </div>
         </div>
 

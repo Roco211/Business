@@ -19,6 +19,13 @@
 5. [04-client-state-and-flows.md](./04-client-state-and-flows.md)
 6. [05-sprint-plan.md](./05-sprint-plan.md)
 7. [06-risks-and-decisions.md](./06-risks-and-decisions.md)
+8. [07-ai-employee-and-ai-native-system.md](./07-ai-employee-and-ai-native-system.md)
+9. [08-claw-code-applicability-assessment.md](./08-claw-code-applicability-assessment.md)
+10. [09-implementation-scope.md](./09-implementation-scope.md)
+11. [10-runtime-contracts.md](./10-runtime-contracts.md)
+12. [11-realtime-contract.md](./11-realtime-contract.md)
+13. [12-db-schema.md](./12-db-schema.md)
+14. [13-provider-decisions.md](./13-provider-decisions.md)
 
 文档用途：
 
@@ -29,6 +36,13 @@
 - `04` 解决“页面和状态怎么跑”
 - `05` 解决“开发怎么排期”
 - `06` 解决“首版有哪些关键取舍”
+- `07` 解决“AI 员工怎么设计、AI 原生系统怎么搭”
+- `08` 解决“Claw Code 的哪些思想该借，哪些不该直接搬”
+- `09` 解决“当前这轮正式施工到底做什么、不做什么”
+- `10` 解决“runtime 合同、tool 合同和状态机怎么落”
+- `11` 解决“WebSocket 实时事件到底怎么定义”
+- `12` 解决“MySQL 和 Alembic 应该按什么 schema 开工”
+- `13` 解决“provider 当前怎么定，何时再切真实供应商”
 
 本目录不替代 PRD。
 

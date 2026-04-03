@@ -214,6 +214,7 @@ type AuditLog = {
 - `ocr_documents`
 - `alerts`
 - `audit_logs`
+- `session_stream_events`
 
 原因：
 
@@ -241,11 +242,15 @@ React Native 端建议只保留轻量本地缓存：
 ## 5. 关键索引建议
 
 - `messages(session_id, created_at desc)`
+- `messages(session_id, actor_type, actor_id, client_request_id)` 幂等唯一约束
 - `task_runs(session_id, updated_at desc)`
 - `inventory_items(shop_id, name)`
 - `inventory_events(shop_id, item_id, created_at desc)`
 - `alerts(shop_id, status, alert_type)`
 - `audit_logs(shop_id, created_at desc)`
+- `session_stream_events(session_id, seq)` 唯一约束
+
+更细的物理索引与迁移顺序，统一以 [12-db-schema.md](./12-db-schema.md) 为准。
 
 ## 6. 数据一致性原则
 
@@ -254,3 +259,89 @@ React Native 端建议只保留轻量本地缓存：
 - `Confirmation` 一旦通过，必须绑定对应 `TaskRun`
 - OCR 结果不直接写库存，必须转成确认链
 
+## 7. 领域对象与物理 schema / API DTO 的映射说明
+
+本文件定义的是：
+
+- **领域对象**
+
+它回答的是：
+
+- 系统里有哪些概念
+- 这些概念在服务端和前端如何被理解
+
+它不要求与 `12-db-schema.md` 的物理字段一一同名。
+
+当前阶段统一按下面规则映射：
+
+### 7.1 `InventoryItem.image_url`
+
+领域层 / API 层：
+
+- `image_url`
+
+物理层：
+
+- `inventory_items.image_media_id`
+
+映射规则：
+
+- 服务端通过 `image_media_id -> media_uploads.public_url -> image_url`
+- 前端不直接感知 `image_media_id`
+
+### 7.2 `OcrDocument.extracted_fields`
+
+领域层：
+
+- `extracted_fields`
+
+API 层：
+
+- 对外可以简化为 `fields`
+
+映射规则：
+
+- `ocr_documents.extracted_fields` 是物理字段
+- API response 为了可读性，可以返回 `fields`
+
+### 7.3 `TaskRun.confirmation_id`
+
+领域层：
+
+- `TaskRun.confirmation_id`
+
+物理层：
+
+- `confirmations.task_run_id`
+
+映射规则：
+
+- 领域层允许把 `confirmation_id` 当成任务视角下的便捷投影
+- 物理表不强制在 `task_runs` 上冗余保存 `confirmation_id`
+- 服务端组装 DTO 时可通过 `task_run_id` 反查得到
+
+### 7.4 `client_request_id`
+
+传输层 / 幂等层：
+
+- `client_request_id`
+
+领域层：
+
+- 不是核心业务对象属性
+
+物理层：
+
+- 存在于 `messages` 表中，用于 owner 发起消息的幂等保证
+
+### 7.5 当前阶段的总规则
+
+- API 命名优先对前端友好
+- 领域模型命名优先表达业务概念
+- 物理 schema 命名优先表达关系与约束
+- DTO / Mapper 转换必须由服务端显式承担
+
+也就是说：
+
+- 前端不应该去猜数据库字段
+- 数据库也不必为了前端展示去牺牲关系清晰度

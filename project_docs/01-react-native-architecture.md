@@ -2,6 +2,10 @@
 
 本文件默认以 [00-final-tech-stack.md](./00-final-tech-stack.md) 作为最终技术选型依据。
 
+如果你要看“AI 员工应该怎么定义、系统内部应该如何分层编排”，请继续阅读：
+
+- [07-ai-employee-and-ai-native-system.md](./07-ai-employee-and-ai-native-system.md)
+
 ## 1. 目标
 
 用一套对 React Native 友好的架构，支撑首版 3 个主界面和 6 条主链路：

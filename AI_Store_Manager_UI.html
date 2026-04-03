@@ -68,7 +68,7 @@
     .resultgrid div{padding:10px;border-radius:14px;background:rgba(255,255,255,.84)}
     .resultgrid span{display:block;font-size:11px;opacity:.74;margin-bottom:6px}
     .composer{margin-top:auto;padding:12px 0 0}
-    .actgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .actgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     .action strong{display:block;font-size:20px;margin-bottom:6px}
     .action span{display:block;font-size:11px;line-height:1.4}
     .form{display:grid;gap:12px;margin-top:14px}
@@ -84,6 +84,46 @@
     .tab span{display:block;font-size:11px;font-weight:800}
     .tab.active{color:var(--brand2);background:linear-gradient(135deg,rgba(242,155,91,.18),rgba(255,255,255,.92))}
     .toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);min-width:220px;max-width:calc(100% - 48px);padding:12px 14px;background:rgba(27,18,15,.94);color:#fffaf4;text-align:center;font-size:12px;line-height:1.5;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+    .app[data-mode="chat"] .top,.app[data-mode="chat"] .tabs{display:none}
+    .app[data-mode="chat"] .views{background:#ededed}
+    .chat-page{background:#ededed}
+    .wechat-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 14px 10px;background:#f7f7f7;border-bottom:1px solid rgba(0,0,0,.06)}
+    .wechat-nav{width:32px;height:32px;border-radius:50%;background:transparent;color:#1f1f1f;font-size:22px;line-height:1}
+    .wechat-title{flex:1;min-width:0;text-align:center}
+    .wechat-title strong{display:block;font-size:17px;font-weight:800;color:#111}
+    .wechat-title span{display:block;margin-top:4px;font-size:11px;color:#7a7a7a}
+    .wechat-room{flex:1;overflow:auto;padding:10px 10px 8px;background:#ededed;scrollbar-width:none}
+    .wechat-room::-webkit-scrollbar{display:none}
+    .wechat-hint{margin:2px auto 12px;padding:7px 12px;max-width:88%;border-radius:999px;background:rgba(255,255,255,.66);color:#7f7f7f;text-align:center;font-size:11px;line-height:1.4}
+    .msgs{gap:10px}
+    .wx-time,.wx-system{justify-self:center;max-width:84%;padding:4px 10px;border-radius:999px;color:#9a9a9a;font-size:11px;line-height:1.4}
+    .wx-time{background:rgba(0,0,0,.06)}
+    .wx-system{background:transparent}
+    .msg{gap:8px;align-items:flex-start}
+    .ava{width:36px;height:36px;border-radius:7px;display:grid;place-items:center;font-size:18px;background:#d8d8d8;color:#fff;flex-shrink:0}
+    .msg.self .ava{background:#d8d8d8;color:#fff}
+    .msgbox{max-width:76%;padding:0;background:transparent;border:none;box-shadow:none}
+    .msg.self .msgbox{background:transparent;color:inherit}
+    .wx-name{margin:0 0 4px 2px;color:#8a8a8a;font-size:12px;line-height:1.2}
+    .wx-name span{margin-left:6px;font-size:11px;color:#b0b0b0}
+    .wx-bubble{padding:12px 14px;border-radius:8px;background:#fff;box-shadow:0 1px 1px rgba(0,0,0,.05)}
+    .msg.self .wx-bubble{background:#95ec69}
+    .body{margin-top:0;font-size:14px;line-height:1.72;color:#222}
+    .msg.self .body{color:#1f1f1f}
+    .body p{color:inherit}
+    .result{margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+    .result strong{font-size:13px}
+    .resultgrid{gap:8px}
+    .resultgrid div{background:#fff}
+    .wechat-composer{padding:8px 10px 10px;background:#f7f7f7;border-top:1px solid rgba(0,0,0,.06)}
+    .wechat-inputbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center}
+    .wechat-icon{width:34px;height:34px;border-radius:50%;background:#fff;color:#3a3a3a;font-size:18px;box-shadow:none;border:1px solid rgba(0,0,0,.06)}
+    .wechat-field{min-height:38px;padding:9px 14px;border-radius:20px;background:#fff;color:#8a8a8a;font-size:13px;display:flex;align-items:center;border:1px solid rgba(0,0,0,.06)}
+    .wechat-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:12px}
+    .wechat-panel[hidden]{display:none}
+    .wechat-tool{padding:10px 6px;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,.05);color:#2f2f2f}
+    .wechat-tool strong{display:block;font-size:20px;margin-bottom:6px}
+    .wechat-tool span{display:block;font-size:11px;line-height:1.35}
     @media (max-width:480px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0}}
   </style>
 </head>
@@ -94,9 +134,9 @@
         <div class="brand">
           <div class="logo">🏪</div>
           <div>
-            <div class="eyebrow">v2 MVP · 只做库存闭环</div>
+            <div class="eyebrow">v2 MVP · 语音优先 + 多模态辅助</div>
             <h1>AI数字店铺大管家</h1>
-            <p>三屏就够了：工作台、工作群、账本。先把说话入库、拍照建档、库存查询、人工纠错做稳。</p>
+            <p>三屏就够了：工作台、工作群、账本。先把语音操作做成主入口，再用拍照识别、拍照查询和进货单 OCR 补齐信息。</p>
           </div>
         </div>
         <div class="right">
@@ -111,18 +151,45 @@
             <div class="hero">
               <div class="chips">
                 <div class="chip">小雅在线</div>
-                <div class="chip ok">库存链路已接通</div>
+                <div class="chip ok">语音主入口已接通</div>
                 <div class="chip warn">待确认 <span id="heroPending">1</span></div>
               </div>
-              <h2>老板今天不用填表，先把货记对。</h2>
-              <p>当前原型只围绕库存主链路。你在工作群里说一句、拍一张，结果会直接回到群里，并同步到账本。</p>
+              <h2>老板先开口，不够再拍照或拍单据。</h2>
+              <p>当前原型把“语音 + AI”放回 MVP 核心。你可以直接用语音入库、语音查库存；如果遇到无码商品、货架查询或纸质进货单，再补一张图交给多模态能力处理。</p>
               <div class="grid">
                 <div class="metric"><span>今日营业额</span><strong id="mRevenue">￥2,450</strong></div>
-                <div class="metric"><span>今日入库任务</span><strong id="mInbound">3 次</strong></div>
+                <div class="metric"><span>语音发起任务</span><strong id="mInbound">3 次</strong></div>
                 <div class="metric"><span>低库存商品</span><strong id="mLow">2 款</strong></div>
-                <div class="metric"><span>待确认任务</span><strong id="mPending">1 项</strong></div>
+                <div class="metric"><span>多模态待确认</span><strong id="mPending">1 项</strong></div>
               </div>
             </div>
+
+            <section class="sec">
+              <div class="head">
+                <h3>核心差异化入口</h3>
+                <p>先说话，再让 AI 要图。</p>
+              </div>
+              <div class="card">
+                <strong>语音是主入口，多模态是关键辅助</strong>
+                <p>老板最常见的两句话应该直接在 MVP 里跑通：“今天进来 3 箱可乐”和“红牛还剩多少？” 当语音无法唯一定位商品时，系统再自然要求补商品图、货架图或进货单。</p>
+                <div class="btns">
+                  <button class="primary" data-action="voice">试一条语音入库</button>
+                  <button class="secondary" data-action="voice-query">试一条语音查询</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>多模态辅助能力</h3>
+                <p>这三条必须都进 MVP。</p>
+              </div>
+              <div class="row">
+                <div class="item"><strong>拍照识物入库</strong><p>无码商品先识别，再确认建档，不允许直接写库。</p></div>
+                <div class="item"><strong>拍照查询商品</strong><p>对着商品或货架拍一张，返回“这是什么 + 还有多少库存”。</p></div>
+                <div class="item"><strong>进货单 OCR</strong><p>拍一张纸质单据，先抽商品、数量、价格，再辅助入库。</p></div>
+              </div>
+            </section>
 
             <section class="sec">
               <div class="head">
@@ -160,7 +227,7 @@
               <div class="card">
                 <div class="row">
                   <div class="item"><strong>P0</strong><p>工作台、工作群、账本，跑通库存闭环。</p></div>
-                  <div class="item"><strong>P1</strong><p>再加 OCR、经营问答和会话摘要续接。</p></div>
+                  <div class="item"><strong>P1</strong><p>继续优化 OCR 字段纠错、经营问答和会话摘要续接。</p></div>
                   <div class="item"><strong>P2</strong><p>最后才做通话、团队和人才市场。</p></div>
                 </div>
               </div>
@@ -168,35 +235,33 @@
           </div>
         </section>
 
-        <section class="view" data-view="chat">
-          <div class="scroll">
-            <div class="card">
-              <div class="head" style="margin-bottom:0">
-                <div>
-                  <h3>数字员工工作群</h3>
-                  <p style="text-align:left">小雅是唯一入口，老李只负责库存执行。v2 不再做通话页。</p>
-                </div>
-                <div class="chip">统一 Session</div>
-              </div>
+        <section class="view chat-page" data-view="chat">
+          <div class="wechat-header">
+            <button class="wechat-nav" data-view-target="dashboard" aria-label="返回">‹</button>
+            <div class="wechat-title">
+              <strong>数字员工工作群(2)</strong>
+              <span>小雅 / 老李</span>
             </div>
+            <button class="wechat-nav" data-action="scope" aria-label="更多">⋯</button>
+          </div>
 
-            <section class="sec">
-              <div class="msgs" id="msgs"></div>
-            </section>
+          <div class="wechat-room">
+            <div class="wechat-hint">尽量贴近微信群聊的使用节奏，降低店主学习成本。</div>
+            <div class="msgs" id="msgs"></div>
+          </div>
 
-            <div class="composer">
-              <div class="head">
-                <div>
-                  <h3>群里只演示三条链路</h3>
-                  <p style="text-align:left">语音入库、拍照建档、库存查询。</p>
-                </div>
-                <div class="chip ok">MVP</div>
-              </div>
-              <div class="actgrid">
-                <button class="action" data-action="voice"><strong>🎙️</strong><span>模拟语音入库</span></button>
-                <button class="action" data-action="photo"><strong>📷</strong><span>模拟拍照建档</span></button>
-                <button class="action" data-action="query"><strong>📦</strong><span>查询红牛库存</span></button>
-              </div>
+          <div class="wechat-composer">
+            <div class="wechat-inputbar">
+              <button class="wechat-icon" data-action="voice" aria-label="语音">🎙</button>
+              <div class="wechat-field" data-action="voice">按住说话，说“今天进来 3 箱可乐”</div>
+              <button class="wechat-icon" data-action="emoji" aria-label="表情">☺</button>
+              <button class="wechat-icon" data-action="toggle-tools" aria-label="更多">＋</button>
+            </div>
+            <div class="wechat-panel" id="chatTools" hidden>
+              <button class="wechat-tool" data-action="voice-query"><strong>🗣️</strong><span>语音查询</span></button>
+              <button class="wechat-tool" data-action="photo"><strong>📷</strong><span>拍照建档</span></button>
+              <button class="wechat-tool" data-action="photo-query"><strong>🔍</strong><span>拍照查询</span></button>
+              <button class="wechat-tool" data-action="receipt"><strong>🧾</strong><span>进货单 OCR</span></button>
             </div>
           </div>
         </section>
@@ -256,18 +321,21 @@
   </div>
 
   <script>
-    const state={view:"dashboard",revenue:2450,inbound:3,pending:1,wrenchPending:true,items:[{id:"coke",name:"可口可乐 500ml",stock:18,unit:"箱",threshold:6,price:41,note:"常卖商品，语音入库最稳定。"},
-    {id:"redbull",name:"红牛 250ml",stock:2,unit:"罐",threshold:6,price:6,note:"低库存，建议补 6 箱。"},
+    const state={view:"dashboard",revenue:2450,inbound:3,pending:1,wrenchPending:true,chatToolsOpen:false,items:[{id:"coke",name:"可口可乐 500ml",stock:18,unit:"箱",threshold:6,price:41,note:"常卖商品，语音入库最稳定。"},
+    {id:"redbull",name:"红牛 250ml",stock:2,unit:"罐",threshold:6,price:6,note:"低库存，适合语音或拍照查询。"},
     {id:"water",name:"农夫山泉 550ml",stock:5,unit:"箱",threshold:3,price:22,note:"条码命中率高。"}],
-    msgs:[{actor:"老板",self:true,meta:"语音 6 秒",text:"今天进来 3 箱可乐。"},
+    msgs:[{type:"time",text:"17:56"},
+    {actor:"老板",self:true,meta:"语音 6 秒",text:"今天进来 3 箱可乐。"},
     {actor:"小雅",self:false,meta:"已路由",text:"收到，我已经把这条入库任务交给老李处理。价格沿用上次进货价，先给您出结果卡。"},
     {actor:"老李",self:false,meta:"库存已写入",text:"可乐已经入库完成。",card:[["商品","可口可乐 500ml"],["数量","3 箱"],["进价","￥41 / 箱"],["当前库存","18 箱"]]},
+    {type:"time",text:"18:00"},
     {actor:"老板",self:true,meta:"照片",text:"这个扳手也入一下库。"},
-    {actor:"小雅",self:false,meta:"待确认",text:"我看到了，是一个无码五金件。为了避免建错档，我先停在待确认，等您确认名称、数量和进价后再入账。"}],
+    {actor:"小雅",self:false,meta:"待确认",text:"我看到了，是一个无码五金件。为了避免建错档，我先停在待确认，等您确认名称、数量和进价后再入账。"},
+    {type:"system",text:"点击右下角 +，可以继续试拍照查询和进货单 OCR。"}],
     audit:[{time:"14:21",title:"语音入库：可口可乐 500ml +3 箱",tag:"AI执行"},{time:"14:17",title:"拍照识物：扳手建档进入待确认",tag:"需确认"},{time:"14:08",title:"库存提醒：红牛触发低库存阈值",tag:"提醒"}]};
 
     const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s); let cursor=22,timer;
-    const toast=$("#toast"),msgs=$("#msgs"),lowList=$("#lowList"),inventory=$("#inventory"),audit=$("#audit"),item=$("#item"),qty=$("#qty"),reason=$("#reason");
+    const appRoot=$(".app"), toast=$("#toast"),msgs=$("#msgs"),lowList=$("#lowList"),inventory=$("#inventory"),audit=$("#audit"),item=$("#item"),qty=$("#qty"),reason=$("#reason"),chatTools=$("#chatTools"),chatRoom=$(".wechat-room");
     const money=n=>`￥${n.toLocaleString("zh-CN")}`, now=()=>`14:${String(++cursor).padStart(2,"0")}`;
     const low=()=>state.items.filter(i=>i.stock<=i.threshold);
     const tag=i=>i.stock<=i.threshold?["低库存","warn"]:["正常","ok"];
@@ -275,22 +343,27 @@
     function say(t){toast.textContent=t;toast.style.opacity="1";toast.style.transform="translate(-50%,0)";clearTimeout(timer);timer=setTimeout(()=>{toast.style.opacity="0";toast.style.transform="translate(-50%,14px)"},2200)}
     function addAudit(title,tag){state.audit.unshift({time:now(),title,tag});state.audit=state.audit.slice(0,6)}
     function addMsg(m){state.msgs.push(m)}
-    function view(name){state.view=name;$$(".view").forEach(v=>v.classList.toggle("active",v.dataset.view===name));$$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.viewTarget===name))}
+    function addTime(text=now()){state.msgs.push({type:"time",text})}
+    function addSystem(text){state.msgs.push({type:"system",text})}
+    function view(name){state.view=name;appRoot.dataset.mode=name;$$(".view").forEach(v=>v.classList.toggle("active",v.dataset.view===name));$$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.viewTarget===name))}
     function renderTop(){ const confirmBtn=$('[data-action="confirm"]'); $("#mRevenue").textContent=money(state.revenue); $("#mInbound").textContent=`${state.inbound} 次`; $("#mLow").textContent=`${low().length} 款`; $("#mPending").textContent=`${state.pending} 项`; $("#heroPending").textContent=state.pending;
       if(state.wrenchPending){$("#pendingTitle").textContent="新扳手待确认建档";$("#pendingCopy").textContent="无码五金件，系统识别到“活动扳手”但不敢直接写库。需要老板确认名称、数量和进价后再入账。"; confirmBtn.disabled=false; confirmBtn.style.opacity="1"; confirmBtn.textContent="确认扳手建档";} else {$("#pendingTitle").textContent="当前没有待确认的新商品";$("#pendingCopy").textContent="这版 MVP 只要把待确认任务清掉，库存主链路就算跑通。下一步建议去工作群继续试语音入库或库存查询。"; confirmBtn.disabled=true; confirmBtn.style.opacity=".55"; confirmBtn.textContent="已完成确认";}}
-    function renderLow(){lowList.innerHTML=low().map(i=>`<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag warn">建议补货</div></div><div class="stats"><div class="field"><span>当前库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>提醒阈值</span><strong>${i.threshold} ${i.unit}</strong></div><div class="field"><span>建议动作</span><strong>补货</strong></div></div></div>`).join("")}
-    function renderMsgs(){msgs.innerHTML=state.msgs.map(m=>`<div class="msg${m.self?" self":""}"><div class="ava">${avatar(m.actor)}</div><div class="msgbox"><div class="meta">${m.actor} · ${m.meta}</div><div class="body"><p>${m.text}</p>${m.card?`<div class="result"><strong>结果卡</strong><div class="resultgrid">${m.card.map(([k,v])=>`<div><span>${k}</span><strong>${v}</strong></div>`).join("")}</div></div>`:""}</div></div></div>`).join("")}
+    function renderLow(){lowList.innerHTML=low().map(i=>`<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag warn">建议补货</div></div><div class="stats"><div class="field"><span>当前库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>提醒阈值</span><strong>${i.threshold} ${i.unit}</strong></div><div class="field"><span>建议动作</span><strong>语音追问或补货</strong></div></div></div>`).join("")}
+    function renderMsgs(){msgs.innerHTML=state.msgs.map(m=>{if(m.type==="time") return `<div class="wx-time">${m.text}</div>`; if(m.type==="system") return `<div class="wx-system">${m.text}</div>`; return `<div class="msg${m.self?" self":""}"><div class="ava">${avatar(m.actor)}</div><div class="msgbox">${m.self?"":`<div class="wx-name">${m.actor}${m.meta?`<span>${m.meta}</span>`:""}</div>`}<div class="wx-bubble"><div class="body"><p>${m.text}</p>${m.card?`<div class="result"><strong>结果卡</strong><div class="resultgrid">${m.card.map(([k,v])=>`<div><span>${k}</span><strong>${v}</strong></div>`).join("")}</div></div>`:""}</div></div></div></div>`}).join(""); if(chatRoom) chatRoom.scrollTop=chatRoom.scrollHeight}
     function renderLedger(){inventory.innerHTML=state.items.map(i=>{const [txt,cls]=tag(i);return `<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag ${cls}">${txt}</div></div><div class="stats"><div class="field"><span>库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>进价</span><strong>${money(i.price)}</strong></div><div class="field"><span>阈值</span><strong>${i.threshold} ${i.unit}</strong></div></div></div>`}).join(""); item.innerHTML=state.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join("")}
     function renderAudit(){audit.innerHTML=state.audit.map(a=>`<div class="audit"><div class="time">${a.time}</div><div><strong>${a.title}</strong></div><div class="mini">${a.tag}</div></div>`).join("")}
-    function render(){renderTop();renderLow();renderMsgs();renderLedger();renderAudit();view(state.view)}
+    function renderChatTools(){chatTools.hidden=!state.chatToolsOpen}
+    function render(){renderTop();renderLow();renderMsgs();renderLedger();renderAudit();renderChatTools();view(state.view)}
 
-    function confirm(){if(!state.wrenchPending){say("扳手已经确认过了。");return} state.wrenchPending=false;state.pending=0;state.inbound+=1;state.items.push({id:"wrench",name:"得力活动扳手 12 寸",stock:1,unit:"件",threshold:2,price:18.5,note:"新商品已由老板确认建档。"}); addMsg({actor:"老李",self:false,meta:"确认后入账",text:"扳手已经按您确认的信息建档并入库。我把这次写入也同步到了账本。",card:[["商品","得力活动扳手 12 寸"],["数量","1 件"],["进价","￥18.5"],["状态","已建档"]]}); addAudit("人工确认后建档：得力活动扳手 12 寸 +1 件","老板确认"); render(); say("扳手已确认建档，账本与工作群已同步。")}
-    function voice(){const water=state.items.find(i=>i.id==="water"); water.stock+=1; state.inbound+=1; addMsg({actor:"老板",self:true,meta:"语音 4 秒",text:"再加 1 箱农夫山泉。"}); addMsg({actor:"小雅",self:false,meta:"已路由",text:"收到，这条是已有商品入库，我直接让老李按既有档案处理。"}); addMsg({actor:"老李",self:false,meta:"入库完成",text:"农夫山泉已经补进去了。",card:[["商品","农夫山泉 550ml"],["数量","1 箱"],["进价","￥22 / 箱"],["当前库存",`${water.stock} 箱`]]}); addAudit("语音入库：农夫山泉 550ml +1 箱","AI执行"); render(); say("已模拟一条语音入库。")}
-    function photo(){if(state.wrenchPending){say("工作群里已经有一个待确认的新商品了。");return} state.wrenchPending=true; state.pending=1; addMsg({actor:"老板",self:true,meta:"照片",text:"这个新工具也帮我入库。"}); addMsg({actor:"小雅",self:false,meta:"待确认",text:"这又是一个无码商品。我先不直接写库，等您确认名称、数量和价格后再入账。"}); addAudit("拍照识物：新增 1 条新商品待确认任务","需确认"); render(); say("已生成新的拍照建档待确认任务。")}
-    function query(){const rb=state.items.find(i=>i.id==="redbull"); addMsg({actor:"老板",self:true,meta:"文字",text:"红牛还剩多少？"}); addMsg({actor:"小雅",self:false,meta:"只读查询",text:`红牛现在还剩 ${rb.stock} 罐，已经低于提醒阈值 ${rb.threshold} 罐。我建议您今天就补货，不自动下单。`}); addAudit("库存查询：红牛 250ml","只读"); render(); say("已把库存查询结果回到工作群。")}
+    function confirm(){if(!state.wrenchPending){say("扳手已经确认过了。");return} addTime(); state.wrenchPending=false;state.pending=0;state.inbound+=1;state.items.push({id:"wrench",name:"得力活动扳手 12 寸",stock:1,unit:"件",threshold:2,price:18.5,note:"新商品已由老板确认建档。"}); addMsg({actor:"老李",self:false,meta:"确认后入账",text:"扳手已经按您确认的信息建档并入库。我把这次写入也同步到了账本。",card:[["商品","得力活动扳手 12 寸"],["数量","1 件"],["进价","￥18.5"],["状态","已建档"]]}); addAudit("人工确认后建档：得力活动扳手 12 寸 +1 件","老板确认"); render(); say("扳手已确认建档，账本与工作群已同步。")}
+    function voice(){const water=state.items.find(i=>i.id==="water"); addTime(); water.stock+=1; state.inbound+=1; addMsg({actor:"老板",self:true,meta:"语音 4 秒",text:"再加 1 箱农夫山泉。"}); addMsg({actor:"小雅",self:false,meta:"已路由",text:"收到，这条是已有商品入库，我直接让老李按既有档案处理。"}); addMsg({actor:"老李",self:false,meta:"入库完成",text:"农夫山泉已经补进去了。",card:[["商品","农夫山泉 550ml"],["数量","1 箱"],["进价","￥22 / 箱"],["当前库存",`${water.stock} 箱`]]}); addAudit("语音入库：农夫山泉 550ml +1 箱","AI执行"); render(); say("已模拟一条语音入库。")}
+    function voiceQuery(){const rb=state.items.find(i=>i.id==="redbull"); addTime(); addMsg({actor:"老板",self:true,meta:"语音 2 秒",text:"红牛还剩多少？"}); addMsg({actor:"小雅",self:false,meta:"语音查询",text:`红牛现在还剩 ${rb.stock} 罐，已经低于提醒阈值 ${rb.threshold} 罐。我建议您今天就补货，不自动下单。`}); addAudit("语音查询：红牛 250ml","只读"); render(); say("已模拟一条语音库存查询。")}
+    function photo(){if(state.wrenchPending){say("工作群里已经有一个待确认的新商品了。");return} addTime(); state.wrenchPending=true; state.pending=1; addMsg({actor:"老板",self:true,meta:"商品照片",text:"这个新工具也帮我入库。"}); addMsg({actor:"小雅",self:false,meta:"待确认",text:"这又是一个无码商品。我先不直接写库，等您确认名称、数量和价格后再入账。"}); addAudit("拍照识物：新增 1 条新商品待确认任务","需确认"); render(); say("已生成新的拍照建档待确认任务。")}
+    function photoQuery(){const rb=state.items.find(i=>i.id==="redbull"); addTime(); addMsg({actor:"老板",self:true,meta:"货架照片",text:"这个还有没有库存？"}); addMsg({actor:"小雅",self:false,meta:"拍照查询",text:`我识别到这是红牛 250ml。当前库存还有 ${rb.stock} 罐，已经低于提醒线，建议尽快补货。`}); addAudit("拍照查询：红牛 250ml","只读"); render(); say("已模拟一条拍照库存查询。")}
+    function receipt(){addTime(); addMsg({actor:"老板",self:true,meta:"进货单照片",text:"帮我看一下这单货。"}); addMsg({actor:"小雅",self:false,meta:"OCR 抽取",text:"我先把进货单里的关键字段抽出来了，您确认后就能继续生成待入库任务。",card:[["商品数","2 项"],["商品明细","可乐 3 箱 / 扳手 1 件"],["金额","￥141.5"],["状态","低置信字段待确认"]]}); addSystem("这一步更像微信里的“拍一张发群里”，只是系统会帮你先读单据。"); addAudit("进货单 OCR：抽取 2 个商品字段","OCR"); render(); say("已模拟一条进货单 OCR 结果。")}
     function save(){const id=item.value,n=Number(qty.value),r=reason.value.trim(),it=state.items.find(i=>i.id===id); if(!it||Number.isNaN(n)||n<0||!r){say("请补全商品、数量和修改原因。");return} const prev=it.stock; it.stock=n; addAudit(`人工修正：${it.name} ${prev}${it.unit} -> ${n}${it.unit}`,"Correction"); addMsg({actor:"系统",self:false,meta:"账本回执",text:`老板刚刚在账本里把 ${it.name} 从 ${prev}${it.unit} 改成了 ${n}${it.unit}。原因是：${r}。`}); render(); say("人工修正已保存，并回写到工作群。")}
 
-    document.addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; if(b.dataset.viewTarget) return view(b.dataset.viewTarget); const a=b.dataset.action; if(a==="scope") say("v2 只做工作台、工作群、账本三屏；通话、团队、市场都延后。"); if(a==="confirm") confirm(); if(a==="voice") voice(); if(a==="photo") photo(); if(a==="query") query();});
+    document.addEventListener("click",e=>{const b=e.target.closest("button, .wechat-field"); if(!b) return; if(b.dataset.viewTarget) return view(b.dataset.viewTarget); const a=b.dataset.action; if(a==="scope") say("v2 以语音为主入口，多模态为关键辅助；通话、团队、市场仍然延后。"); if(a==="confirm") confirm(); if(a==="voice") {state.chatToolsOpen=false; voice()} if(a==="voice-query") voiceQuery(); if(a==="photo") photo(); if(a==="photo-query") photoQuery(); if(a==="receipt") receipt(); if(a==="emoji") say("表情入口先占位，当前原型重点演示语音和多模态任务。"); if(a==="toggle-tools") {state.chatToolsOpen=!state.chatToolsOpen; renderChatTools();}});
     $("#save").addEventListener("click",save);
     render();
   </script>

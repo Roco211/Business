@@ -3,7 +3,7 @@ from decimal import Decimal
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, aliased
 
-from app.models import Message, SessionRecord, Shop, TaskRun
+from app.models import Confirmation, Message, SessionRecord, Shop, TaskRun
 from app.runtime.types import RuntimeTurnContext
 
 
@@ -65,6 +65,12 @@ def build_runtime_turn_context(
             .limit(10)
         )
     )
+    pending_confirmation = db_session.scalar(
+        select(Confirmation).where(
+            Confirmation.task_run_id == task_run.task_run_id,
+            Confirmation.status == "pending",
+        )
+    )
 
     return RuntimeTurnContext(
         shop_id=shop.shop_id,
@@ -95,5 +101,5 @@ def build_runtime_turn_context(
             }
             for record in recent_records
         ],
-        pending_confirmation_id=None,
+        pending_confirmation_id=None if pending_confirmation is None else pending_confirmation.confirmation_id,
     )

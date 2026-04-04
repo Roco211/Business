@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Message, SessionRecord, TaskRun
+from app.models import Confirmation, Message, SessionRecord, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
+from app.services.confirmations import create_pending_confirmation
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
 from app.services.task_runs import (
@@ -115,6 +116,62 @@ def test_voice_owner_message_completes_and_writes_runtime_message(db_session) ->
     assert runtime_messages[0].message_type == "text"
     assert runtime_messages[0].task_run_id == task_run_id
     assert "stock query accepted" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_text_stock_in_message_pauses_for_confirmation_and_writes_runtime_message(db_session) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock apples today",
+        media_ids=[],
+        client_request_id="runtime_stock_in_awaiting_confirmation",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_run_id == task_run_id
+    assert result.task_type == "voice-stock-in"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert task_run.task_type == "voice-stock-in"
+    assert task_run.assigned_employee_id == "xiaoya"
+    assert task_run.result_summary == "Awaiting owner confirmation for stock-in details."
+    assert task_run.error_code is None
+    assert task_run.error_message is None
+    assert task_run.completed_at is None
+    assert confirmation is not None
+    assert confirmation.status == "pending"
+    assert confirmation.confirmation_type == "low-confidence-recognition"
+    assert confirmation.requested_by_employee_id == "xiaoya"
+    assert confirmation.fields == {
+        "summary": "Please confirm the stock-in details before commit.",
+        "transcript": "restock apples today",
+        "draft_fields": {
+            "item_name": None,
+            "quantity": None,
+            "unit": None,
+            "price": None,
+        },
+        "required_fields": ["item_name", "quantity", "unit", "price"],
+    }
+    assert len(runtime_messages) == 1
+    assert runtime_messages[0].actor_type == "system"
+    assert runtime_messages[0].actor_id == "runtime_system"
+    assert runtime_messages[0].message_type == "text"
+    assert runtime_messages[0].task_run_id == task_run_id
+    assert "confirm" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 
@@ -332,6 +389,39 @@ def test_build_runtime_turn_context_keeps_double_tie_filter_consistent_with_cano
 
     assert recent_message_ids == [source_message_id, earlier_message_id]
     assert later_message_id not in recent_message_ids
+
+
+def test_build_runtime_turn_context_uses_existing_pending_confirmation_id(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock apples today",
+        media_ids=[],
+        client_request_id="runtime_context_pending_confirmation",
+    )
+
+    confirmation = create_pending_confirmation(
+        db_session,
+        task_run_id=task_run_id,
+        confirmation_type="low-confidence-recognition",
+        fields={
+            "summary": "Please confirm the stock-in details before commit.",
+            "transcript": "restock apples today",
+            "draft_fields": {
+                "item_name": None,
+                "quantity": None,
+                "unit": None,
+                "price": None,
+            },
+            "required_fields": ["item_name", "quantity", "unit", "price"],
+        },
+        requested_by_employee_id="xiaoya",
+    )
+    db_session.commit()
+
+    context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
+
+    assert context.pending_confirmation_id == confirmation.confirmation_id
 
 
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:

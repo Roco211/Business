@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.models import TaskRun
 from app.runtime.context import build_runtime_turn_context
+from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
+from app.services.confirmations import create_pending_confirmation
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
@@ -13,6 +15,7 @@ from app.services.task_runs import (
     claim_task_run_for_runtime,
     complete_task_run,
     fail_task_run,
+    mark_task_run_awaiting_confirmation,
 )
 
 
@@ -22,6 +25,20 @@ class RuntimeProcessResult:
     task_run_id: str
     task_type: str | None
     error_code: str | None
+
+
+def _build_confirmation_fields(transcript: str | None) -> dict[str, object]:
+    return {
+        "summary": "Please confirm the stock-in details before commit.",
+        "transcript": (transcript or "").strip(),
+        "draft_fields": {
+            "item_name": None,
+            "quantity": None,
+            "unit": None,
+            "price": None,
+        },
+        "required_fields": ["item_name", "quantity", "unit", "price"],
+    }
 
 
 def _build_failed_result(
@@ -111,6 +128,36 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
     try:
         context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
         decision = route_runtime_input(context)
+        policy = evaluate_runtime_policy(task_type=decision.task_type)
+        if policy.outcome == "require-confirmation":
+            create_pending_confirmation(
+                db_session,
+                task_run_id=task_run_id,
+                confirmation_type=policy.confirmation_type or "low-confidence-recognition",
+                fields=_build_confirmation_fields(decision.transcript),
+                requested_by_employee_id=decision.assigned_employee_id,
+            )
+            mark_task_run_awaiting_confirmation(
+                db_session,
+                task_run_id=task_run_id,
+                task_type=decision.task_type,
+                assigned_employee_id=decision.assigned_employee_id,
+                result_summary="Awaiting owner confirmation for stock-in details.",
+            )
+            write_runtime_message(
+                db_session,
+                session_id=context.session_id,
+                task_run_id=task_run_id,
+                text="Mock runtime: please confirm the stock-in details before commit.",
+            )
+            db_session.commit()
+            return RuntimeProcessResult(
+                status="awaiting-confirmation",
+                task_run_id=task_run_id,
+                task_type=decision.task_type,
+                error_code=None,
+            )
+
         result_summary, runtime_text = summarize_completed_task(
             task_type=decision.task_type,
             transcript=decision.transcript,

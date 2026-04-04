@@ -22,6 +22,14 @@ Phase 5A extends that approval path into real inventory truth. Approving a pendi
 
 Phase 6A adds the first read-side surface on top of that truth. The backend now exposes inventory item list/detail reads plus inventory-scoped audit log reads, and the Expo `LedgerScreen` consumes them through a lightweight fetch client.
 
+Phase 6B extends that read-side with a durable `alerts` table, a dashboard summary route, and a low-stock alert route. The Expo `DashboardScreen` now reads:
+
+- `GET /api/v1/dashboard/summary`
+- `GET /api/v1/alerts?type=low-stock`
+- `GET /api/v1/confirmations?status=pending`
+
+Current alert truth is only refreshed by the approved stock-in commit path. Stock-out, correction, and realtime push remain future work.
+
 For local mobile development:
 
 - set `EXPO_PUBLIC_API_BASE_URL` if you want to point Expo at a non-default backend

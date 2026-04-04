@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models import Message, SessionRecord, Shop, TaskRun
@@ -42,10 +42,7 @@ def build_runtime_turn_context(
                 Message.session_id == session_record.session_id,
                 or_(
                     Message.created_at < source_message.created_at,
-                    and_(
-                        Message.created_at == source_message.created_at,
-                        Message.message_id <= source_message.message_id,
-                    ),
+                    Message.message_id == source_message.message_id,
                 ),
             )
             .order_by(Message.created_at.desc(), Message.message_id.desc())

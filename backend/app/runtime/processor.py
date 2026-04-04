@@ -21,6 +21,43 @@ class RuntimeProcessResult:
     error_code: str | None
 
 
+def _build_failed_result(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    session_id: str,
+    error_code: str,
+    error_message: str,
+) -> RuntimeProcessResult:
+    result_summary, runtime_text = summarize_failed_task(
+        error_code=error_code,
+        error_message=error_message,
+    )
+    fail_task_run(
+        db_session,
+        task_run_id=task_run_id,
+        error_code=error_code,
+        error_message=error_message,
+        result_summary=result_summary,
+    )
+    try:
+        write_runtime_message(
+            db_session,
+            session_id=session_id,
+            task_run_id=task_run_id,
+            text=runtime_text,
+        )
+    except LookupError:
+        pass
+    db_session.commit()
+    return RuntimeProcessResult(
+        status="failed",
+        task_run_id=task_run_id,
+        task_type=None,
+        error_code=error_code,
+    )
+
+
 def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessResult:
     claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
     if not claim.changed:
@@ -31,34 +68,33 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             error_code=claim.task_run.error_code,
         )
 
-    context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
-
     try:
+        context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
         decision = route_runtime_input(context)
     except RuntimeRouteBlocked as exc:
-        result_summary, runtime_text = summarize_failed_task(
+        return _build_failed_result(
+            db_session,
+            task_run_id=task_run_id,
+            session_id=claim.task_run.session_id,
             error_code=exc.error_code,
             error_message=exc.error_message,
         )
-        fail_task_run(
+    except Exception as exc:
+        db_session.rollback()
+        recovery_claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
+        if not recovery_claim.changed:
+            return RuntimeProcessResult(
+                status="skipped",
+                task_run_id=recovery_claim.task_run.task_run_id,
+                task_type=recovery_claim.task_run.task_type,
+                error_code=recovery_claim.task_run.error_code,
+            )
+        return _build_failed_result(
             db_session,
             task_run_id=task_run_id,
-            error_code=exc.error_code,
-            error_message=exc.error_message,
-            result_summary=result_summary,
-        )
-        write_runtime_message(
-            db_session,
-            session_id=context.session_id,
-            task_run_id=task_run_id,
-            text=runtime_text,
-        )
-        db_session.commit()
-        return RuntimeProcessResult(
-            status="failed",
-            task_run_id=task_run_id,
-            task_type=None,
-            error_code=exc.error_code,
+            session_id=recovery_claim.task_run.session_id,
+            error_code="runtime_processing_error",
+            error_message=f"Runtime processing failed: {exc}",
         )
 
     result_summary, runtime_text = summarize_completed_task(

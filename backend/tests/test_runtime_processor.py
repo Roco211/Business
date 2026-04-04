@@ -1,9 +1,12 @@
+from datetime import datetime
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from app.models import Message, SessionRecord, TaskRun
 from app.runtime.context import build_runtime_turn_context
+from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
@@ -184,6 +187,48 @@ def test_build_runtime_turn_context_scopes_recent_messages_to_source_turn(db_ses
     assert second_task_run.source_message_id not in recent_message_ids
 
 
+def test_build_runtime_turn_context_excludes_later_same_timestamp_messages(db_session) -> None:
+    _, first_task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="first turn",
+        media_ids=[],
+        client_request_id="runtime_context_same_timestamp_first",
+    )
+    _, second_task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="second turn",
+        media_ids=[],
+        client_request_id="runtime_context_same_timestamp_second",
+    )
+
+    first_task_run = db_session.get(TaskRun, first_task_run_id)
+    second_task_run = db_session.get(TaskRun, second_task_run_id)
+    assert first_task_run is not None
+    assert second_task_run is not None
+
+    first_message = db_session.get(Message, first_task_run.source_message_id)
+    second_message = db_session.get(Message, second_task_run.source_message_id)
+    assert first_message is not None
+    assert second_message is not None
+
+    shared_created_at = datetime(2026, 4, 4, 12, 0, 0)
+    second_original_message_id = second_message.message_id
+    second_message.message_id = "msg_00000000000000000000000000000000"
+    second_message.created_at = shared_created_at
+    second_task_run.source_message_id = second_message.message_id
+    first_message.created_at = shared_created_at
+    db_session.commit()
+
+    context = build_runtime_turn_context(db_session, task_run_id=first_task_run_id)
+    recent_message_ids = [message["message_id"] for message in context.recent_messages]
+
+    assert first_task_run.source_message_id in recent_message_ids
+    assert second_message.message_id not in recent_message_ids
+    assert second_original_message_id not in recent_message_ids
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,
@@ -230,6 +275,48 @@ def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(d
     assert classified_result.task_type == "voice-stock-in"
     assert classified_result.error_code is None
     assert classified_runtime_messages == []
+
+
+def test_process_task_run_fails_unexpected_runtime_errors_with_runtime_message(db_session, monkeypatch) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="check stock left for cola",
+        media_ids=[],
+        client_request_id="runtime_unexpected_error",
+    )
+
+    def raise_unexpected_error(_context):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(runtime_processor, "route_runtime_input", raise_unexpected_error)
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "failed"
+    assert result.task_run_id == task_run_id
+    assert result.task_type is None
+    assert result.error_code == "runtime_processing_error"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert task_run.task_type == "pending-classification"
+    assert task_run.error_code == "runtime_processing_error"
+    assert task_run.error_message == "Runtime processing failed: boom"
+    assert task_run.completed_at is not None
+    assert len(runtime_messages) == 1
+    assert runtime_messages[0].actor_type == "system"
+    assert runtime_messages[0].actor_id == "runtime_system"
+    assert runtime_messages[0].task_run_id == task_run_id
+    assert "boom" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
 
 
 def test_claim_task_run_uses_current_db_state_for_exclusive_claims(db_session) -> None:

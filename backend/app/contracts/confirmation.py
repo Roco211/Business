@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ConfirmationData(BaseModel):
@@ -16,6 +16,10 @@ class ConfirmationData(BaseModel):
     approved_by_actor_id: str | None
     created_at: datetime
     resolved_at: datetime | None
+
+
+class ApproveConfirmationRequest(BaseModel):
+    fields: dict[str, Any] = Field(default_factory=dict)
 
 
 class ListConfirmationsMeta(BaseModel):

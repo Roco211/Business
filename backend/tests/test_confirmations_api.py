@@ -77,6 +77,48 @@ def test_list_confirmations_returns_runtime_created_pending_confirmations_newest
     assert payload[1]["task_run_id"] == older_task_run_id
 
 
+def test_list_confirmations_defaults_to_pending_and_excludes_approved_items(
+    client,
+    monkeypatch,
+) -> None:
+    approved_confirmation_id, _ = _create_runtime_pending_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_default_status_approved",
+    )
+    pending_confirmation_id, pending_task_run_id = _create_runtime_pending_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_default_status_pending",
+    )
+
+    approve_response = client.post(
+        f"/api/v1/confirmations/{approved_confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "item_name": "Apple",
+                "quantity": 2,
+                "unit": "box",
+                "price": 12.5,
+            }
+        },
+    )
+    response = client.get(
+        "/api/v1/confirmations?limit=20",
+        headers=AUTH_HEADERS,
+    )
+
+    assert approve_response.status_code == 200
+    assert response.status_code == 200
+    response_json = response.json()
+    payload = response_json["data"]
+    assert response_json["meta"]["count"] == 1
+    assert [item["confirmation_id"] for item in payload] == [pending_confirmation_id]
+    assert payload[0]["task_run_id"] == pending_task_run_id
+    assert payload[0]["status"] == "pending"
+
+
 def test_approve_confirmation_completes_task_run_writes_runtime_message_and_projects_confirmation_id(
     client,
     monkeypatch,

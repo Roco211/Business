@@ -1,11 +1,10 @@
-from typing import Any
-
-from fastapi import APIRouter, Body, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Header, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.confirmation import (
+    ApproveConfirmationRequest,
     ConfirmationData,
     ListConfirmationsMeta,
     ListConfirmationsResponse,
@@ -63,28 +62,20 @@ def _to_confirmation_data(confirmation: Confirmation, *, task_run: TaskRun | Non
     )
 
 
-def _validate_approve_payload(payload: dict[str, Any] | None) -> dict[str, Any] | JSONResponse:
-    if payload is None or "fields" not in payload:
-        return _error_response(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            "validation_error",
-            "fields is required",
-        )
-
-    fields = payload.get("fields")
-    if not isinstance(fields, dict) or not fields:
+def _validate_approve_payload(payload: ApproveConfirmationRequest) -> dict[str, object] | JSONResponse:
+    if not payload.fields:
         return _error_response(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "validation_error",
             "fields must be a non-empty object",
         )
-    return fields
+    return payload.fields
 
 
 @router.get("", response_model=ListConfirmationsResponse)
 def get_confirmations(
     authorization: str | None = Header(default=None),
-    status_filter: str | None = Query(default=None, alias="status"),
+    status_filter: str | None = Query(default="pending", alias="status"),
     limit: int = Query(default=20, ge=1, le=50),
     db_session: Session = Depends(get_db_session),
 ) -> ListConfirmationsResponse | JSONResponse:
@@ -105,7 +96,7 @@ def get_confirmations(
 @router.post("/{confirmation_id}/approve", response_model=DataEnvelope[ConfirmationData])
 def post_approve_confirmation(
     confirmation_id: str,
-    payload: dict[str, Any] | None = Body(default=None),
+    payload: ApproveConfirmationRequest,
     authorization: str | None = Header(default=None),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[ConfirmationData] | JSONResponse:

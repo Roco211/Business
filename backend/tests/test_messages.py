@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from app.api.routes import messages as message_routes
@@ -121,12 +123,16 @@ def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
 def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, monkeypatch) -> None:
     dispatched_task_run_ids: list[str] = []
     dispatch_results = iter([False, True])
+    dispatch_failure_time = datetime(2026, 4, 4, 12, 0, 1)
+    dispatch_recovery_time = datetime(2026, 4, 4, 12, 0, 2)
+    marker_times = iter([dispatch_failure_time, dispatch_recovery_time])
 
     def fake_enqueue_runtime_task(task_run_id: str) -> bool:
         dispatched_task_run_ids.append(task_run_id)
         return next(dispatch_results)
 
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
+    monkeypatch.setattr(message_routes, "_now", lambda: next(marker_times))
 
     headers = {"Authorization": "Bearer mock_owner_token"}
     body = {
@@ -158,6 +164,7 @@ def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, mon
         failed_task_run_response.json()["data"]["error_message"]
         == "Runtime dispatch failed; retry the same request to re-enqueue."
     )
+    assert failed_task_run_response.json()["data"]["updated_at"] == dispatch_failure_time.isoformat()
     assert dispatched_task_run_ids == [
         task_run_id,
         task_run_id,
@@ -165,6 +172,7 @@ def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, mon
     assert recovered_task_run_response.status_code == 200
     assert recovered_task_run_response.json()["data"]["error_code"] is None
     assert recovered_task_run_response.json()["data"]["error_message"] is None
+    assert recovered_task_run_response.json()["data"]["updated_at"] == dispatch_recovery_time.isoformat()
 
 
 def test_create_message_does_not_redispatch_replay_after_task_run_advances(client, monkeypatch) -> None:

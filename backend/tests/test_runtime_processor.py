@@ -293,6 +293,47 @@ def test_build_runtime_turn_context_uses_message_id_as_final_stable_ordering_tie
     ]
 
 
+def test_build_runtime_turn_context_keeps_double_tie_filter_consistent_with_canonical_order(
+    db_session,
+) -> None:
+    task_run_ids_by_message_id: dict[str, str] = {}
+    for suffix in ("first", "second", "third"):
+        _, task_run_id = _create_owner_message(
+            db_session,
+            message_type="text",
+            text=f"{suffix} turn",
+            media_ids=[],
+            client_request_id=f"runtime_context_double_tie_{suffix}",
+        )
+        task_run = db_session.get(TaskRun, task_run_id)
+        assert task_run is not None
+        task_run_ids_by_message_id[task_run.source_message_id] = task_run_id
+
+    shared_created_at = datetime(2026, 4, 4, 12, 0, 0)
+    for message_id, task_run_id in task_run_ids_by_message_id.items():
+        task_run = db_session.get(TaskRun, task_run_id)
+        message = db_session.get(Message, message_id)
+        assert task_run is not None
+        assert message is not None
+        task_run.created_at = shared_created_at
+        message.created_at = shared_created_at
+    db_session.commit()
+
+    canonical_message_ids = sorted(task_run_ids_by_message_id, reverse=True)
+    later_message_id = canonical_message_ids[0]
+    source_message_id = canonical_message_ids[1]
+    earlier_message_id = canonical_message_ids[2]
+
+    context = build_runtime_turn_context(
+        db_session,
+        task_run_id=task_run_ids_by_message_id[source_message_id],
+    )
+    recent_message_ids = [message["message_id"] for message in context.recent_messages]
+
+    assert recent_message_ids == [source_message_id, earlier_message_id]
+    assert later_message_id not in recent_message_ids
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,

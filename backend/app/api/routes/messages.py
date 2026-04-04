@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, Header, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -26,6 +28,10 @@ from app.services.task_runs import CREATED_STATUS, PENDING_CLASSIFICATION_TASK_T
 router = APIRouter(prefix="/api/v1/sessions", tags=["messages"])
 DISPATCH_FAILED_ERROR_CODE = "dispatch_failed"
 DISPATCH_FAILED_ERROR_MESSAGE = "Runtime dispatch failed; retry the same request to re-enqueue."
+
+
+def _now() -> datetime:
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _unauthorized() -> JSONResponse:
@@ -62,20 +68,24 @@ def _record_dispatch_attempt(db_session: Session, task_run_id: str, *, dispatche
     if task_run is None:
         return
 
+    changed = False
     if dispatched:
         if task_run.error_code == DISPATCH_FAILED_ERROR_CODE:
             task_run.error_code = None
             task_run.error_message = None
-            db_session.commit()
-        return
-
-    if (
+            changed = True
+    elif (
         task_run.error_code != DISPATCH_FAILED_ERROR_CODE
         or task_run.error_message != DISPATCH_FAILED_ERROR_MESSAGE
     ):
         task_run.error_code = DISPATCH_FAILED_ERROR_CODE
         task_run.error_message = DISPATCH_FAILED_ERROR_MESSAGE
+        changed = True
+
+    if changed:
+        task_run.updated_at = _now()
         db_session.commit()
+        return
 
 
 @router.get("/{session_id}/messages", response_model=SessionMessagesResponse)

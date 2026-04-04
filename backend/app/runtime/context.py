@@ -47,7 +47,13 @@ def build_runtime_turn_context(
                     Message.message_id == source_message.message_id,
                     and_(
                         Message.created_at == source_message.created_at,
-                        related_task_run.created_at < task_run.created_at,
+                        or_(
+                            related_task_run.created_at < task_run.created_at,
+                            and_(
+                                related_task_run.created_at == task_run.created_at,
+                                Message.message_id < source_message.message_id,
+                            ),
+                        ),
                     ),
                 ),
             )

@@ -17,7 +17,7 @@ from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
 
 
-def _create_processing_stock_in_task(db_session, *, client_request_id: str) -> TaskRun:
+def _create_created_task(db_session, *, client_request_id: str) -> TaskRun:
     ensure_default_context(db_session)
     result = create_message(
         db_session,
@@ -31,6 +31,11 @@ def _create_processing_stock_in_task(db_session, *, client_request_id: str) -> T
     )
     task_run = db_session.get(TaskRun, result.task_run_id)
     assert task_run is not None
+    return task_run
+
+
+def _create_processing_stock_in_task(db_session, *, client_request_id: str) -> TaskRun:
+    task_run = _create_created_task(db_session, client_request_id=client_request_id)
     task_run.status = "processing"
     task_run.task_type = "voice-stock-in"
     task_run.assigned_employee_id = "xiaoya"
@@ -206,6 +211,26 @@ def test_create_pending_confirmation_raises_lookup_error_for_missing_task_run(db
             },
             requested_by_employee_id="xiaoya",
         )
+
+
+def test_create_pending_confirmation_requires_processing_task_run(db_session) -> None:
+    task_run = _create_created_task(db_session, client_request_id="confirmation_seed_009")
+
+    with pytest.raises(ValueError, match="processing"):
+        create_pending_confirmation(
+            db_session,
+            task_run_id=task_run.task_run_id,
+            confirmation_type="low-confidence-recognition",
+            fields={
+                "summary": "Please confirm stock-in details before commit.",
+                "transcript": "restock apples today",
+                "draft_fields": {"item_name": None, "quantity": None, "unit": None, "price": None},
+                "required_fields": ["item_name", "quantity", "unit", "price"],
+            },
+            requested_by_employee_id="xiaoya",
+        )
+
+    assert db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run.task_run_id)) is None
 
 
 def test_reject_confirmation_raises_conflict_with_stale_session_state(db_session) -> None:

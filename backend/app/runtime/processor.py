@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Confirmation, TaskRun
@@ -46,8 +47,15 @@ def _load_pending_confirmation(
     *,
     confirmation_id: str,
 ) -> Confirmation:
-    confirmation = db_session.get(Confirmation, confirmation_id)
-    if confirmation is None or confirmation.status != "pending":
+    confirmation = db_session.scalar(
+        select(Confirmation)
+        .where(
+            Confirmation.confirmation_id == confirmation_id,
+            Confirmation.status == "pending",
+        )
+        .execution_options(populate_existing=True)
+    )
+    if confirmation is None:
         raise ValueError(f"Confirmation {confirmation_id} is not pending.")
     return confirmation
 

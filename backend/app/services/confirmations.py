@@ -23,6 +23,10 @@ class ConfirmationConflictError(ValueError):
     pass
 
 
+class ConfirmationTaskRunLifecycleError(ValueError):
+    pass
+
+
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
@@ -43,9 +47,23 @@ def _require_confirmation(db_session: Session, confirmation_id: str) -> Confirma
 
 
 def _require_task_run(db_session: Session, task_run_id: str) -> TaskRun:
-    task_run = db_session.get(TaskRun, task_run_id)
+    task_run = db_session.scalar(
+        select(TaskRun)
+        .where(TaskRun.task_run_id == task_run_id)
+        .execution_options(populate_existing=True)
+    )
     if task_run is None:
         raise LookupError(task_run_id)
+    return task_run
+
+
+def _require_task_run_ready_for_confirmation_creation(db_session: Session, task_run_id: str) -> TaskRun:
+    task_run = _require_task_run(db_session, task_run_id)
+    if task_run.status != "processing":
+        raise ConfirmationTaskRunLifecycleError(
+            f"Task run {task_run_id} must be in 'processing' status to create a pending confirmation; "
+            f"found '{task_run.status}'."
+        )
     return task_run
 
 
@@ -74,7 +92,7 @@ def create_pending_confirmation(
     fields: dict[str, Any],
     requested_by_employee_id: str | None,
 ) -> Confirmation:
-    _require_task_run(db_session, task_run_id)
+    _require_task_run_ready_for_confirmation_creation(db_session, task_run_id)
     existing_pending = get_pending_confirmation_for_task_run(db_session, task_run_id=task_run_id)
     if existing_pending is not None:
         return existing_pending

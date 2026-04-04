@@ -2,11 +2,12 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
-from app.models import Confirmation
+from app.models import Confirmation, TaskRun
 
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
@@ -26,11 +27,26 @@ def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
 
+def _load_confirmation(db_session: Session, confirmation_id: str) -> Confirmation | None:
+    return db_session.scalar(
+        select(Confirmation)
+        .where(Confirmation.confirmation_id == confirmation_id)
+        .execution_options(populate_existing=True)
+    )
+
+
 def _require_confirmation(db_session: Session, confirmation_id: str) -> Confirmation:
-    confirmation = db_session.get(Confirmation, confirmation_id)
+    confirmation = _load_confirmation(db_session, confirmation_id)
     if confirmation is None:
         raise LookupError(confirmation_id)
     return confirmation
+
+
+def _require_task_run(db_session: Session, task_run_id: str) -> TaskRun:
+    task_run = db_session.get(TaskRun, task_run_id)
+    if task_run is None:
+        raise LookupError(task_run_id)
+    return task_run
 
 
 def create_pending_confirmation(
@@ -41,6 +57,7 @@ def create_pending_confirmation(
     fields: dict[str, Any],
     requested_by_employee_id: str | None,
 ) -> Confirmation:
+    _require_task_run(db_session, task_run_id)
     existing = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
     if existing is not None:
         return existing
@@ -58,8 +75,15 @@ def create_pending_confirmation(
         created_at=now,
         resolved_at=None,
     )
-    db_session.add(confirmation)
-    db_session.flush()
+    try:
+        with db_session.begin_nested():
+            db_session.add(confirmation)
+            db_session.flush()
+    except IntegrityError:
+        existing = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+        if existing is not None:
+            return existing
+        raise
     return confirmation
 
 
@@ -70,15 +94,26 @@ def approve_confirmation(
     resolution_payload: dict[str, Any],
     approved_by_actor_id: str,
 ) -> Confirmation:
+    resolved_at = _now()
+    result = db_session.execute(
+        update(Confirmation)
+        .where(
+            Confirmation.confirmation_id == confirmation_id,
+            Confirmation.status == PENDING_STATUS,
+        )
+        .values(
+            status=APPROVED_STATUS,
+            resolution_payload=resolution_payload,
+            approved_by_actor_id=approved_by_actor_id,
+            resolved_at=resolved_at,
+        )
+        .execution_options(synchronize_session=False)
+    )
     confirmation = _require_confirmation(db_session, confirmation_id)
-    if confirmation.status != PENDING_STATUS:
-        raise ConfirmationConflictError("Confirmation already resolved")
-
-    confirmation.status = APPROVED_STATUS
-    confirmation.resolution_payload = resolution_payload
-    confirmation.approved_by_actor_id = approved_by_actor_id
-    confirmation.resolved_at = _now()
-    db_session.flush()
+    if result.rowcount != 1:
+        raise ConfirmationConflictError(
+            f"Confirmation {confirmation_id} must be in '{PENDING_STATUS}' status; found '{confirmation.status}'."
+        )
     return confirmation
 
 
@@ -87,15 +122,26 @@ def reject_confirmation(
     *,
     confirmation_id: str,
 ) -> Confirmation:
+    resolved_at = _now()
+    result = db_session.execute(
+        update(Confirmation)
+        .where(
+            Confirmation.confirmation_id == confirmation_id,
+            Confirmation.status == PENDING_STATUS,
+        )
+        .values(
+            status=REJECTED_STATUS,
+            resolution_payload=None,
+            approved_by_actor_id=None,
+            resolved_at=resolved_at,
+        )
+        .execution_options(synchronize_session=False)
+    )
     confirmation = _require_confirmation(db_session, confirmation_id)
-    if confirmation.status != PENDING_STATUS:
-        raise ConfirmationConflictError("Confirmation already resolved")
-
-    confirmation.status = REJECTED_STATUS
-    confirmation.resolution_payload = None
-    confirmation.approved_by_actor_id = None
-    confirmation.resolved_at = _now()
-    db_session.flush()
+    if result.rowcount != 1:
+        raise ConfirmationConflictError(
+            f"Confirmation {confirmation_id} must be in '{PENDING_STATUS}' status; found '{confirmation.status}'."
+        )
     return confirmation
 
 

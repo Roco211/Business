@@ -19,6 +19,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "sessions" in inspector.get_table_names()
     assert "messages" in inspector.get_table_names()
     assert "task_runs" in inspector.get_table_names()
+    assert "inventory_items" in inspector.get_table_names()
+    assert "inventory_events" in inspector.get_table_names()
+    assert "audit_logs" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
     assert {"session_id", "shop_id", "participants", "last_event_seq"} <= {
         column["name"] for column in inspector.get_columns("sessions")
@@ -29,10 +32,25 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert {"task_run_id", "session_id", "source_message_id", "task_type", "status"} <= {
         column["name"] for column in inspector.get_columns("task_runs")
     }
+    assert {"item_id", "shop_id", "name", "default_unit", "current_stock"} <= {
+        column["name"] for column in inspector.get_columns("inventory_items")
+    }
+    assert {"inventory_event_id", "shop_id", "item_id", "event_type", "quantity_after"} <= {
+        column["name"] for column in inspector.get_columns("inventory_events")
+    }
+    assert {"audit_log_id", "shop_id", "scope", "action", "metadata"} <= {
+        column["name"] for column in inspector.get_columns("audit_logs")
+    }
     assert inspector.get_foreign_keys("sessions")[0]["referred_table"] == "shops"
 
     message_indexes = {index["name"] for index in inspector.get_indexes("messages")}
     task_indexes = {index["name"] for index in inspector.get_indexes("task_runs")}
+    inventory_item_indexes = {index["name"] for index in inspector.get_indexes("inventory_items")}
+    inventory_event_indexes = {index["name"] for index in inspector.get_indexes("inventory_events")}
+    audit_log_indexes = {index["name"] for index in inspector.get_indexes("audit_logs")}
     assert "ix_messages_session_created_at" in message_indexes
     assert "ix_task_runs_session_updated_at" in task_indexes
     assert "ix_task_runs_source_message_id" in task_indexes
+    assert "ix_inventory_items_shop_id_name" in inventory_item_indexes
+    assert "ix_inventory_events_shop_id_item_created_at" in inventory_event_indexes
+    assert "ix_audit_logs_shop_id_created_at" in audit_log_indexes

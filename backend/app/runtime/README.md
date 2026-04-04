@@ -1,10 +1,13 @@
 # Runtime Skeleton
 
-Phase 1 只建立 runtime 包边界，不实现完整 orchestrator。
+Phase 4A turns this package into a real read-only dry-run runtime.
 
-后续阶段将在这里继续落地：
+It now includes:
 
-- Router
-- PolicyGuard
-- ToolRunner
-- Summarizer
+- deterministic input routing for text and voice
+- mock audio transcription fixtures
+- runtime context assembly from persisted session data
+- deterministic success and failure summarization
+- task-run processing orchestration used by the worker
+
+The runtime still does not implement confirmations, inventory writes, audit writes, or WebSocket fanout.

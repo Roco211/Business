@@ -13,3 +13,5 @@ Phase 2 adds SQLAlchemy and Alembic-backed persistence. The backend now expects 
 Phase 3A extends that persistence layer with the message and task ledger foundation. The local stack still brings up MySQL, Redis, MinIO, API, and worker services, but this phase only exercises the DB-backed intake path and does not yet introduce runtime consumers, confirmations, or WebSocket session events.
 
 The compose stack now includes a `migrator` service so the API and worker start behind an explicit schema upgrade step.
+
+Phase 4A adds a dry-run runtime worker on top of that ledger. Fresh message intake now produces pollable task runs, the worker can consume them asynchronously, and runtime outcomes are written back into the session as read-only system messages. This phase still avoids confirmation flows, inventory mutation, audit trails, and WebSocket push.

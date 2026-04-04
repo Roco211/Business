@@ -171,18 +171,17 @@ def create_message(
         task_run_id=None,
         created_at=now,
     )
-    db_session.add(message)
-    db_session.flush()
-
-    task_run = create_initial_task_run(
-        db_session,
-        session_id=session.session_id,
-        source_message_id=message.message_id,
-    )
-    message.task_run_id = task_run.task_run_id
-    session.last_message_at = message.created_at
-
     try:
+        db_session.add(message)
+        db_session.flush()
+
+        task_run = create_initial_task_run(
+            db_session,
+            session_id=session.session_id,
+            source_message_id=message.message_id,
+        )
+        message.task_run_id = task_run.task_run_id
+        session.last_message_at = message.created_at
         db_session.commit()
     except IntegrityError:
         db_session.rollback()

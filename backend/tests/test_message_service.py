@@ -1,6 +1,10 @@
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 
+from app.core.ids import new_prefixed_id
 from app.models import Message, SessionRecord, TaskRun
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import (
@@ -9,6 +13,7 @@ from app.services.messages import (
     create_message,
     list_messages,
 )
+from app.services.task_runs import create_initial_task_run
 
 
 def test_create_message_persists_message_task_and_last_message_at(db_session) -> None:
@@ -143,3 +148,67 @@ def test_list_messages_returns_newest_first_with_cursor(db_session) -> None:
 
     assert page_one.items[0].message_id == second.message_id
     assert page_two.items[0].message_id == first.message_id
+
+
+def test_create_message_recovers_from_racing_idempotent_insert(db_session) -> None:
+    context = ensure_default_context(db_session)
+    competing_session = sessionmaker(
+        bind=db_session.bind,
+        autoflush=False,
+        expire_on_commit=False,
+    )()
+
+    original_flush = db_session.flush
+    race_inserted = False
+
+    def racing_flush(*args, **kwargs):
+        nonlocal race_inserted
+        if not race_inserted:
+            now = datetime.now(UTC).replace(tzinfo=None)
+            competing_message = Message(
+                message_id=new_prefixed_id("msg"),
+                session_id=context.session.session_id,
+                actor_type="owner",
+                actor_id="owner_default",
+                message_type="text",
+                text="race payload",
+                media_ids=[],
+                client_request_id="msg_race_001",
+                task_run_id=None,
+                created_at=now,
+            )
+            competing_session.add(competing_message)
+            competing_session.flush()
+            competing_task_run = create_initial_task_run(
+                competing_session,
+                session_id=context.session.session_id,
+                source_message_id=competing_message.message_id,
+            )
+            competing_message.task_run_id = competing_task_run.task_run_id
+            competing_record = competing_session.get(SessionRecord, context.session.session_id)
+            assert competing_record is not None
+            competing_record.last_message_at = competing_message.created_at
+            competing_session.commit()
+            race_inserted = True
+
+        return original_flush(*args, **kwargs)
+
+    db_session.flush = racing_flush  # type: ignore[method-assign]
+
+    try:
+        result = create_message(
+            db_session,
+            session_id=context.session.session_id,
+            actor_type="owner",
+            actor_id="owner_default",
+            message_type="text",
+            text="race payload",
+            media_ids=[],
+            client_request_id="msg_race_001",
+        )
+    finally:
+        competing_session.close()
+
+    assert result.replayed is True
+    assert len(db_session.scalars(select(Message)).all()) == 1
+    assert len(db_session.scalars(select(TaskRun)).all()) == 1

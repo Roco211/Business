@@ -5,7 +5,11 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
-from app.contracts.confirmation import ConfirmationData, ListConfirmationsResponse
+from app.contracts.confirmation import (
+    ConfirmationData,
+    ListConfirmationsMeta,
+    ListConfirmationsResponse,
+)
 from app.db.session import get_db_session
 from app.models import Confirmation, TaskRun
 from app.services.confirmations import (
@@ -93,7 +97,8 @@ def get_confirmations(
         limit=limit,
     )
     return ListConfirmationsResponse(
-        data=[_to_confirmation_data(confirmation) for confirmation in page.items]
+        data=[_to_confirmation_data(confirmation) for confirmation in page.items],
+        meta=ListConfirmationsMeta(count=len(page.items)),
     )
 
 

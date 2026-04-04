@@ -18,5 +18,10 @@ class ConfirmationData(BaseModel):
     resolved_at: datetime | None
 
 
+class ListConfirmationsMeta(BaseModel):
+    count: int
+
+
 class ListConfirmationsResponse(BaseModel):
     data: list[ConfirmationData]
+    meta: ListConfirmationsMeta

@@ -64,7 +64,9 @@ def test_list_confirmations_returns_runtime_created_pending_confirmations_newest
     )
 
     assert response.status_code == 200
-    payload = response.json()["data"]
+    response_json = response.json()
+    payload = response_json["data"]
+    assert response_json["meta"]["count"] == 2
     assert [item["confirmation_id"] for item in payload[:2]] == [
         newer_confirmation_id,
         older_confirmation_id,

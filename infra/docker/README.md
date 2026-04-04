@@ -18,4 +18,6 @@ Phase 4A adds a dry-run runtime worker on top of that ledger. Fresh message inta
 
 Phase 4B adds durable confirmation persistence and owner-facing confirmation routes on top of the runtime worker. Stock-in tasks can now pause in `awaiting-confirmation`, pending confirmations can be listed and resolved through the API, and task-run polling can project the linked `confirmation_id`.
 
-Approval in this phase records human resolution and closes the task lifecycle, but it still does not write inventory truth, audit truth, low-stock alerts, session stream events, or WebSocket fanout.
+Phase 5A extends that approval path into real inventory truth. Approving a pending stock-in confirmation now writes `inventory_items`, `inventory_events`, and `audit_logs` in the backend database and only then completes the linked task.
+
+Low-stock alerts, session stream events, and WebSocket fanout remain future work.

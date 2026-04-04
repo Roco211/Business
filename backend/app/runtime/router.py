@@ -3,28 +3,32 @@ import string
 from .tools import MockTranscriptionUnavailable, transcribe_audio
 from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
-PUNCTUATION_TABLE = str.maketrans("", "", string.punctuation)
-
-QUERY_KEYWORDS = (
-    "query",
-    "stock",
-    "left",
-    "remaining",
-    "how many",
-    "check",
-)
+PUNCTUATION_TO_SPACE = str.maketrans({char: " " for char in string.punctuation})
+STOCK_IN_PHRASES = ("restock", "stock in")
+QUERY_WORDS = ("check", "left", "remaining")
+QUERY_PHRASES = ("how many",)
 
 
-def _keyword_in_text(text: str, keyword: str) -> bool:
-    normalized = text.lower().translate(PUNCTUATION_TABLE)
-    if " " in keyword:
-        return keyword in normalized
-    tokens = [token for token in normalized.split() if token]
-    return keyword in tokens
+def _normalize_transcript(transcript: str) -> str:
+    return transcript.lower().translate(PUNCTUATION_TO_SPACE)
+
+
+def _tokens(transcript: str) -> list[str]:
+    return [token for token in _normalize_transcript(transcript).split() if token]
+
+
+def _contains_phrase(transcript: str, phrase: str) -> bool:
+    return phrase in _normalize_transcript(transcript)
 
 
 def _classify_transcript(transcript: str) -> str:
-    if any(_keyword_in_text(transcript, keyword) for keyword in QUERY_KEYWORDS):
+    normalized = _normalize_transcript(transcript)
+    tokens = _tokens(transcript)
+    if any(phrase in normalized for phrase in STOCK_IN_PHRASES):
+        return "voice-stock-in"
+    if any(_contains_phrase(transcript, phrase) for phrase in QUERY_PHRASES):
+        return "voice-stock-query"
+    if any(word in tokens for word in QUERY_WORDS):
         return "voice-stock-query"
     return "voice-stock-in"
 

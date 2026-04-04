@@ -52,6 +52,12 @@ def test_text_input_routes_to_stock_query():
     assert decision.transcript == "check stock left for cola"
 
 
+def test_text_input_with_punctuation_is_query():
+    ctx = _build_context(input_kind="text", source_text="check?", media_ids=[])
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "voice-stock-query"
+
+
 def test_text_input_blocks_empty_message():
     ctx = _build_context(input_kind="text", source_text="     ", media_ids=[])
     with pytest.raises(RuntimeRouteBlocked) as excinfo:

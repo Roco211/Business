@@ -1,5 +1,9 @@
+import string
+
 from .tools import transcribe_audio
 from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
+
+PUNCTUATION_TABLE = str.maketrans("", "", string.punctuation)
 
 QUERY_KEYWORDS = (
     "query",
@@ -12,10 +16,10 @@ QUERY_KEYWORDS = (
 
 
 def _keyword_in_text(text: str, keyword: str) -> bool:
-    lowered = text.lower()
+    normalized = text.lower().translate(PUNCTUATION_TABLE)
     if " " in keyword:
-        return keyword in lowered
-    tokens = [token for token in lowered.split() if token]
+        return keyword in normalized
+    tokens = [token for token in normalized.split() if token]
     return keyword in tokens
 
 

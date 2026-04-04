@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class RuntimeTurnContext:
     shop_id: str
     session_id: str
@@ -20,7 +20,7 @@ class RuntimeTurnContext:
     pending_confirmation_id: Optional[str] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class RuntimeRouteDecision:
     task_type: str
     assigned_employee_id: str

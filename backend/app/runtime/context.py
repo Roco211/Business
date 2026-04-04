@@ -51,7 +51,11 @@ def build_runtime_turn_context(
                     ),
                 ),
             )
-            .order_by(Message.created_at.desc(), related_task_run.created_at.desc())
+            .order_by(
+                Message.created_at.desc(),
+                related_task_run.created_at.desc(),
+                Message.message_id.desc(),
+            )
             .limit(10)
         )
     )

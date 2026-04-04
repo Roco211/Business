@@ -243,6 +243,56 @@ def test_build_runtime_turn_context_excludes_later_same_timestamp_messages(db_se
     assert third_task_run.source_message_id not in recent_message_ids
 
 
+def test_build_runtime_turn_context_uses_message_id_as_final_stable_ordering_tiebreaker(db_session) -> None:
+    earlier_task_run_ids: list[str] = []
+    for index in range(11):
+        _, task_run_id = _create_owner_message(
+            db_session,
+            message_type="text",
+            text=f"earlier turn {index}",
+            media_ids=[],
+            client_request_id=f"runtime_context_stable_order_{index}",
+        )
+        earlier_task_run_ids.append(task_run_id)
+
+    _, source_task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="source turn",
+        media_ids=[],
+        client_request_id="runtime_context_stable_order_source",
+    )
+
+    shared_earlier_created_at = datetime(2026, 4, 4, 11, 0, 0)
+    source_created_at = datetime(2026, 4, 4, 12, 0, 0)
+    earlier_message_ids: list[str] = []
+
+    for task_run_id in earlier_task_run_ids:
+        task_run = db_session.get(TaskRun, task_run_id)
+        assert task_run is not None
+        message = db_session.get(Message, task_run.source_message_id)
+        assert message is not None
+        task_run.created_at = shared_earlier_created_at
+        message.created_at = shared_earlier_created_at
+        earlier_message_ids.append(message.message_id)
+
+    source_task_run = db_session.get(TaskRun, source_task_run_id)
+    assert source_task_run is not None
+    source_message = db_session.get(Message, source_task_run.source_message_id)
+    assert source_message is not None
+    source_task_run.created_at = source_created_at
+    source_message.created_at = source_created_at
+    db_session.commit()
+
+    context = build_runtime_turn_context(db_session, task_run_id=source_task_run_id)
+    recent_message_ids = [message["message_id"] for message in context.recent_messages]
+
+    assert recent_message_ids == [
+        source_task_run.source_message_id,
+        *sorted(earlier_message_ids, reverse=True)[:9],
+    ]
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,

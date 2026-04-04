@@ -11,11 +11,19 @@ from app.contracts.confirmation import (
 )
 from app.db.session import get_db_session
 from app.models import Confirmation, TaskRun
+from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 from app.services.confirmations import (
     ConfirmationConflictError,
     approve_confirmation,
     list_confirmations,
     reject_confirmation,
+)
+from app.services.inventory_items import (
+    ApprovedFieldsValidationError,
+    InventoryItemAmbiguousError,
+    InventoryItemInactiveError,
+    InventoryItemNotFoundError,
+    InventoryUnitMismatchError,
 )
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
@@ -103,45 +111,56 @@ def post_approve_confirmation(
     if authorization != "Bearer mock_owner_token":
         return _unauthorized()
 
-    fields = _validate_approve_payload(payload)
-    if isinstance(fields, JSONResponse):
-        return fields
-
     try:
-        confirmation = approve_confirmation(
+        result = commit_approved_stock_in_confirmation(
             db_session,
             confirmation_id=confirmation_id,
-            resolution_payload={"fields": fields},
+            payload_fields=payload.fields,
             approved_by_actor_id="owner_default",
         )
-        task_run = resolve_awaiting_confirmation_task_run(
-            db_session,
-            task_run_id=confirmation.task_run_id,
-            result_summary="Owner approved the confirmation and completed the stock-in task.",
+    except InventoryItemNotFoundError:
+        return _error_response(
+            status.HTTP_404_NOT_FOUND,
+            "inventory_item_not_found",
+            "Inventory item not found",
         )
-        write_runtime_message(
-            db_session,
-            session_id=task_run.session_id,
-            task_run_id=task_run.task_run_id,
-            text="Mock runtime: owner approved the confirmation and the stock-in task was completed.",
-        )
-        db_session.commit()
     except LookupError:
-        db_session.rollback()
         return _error_response(
             status.HTTP_404_NOT_FOUND,
             "confirmation_not_found",
             "Confirmation not found",
         )
+    except ApprovedFieldsValidationError as exc:
+        return _error_response(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "confirmation_fields_invalid",
+            str(exc),
+        )
+    except InventoryItemAmbiguousError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "inventory_item_ambiguous",
+            "Inventory item match is ambiguous",
+        )
+    except InventoryItemInactiveError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "inventory_item_inactive",
+            "Inventory item is inactive",
+        )
+    except InventoryUnitMismatchError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "inventory_unit_mismatch",
+            "Inventory unit does not match the existing item",
+        )
     except (ConfirmationConflictError, TaskRunTransitionError):
-        db_session.rollback()
         return _error_response(
             status.HTTP_409_CONFLICT,
             "confirmation_not_pending",
             "Confirmation is not pending",
         )
-
-    return DataEnvelope(data=_to_confirmation_data(confirmation, task_run=task_run))
+    return DataEnvelope(data=_to_confirmation_data(result.confirmation, task_run=result.task_run))
 
 
 @router.post("/{confirmation_id}/reject", response_model=DataEnvelope[ConfirmationData])

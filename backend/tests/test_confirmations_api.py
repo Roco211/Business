@@ -1,9 +1,12 @@
+from decimal import Decimal
+
 from sqlalchemy import select
 
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
-from app.models import Confirmation, Message, TaskRun
+from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, TaskRun
 from app.runtime.processor import process_task_run
+from app.services.bootstrap import ensure_default_context
 
 
 AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
@@ -150,6 +153,9 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
     try:
         confirmation = db_session.get(Confirmation, confirmation_id)
         task_run = db_session.get(TaskRun, task_run_id)
+        inventory_items = db_session.scalars(select(InventoryItem)).all()
+        inventory_events = db_session.scalars(select(InventoryEvent)).all()
+        audit_logs = db_session.scalars(select(AuditLog)).all()
         runtime_messages = db_session.scalars(
             select(Message)
             .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
@@ -175,9 +181,17 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
     assert task_run is not None
     assert task_run.status == "completed"
     assert task_run.completed_at is not None
+    assert len(inventory_items) == 1
+    assert inventory_items[0].name == "Apple"
+    assert inventory_items[0].current_stock == Decimal("3")
+    assert len(inventory_events) == 1
+    assert inventory_events[0].event_type == "stock-in"
+    assert len(audit_logs) == 1
+    assert audit_logs[0].action == "inventory.stock_in_confirmed"
+    assert audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
     assert len(runtime_messages) == 2
     assert runtime_messages[-1].actor_id == "runtime_system"
-    assert "approved" in (runtime_messages[-1].text or "").lower()
+    assert "committed" in (runtime_messages[-1].text or "").lower()
     assert task_run_response.status_code == 200
     assert task_run_response.json()["data"]["confirmation_id"] == confirmation_id
 
@@ -245,4 +259,77 @@ def test_approve_confirmation_requires_non_empty_fields(client, monkeypatch) -> 
     )
 
     assert response.status_code == 422
-    assert response.json()["error"]["code"] == "validation_error"
+    assert response.json()["error"]["code"] == "confirmation_fields_invalid"
+
+
+def test_approve_confirmation_returns_404_for_unknown_item_id(client, monkeypatch) -> None:
+    confirmation_id, _ = _create_runtime_pending_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_missing_item",
+    )
+
+    response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "item_id": "item_missing",
+                "quantity": 2,
+                "unit": "box",
+                "price": 18.5,
+            }
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "inventory_item_not_found"
+
+
+def test_approve_confirmation_returns_409_for_unit_mismatch(client, monkeypatch) -> None:
+    confirmation_id, _ = _create_runtime_pending_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_unit_mismatch",
+    )
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        db_session.add(
+            InventoryItem(
+                item_id="item_unit_mismatch_api",
+                shop_id=context.shop.shop_id,
+                sku=None,
+                name="Apple",
+                category=None,
+                barcode=None,
+                default_unit="box",
+                current_stock=Decimal("5"),
+                current_price=Decimal("10"),
+                low_stock_threshold=context.shop.default_low_stock_threshold,
+                image_media_id=None,
+                is_active=True,
+                created_at=context.shop.created_at,
+                updated_at=context.shop.updated_at,
+            )
+        )
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "item_name": "Apple",
+                "quantity": 2,
+                "unit": "bottle",
+                "price": 18.5,
+            }
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "inventory_unit_mismatch"

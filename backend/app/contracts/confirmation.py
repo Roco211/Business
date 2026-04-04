@@ -16,3 +16,7 @@ class ConfirmationData(BaseModel):
     approved_by_actor_id: str | None
     created_at: datetime
     resolved_at: datetime | None
+
+
+class ListConfirmationsResponse(BaseModel):
+    data: list[ConfirmationData]

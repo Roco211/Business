@@ -40,6 +40,7 @@ def test_get_task_run_returns_runtime_state_shape(client, monkeypatch) -> None:
     assert payload["result_summary"] is None
     assert payload["error_code"] is None
     assert payload["error_message"] is None
+    assert payload["confirmation_id"] is None
     assert payload["created_at"] is not None
     assert payload["updated_at"] is not None
     assert payload["completed_at"] is None

@@ -1,9 +1,43 @@
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import AuditLog, InventoryEvent, InventoryItem
+
+
+class UnsupportedAuditScopeError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class AuditLogListPage:
+    items: list[AuditLog]
+
+
+def list_audit_logs(
+    db_session: Session,
+    *,
+    shop_id: str,
+    scope: str,
+    limit: int,
+) -> AuditLogListPage:
+    if scope != "inventory":
+        raise UnsupportedAuditScopeError(scope)
+
+    safe_limit = max(1, min(limit, 50))
+    statement = (
+        select(AuditLog)
+        .where(
+            AuditLog.shop_id == shop_id,
+            AuditLog.scope == scope,
+        )
+        .order_by(AuditLog.created_at.desc(), AuditLog.audit_log_id.desc())
+        .limit(safe_limit)
+    )
+    return AuditLogListPage(items=list(db_session.scalars(statement)))
 
 
 def append_inventory_stock_in_audit_log(

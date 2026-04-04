@@ -39,8 +39,51 @@ class ApprovedStockInFields:
     price: Decimal
 
 
+@dataclass(frozen=True)
+class InventoryItemListPage:
+    items: list[InventoryItem]
+
+
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def list_inventory_items(
+    db_session: Session,
+    *,
+    shop_id: str,
+    query: str | None,
+    limit: int,
+) -> InventoryItemListPage:
+    safe_limit = max(1, min(limit, 50))
+    statement = select(InventoryItem).where(
+        InventoryItem.shop_id == shop_id,
+        InventoryItem.is_active.is_(True),
+    )
+    if query and query.strip():
+        statement = statement.where(InventoryItem.name.ilike(f"%{query.strip()}%"))
+    statement = statement.order_by(InventoryItem.updated_at.desc(), InventoryItem.item_id.desc()).limit(
+        safe_limit
+    )
+    return InventoryItemListPage(items=list(db_session.scalars(statement)))
+
+
+def get_inventory_item(
+    db_session: Session,
+    *,
+    shop_id: str,
+    item_id: str,
+) -> InventoryItem:
+    item = db_session.scalar(
+        select(InventoryItem).where(
+            InventoryItem.shop_id == shop_id,
+            InventoryItem.item_id == item_id,
+            InventoryItem.is_active.is_(True),
+        )
+    )
+    if item is None:
+        raise LookupError(item_id)
+    return item
 
 
 def parse_approved_stock_in_fields(payload: dict[str, Any]) -> ApprovedStockInFields:

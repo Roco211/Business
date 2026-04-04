@@ -30,6 +30,17 @@ Phase 6B extends that read-side with a durable `alerts` table, a dashboard summa
 
 Current alert truth is only refreshed by the approved stock-in commit path. Stock-out, correction, and realtime push remain future work.
 
+Phase 7A adds the first ledger correction write path:
+
+- `POST /api/v1/inventory-events/corrections`
+
+The backend now refreshes low-stock alert truth after both:
+
+- approved stock-in commits
+- manual correction writes
+
+Stock-out and realtime push still remain future work.
+
 For local mobile development:
 
 - set `EXPO_PUBLIC_API_BASE_URL` if you want to point Expo at a non-default backend

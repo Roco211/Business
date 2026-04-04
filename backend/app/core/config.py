@@ -8,9 +8,22 @@ class Settings:
     app_host: str
     app_port: int
     redis_url: str
+    database_url: str
     default_shop_id: str = os.getenv("DEFAULT_SHOP_ID", "shop_default")
     default_owner_actor_id: str = os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default")
     default_session_id: str = os.getenv("DEFAULT_SESSION_ID", "sess_default")
+
+
+def _build_default_database_url() -> str:
+    mysql_user = os.getenv("MYSQL_USER", "aism")
+    mysql_password = os.getenv("MYSQL_PASSWORD", "aism_password")
+    mysql_host = os.getenv("MYSQL_HOST", "mysql")
+    mysql_port = os.getenv("MYSQL_PORT", "3306")
+    mysql_database = os.getenv("MYSQL_DATABASE", "ai_store_manager")
+    return (
+        f"mysql+pymysql://{mysql_user}:{mysql_password}"
+        f"@{mysql_host}:{mysql_port}/{mysql_database}?charset=utf8mb4"
+    )
 
 
 def get_settings() -> Settings:
@@ -19,6 +32,7 @@ def get_settings() -> Settings:
         app_host=os.getenv("APP_HOST", "0.0.0.0"),
         app_port=int(os.getenv("APP_PORT", "8001")),
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
+        database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
         default_owner_actor_id=os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default"),
         default_session_id=os.getenv("DEFAULT_SESSION_ID", "sess_default"),

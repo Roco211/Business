@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
-from app.models import TaskRun
+from app.models import Confirmation, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
@@ -39,6 +39,17 @@ def _build_confirmation_fields(transcript: str | None) -> dict[str, object]:
         },
         "required_fields": ["item_name", "quantity", "unit", "price"],
     }
+
+
+def _load_pending_confirmation(
+    db_session: Session,
+    *,
+    confirmation_id: str,
+) -> Confirmation:
+    confirmation = db_session.get(Confirmation, confirmation_id)
+    if confirmation is None or confirmation.status != "pending":
+        raise ValueError(f"Confirmation {confirmation_id} is not pending.")
+    return confirmation
 
 
 def _build_failed_result(
@@ -130,13 +141,19 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         decision = route_runtime_input(context)
         policy = evaluate_runtime_policy(task_type=decision.task_type)
         if policy.outcome == "require-confirmation":
-            create_pending_confirmation(
-                db_session,
-                task_run_id=task_run_id,
-                confirmation_type=policy.confirmation_type or "low-confidence-recognition",
-                fields=_build_confirmation_fields(decision.transcript),
-                requested_by_employee_id=decision.assigned_employee_id,
-            )
+            if context.pending_confirmation_id is not None:
+                _load_pending_confirmation(
+                    db_session,
+                    confirmation_id=context.pending_confirmation_id,
+                )
+            else:
+                create_pending_confirmation(
+                    db_session,
+                    task_run_id=task_run_id,
+                    confirmation_type=policy.confirmation_type or "low-confidence-recognition",
+                    fields=_build_confirmation_fields(decision.transcript),
+                    requested_by_employee_id=decision.assigned_employee_id,
+                )
             mark_task_run_awaiting_confirmation(
                 db_session,
                 task_run_id=task_run_id,

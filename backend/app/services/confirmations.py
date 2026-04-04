@@ -49,6 +49,23 @@ def _require_task_run(db_session: Session, task_run_id: str) -> TaskRun:
     return task_run
 
 
+def _load_confirmation_for_task_run(db_session: Session, task_run_id: str) -> Confirmation | None:
+    return db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+
+
+def get_pending_confirmation_for_task_run(
+    db_session: Session,
+    *,
+    task_run_id: str,
+) -> Confirmation | None:
+    return db_session.scalar(
+        select(Confirmation).where(
+            Confirmation.task_run_id == task_run_id,
+            Confirmation.status == PENDING_STATUS,
+        )
+    )
+
+
 def create_pending_confirmation(
     db_session: Session,
     *,
@@ -58,9 +75,15 @@ def create_pending_confirmation(
     requested_by_employee_id: str | None,
 ) -> Confirmation:
     _require_task_run(db_session, task_run_id)
-    existing = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    existing_pending = get_pending_confirmation_for_task_run(db_session, task_run_id=task_run_id)
+    if existing_pending is not None:
+        return existing_pending
+
+    existing = _load_confirmation_for_task_run(db_session, task_run_id)
     if existing is not None:
-        return existing
+        raise ValueError(
+            f"Task run {task_run_id} already has a non-pending confirmation in status '{existing.status}'."
+        )
 
     now = _now()
     confirmation = Confirmation(
@@ -80,9 +103,14 @@ def create_pending_confirmation(
             db_session.add(confirmation)
             db_session.flush()
     except IntegrityError:
-        existing = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+        existing_pending = get_pending_confirmation_for_task_run(db_session, task_run_id=task_run_id)
+        if existing_pending is not None:
+            return existing_pending
+        existing = _load_confirmation_for_task_run(db_session, task_run_id)
         if existing is not None:
-            return existing
+            raise ValueError(
+                f"Task run {task_run_id} already has a non-pending confirmation in status '{existing.status}'."
+            )
         raise
     return confirmation
 

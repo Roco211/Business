@@ -8,7 +8,7 @@ from app.models import Confirmation, Message, SessionRecord, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
-from app.services.confirmations import create_pending_confirmation
+from app.services.confirmations import approve_confirmation, create_pending_confirmation
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
 from app.services.task_runs import (
@@ -174,6 +174,110 @@ def test_text_stock_in_message_pauses_for_confirmation_and_writes_runtime_messag
     assert "confirm" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_text_stock_in_message_reuses_existing_pending_confirmation_without_creating_another(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock apples today",
+        media_ids=[],
+        client_request_id="runtime_stock_in_reuse_pending_confirmation",
+    )
+    existing_confirmation = create_pending_confirmation(
+        db_session,
+        task_run_id=task_run_id,
+        confirmation_type="low-confidence-recognition",
+        fields={
+            "summary": "Please confirm the stock-in details before commit.",
+            "transcript": "restock apples today",
+            "draft_fields": {
+                "item_name": None,
+                "quantity": None,
+                "unit": None,
+                "price": None,
+            },
+            "required_fields": ["item_name", "quantity", "unit", "price"],
+        },
+        requested_by_employee_id="xiaoya",
+    )
+    db_session.commit()
+
+    def fail_if_create_is_called(*args, **kwargs):
+        raise AssertionError("create_pending_confirmation should not be called when a pending confirmation already exists")
+
+    monkeypatch.setattr(runtime_processor, "create_pending_confirmation", fail_if_create_is_called)
+
+    result = process_task_run(db_session, task_run_id)
+    confirmations = db_session.scalars(select(Confirmation).where(Confirmation.task_run_id == task_run_id)).all()
+
+    assert result.status == "awaiting-confirmation"
+    assert len(confirmations) == 1
+    assert confirmations[0].confirmation_id == existing_confirmation.confirmation_id
+    assert confirmations[0].status == "pending"
+
+
+def test_text_stock_in_message_does_not_treat_resolved_confirmation_as_pending(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock apples today",
+        media_ids=[],
+        client_request_id="runtime_stock_in_resolved_confirmation",
+    )
+    resolved_confirmation = create_pending_confirmation(
+        db_session,
+        task_run_id=task_run_id,
+        confirmation_type="low-confidence-recognition",
+        fields={
+            "summary": "Please confirm the stock-in details before commit.",
+            "transcript": "restock apples today",
+            "draft_fields": {
+                "item_name": None,
+                "quantity": None,
+                "unit": None,
+                "price": None,
+            },
+            "required_fields": ["item_name", "quantity", "unit", "price"],
+        },
+        requested_by_employee_id="xiaoya",
+    )
+    approve_confirmation(
+        db_session,
+        confirmation_id=resolved_confirmation.confirmation_id,
+        resolution_payload={
+            "fields": {
+                "item_name": "Apple",
+                "quantity": 3,
+                "unit": "box",
+                "price": 18.5,
+            }
+        },
+        approved_by_actor_id="owner_default",
+    )
+    db_session.commit()
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmations = db_session.scalars(select(Confirmation).where(Confirmation.task_run_id == task_run_id)).all()
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert len(confirmations) == 1
+    assert confirmations[0].confirmation_id == resolved_confirmation.confirmation_id
+    assert confirmations[0].status == "approved"
+    assert len(runtime_messages) == 1
+    assert "could not process" in (runtime_messages[0].text or "").lower()
 
 
 def test_unsupported_image_owner_message_fails_and_writes_runtime_message(db_session) -> None:

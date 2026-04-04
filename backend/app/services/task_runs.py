@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 from dataclasses import dataclass
 
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
@@ -19,8 +20,27 @@ class TaskRunTransitionResult:
     task_run: TaskRun
 
 
+class TaskRunTransitionError(ValueError):
+    pass
+
+
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def _load_task_run(db_session: Session, task_run_id: str) -> TaskRun | None:
+    return db_session.scalar(
+        select(TaskRun)
+        .where(TaskRun.task_run_id == task_run_id)
+        .execution_options(populate_existing=True)
+    )
+
+
+def _require_task_run(db_session: Session, task_run_id: str) -> TaskRun:
+    task_run = _load_task_run(db_session, task_run_id)
+    if task_run is None:
+        raise LookupError(task_run_id)
+    return task_run
 
 
 def create_initial_task_run(
@@ -54,16 +74,18 @@ def claim_task_run_for_runtime(
     *,
     task_run_id: str,
 ) -> TaskRunTransitionResult:
-    task_run = db_session.get(TaskRun, task_run_id)
-    if task_run is None:
-        raise LookupError(task_run_id)
-    if task_run.status != CREATED_STATUS or task_run.task_type != PENDING_CLASSIFICATION_TASK_TYPE:
-        return TaskRunTransitionResult(changed=False, task_run=task_run)
-
-    task_run.status = PROCESSING_STATUS
-    task_run.updated_at = _now()
-    db_session.flush()
-    return TaskRunTransitionResult(changed=True, task_run=task_run)
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == CREATED_STATUS,
+            TaskRun.task_type == PENDING_CLASSIFICATION_TASK_TYPE,
+        )
+        .values(status=PROCESSING_STATUS, updated_at=_now())
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    return TaskRunTransitionResult(changed=result.rowcount == 1, task_run=task_run)
 
 
 def complete_task_run(
@@ -74,20 +96,30 @@ def complete_task_run(
     assigned_employee_id: str,
     result_summary: str,
 ) -> TaskRun:
-    task_run = db_session.get(TaskRun, task_run_id)
-    if task_run is None:
-        raise LookupError(task_run_id)
-
     now = _now()
-    task_run.task_type = task_type
-    task_run.status = COMPLETED_STATUS
-    task_run.assigned_employee_id = assigned_employee_id
-    task_run.result_summary = result_summary
-    task_run.error_code = None
-    task_run.error_message = None
-    task_run.updated_at = now
-    task_run.completed_at = now
-    db_session.flush()
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == PROCESSING_STATUS,
+        )
+        .values(
+            task_type=task_type,
+            status=COMPLETED_STATUS,
+            assigned_employee_id=assigned_employee_id,
+            result_summary=result_summary,
+            error_code=None,
+            error_message=None,
+            updated_at=now,
+            completed_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount != 1:
+        raise TaskRunTransitionError(
+            f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to complete; found '{task_run.status}'."
+        )
     return task_run
 
 
@@ -99,17 +131,27 @@ def fail_task_run(
     error_message: str,
     result_summary: str,
 ) -> TaskRun:
-    task_run = db_session.get(TaskRun, task_run_id)
-    if task_run is None:
-        raise LookupError(task_run_id)
-
     now = _now()
-    task_run.status = FAILED_STATUS
-    task_run.assigned_employee_id = None
-    task_run.result_summary = result_summary
-    task_run.error_code = error_code
-    task_run.error_message = error_message
-    task_run.updated_at = now
-    task_run.completed_at = now
-    db_session.flush()
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == PROCESSING_STATUS,
+        )
+        .values(
+            status=FAILED_STATUS,
+            assigned_employee_id=None,
+            result_summary=result_summary,
+            error_code=error_code,
+            error_message=error_message,
+            updated_at=now,
+            completed_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount != 1:
+        raise TaskRunTransitionError(
+            f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to fail; found '{task_run.status}'."
+        )
     return task_run

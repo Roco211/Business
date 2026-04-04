@@ -1,9 +1,17 @@
+import pytest
 from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 
 from app.models import Message, SessionRecord, TaskRun
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
+from app.services.task_runs import (
+    TaskRunTransitionError,
+    claim_task_run_for_runtime,
+    complete_task_run,
+    fail_task_run,
+)
 
 
 def _create_owner_message(
@@ -156,3 +164,94 @@ def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(d
     assert classified_result.task_type == "voice-stock-in"
     assert classified_result.error_code is None
     assert classified_runtime_messages == []
+
+
+def test_claim_task_run_uses_current_db_state_for_exclusive_claims(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock pears",
+        media_ids=[],
+        client_request_id="runtime_claim_exclusive",
+    )
+
+    primary_session = sessionmaker(
+        bind=db_session.bind,
+        autoflush=False,
+        expire_on_commit=False,
+    )()
+    competing_session = sessionmaker(
+        bind=db_session.bind,
+        autoflush=False,
+        expire_on_commit=False,
+    )()
+
+    try:
+        stale_task_run = primary_session.get(TaskRun, task_run_id)
+        assert stale_task_run is not None
+        assert stale_task_run.status == "created"
+
+        competing_claim = claim_task_run_for_runtime(competing_session, task_run_id=task_run_id)
+        competing_session.commit()
+
+        second_claim = claim_task_run_for_runtime(primary_session, task_run_id=task_run_id)
+
+        assert competing_claim.changed is True
+        assert competing_claim.task_run.status == "processing"
+        assert second_claim.changed is False
+        assert second_claim.task_run.task_run_id == task_run_id
+        assert second_claim.task_run.status == "processing"
+    finally:
+        primary_session.close()
+        competing_session.close()
+
+
+def test_complete_task_run_rejects_illegal_direct_transition(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock cola",
+        media_ids=[],
+        client_request_id="runtime_complete_direct",
+    )
+
+    with pytest.raises(TaskRunTransitionError):
+        complete_task_run(
+            db_session,
+            task_run_id=task_run_id,
+            task_type="voice-stock-in",
+            assigned_employee_id="xiaoya",
+            result_summary="summary",
+        )
+
+    task_run = db_session.get(TaskRun, task_run_id)
+    assert task_run is not None
+    assert task_run.status == "created"
+    assert task_run.task_type == "pending-classification"
+    assert task_run.completed_at is None
+
+
+def test_fail_task_run_rejects_illegal_direct_transition(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="image",
+        text=None,
+        media_ids=["image_demo"],
+        client_request_id="runtime_fail_direct",
+    )
+
+    with pytest.raises(TaskRunTransitionError):
+        fail_task_run(
+            db_session,
+            task_run_id=task_run_id,
+            error_code="runtime_input_not_supported",
+            error_message="image inputs are not supported yet",
+            result_summary="failed",
+        )
+
+    task_run = db_session.get(TaskRun, task_run_id)
+    assert task_run is not None
+    assert task_run.status == "created"
+    assert task_run.error_code is None
+    assert task_run.error_message is None
+    assert task_run.completed_at is None

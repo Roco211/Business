@@ -20,4 +20,13 @@ Phase 4B adds durable confirmation persistence and owner-facing confirmation rou
 
 Phase 5A extends that approval path into real inventory truth. Approving a pending stock-in confirmation now writes `inventory_items`, `inventory_events`, and `audit_logs` in the backend database and only then completes the linked task.
 
+Phase 6A adds the first read-side surface on top of that truth. The backend now exposes inventory item list/detail reads plus inventory-scoped audit log reads, and the Expo `LedgerScreen` consumes them through a lightweight fetch client.
+
+For local mobile development:
+
+- set `EXPO_PUBLIC_API_BASE_URL` if you want to point Expo at a non-default backend
+- otherwise the client defaults to `http://10.0.2.2:8001` on Android emulators
+- and defaults to `http://127.0.0.1:8001` on non-Android Expo targets
+- all current mobile reads still use `Authorization: Bearer mock_owner_token`
+
 Low-stock alerts, session stream events, and WebSocket fanout remain future work.

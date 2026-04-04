@@ -15,3 +15,7 @@ Phase 3A extends that persistence layer with the message and task ledger foundat
 The compose stack now includes a `migrator` service so the API and worker start behind an explicit schema upgrade step.
 
 Phase 4A adds a dry-run runtime worker on top of that ledger. Fresh message intake now produces pollable task runs, the worker can consume them asynchronously, and runtime outcomes are written back into the session as read-only system messages. This phase still avoids confirmation flows, inventory mutation, audit trails, and WebSocket push.
+
+Phase 4B adds durable confirmation persistence and owner-facing confirmation routes on top of the runtime worker. Stock-in tasks can now pause in `awaiting-confirmation`, pending confirmations can be listed and resolved through the API, and task-run polling can project the linked `confirmation_id`.
+
+Approval in this phase records human resolution and closes the task lifecycle, but it still does not write inventory truth, audit truth, low-stock alerts, session stream events, or WebSocket fanout.

@@ -10,8 +10,10 @@ from app.models.task_run import TaskRun
 PENDING_CLASSIFICATION_TASK_TYPE = "pending-classification"
 CREATED_STATUS = "created"
 PROCESSING_STATUS = "processing"
+AWAITING_CONFIRMATION_STATUS = "awaiting-confirmation"
 COMPLETED_STATUS = "completed"
 FAILED_STATUS = "failed"
+REJECTED_STATUS = "rejected"
 
 
 @dataclass(frozen=True)
@@ -153,5 +155,95 @@ def fail_task_run(
     if result.rowcount != 1:
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to fail; found '{task_run.status}'."
+        )
+    return task_run
+
+
+def mark_task_run_awaiting_confirmation(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    result_summary: str,
+) -> TaskRun:
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == PROCESSING_STATUS,
+        )
+        .values(
+            status=AWAITING_CONFIRMATION_STATUS,
+            result_summary=result_summary,
+            updated_at=_now(),
+            completed_at=None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount != 1:
+        raise TaskRunTransitionError(
+            f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to await confirmation; found '{task_run.status}'."
+        )
+    return task_run
+
+
+def resolve_awaiting_confirmation_task_run(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    result_summary: str,
+) -> TaskRun:
+    now = _now()
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == AWAITING_CONFIRMATION_STATUS,
+        )
+        .values(
+            status=COMPLETED_STATUS,
+            result_summary=result_summary,
+            error_code=None,
+            error_message=None,
+            updated_at=now,
+            completed_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount != 1:
+        raise TaskRunTransitionError(
+            f"Task run {task_run_id} must be in '{AWAITING_CONFIRMATION_STATUS}' status to resolve; found '{task_run.status}'."
+        )
+    return task_run
+
+
+def reject_awaiting_confirmation_task_run(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    result_summary: str,
+) -> TaskRun:
+    now = _now()
+    result = db_session.execute(
+        update(TaskRun)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            TaskRun.status == AWAITING_CONFIRMATION_STATUS,
+        )
+        .values(
+            status=REJECTED_STATUS,
+            result_summary=result_summary,
+            error_code=None,
+            error_message=None,
+            updated_at=now,
+            completed_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount != 1:
+        raise TaskRunTransitionError(
+            f"Task run {task_run_id} must be in '{AWAITING_CONFIRMATION_STATUS}' status to reject; found '{task_run.status}'."
         )
     return task_run

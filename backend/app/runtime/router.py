@@ -1,6 +1,6 @@
 import string
 
-from .tools import transcribe_audio
+from .tools import MockTranscriptionUnavailable, transcribe_audio
 from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
 PUNCTUATION_TABLE = str.maketrans("", "", string.punctuation)
@@ -44,7 +44,13 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             transcript=text,
         )
     if ctx.input_kind == "voice":
-        transcript = transcribe_audio(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        try:
+            transcript = transcribe_audio(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        except MockTranscriptionUnavailable as exc:
+            raise RuntimeRouteBlocked(
+                "runtime_processing_error",
+                f"Transcription failed: {exc}",
+            ) from exc
         return RuntimeRouteDecision(
             task_type=_classify_transcript(transcript),
             assigned_employee_id="xiaoya",

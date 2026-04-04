@@ -1,8 +1,8 @@
 import pytest
 
-from backend.app.runtime.router import RuntimeRouteBlocked, route_runtime_input
-from backend.app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
-from backend.app.runtime.types import RuntimeTurnContext
+from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
+from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
+from app.runtime.types import RuntimeTurnContext
 
 
 def _build_context(
@@ -78,6 +78,14 @@ def test_voice_input_routes_to_stock_in_task():
     decision = route_runtime_input(ctx)
     assert decision.task_type == "voice-stock-in"
     assert decision.transcript == "restock apples today"
+
+
+def test_voice_input_transcription_failures_block():
+    ctx = _build_context(input_kind="voice", source_text=None, media_ids=["unknown"])
+    with pytest.raises(RuntimeRouteBlocked) as excinfo:
+        route_runtime_input(ctx)
+    assert excinfo.value.error_code == "runtime_processing_error"
+    assert "transcription" in excinfo.value.error_message.lower()
 
 
 @pytest.mark.parametrize(

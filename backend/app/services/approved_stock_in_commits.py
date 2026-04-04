@@ -3,7 +3,8 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, SessionRecord, Shop, TaskRun
+from app.models import Alert, AuditLog, Confirmation, InventoryEvent, InventoryItem, SessionRecord, Shop, TaskRun
+from app.services.alerts import refresh_low_stock_alert_for_item
 from app.services.audit_logs import append_inventory_stock_in_audit_log
 from app.services.confirmations import approve_confirmation
 from app.services.inventory_events import append_stock_in_event
@@ -23,6 +24,7 @@ class ApprovedStockInCommitResult:
     inventory_item: InventoryItem
     inventory_event: InventoryEvent
     audit_log: AuditLog
+    alert: Alert | None
 
 
 def _format_decimal(value: Decimal) -> str:
@@ -84,6 +86,10 @@ def commit_approved_stock_in_confirmation(
             task_run_id=task_run.task_run_id,
             created_by=approved_by_actor_id,
         )
+        alert = refresh_low_stock_alert_for_item(
+            db_session,
+            item=inventory_item,
+        )
         audit_log = append_inventory_stock_in_audit_log(
             db_session,
             shop_id=shop.shop_id,
@@ -119,6 +125,7 @@ def commit_approved_stock_in_confirmation(
             inventory_item=inventory_item,
             inventory_event=inventory_event,
             audit_log=audit_log,
+            alert=alert,
         )
     except Exception:
         db_session.rollback()

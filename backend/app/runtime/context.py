@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-from sqlalchemy import or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_, select
+from sqlalchemy.orm import Session, aliased
 
 from app.models import Message, SessionRecord, Shop, TaskRun
 from app.runtime.types import RuntimeTurnContext
@@ -34,18 +34,24 @@ def build_runtime_turn_context(
         task_run.session_id,
     )
     shop = _require_record(db_session.get(Shop, session_record.shop_id), session_record.shop_id)
+    related_task_run = aliased(TaskRun)
 
     recent_records = list(
         db_session.scalars(
             select(Message)
+            .outerjoin(related_task_run, Message.task_run_id == related_task_run.task_run_id)
             .where(
                 Message.session_id == session_record.session_id,
                 or_(
                     Message.created_at < source_message.created_at,
                     Message.message_id == source_message.message_id,
+                    and_(
+                        Message.created_at == source_message.created_at,
+                        related_task_run.created_at < task_run.created_at,
+                    ),
                 ),
             )
-            .order_by(Message.created_at.desc(), Message.message_id.desc())
+            .order_by(Message.created_at.desc(), related_task_run.created_at.desc())
             .limit(10)
         )
     )

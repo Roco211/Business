@@ -195,38 +195,52 @@ def test_build_runtime_turn_context_excludes_later_same_timestamp_messages(db_se
         media_ids=[],
         client_request_id="runtime_context_same_timestamp_first",
     )
-    _, second_task_run_id = _create_owner_message(
+    _, source_task_run_id = _create_owner_message(
         db_session,
         message_type="text",
-        text="second turn",
+        text="source turn",
         media_ids=[],
         client_request_id="runtime_context_same_timestamp_second",
     )
+    _, third_task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="third turn",
+        media_ids=[],
+        client_request_id="runtime_context_same_timestamp_third",
+    )
 
     first_task_run = db_session.get(TaskRun, first_task_run_id)
-    second_task_run = db_session.get(TaskRun, second_task_run_id)
+    source_task_run = db_session.get(TaskRun, source_task_run_id)
+    third_task_run = db_session.get(TaskRun, third_task_run_id)
     assert first_task_run is not None
-    assert second_task_run is not None
+    assert source_task_run is not None
+    assert third_task_run is not None
 
     first_message = db_session.get(Message, first_task_run.source_message_id)
-    second_message = db_session.get(Message, second_task_run.source_message_id)
+    source_message = db_session.get(Message, source_task_run.source_message_id)
+    third_message = db_session.get(Message, third_task_run.source_message_id)
     assert first_message is not None
-    assert second_message is not None
+    assert source_message is not None
+    assert third_message is not None
 
-    shared_created_at = datetime(2026, 4, 4, 12, 0, 0)
-    second_original_message_id = second_message.message_id
-    second_message.message_id = "msg_00000000000000000000000000000000"
-    second_message.created_at = shared_created_at
-    second_task_run.source_message_id = second_message.message_id
-    first_message.created_at = shared_created_at
+    shared_message_created_at = datetime(2026, 4, 4, 12, 0, 0)
+    first_task_run.created_at = datetime(2026, 4, 4, 12, 0, 1)
+    source_task_run.created_at = datetime(2026, 4, 4, 12, 0, 2)
+    third_task_run.created_at = datetime(2026, 4, 4, 12, 0, 3)
+    first_message.created_at = shared_message_created_at
+    source_message.created_at = shared_message_created_at
+    third_message.created_at = shared_message_created_at
     db_session.commit()
 
-    context = build_runtime_turn_context(db_session, task_run_id=first_task_run_id)
+    context = build_runtime_turn_context(db_session, task_run_id=source_task_run_id)
     recent_message_ids = [message["message_id"] for message in context.recent_messages]
 
-    assert first_task_run.source_message_id in recent_message_ids
-    assert second_message.message_id not in recent_message_ids
-    assert second_original_message_id not in recent_message_ids
+    assert recent_message_ids == [
+        source_task_run.source_message_id,
+        first_task_run.source_message_id,
+    ]
+    assert third_task_run.source_message_id not in recent_message_ids
 
 
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
@@ -315,6 +329,47 @@ def test_process_task_run_fails_unexpected_runtime_errors_with_runtime_message(d
     assert runtime_messages[0].actor_id == "runtime_system"
     assert runtime_messages[0].task_run_id == task_run_id
     assert "boom" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_process_task_run_fails_post_route_errors_with_runtime_message(db_session, monkeypatch) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="check stock left for cola",
+        media_ids=[],
+        client_request_id="runtime_post_route_error",
+    )
+
+    def raise_post_route_error(*, task_type: str, transcript: str | None):
+        raise RuntimeError(f"post-route failure for {task_type}")
+
+    monkeypatch.setattr(runtime_processor, "summarize_completed_task", raise_post_route_error)
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "failed"
+    assert result.task_run_id == task_run_id
+    assert result.task_type is None
+    assert result.error_code == "runtime_processing_error"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert task_run.error_code == "runtime_processing_error"
+    assert task_run.error_message == "Runtime processing failed: post-route failure for voice-stock-query"
+    assert task_run.completed_at is not None
+    assert len(runtime_messages) == 1
+    assert runtime_messages[0].actor_type == "system"
+    assert runtime_messages[0].actor_id == "runtime_system"
+    assert runtime_messages[0].task_run_id == task_run_id
+    assert "post-route failure" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 from app.contracts.auth import MockLoginData, MockLoginRequest
 from app.contracts.common import DataEnvelope
 from app.core.config import Settings, get_settings
+from app.db.session import get_db_session
+from app.services.bootstrap import ensure_default_context
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -11,13 +14,16 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 def mock_login(
     payload: MockLoginRequest,
     settings: Settings = Depends(get_settings),
+    db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[MockLoginData]:
+    context = ensure_default_context(db_session)
+
     return DataEnvelope(
         data=MockLoginData(
             access_token="mock_owner_token",
             token_type="Bearer",
             owner_actor_id=settings.default_owner_actor_id,
-            shop_id=payload.shop_id or settings.default_shop_id,
-            shop_name="演示店铺",
+            shop_id=context.shop.shop_id,
+            shop_name=context.shop.name,
         )
     )

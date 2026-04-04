@@ -14,10 +14,18 @@ def test_mock_login_returns_default_owner_context(client) -> None:
     assert payload["access_token"] == "mock_owner_token"
     assert payload["owner_actor_id"] == "owner_default"
     assert payload["shop_id"] == "shop_default"
+    assert payload["shop_name"] == "演示店铺"
 
 
 def test_mock_login_uses_default_shop_when_request_omits_shop_id(client) -> None:
     response = client.post("/api/v1/auth/mock-login", json={})
+
+    assert response.status_code == 200
+    assert response.json()["data"]["shop_id"] == "shop_default"
+
+
+def test_mock_login_ignores_unknown_shop_id_and_returns_default_shop(client) -> None:
+    response = client.post("/api/v1/auth/mock-login", json={"shop_id": "shop_other"})
 
     assert response.status_code == 200
     assert response.json()["data"]["shop_id"] == "shop_default"

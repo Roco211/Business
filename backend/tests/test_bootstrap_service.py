@@ -1,0 +1,54 @@
+from decimal import Decimal
+
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+
+from app.db.base import Base
+from app.models import SessionRecord, Shop
+from app.services.bootstrap import ensure_default_context
+
+
+def create_test_session(tmp_path):
+    database_url = f"sqlite:///{(tmp_path / 'bootstrap.db').as_posix()}"
+    engine = create_engine(
+        database_url,
+        future=True,
+        connect_args={"check_same_thread": False},
+    )
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+    return engine, factory()
+
+
+def test_ensure_default_context_creates_shop_and_session(tmp_path) -> None:
+    engine, db_session = create_test_session(tmp_path)
+    try:
+        context = ensure_default_context(db_session)
+
+        assert context.shop.shop_id == "shop_default"
+        assert context.shop.low_confidence_threshold == Decimal("0.8500")
+        assert context.session.session_id == "sess_default"
+        assert context.session.participants == ["xiaoya", "laoli"]
+
+        shops = db_session.scalars(select(Shop)).all()
+        sessions = db_session.scalars(select(SessionRecord)).all()
+        assert len(shops) == 1
+        assert len(sessions) == 1
+    finally:
+        db_session.close()
+        engine.dispose()
+
+
+def test_ensure_default_context_is_idempotent(tmp_path) -> None:
+    engine, db_session = create_test_session(tmp_path)
+    try:
+        first = ensure_default_context(db_session)
+        second = ensure_default_context(db_session)
+
+        assert first.shop.shop_id == second.shop.shop_id
+        assert first.session.session_id == second.session.session_id
+        assert len(db_session.scalars(select(Shop)).all()) == 1
+        assert len(db_session.scalars(select(SessionRecord)).all()) == 1
+    finally:
+        db_session.close()
+        engine.dispose()

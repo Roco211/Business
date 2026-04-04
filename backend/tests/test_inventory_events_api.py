@@ -60,6 +60,7 @@ def test_post_inventory_correction_updates_stock_and_returns_event_id(client) ->
         headers=AUTH_HEADERS,
         json={
             "item_id": item.item_id,
+            "expected_quantity": 2,
             "corrected_quantity": 6,
             "reason": "Physical recount",
         },
@@ -78,6 +79,7 @@ def test_post_inventory_correction_returns_item_not_found(client) -> None:
         headers=AUTH_HEADERS,
         json={
             "item_id": "item_missing",
+            "expected_quantity": 2,
             "corrected_quantity": 6,
             "reason": "Physical recount",
         },
@@ -100,6 +102,7 @@ def test_post_inventory_correction_returns_validation_error_for_negative_quantit
         headers=AUTH_HEADERS,
         json={
             "item_id": item.item_id,
+            "expected_quantity": 2,
             "corrected_quantity": -1,
             "reason": "Physical recount",
         },
@@ -107,6 +110,29 @@ def test_post_inventory_correction_returns_validation_error_for_negative_quantit
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "validation_error"
+
+
+def test_post_inventory_correction_returns_inventory_conflict_for_stale_quantity(client) -> None:
+    item = _insert_item(
+        item_id="item_correction_api_stale",
+        name="Melon",
+        stock=Decimal("2"),
+        threshold=Decimal("5"),
+    )
+
+    response = client.post(
+        "/api/v1/inventory-events/corrections",
+        headers=AUTH_HEADERS,
+        json={
+            "item_id": item.item_id,
+            "expected_quantity": 1,
+            "corrected_quantity": 3,
+            "reason": "Physical recount",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "inventory_conflict"
 
 
 def test_post_inventory_correction_returns_inventory_conflict_for_inactive_item(client) -> None:
@@ -123,6 +149,7 @@ def test_post_inventory_correction_returns_inventory_conflict_for_inactive_item(
         headers=AUTH_HEADERS,
         json={
             "item_id": item.item_id,
+            "expected_quantity": 2,
             "corrected_quantity": 3,
             "reason": "Physical recount",
         },

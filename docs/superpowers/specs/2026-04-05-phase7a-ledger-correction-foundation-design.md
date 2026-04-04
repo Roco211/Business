@@ -114,6 +114,12 @@ The backend computes:
 - `quantity_delta = corrected_quantity - current_stock`
 - `quantity_after = corrected_quantity`
 
+To avoid stale-ledger overwrites, the request should also carry:
+
+- `expected_quantity`
+
+and the backend should return `409 inventory_conflict` when the current stock no longer matches that snapshot.
+
 ### 2. Reason is required
 
 Corrections directly modify inventory truth.
@@ -219,6 +225,7 @@ Request:
 ```json
 {
   "item_id": "item_001",
+  "expected_quantity": 5,
   "corrected_quantity": 3,
   "reason": "Physical count differs from projected inventory"
 }

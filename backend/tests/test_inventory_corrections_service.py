@@ -63,6 +63,7 @@ def test_submit_inventory_correction_writes_event_audit_and_resolves_alert(db_se
         db_session,
         shop_id=context.shop.shop_id,
         item_id=item.item_id,
+        expected_quantity=Decimal("2"),
         corrected_quantity=Decimal("6"),
         reason="Physical count differs from projected inventory",
         actor_id="owner_default",
@@ -101,6 +102,7 @@ def test_submit_inventory_correction_opens_low_stock_alert_when_quantity_below_t
         db_session,
         shop_id=context.shop.shop_id,
         item_id=item.item_id,
+        expected_quantity=Decimal("8"),
         corrected_quantity=Decimal("3"),
         reason="Physical recount found fewer boxes",
         actor_id="owner_default",
@@ -128,6 +130,7 @@ def test_submit_inventory_correction_rejects_negative_quantity_and_blank_reason(
             db_session,
             shop_id=context.shop.shop_id,
             item_id=item.item_id,
+            expected_quantity=Decimal("2"),
             corrected_quantity=Decimal("-1"),
             reason="counted",
             actor_id="owner_default",
@@ -138,10 +141,37 @@ def test_submit_inventory_correction_rejects_negative_quantity_and_blank_reason(
             db_session,
             shop_id=context.shop.shop_id,
             item_id=item.item_id,
+            expected_quantity=Decimal("2"),
             corrected_quantity=Decimal("1"),
             reason="   ",
             actor_id="owner_default",
         )
+
+
+def test_submit_inventory_correction_rejects_stale_expected_quantity(db_session) -> None:
+    context = ensure_default_context(db_session)
+    item = _insert_item(
+        db_session,
+        item_id="item_correction_stale_quantity",
+        name="Grape",
+        stock=Decimal("5"),
+        threshold=Decimal("5"),
+    )
+
+    with pytest.raises(InventoryCorrectionConflictError):
+        submit_inventory_correction(
+            db_session,
+            shop_id=context.shop.shop_id,
+            item_id=item.item_id,
+            expected_quantity=Decimal("4"),
+            corrected_quantity=Decimal("6"),
+            reason="Inventory recount",
+            actor_id="owner_default",
+        )
+
+    persisted_item = db_session.get(InventoryItem, item.item_id)
+    assert persisted_item is not None
+    assert persisted_item.current_stock == Decimal("5")
 
 
 def test_submit_inventory_correction_rejects_inactive_item(db_session) -> None:
@@ -160,6 +190,7 @@ def test_submit_inventory_correction_rejects_inactive_item(db_session) -> None:
             db_session,
             shop_id=context.shop.shop_id,
             item_id=item.item_id,
+            expected_quantity=Decimal("2"),
             corrected_quantity=Decimal("3"),
             reason="Inventory recount",
             actor_id="owner_default",

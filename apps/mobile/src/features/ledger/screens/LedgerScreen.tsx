@@ -20,6 +20,7 @@ function formatAuditLine(itemName: string | undefined, quantityDelta: number | u
 export default function LedgerScreen() {
   const [searchText, setSearchText] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedItemCurrentStock, setSelectedItemCurrentStock] = useState("");
   const [correctedQuantity, setCorrectedQuantity] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
 
@@ -31,14 +32,19 @@ export default function LedgerScreen() {
     if (!selectedItemId) {
       return;
     }
-    await correction.submitCorrection({
+    const result = await correction.submitCorrection({
       item_id: selectedItemId,
+      expected_quantity: Number(selectedItemCurrentStock),
       corrected_quantity: Number(correctedQuantity),
       reason: correctionReason,
     });
+    if (result === null) {
+      return;
+    }
     setCorrectedQuantity("");
     setCorrectionReason("");
     setSelectedItemId(null);
+    setSelectedItemCurrentStock("");
     inventory.refresh();
     auditLogs.refresh();
   }
@@ -76,6 +82,7 @@ export default function LedgerScreen() {
             title={`Correct ${item.name}`}
             onPress={() => {
               setSelectedItemId(item.item_id);
+              setSelectedItemCurrentStock(item.current_stock);
               setCorrectedQuantity(item.current_stock.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1"));
               setCorrectionReason("");
             }}

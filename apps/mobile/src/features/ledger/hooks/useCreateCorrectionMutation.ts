@@ -14,6 +14,7 @@ type CreateCorrectionResponse = {
 
 type CreateCorrectionInput = {
   item_id: string;
+  expected_quantity: number;
   corrected_quantity: number;
   reason: string;
 };
@@ -34,7 +35,7 @@ export function useCreateCorrectionMutation() {
     } catch (reason: unknown) {
       const message = reason instanceof Error ? reason.message : "Failed to submit correction";
       setError(message);
-      throw reason;
+      return null;
     } finally {
       setIsSubmitting(false);
     }

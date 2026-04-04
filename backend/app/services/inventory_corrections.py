@@ -47,6 +47,7 @@ def submit_inventory_correction(
     *,
     shop_id: str,
     item_id: str,
+    expected_quantity: Decimal,
     corrected_quantity: Decimal,
     reason: str,
     actor_id: str,
@@ -58,9 +59,14 @@ def submit_inventory_correction(
         if not item.is_active:
             raise InventoryCorrectionConflictError("inactive item cannot be corrected")
 
+        normalized_expected_quantity = Decimal(expected_quantity)
         normalized_quantity = _normalize_quantity(Decimal(corrected_quantity))
         normalized_reason = _normalize_reason(reason)
-        previous_quantity = float(item.current_stock)
+        current_quantity = Decimal(item.current_stock)
+        if current_quantity != normalized_expected_quantity:
+            raise InventoryCorrectionConflictError("inventory changed since the ledger was loaded")
+
+        previous_quantity = float(current_quantity)
 
         event = append_correction_event(
             db_session,

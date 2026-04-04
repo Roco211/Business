@@ -11,6 +11,22 @@ describe("LedgerScreen", () => {
       const url = String(input);
       const method = init?.method ?? "GET";
       if (url.includes("/api/v1/inventory-events/corrections") && method === "POST") {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as {
+          expected_quantity?: number;
+          reason?: string;
+        };
+        if (payload.reason === "Outdated snapshot") {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "inventory_conflict",
+                message: "Inventory correction conflicts with the current item state",
+                details: [],
+              },
+            }),
+          });
+        }
         correctionApplied = true;
         return Promise.resolve({
           ok: true,
@@ -161,6 +177,26 @@ describe("LedgerScreen", () => {
           method: "POST",
         }),
       );
+    });
+  });
+
+  it("shows a recoverable error when correction submission fails", async () => {
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Apple")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Correct Apple"));
+    fireEvent.changeText(screen.getByPlaceholderText("Corrected quantity"), "6");
+    fireEvent.changeText(screen.getByPlaceholderText("Correction reason"), "Outdated snapshot");
+    fireEvent.press(screen.getByText("Submit correction"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Inventory correction conflicts with the current item state"),
+      ).toBeTruthy();
+      expect(screen.getByText("3.000 box")).toBeTruthy();
     });
   });
 });

@@ -479,10 +479,16 @@
 ```json
 {
   "item_id": "item_001",
+  "expected_quantity": 5,
   "corrected_quantity": 3,
   "reason": "实际清点数量与 AI 入库结果不一致"
 }
 ```
+
+说明：
+
+- `expected_quantity` 用于乐观并发校验
+- 如果商品当前库存已不是提交方看到的数量，返回 `409 inventory_conflict`
 
 响应：
 

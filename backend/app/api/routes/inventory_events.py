@@ -49,6 +49,7 @@ def post_inventory_correction(
             db_session,
             shop_id=settings.default_shop_id,
             item_id=payload.item_id,
+            expected_quantity=payload.expected_quantity,
             corrected_quantity=payload.corrected_quantity,
             reason=payload.reason,
             actor_id=settings.default_owner_actor_id,

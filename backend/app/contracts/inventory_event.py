@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class CreateInventoryCorrectionRequest(BaseModel):
     item_id: str
+    expected_quantity: Decimal
     corrected_quantity: Decimal
     reason: str
 

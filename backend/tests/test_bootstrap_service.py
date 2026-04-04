@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import create_engine, select
@@ -50,5 +51,56 @@ def test_ensure_default_context_is_idempotent(tmp_path) -> None:
         assert len(db_session.scalars(select(Shop)).all()) == 1
         assert len(db_session.scalars(select(SessionRecord)).all()) == 1
     finally:
+        db_session.close()
+        engine.dispose()
+
+
+def test_ensure_default_context_recovers_from_shop_creation_race(tmp_path) -> None:
+    engine, db_session = create_test_session(tmp_path)
+    competing_session = sessionmaker(
+        bind=engine,
+        autoflush=False,
+        expire_on_commit=False,
+    )()
+
+    original_get = db_session.get
+    race_triggered = False
+
+    def racing_get(model, identity, *args, **kwargs):
+        nonlocal race_triggered
+        result = original_get(model, identity, *args, **kwargs)
+
+        if not race_triggered and model is Shop and identity == "shop_default" and result is None:
+            competing_session.add(
+                Shop(
+                    shop_id="shop_default",
+                    name="演示店铺",
+                    owner_name="默认老板",
+                    industry="retail",
+                    locale="zh-CN",
+                    timezone="Asia/Shanghai",
+                    require_price_confirmation=True,
+                    require_new_item_confirmation=True,
+                    low_confidence_threshold=Decimal("0.8500"),
+                    default_low_stock_threshold=None,
+                    created_at=datetime.now(UTC).replace(tzinfo=None),
+                    updated_at=datetime.now(UTC).replace(tzinfo=None),
+                )
+            )
+            competing_session.commit()
+            race_triggered = True
+
+        return result
+
+    db_session.get = racing_get  # type: ignore[method-assign]
+
+    try:
+        context = ensure_default_context(db_session)
+
+        assert context.shop.shop_id == "shop_default"
+        assert context.session.session_id == "sess_default"
+        assert len(db_session.scalars(select(Shop)).all()) == 1
+    finally:
+        competing_session.close()
         db_session.close()
         engine.dispose()

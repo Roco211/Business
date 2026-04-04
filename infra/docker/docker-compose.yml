@@ -24,6 +24,17 @@ services:
       - "${MINIO_API_PORT}:9000"
       - "${MINIO_CONSOLE_PORT}:9001"
 
+  migrator:
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    env_file:
+      - ../../.env.example
+    command: alembic -c /app/alembic.ini upgrade head
+    depends_on:
+      mysql:
+        condition: service_started
+
   api:
     build:
       context: ../..
@@ -34,9 +45,14 @@ services:
     ports:
       - "8001:8001"
     depends_on:
-      - mysql
-      - redis
-      - minio
+      migrator:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
 
   worker:
     build:
@@ -46,4 +62,9 @@ services:
       - ../../.env.example
     command: celery -A app.workers.celery_app.celery_app worker --loglevel=info
     depends_on:
-      - redis
+      migrator:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started

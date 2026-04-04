@@ -2,13 +2,12 @@ import importlib.util
 from pathlib import Path
 import sys
 
+from alembic import command
+from alembic.config import Config
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 
-from app.db.base import Base
 from app.db.session import get_engine, get_session_factory
-from app.models import SessionRecord, Shop  # noqa: F401
 
 
 def load_create_app():
@@ -25,6 +24,13 @@ def load_create_app():
     return module.create_app
 
 
+def upgrade_test_database(database_url: str) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    config = Config(str(repo_root / "alembic.ini"))
+    config.set_main_option("sqlalchemy.url", database_url)
+    command.upgrade(config, "head")
+
+
 @pytest.fixture(autouse=True)
 def clear_db_caches() -> None:
     get_engine.cache_clear()
@@ -36,12 +42,6 @@ def client(monkeypatch, tmp_path) -> TestClient:
     database_url = f"sqlite:///{(tmp_path / 'api.db').as_posix()}"
     monkeypatch.setenv("DATABASE_URL", database_url)
 
-    engine = create_engine(
-        database_url,
-        future=True,
-        connect_args={"check_same_thread": False},
-    )
-    Base.metadata.create_all(engine)
-    engine.dispose()
+    upgrade_test_database(database_url)
 
     return TestClient(load_create_app()())

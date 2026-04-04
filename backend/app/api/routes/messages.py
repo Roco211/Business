@@ -11,6 +11,7 @@ from app.contracts.message import (
     SessionMessagesResponse,
 )
 from app.db.session import get_db_session
+from app.models import TaskRun
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import (
     IdempotencyConflictError,
@@ -20,6 +21,7 @@ from app.services.messages import (
     list_messages,
 )
 from app.services.runtime_dispatch import enqueue_runtime_task
+from app.services.task_runs import CREATED_STATUS, PENDING_CLASSIFICATION_TASK_TYPE
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["messages"])
 
@@ -39,6 +41,17 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
         content=ErrorEnvelope(
             error=ErrorBody(code=code, message=message, details=[])
         ).model_dump(),
+    )
+
+
+def _is_initial_runtime_task_state(db_session: Session, task_run_id: str) -> bool:
+    task_run = db_session.get(TaskRun, task_run_id)
+    if task_run is None:
+        return False
+
+    return (
+        task_run.status == CREATED_STATUS
+        and task_run.task_type == PENDING_CLASSIFICATION_TASK_TYPE
     )
 
 
@@ -129,6 +142,8 @@ def post_session_message(
         )
     )
     if result.replayed:
+        if _is_initial_runtime_task_state(db_session, result.task_run_id):
+            enqueue_runtime_task(result.task_run_id)
         return payload_model
 
     enqueue_runtime_task(result.task_run_id)

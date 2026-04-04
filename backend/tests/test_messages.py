@@ -1,6 +1,8 @@
 import pytest
 
 from app.api.routes import messages as message_routes
+from app.db.session import get_session_factory
+from app.models import TaskRun
 
 
 @pytest.fixture(autouse=True)
@@ -84,12 +86,13 @@ def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
     assert first.json()["data"]["task_run_id"] == second.json()["data"]["task_run_id"]
 
 
-def test_create_message_does_not_dispatch_again_on_idempotent_retry(client, monkeypatch) -> None:
+def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, monkeypatch) -> None:
     dispatched_task_run_ids: list[str] = []
+    dispatch_results = iter([False, True])
 
     def fake_enqueue_runtime_task(task_run_id: str) -> bool:
         dispatched_task_run_ids.append(task_run_id)
-        return True
+        return next(dispatch_results)
 
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
 
@@ -106,7 +109,48 @@ def test_create_message_does_not_dispatch_again_on_idempotent_retry(client, monk
 
     assert first.status_code == 201
     assert second.status_code == 200
-    assert dispatched_task_run_ids == [first.json()["data"]["task_run_id"]]
+    assert first.json()["data"]["message_id"] == second.json()["data"]["message_id"]
+    assert first.json()["data"]["task_run_id"] == second.json()["data"]["task_run_id"]
+    assert dispatched_task_run_ids == [
+        first.json()["data"]["task_run_id"],
+        first.json()["data"]["task_run_id"],
+    ]
+
+
+def test_create_message_does_not_redispatch_replay_after_task_run_advances(client, monkeypatch) -> None:
+    dispatched_task_run_ids: list[str] = []
+
+    def fake_enqueue_runtime_task(task_run_id: str) -> bool:
+        dispatched_task_run_ids.append(task_run_id)
+        return True
+
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
+
+    headers = {"Authorization": "Bearer mock_owner_token"}
+    body = {
+        "message_type": "text",
+        "text": "duplicate dispatch submit",
+        "media_ids": [],
+        "client_request_id": "route_dispatch_retry_advanced_001",
+    }
+
+    first = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+    task_run_id = first.json()["data"]["task_run_id"]
+
+    db_session = get_session_factory()()
+    try:
+        task_run = db_session.get(TaskRun, task_run_id)
+        assert task_run is not None
+        task_run.status = "processing"
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    second = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+
+    assert first.status_code == 201
+    assert second.status_code == 200
+    assert dispatched_task_run_ids == [task_run_id]
 
 
 def test_create_message_returns_conflict_for_payload_drift(client) -> None:

@@ -1,6 +1,7 @@
 import pytest
 
 from app.runtime.processor import RuntimeProcessResult
+from app.workers.celery_app import celery_app
 from app.workers import runtime_tasks
 
 
@@ -59,3 +60,8 @@ def test_runtime_task_wrapper_closes_session_when_processor_raises(monkeypatch) 
 
     assert fake_session.closed is True
 
+
+def test_runtime_task_is_registered_on_explicit_celery_app() -> None:
+    assert runtime_tasks.celery_app is celery_app
+    assert runtime_tasks.process_task_run.app is celery_app
+    assert runtime_tasks.process_task_run.name == "app.workers.runtime_tasks.process_task_run"

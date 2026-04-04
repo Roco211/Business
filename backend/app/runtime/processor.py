@@ -10,7 +10,6 @@ from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
     PENDING_CLASSIFICATION_TASK_TYPE,
-    PROCESSING_STATUS,
     claim_task_run_for_runtime,
     complete_task_run,
     fail_task_run,
@@ -73,25 +72,29 @@ def _recover_unexpected_failure(
     current_task_run = db_session.get(TaskRun, task_run_id)
     if current_task_run is None:
         raise LookupError(task_run_id)
-    if (
-        current_task_run.status == CREATED_STATUS
-        and current_task_run.task_type == PENDING_CLASSIFICATION_TASK_TYPE
-    ):
-        recovery_claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
-        current_task_run = recovery_claim.task_run
-    if current_task_run.status == PROCESSING_STATUS:
-        return _build_failed_result(
-            db_session,
-            task_run_id=task_run_id,
-            session_id=session_id,
-            error_code="runtime_processing_error",
-            error_message=error_message,
+    if current_task_run.status != CREATED_STATUS or current_task_run.task_type != PENDING_CLASSIFICATION_TASK_TYPE:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=current_task_run.task_run_id,
+            task_type=current_task_run.task_type,
+            error_code=current_task_run.error_code,
         )
-    return RuntimeProcessResult(
-        status=current_task_run.status,
-        task_run_id=current_task_run.task_run_id,
-        task_type=current_task_run.task_type,
-        error_code=current_task_run.error_code,
+
+    recovery_claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
+    if not recovery_claim.changed:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=recovery_claim.task_run.task_run_id,
+            task_type=recovery_claim.task_run.task_type,
+            error_code=recovery_claim.task_run.error_code,
+        )
+
+    return _build_failed_result(
+        db_session,
+        task_run_id=task_run_id,
+        session_id=session_id,
+        error_code="runtime_processing_error",
+        error_message=error_message,
     )
 
 

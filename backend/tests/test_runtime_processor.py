@@ -374,6 +374,60 @@ def test_process_task_run_fails_post_route_errors_with_runtime_message(db_sessio
     assert session_record.last_message_at == runtime_messages[0].created_at
 
 
+def test_process_task_run_skips_when_recovery_claim_is_lost_to_other_worker(db_session, monkeypatch) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="check stock left for cola",
+        media_ids=[],
+        client_request_id="runtime_recovery_claim_lost",
+    )
+
+    original_claim = runtime_processor.claim_task_run_for_runtime
+    claim_calls = 0
+    competing_session = sessionmaker(
+        bind=db_session.bind,
+        autoflush=False,
+        expire_on_commit=False,
+    )()
+
+    def claim_with_competitor(session, *, task_run_id: str):
+        nonlocal claim_calls
+        claim_calls += 1
+        if claim_calls == 2:
+            competing_claim = original_claim(competing_session, task_run_id=task_run_id)
+            assert competing_claim.changed is True
+            competing_session.commit()
+        return original_claim(session, task_run_id=task_run_id)
+
+    def raise_unexpected_error(_context):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(runtime_processor, "claim_task_run_for_runtime", claim_with_competitor)
+    monkeypatch.setattr(runtime_processor, "route_runtime_input", raise_unexpected_error)
+
+    try:
+        result = process_task_run(db_session, task_run_id)
+    finally:
+        competing_session.close()
+
+    task_run = db_session.get(TaskRun, task_run_id)
+    runtime_messages = db_session.scalars(
+        select(Message).where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+    ).all()
+
+    assert result.status == "skipped"
+    assert result.task_run_id == task_run_id
+    assert result.task_type == "pending-classification"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "processing"
+    assert task_run.task_type == "pending-classification"
+    assert task_run.error_code is None
+    assert task_run.error_message is None
+    assert runtime_messages == []
+
+
 def test_claim_task_run_uses_current_db_state_for_exclusive_claims(db_session) -> None:
     _, task_run_id = _create_owner_message(
         db_session,

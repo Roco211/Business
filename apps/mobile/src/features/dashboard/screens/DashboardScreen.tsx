@@ -1,10 +1,58 @@
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+
+import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
+import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
+import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
+
 
 export default function DashboardScreen() {
+  const summary = useDashboardSummaryQuery();
+  const alerts = useLowStockAlertsQuery();
+  const pendingConfirmations = usePendingConfirmationsQuery();
+
+  if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
+    return (
+      <View>
+        <Text>Loading dashboard...</Text>
+      </View>
+    );
+  }
+
+  if (summary.error || alerts.error || pendingConfirmations.error || summary.data === null) {
+    return (
+      <View>
+        <Text>Dashboard unavailable</Text>
+        <Text>{summary.error ?? alerts.error ?? pendingConfirmations.error ?? "Unknown error"}</Text>
+      </View>
+    );
+  }
+
   return (
-    <View>
-      <Text>工作台</Text>
-      <Text>Phase 1 skeleton</Text>
-    </View>
+    <ScrollView>
+      <Text>Dashboard</Text>
+
+      <Text>{`Today stock-in: ${summary.data.today_stock_in_count}`}</Text>
+      <Text>{`Completed tasks: ${summary.data.today_task_completed_count}`}</Text>
+      <Text>{`Pending confirmations: ${summary.data.pending_confirmations_count}`}</Text>
+      <Text>{`Open low-stock alerts: ${summary.data.open_low_stock_alert_count}`}</Text>
+
+      <Text>Low-stock alerts</Text>
+      {alerts.data.length === 0 ? <Text>No open low-stock alerts.</Text> : null}
+      {alerts.data.map((alert) => (
+        <View key={alert.alert_id}>
+          <Text>{alert.item_name}</Text>
+          <Text>{`${alert.stock} / ${alert.threshold} ${alert.unit}`}</Text>
+        </View>
+      ))}
+
+      <Text>Pending confirmations</Text>
+      {pendingConfirmations.data.length === 0 ? <Text>No pending confirmations.</Text> : null}
+      {pendingConfirmations.data.map((confirmation) => (
+        <View key={confirmation.confirmation_id}>
+          <Text>{confirmation.confirmation_type}</Text>
+          <Text>{confirmation.fields.summary ?? "Confirmation pending"}</Text>
+        </View>
+      ))}
+    </ScrollView>
   );
 }

@@ -24,6 +24,8 @@ from app.services.runtime_dispatch import enqueue_runtime_task
 from app.services.task_runs import CREATED_STATUS, PENDING_CLASSIFICATION_TASK_TYPE
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["messages"])
+DISPATCH_FAILED_ERROR_CODE = "dispatch_failed"
+DISPATCH_FAILED_ERROR_MESSAGE = "Runtime dispatch failed; retry the same request to re-enqueue."
 
 
 def _unauthorized() -> JSONResponse:
@@ -53,6 +55,27 @@ def _is_initial_runtime_task_state(db_session: Session, task_run_id: str) -> boo
         task_run.status == CREATED_STATUS
         and task_run.task_type == PENDING_CLASSIFICATION_TASK_TYPE
     )
+
+
+def _record_dispatch_attempt(db_session: Session, task_run_id: str, *, dispatched: bool) -> None:
+    task_run = db_session.get(TaskRun, task_run_id)
+    if task_run is None:
+        return
+
+    if dispatched:
+        if task_run.error_code == DISPATCH_FAILED_ERROR_CODE:
+            task_run.error_code = None
+            task_run.error_message = None
+            db_session.commit()
+        return
+
+    if (
+        task_run.error_code != DISPATCH_FAILED_ERROR_CODE
+        or task_run.error_message != DISPATCH_FAILED_ERROR_MESSAGE
+    ):
+        task_run.error_code = DISPATCH_FAILED_ERROR_CODE
+        task_run.error_message = DISPATCH_FAILED_ERROR_MESSAGE
+        db_session.commit()
 
 
 @router.get("/{session_id}/messages", response_model=SessionMessagesResponse)
@@ -143,10 +166,12 @@ def post_session_message(
     )
     if result.replayed:
         if _is_initial_runtime_task_state(db_session, result.task_run_id):
-            enqueue_runtime_task(result.task_run_id)
+            dispatched = enqueue_runtime_task(result.task_run_id)
+            _record_dispatch_attempt(db_session, result.task_run_id, dispatched=dispatched)
         return payload_model
 
-    enqueue_runtime_task(result.task_run_id)
+    dispatched = enqueue_runtime_task(result.task_run_id)
+    _record_dispatch_attempt(db_session, result.task_run_id, dispatched=dispatched)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content=payload_model.model_dump(mode="json"),

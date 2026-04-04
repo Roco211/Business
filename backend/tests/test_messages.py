@@ -68,6 +68,38 @@ def test_create_message_dispatches_runtime_once_for_fresh_create(client, monkeyp
     assert dispatched_task_run_ids == [response.json()["data"]["task_run_id"]]
 
 
+def test_create_message_marks_task_run_when_initial_dispatch_fails(client, monkeypatch) -> None:
+    def fake_enqueue_runtime_task(_task_run_id: str) -> bool:
+        return False
+
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
+
+    response = client.post(
+        "/api/v1/sessions/sess_default/messages",
+        headers={"Authorization": "Bearer mock_owner_token"},
+        json={
+            "message_type": "text",
+            "text": "dispatch failure",
+            "media_ids": [],
+            "client_request_id": "route_dispatch_failed_001",
+        },
+    )
+    task_run_id = response.json()["data"]["task_run_id"]
+    task_run_response = client.get(
+        f"/api/v1/task-runs/{task_run_id}",
+        headers={"Authorization": "Bearer mock_owner_token"},
+    )
+
+    assert response.status_code == 201
+    assert task_run_response.status_code == 200
+    payload = task_run_response.json()["data"]
+    assert payload["task_run_id"] == task_run_id
+    assert payload["status"] == "created"
+    assert payload["task_type"] == "pending-classification"
+    assert payload["error_code"] == "dispatch_failed"
+    assert payload["error_message"] == "Runtime dispatch failed; retry the same request to re-enqueue."
+
+
 def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
     headers = {"Authorization": "Bearer mock_owner_token"}
     body = {
@@ -105,16 +137,34 @@ def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, mon
     }
 
     first = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+    task_run_id = first.json()["data"]["task_run_id"]
+    failed_task_run_response = client.get(
+        f"/api/v1/task-runs/{task_run_id}",
+        headers=headers,
+    )
     second = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+    recovered_task_run_response = client.get(
+        f"/api/v1/task-runs/{task_run_id}",
+        headers=headers,
+    )
 
     assert first.status_code == 201
     assert second.status_code == 200
     assert first.json()["data"]["message_id"] == second.json()["data"]["message_id"]
-    assert first.json()["data"]["task_run_id"] == second.json()["data"]["task_run_id"]
+    assert task_run_id == second.json()["data"]["task_run_id"]
+    assert failed_task_run_response.status_code == 200
+    assert failed_task_run_response.json()["data"]["error_code"] == "dispatch_failed"
+    assert (
+        failed_task_run_response.json()["data"]["error_message"]
+        == "Runtime dispatch failed; retry the same request to re-enqueue."
+    )
     assert dispatched_task_run_ids == [
-        first.json()["data"]["task_run_id"],
-        first.json()["data"]["task_run_id"],
+        task_run_id,
+        task_run_id,
     ]
+    assert recovered_task_run_response.status_code == 200
+    assert recovered_task_run_response.json()["data"]["error_code"] is None
+    assert recovered_task_run_response.json()["data"]["error_message"] is None
 
 
 def test_create_message_does_not_redispatch_replay_after_task_run_advances(client, monkeypatch) -> None:

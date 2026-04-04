@@ -1,23 +1,34 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Dict, List, Optional
 
 
 @dataclass
 class RuntimeTurnContext:
-    input_type: str
-    source_text: str = ""
-    text_hint: str = ""
-    media_ids: Sequence[str] = field(default_factory=list)
+    shop_id: str
+    session_id: str
+    source_message_id: str
+    task_run_id: str
+    input_kind: str
+    source_text: Optional[str] = None
+    media_ids: List[str] = field(default_factory=list)
+    locale: str = "en-US"
+    timezone: str = "UTC"
+    shop_rules: Dict[str, object] = field(default_factory=dict)
+    recent_messages: List[Dict[str, object]] = field(default_factory=list)
+    pending_confirmation_id: Optional[str] = None
 
 
 @dataclass
 class RuntimeRouteDecision:
     task_type: str
     assigned_employee_id: str
-    text: str
+    transcript: Optional[str]
 
 
 class RuntimeRouteBlocked(Exception):
-    def __init__(self, error_code: str):
+    def __init__(self, error_code: str, error_message: str):
         self.error_code = error_code
-        super().__init__(error_code)
+        self.error_message = error_message
+        super().__init__(error_message)

@@ -1,4 +1,5 @@
 import importlib.util
+from collections.abc import Iterator
 from pathlib import Path
 import sys
 
@@ -6,6 +7,7 @@ from alembic import command
 from alembic.config import Config
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from app.db.session import get_engine, get_session_factory
 
@@ -35,6 +37,28 @@ def upgrade_test_database(database_url: str) -> None:
 def clear_db_caches() -> None:
     get_engine.cache_clear()
     get_session_factory.cache_clear()
+
+
+@pytest.fixture
+def database_url(tmp_path) -> str:
+    return f"sqlite:///{(tmp_path / 'test.db').as_posix()}"
+
+
+@pytest.fixture
+def db_session(monkeypatch, database_url) -> Iterator[Session]:
+    monkeypatch.setenv("DATABASE_URL", database_url)
+
+    upgrade_test_database(database_url)
+
+    engine = get_engine()
+    session = get_session_factory()()
+    try:
+        yield session
+    finally:
+        session.close()
+        engine.dispose()
+        get_engine.cache_clear()
+        get_session_factory.cache_clear()
 
 
 @pytest.fixture

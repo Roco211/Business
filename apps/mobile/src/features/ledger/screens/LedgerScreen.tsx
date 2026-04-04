@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
+import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutation";
 import { useInventoryItemsQuery } from "../hooks/useInventoryItemsQuery";
 
 
@@ -18,8 +19,29 @@ function formatAuditLine(itemName: string | undefined, quantityDelta: number | u
 
 export default function LedgerScreen() {
   const [searchText, setSearchText] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [correctedQuantity, setCorrectedQuantity] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
+
   const inventory = useInventoryItemsQuery(searchText);
   const auditLogs = useAuditLogsQuery();
+  const correction = useCreateCorrectionMutation();
+
+  async function handleSubmitCorrection() {
+    if (!selectedItemId) {
+      return;
+    }
+    await correction.submitCorrection({
+      item_id: selectedItemId,
+      corrected_quantity: Number(correctedQuantity),
+      reason: correctionReason,
+    });
+    setCorrectedQuantity("");
+    setCorrectionReason("");
+    setSelectedItemId(null);
+    inventory.refresh();
+    auditLogs.refresh();
+  }
 
   if (inventory.isLoading || auditLogs.isLoading) {
     return (
@@ -50,8 +72,41 @@ export default function LedgerScreen() {
           <Text>{item.name}</Text>
           <Text>{`${item.current_stock} ${item.default_unit}`}</Text>
           <Text>{item.current_price ? `Price ${item.current_price}` : "Price unavailable"}</Text>
+          <Button
+            title={`Correct ${item.name}`}
+            onPress={() => {
+              setSelectedItemId(item.item_id);
+              setCorrectedQuantity(item.current_stock.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1"));
+              setCorrectionReason("");
+            }}
+          />
         </View>
       ))}
+
+      {selectedItemId ? (
+        <View>
+          <Text>Correction form</Text>
+          <TextInput
+            placeholder="Corrected quantity"
+            keyboardType="numeric"
+            value={correctedQuantity}
+            onChangeText={setCorrectedQuantity}
+          />
+          <TextInput
+            placeholder="Correction reason"
+            value={correctionReason}
+            onChangeText={setCorrectionReason}
+          />
+          {correction.error ? <Text>{correction.error}</Text> : null}
+          <Button
+            title={correction.isSubmitting ? "Submitting..." : "Submit correction"}
+            onPress={() => {
+              void handleSubmitCorrection();
+            }}
+            disabled={correction.isSubmitting}
+          />
+        </View>
+      ) : null}
 
       <Text>Recent activity</Text>
       {auditLogs.data.length === 0 ? <Text>No recent activity.</Text> : null}

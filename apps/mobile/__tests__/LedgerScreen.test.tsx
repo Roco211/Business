@@ -5,8 +5,24 @@ import LedgerScreen from "../src/features/ledger/screens/LedgerScreen";
 
 describe("LedgerScreen", () => {
   beforeEach(() => {
-    global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL) => {
+    let correctionApplied = false;
+
+    global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.includes("/api/v1/inventory-events/corrections") && method === "POST") {
+        correctionApplied = true;
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              correction_event_id: "inv_evt_correction_1",
+              item_id: "item_apple",
+              new_quantity: "6",
+            },
+          }),
+        });
+      }
       if (url.includes("/api/v1/inventory-items?query=ora")) {
         return Promise.resolve({
           ok: true,
@@ -46,7 +62,7 @@ describe("LedgerScreen", () => {
                 category: null,
                 barcode: null,
                 default_unit: "box",
-                current_stock: "3.000",
+                current_stock: correctionApplied ? "6.000" : "3.000",
                 current_price: "11.50",
                 low_stock_threshold: "5.000",
                 image_media_id: null,
@@ -68,7 +84,7 @@ describe("LedgerScreen", () => {
                 audit_log_id: "audit_1",
                 shop_id: "shop_default",
                 scope: "inventory",
-                action: "inventory.stock_in_confirmed",
+                action: correctionApplied ? "inventory.correction_submitted" : "inventory.stock_in_confirmed",
                 actor_type: "owner",
                 actor_id: "owner_default",
                 task_run_id: "task_1",
@@ -76,8 +92,8 @@ describe("LedgerScreen", () => {
                 target_id: "item_apple",
                 metadata: {
                   item_name: "Apple",
-                  quantity_delta: 3,
-                  quantity_after: 3,
+                  quantity_delta: correctionApplied ? 4 : 3,
+                  quantity_after: correctionApplied ? 6 : 3,
                 },
                 created_at: "2026-04-05T09:00:00",
               },
@@ -119,6 +135,31 @@ describe("LedgerScreen", () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/inventory-items?query=ora"),
         expect.any(Object),
+      );
+    });
+  });
+
+  it("submits a correction and refreshes inventory plus audit activity", async () => {
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByText("3.000 box")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Correct Apple"));
+    fireEvent.changeText(screen.getByPlaceholderText("Corrected quantity"), "6");
+    fireEvent.changeText(screen.getByPlaceholderText("Correction reason"), "Physical recount");
+    fireEvent.press(screen.getByText("Submit correction"));
+
+    await waitFor(() => {
+      expect(screen.getByText("6.000 box")).toBeTruthy();
+      expect(screen.getByText("inventory.correction_submitted")).toBeTruthy();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/inventory-events/corrections"),
+        expect.objectContaining({
+          method: "POST",
+        }),
       );
     });
   });

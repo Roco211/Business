@@ -25,6 +25,7 @@ export function useInventoryItemsQuery(searchText: string) {
   const [data, setData] = useState<InventoryItemRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -55,11 +56,12 @@ export function useInventoryItemsQuery(searchText: string) {
     return () => {
       isActive = false;
     };
-  }, [deferredSearchText]);
+  }, [deferredSearchText, refreshNonce]);
 
   return {
     data,
     isLoading,
     error,
+    refresh: () => setRefreshNonce((value) => value + 1),
   };
 }

@@ -27,6 +27,7 @@ export function useAuditLogsQuery() {
   const [data, setData] = useState<AuditLogRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -56,11 +57,12 @@ export function useAuditLogsQuery() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [refreshNonce]);
 
   return {
     data,
     isLoading,
     error,
+    refresh: () => setRefreshNonce((value) => value + 1),
   };
 }

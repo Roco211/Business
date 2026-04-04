@@ -19,6 +19,7 @@ from app.services.messages import (
     create_message,
     list_messages,
 )
+from app.services.runtime_dispatch import enqueue_runtime_task
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["messages"])
 
@@ -130,6 +131,7 @@ def post_session_message(
     if result.replayed:
         return payload_model
 
+    enqueue_runtime_task(result.task_run_id)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content=payload_model.model_dump(mode="json"),

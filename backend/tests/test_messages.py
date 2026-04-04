@@ -1,3 +1,13 @@
+import pytest
+
+from app.api.routes import messages as message_routes
+
+
+@pytest.fixture(autouse=True)
+def _stub_runtime_dispatch(monkeypatch) -> None:
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
+
+
 def test_create_message_requires_authorization(client) -> None:
     response = client.post(
         "/api/v1/sessions/sess_default/messages",
@@ -32,6 +42,30 @@ def test_create_message_returns_message_and_task_ids(client) -> None:
     assert payload["status"] == "created"
 
 
+def test_create_message_dispatches_runtime_once_for_fresh_create(client, monkeypatch) -> None:
+    dispatched_task_run_ids: list[str] = []
+
+    def fake_enqueue_runtime_task(task_run_id: str) -> bool:
+        dispatched_task_run_ids.append(task_run_id)
+        return True
+
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
+
+    response = client.post(
+        "/api/v1/sessions/sess_default/messages",
+        headers={"Authorization": "Bearer mock_owner_token"},
+        json={
+            "message_type": "text",
+            "text": "dispatch fresh create",
+            "media_ids": [],
+            "client_request_id": "route_dispatch_001",
+        },
+    )
+
+    assert response.status_code == 201
+    assert dispatched_task_run_ids == [response.json()["data"]["task_run_id"]]
+
+
 def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
     headers = {"Authorization": "Bearer mock_owner_token"}
     body = {
@@ -48,6 +82,31 @@ def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
     assert second.status_code == 200
     assert first.json()["data"]["message_id"] == second.json()["data"]["message_id"]
     assert first.json()["data"]["task_run_id"] == second.json()["data"]["task_run_id"]
+
+
+def test_create_message_does_not_dispatch_again_on_idempotent_retry(client, monkeypatch) -> None:
+    dispatched_task_run_ids: list[str] = []
+
+    def fake_enqueue_runtime_task(task_run_id: str) -> bool:
+        dispatched_task_run_ids.append(task_run_id)
+        return True
+
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
+
+    headers = {"Authorization": "Bearer mock_owner_token"}
+    body = {
+        "message_type": "text",
+        "text": "duplicate dispatch submit",
+        "media_ids": [],
+        "client_request_id": "route_dispatch_retry_001",
+    }
+
+    first = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+    second = client.post("/api/v1/sessions/sess_default/messages", headers=headers, json=body)
+
+    assert first.status_code == 201
+    assert second.status_code == 200
+    assert dispatched_task_run_ids == [first.json()["data"]["task_run_id"]]
 
 
 def test_create_message_returns_conflict_for_payload_drift(client) -> None:

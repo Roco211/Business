@@ -163,8 +163,11 @@ def mark_task_run_awaiting_confirmation(
     db_session: Session,
     *,
     task_run_id: str,
+    task_type: str,
+    assigned_employee_id: str,
     result_summary: str,
 ) -> TaskRun:
+    now = _now()
     result = db_session.execute(
         update(TaskRun)
         .where(
@@ -172,9 +175,13 @@ def mark_task_run_awaiting_confirmation(
             TaskRun.status == PROCESSING_STATUS,
         )
         .values(
+            task_type=task_type,
             status=AWAITING_CONFIRMATION_STATUS,
+            assigned_employee_id=assigned_employee_id,
             result_summary=result_summary,
-            updated_at=_now(),
+            error_code=None,
+            error_message=None,
+            updated_at=now,
             completed_at=None,
         )
         .execution_options(synchronize_session=False)

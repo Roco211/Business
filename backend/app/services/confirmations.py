@@ -18,6 +18,10 @@ class ConfirmationListPage:
     items: list[Confirmation]
 
 
+class ConfirmationConflictError(ValueError):
+    pass
+
+
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
@@ -35,7 +39,7 @@ def create_pending_confirmation(
     task_run_id: str,
     confirmation_type: str,
     fields: dict[str, Any],
-    requested_by_employee_id: str,
+    requested_by_employee_id: str | None,
 ) -> Confirmation:
     existing = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
     if existing is not None:
@@ -43,7 +47,7 @@ def create_pending_confirmation(
 
     now = _now()
     confirmation = Confirmation(
-        confirmation_id=new_prefixed_id("cnf"),
+        confirmation_id=new_prefixed_id("conf"),
         task_run_id=task_run_id,
         confirmation_type=confirmation_type,
         status=PENDING_STATUS,
@@ -52,11 +56,10 @@ def create_pending_confirmation(
         resolution_payload=None,
         approved_by_actor_id=None,
         created_at=now,
-        updated_at=now,
         resolved_at=None,
     )
     db_session.add(confirmation)
-    db_session.commit()
+    db_session.flush()
     return confirmation
 
 
@@ -69,15 +72,13 @@ def approve_confirmation(
 ) -> Confirmation:
     confirmation = _require_confirmation(db_session, confirmation_id)
     if confirmation.status != PENDING_STATUS:
-        raise ValueError("Confirmation already resolved")
+        raise ConfirmationConflictError("Confirmation already resolved")
 
-    now = _now()
     confirmation.status = APPROVED_STATUS
     confirmation.resolution_payload = resolution_payload
     confirmation.approved_by_actor_id = approved_by_actor_id
-    confirmation.updated_at = now
-    confirmation.resolved_at = now
-    db_session.commit()
+    confirmation.resolved_at = _now()
+    db_session.flush()
     return confirmation
 
 
@@ -88,15 +89,13 @@ def reject_confirmation(
 ) -> Confirmation:
     confirmation = _require_confirmation(db_session, confirmation_id)
     if confirmation.status != PENDING_STATUS:
-        raise ValueError("Confirmation already resolved")
+        raise ConfirmationConflictError("Confirmation already resolved")
 
-    now = _now()
     confirmation.status = REJECTED_STATUS
     confirmation.resolution_payload = None
     confirmation.approved_by_actor_id = None
-    confirmation.updated_at = now
-    confirmation.resolved_at = now
-    db_session.commit()
+    confirmation.resolved_at = _now()
+    db_session.flush()
     return confirmation
 
 

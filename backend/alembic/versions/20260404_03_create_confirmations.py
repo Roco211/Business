@@ -18,11 +18,10 @@ def upgrade() -> None:
         sa.Column("confirmation_type", sa.String(length=64), nullable=False),
         sa.Column("status", sa.String(length=16), nullable=False),
         sa.Column("fields", sa.JSON(), nullable=False),
-        sa.Column("requested_by_employee_id", sa.String(length=40), nullable=False),
+        sa.Column("requested_by_employee_id", sa.String(length=40), nullable=True),
         sa.Column("resolution_payload", sa.JSON(), nullable=True),
         sa.Column("approved_by_actor_id", sa.String(length=40), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.Column("resolved_at", sa.DateTime(), nullable=True),
         sa.UniqueConstraint("task_run_id", name="uq_confirmations_task_run_id"),
     )

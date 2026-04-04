@@ -15,11 +15,10 @@ class Confirmation(Base):
     confirmation_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False)
     fields: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    requested_by_employee_id: Mapped[str] = mapped_column(String(40), nullable=False)
+    requested_by_employee_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     resolution_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     approved_by_actor_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
 
     task_run = relationship("TaskRun")

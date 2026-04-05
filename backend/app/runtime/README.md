@@ -65,4 +65,23 @@ Phase 9A adds the missing upload-backed voice entry contract:
   - final `voice` message post
 - the runtime still reuses `text` as the mock transcript hint for those upload-backed voice messages
 
-The runtime still does not implement OCR events, upstream websocket message sending, stock-out flows, or replay endpoints.
+Phase 9B closes the remaining mock-first multimodal gap:
+
+- the runtime now routes `image` messages into:
+  - `photo-stock-query`
+  - `photo-stock-in`
+- the runtime now routes `receipt-image` messages into:
+  - `receipt-ocr`
+- `photo-stock-query` now completes as a read-only runtime result using persisted inventory truth
+- `photo-stock-in` now reuses the existing confirmation flow with image-derived draft fields
+- the backend now persists durable `ocr_documents`
+- the backend now exposes:
+  - `POST /api/v1/ocr-documents`
+  - `GET /api/v1/ocr-documents/{ocr_document_id}`
+  - `POST /api/v1/inventory-items/recognize-and-query`
+- the mobile chat surface now exposes upload-backed:
+  - `Photo Query Demo`
+  - `Photo Stock-In Demo`
+  - `Receipt OCR Demo`
+
+The runtime still does not implement OCR-specific websocket events, upstream websocket message sending, stock-out flows, replay endpoints, or batch receipt-to-inventory commits.

@@ -11,6 +11,9 @@ This addendum records what is actually implemented in the repository today relat
 - `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
 - `POST /api/v1/media-uploads`
 - `POST /api/v1/media-uploads/{media_id}/complete`
+- `POST /api/v1/ocr-documents`
+- `GET /api/v1/ocr-documents/{ocr_document_id}`
+- `POST /api/v1/inventory-items/recognize-and-query`
 - Emitted event types:
   - `message.created`
   - `task.updated`
@@ -35,8 +38,13 @@ This addendum records what is actually implemented in the repository today relat
 - `ChatScreen` renders the durable message timeline for the default session
 - `ChatScreen` sends owner-authored text messages through the existing session message API
 - `ChatScreen` also exposes upload-backed voice demo actions that request media upload, complete it, and then send a `voice` message
+- `ChatScreen` now also exposes upload-backed:
+  - `Photo Query Demo`
+  - `Photo Stock-In Demo`
+  - `Receipt OCR Demo`
 - `ChatScreen` renders pending stock-in confirmation cards and supports approve/reject actions
 - `ChatScreen` refreshes messages and confirmations when relevant session events arrive
+- receipt OCR truth is now durable through `ocr_documents`, but batch receipt approval that writes multiple inventory events is still deferred
 
 ## Still Out Of Scope
 

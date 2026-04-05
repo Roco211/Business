@@ -22,6 +22,7 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "inventory_items" in inspector.get_table_names()
     assert "inventory_events" in inspector.get_table_names()
     assert "audit_logs" in inspector.get_table_names()
+    assert "session_stream_events" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
     assert {"session_id", "shop_id", "participants", "last_event_seq"} <= {
         column["name"] for column in inspector.get_columns("sessions")
@@ -41,6 +42,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert {"audit_log_id", "shop_id", "scope", "action", "metadata"} <= {
         column["name"] for column in inspector.get_columns("audit_logs")
     }
+    assert {"event_id", "session_id", "seq", "event_type", "payload"} <= {
+        column["name"] for column in inspector.get_columns("session_stream_events")
+    }
     assert inspector.get_foreign_keys("sessions")[0]["referred_table"] == "shops"
 
     message_indexes = {index["name"] for index in inspector.get_indexes("messages")}
@@ -48,9 +52,11 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     inventory_item_indexes = {index["name"] for index in inspector.get_indexes("inventory_items")}
     inventory_event_indexes = {index["name"] for index in inspector.get_indexes("inventory_events")}
     audit_log_indexes = {index["name"] for index in inspector.get_indexes("audit_logs")}
+    session_stream_indexes = {index["name"] for index in inspector.get_indexes("session_stream_events")}
     assert "ix_messages_session_created_at" in message_indexes
     assert "ix_task_runs_session_updated_at" in task_indexes
     assert "ix_task_runs_source_message_id" in task_indexes
     assert "ix_inventory_items_shop_id_name" in inventory_item_indexes
     assert "ix_inventory_events_shop_id_item_created_at" in inventory_event_indexes
     assert "ix_audit_logs_shop_id_created_at" in audit_log_indexes
+    assert "ix_session_stream_events_session_id_seq" in session_stream_indexes

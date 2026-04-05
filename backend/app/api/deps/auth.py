@@ -19,6 +19,23 @@ class AuthenticatedContext:
     role: str
 
 
+def resolve_authenticated_context(
+    db_session: Session,
+    *,
+    bearer_token: str,
+) -> AuthenticatedContext | None:
+    resolved = resolve_auth_session(db_session, bearer_token)
+    if resolved is None:
+        return None
+
+    return AuthenticatedContext(
+        actor_id=resolved.actor_id,
+        shop_id=resolved.shop_id,
+        auth_session_id=resolved.auth_session_id,
+        role=resolved.role,
+    )
+
+
 def require_authenticated_context(
     authorization: str | None = Header(default=None),
     db_session: Session = Depends(get_db_session),
@@ -30,13 +47,8 @@ def require_authenticated_context(
     if scheme.lower() != "bearer" or not token:
         raise AuthUnauthorizedError
 
-    resolved = resolve_auth_session(db_session, token)
-    if resolved is None:
+    authenticated_context = resolve_authenticated_context(db_session, bearer_token=token)
+    if authenticated_context is None:
         raise AuthUnauthorizedError
 
-    return AuthenticatedContext(
-        actor_id=resolved.actor_id,
-        shop_id=resolved.shop_id,
-        auth_session_id=resolved.auth_session_id,
-        role=resolved.role,
-    )
+    return authenticated_context

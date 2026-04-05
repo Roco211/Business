@@ -7,10 +7,13 @@ from app.db.session import get_session_factory
 from app.models import Alert, AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, OcrDocument, TaskRun
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
 DEFAULT_SESSION_ID = "sess_default"
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _stub_runtime_dispatch(monkeypatch) -> None:
@@ -29,7 +32,7 @@ def _post_session_message(
     _stub_runtime_dispatch(monkeypatch)
     response = client.post(
         f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client, monkeypatch),
         json={
             "message_type": message_type,
             "text": text,
@@ -70,7 +73,7 @@ def _create_and_complete_media_upload(
 ) -> str:
     create_response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": media_type,
             "file_name": file_name,
@@ -83,7 +86,7 @@ def _create_and_complete_media_upload(
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": f"{media_id}-checksum",
             "size_bytes": size_bytes,
@@ -96,7 +99,7 @@ def _create_and_complete_media_upload(
 def _approve_confirmation(client, *, confirmation_id: str, fields: dict[str, object]) -> dict[str, object]:
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={"fields": fields},
     )
     assert response.status_code == 200
@@ -159,25 +162,25 @@ def _create_inventory_item_via_chat_stock_in(
 
 
 def _get_task_run(client, *, task_run_id: str) -> dict[str, object]:
-    response = client.get(f"/api/v1/task-runs/{task_run_id}", headers=AUTH_HEADERS)
+    response = client.get(f"/api/v1/task-runs/{task_run_id}", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
 
 def _get_session_messages(client) -> list[dict[str, object]]:
-    response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=AUTH_HEADERS)
+    response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
 
 def _get_alerts(client) -> list[dict[str, object]]:
-    response = client.get("/api/v1/alerts?type=low-stock&limit=20", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/alerts?type=low-stock&limit=20", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
 
 def _get_dashboard_summary(client) -> dict[str, object]:
-    response = client.get("/api/v1/dashboard/summary", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/dashboard/summary", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
@@ -308,7 +311,7 @@ def test_acceptance_manual_stock_out_opens_low_stock_alert_and_dashboard_reflect
 
     stock_out_response = client.post(
         "/api/v1/inventory-events/stock-out",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item_id,
             "expected_quantity": 8,
@@ -415,7 +418,7 @@ def test_acceptance_correction_recovery_clears_low_stock_alert(client, monkeypat
     )
     stock_out_response = client.post(
         "/api/v1/inventory-events/stock-out",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item_id,
             "expected_quantity": 8,
@@ -429,7 +432,7 @@ def test_acceptance_correction_recovery_clears_low_stock_alert(client, monkeypat
 
     correction_response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item_id,
             "expected_quantity": 4,

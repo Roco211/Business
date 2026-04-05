@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.system import DemoBootstrapSummaryData, HealthResponse
 from app.db.session import get_db_session
@@ -26,12 +27,9 @@ def health() -> HealthResponse:
 
 @router.post("/api/v1/system/demo/bootstrap", response_model=DataEnvelope[DemoBootstrapSummaryData])
 def post_demo_bootstrap(
-    authorization: str | None = Header(default=None),
+    _: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[DemoBootstrapSummaryData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     summary = bootstrap_demo_state(db_session)
     return DataEnvelope(
         data=DemoBootstrapSummaryData(

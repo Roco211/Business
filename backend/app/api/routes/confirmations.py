@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.confirmation import (
     ApproveConfirmationRequest,
@@ -10,16 +12,11 @@ from app.contracts.confirmation import (
     ListConfirmationsResponse,
 )
 from app.db.session import get_db_session
-from app.models import Confirmation, TaskRun
+from app.models import Confirmation, SessionRecord, TaskRun
 from app.services.approved_stock_out_commits import commit_approved_stock_out_confirmation
 from app.services.approved_receipt_stock_in_commits import commit_approved_receipt_stock_in_confirmation
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
-from app.services.confirmations import (
-    ConfirmationConflictError,
-    approve_confirmation,
-    list_confirmations,
-    reject_confirmation,
-)
+from app.services.confirmations import ConfirmationConflictError, reject_confirmation
 from app.services.inventory_items import (
     ApprovedFieldsValidationError,
     InventoryItemAmbiguousError,
@@ -82,24 +79,58 @@ def _validate_approve_payload(payload: ApproveConfirmationRequest) -> dict[str, 
     return payload.fields
 
 
+def _load_confirmation_for_shop(
+    db_session: Session,
+    *,
+    confirmation_id: str,
+    shop_id: str,
+) -> Confirmation | None:
+    return db_session.scalar(
+        select(Confirmation)
+        .join(TaskRun, TaskRun.task_run_id == Confirmation.task_run_id)
+        .join(SessionRecord, SessionRecord.session_id == TaskRun.session_id)
+        .where(
+            Confirmation.confirmation_id == confirmation_id,
+            SessionRecord.shop_id == shop_id,
+        )
+    )
+
+
+def _list_confirmations_for_shop(
+    db_session: Session,
+    *,
+    shop_id: str,
+    status_filter: str | None,
+    limit: int,
+) -> list[Confirmation]:
+    statement = (
+        select(Confirmation)
+        .join(TaskRun, TaskRun.task_run_id == Confirmation.task_run_id)
+        .join(SessionRecord, SessionRecord.session_id == TaskRun.session_id)
+        .where(SessionRecord.shop_id == shop_id)
+    )
+    if status_filter is not None:
+        statement = statement.where(Confirmation.status == status_filter)
+    statement = statement.order_by(Confirmation.created_at.desc(), Confirmation.confirmation_id.desc()).limit(limit)
+    return list(db_session.scalars(statement))
+
+
 @router.get("", response_model=ListConfirmationsResponse)
 def get_confirmations(
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     status_filter: str | None = Query(default="pending", alias="status"),
     limit: int = Query(default=20, ge=1, le=50),
     db_session: Session = Depends(get_db_session),
 ) -> ListConfirmationsResponse | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    page = list_confirmations(
+    confirmations = _list_confirmations_for_shop(
         db_session,
-        status=status_filter,
-        limit=limit,
+        shop_id=auth.shop_id,
+        status_filter=status_filter,
+        limit=max(1, min(limit, 50)),
     )
     return ListConfirmationsResponse(
-        data=[_to_confirmation_data(confirmation) for confirmation in page.items],
-        meta=ListConfirmationsMeta(count=len(page.items)),
+        data=[_to_confirmation_data(confirmation) for confirmation in confirmations],
+        meta=ListConfirmationsMeta(count=len(confirmations)),
     )
 
 
@@ -107,14 +138,15 @@ def get_confirmations(
 def post_approve_confirmation(
     confirmation_id: str,
     payload: ApproveConfirmationRequest,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[ConfirmationData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     try:
-        confirmation = db_session.get(Confirmation, confirmation_id)
+        confirmation = _load_confirmation_for_shop(
+            db_session,
+            confirmation_id=confirmation_id,
+            shop_id=auth.shop_id,
+        )
         if confirmation is None:
             raise LookupError(confirmation_id)
         if confirmation.confirmation_type == "receipt-stock-in-batch":
@@ -122,21 +154,21 @@ def post_approve_confirmation(
                 db_session,
                 confirmation_id=confirmation_id,
                 payload_fields=payload.fields,
-                approved_by_actor_id="owner_default",
+                approved_by_actor_id=auth.actor_id,
             )
         elif confirmation.confirmation_type == "stock-out":
             result = commit_approved_stock_out_confirmation(
                 db_session,
                 confirmation_id=confirmation_id,
                 payload_fields=payload.fields,
-                approved_by_actor_id="owner_default",
+                approved_by_actor_id=auth.actor_id,
             )
         else:
             result = commit_approved_stock_in_confirmation(
                 db_session,
                 confirmation_id=confirmation_id,
                 payload_fields=payload.fields,
-                approved_by_actor_id="owner_default",
+                approved_by_actor_id=auth.actor_id,
             )
     except InventoryItemNotFoundError:
         return _error_response(
@@ -186,13 +218,17 @@ def post_approve_confirmation(
 @router.post("/{confirmation_id}/reject", response_model=DataEnvelope[ConfirmationData])
 def post_reject_confirmation(
     confirmation_id: str,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[ConfirmationData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     try:
+        confirmation = _load_confirmation_for_shop(
+            db_session,
+            confirmation_id=confirmation_id,
+            shop_id=auth.shop_id,
+        )
+        if confirmation is None:
+            raise LookupError(confirmation_id)
         confirmation = reject_confirmation(
             db_session,
             confirmation_id=confirmation_id,

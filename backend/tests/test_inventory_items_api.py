@@ -7,9 +7,10 @@ from app.db.session import get_session_factory
 from app.models import Confirmation, InventoryItem
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _commit_stock_in(
@@ -23,7 +24,7 @@ def _commit_stock_in(
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client, monkeypatch),
         json={
             "message_type": "text",
             "text": f"restock {item_name}",
@@ -62,7 +63,7 @@ def _commit_stock_in(
 def _create_uploaded_media(client, *, media_type: str, file_name: str, content_type: str) -> str:
     create_response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": media_type,
             "file_name": file_name,
@@ -75,7 +76,7 @@ def _create_uploaded_media(client, *, media_type: str, file_name: str, content_t
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": f"{media_id}_checksum",
             "size_bytes": 2048,
@@ -101,7 +102,7 @@ def test_get_inventory_items_lists_active_items_newest_first(client, monkeypatch
         quantity=2,
     )
 
-    response = client.get("/api/v1/inventory-items?limit=20", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/inventory-items?limit=20", headers=_auth_headers(client))
 
     assert response.status_code == 200
     payload = response.json()
@@ -125,7 +126,7 @@ def test_get_inventory_items_filters_by_query(client, monkeypatch) -> None:
         quantity=2,
     )
 
-    response = client.get("/api/v1/inventory-items?query=ora", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/inventory-items?query=ora", headers=_auth_headers(client))
 
     assert response.status_code == 200
     payload = response.json()
@@ -141,8 +142,8 @@ def test_get_inventory_item_returns_detail_and_not_found(client, monkeypatch) ->
         quantity=3,
     )
 
-    response = client.get(f"/api/v1/inventory-items/{item_id}", headers=AUTH_HEADERS)
-    not_found_response = client.get("/api/v1/inventory-items/item_missing", headers=AUTH_HEADERS)
+    response = client.get(f"/api/v1/inventory-items/{item_id}", headers=_auth_headers(client))
+    not_found_response = client.get("/api/v1/inventory-items/item_missing", headers=_auth_headers(client))
 
     assert response.status_code == 200
     assert response.json()["data"]["item_id"] == item_id
@@ -176,7 +177,7 @@ def test_post_recognize_and_query_returns_recognized_item_and_inventory(client, 
 
     response = client.post(
         "/api/v1/inventory-items/recognize-and-query",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_id": media_id,
         },

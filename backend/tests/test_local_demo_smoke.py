@@ -2,8 +2,7 @@ import importlib
 
 import pytest
 
-
-AUTH_TOKEN = "mock_owner_token"
+from conftest import login_and_get_token
 
 
 def _load_local_demo_smoke_module():
@@ -30,10 +29,11 @@ def _build_request_adapter(client):
 
 def test_run_local_demo_smoke_validates_known_good_demo_state(client) -> None:
     module = _load_local_demo_smoke_module()
+    auth_token = login_and_get_token(client)
 
     result = module.run_local_demo_smoke(
         api_base_url="http://127.0.0.1:8001",
-        auth_token=AUTH_TOKEN,
+        auth_token=auth_token,
         request_json=_build_request_adapter(client),
     )
 
@@ -52,6 +52,7 @@ def test_run_local_demo_smoke_validates_known_good_demo_state(client) -> None:
 def test_run_local_demo_smoke_raises_clear_error_on_demo_state_drift(client) -> None:
     module = _load_local_demo_smoke_module()
     base_request = _build_request_adapter(client)
+    auth_token = login_and_get_token(client)
 
     def drifting_request(
         method: str,
@@ -73,6 +74,6 @@ def test_run_local_demo_smoke_raises_clear_error_on_demo_state_drift(client) -> 
     with pytest.raises(module.LocalDemoSmokeError, match="pending confirmations"):
         module.run_local_demo_smoke(
             api_base_url="http://127.0.0.1:8001",
-            auth_token=AUTH_TOKEN,
+            auth_token=auth_token,
             request_json=drifting_request,
         )

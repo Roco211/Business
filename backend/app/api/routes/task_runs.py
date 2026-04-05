@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.task_run import TaskRunData
 from app.db.session import get_db_session
-from app.models import Confirmation, TaskRun
+from app.models import Confirmation, SessionRecord, TaskRun
 
 router = APIRouter(prefix="/api/v1/task-runs", tags=["task-runs"])
 
@@ -35,16 +36,29 @@ def _load_confirmation_id(db_session: Session, *, task_run_id: str) -> str | Non
     )
 
 
+def _load_task_run_for_shop(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    shop_id: str,
+) -> TaskRun | None:
+    return db_session.scalar(
+        select(TaskRun)
+        .join(SessionRecord, SessionRecord.session_id == TaskRun.session_id)
+        .where(
+            TaskRun.task_run_id == task_run_id,
+            SessionRecord.shop_id == shop_id,
+        )
+    )
+
+
 @router.get("/{task_run_id}", response_model=DataEnvelope[TaskRunData])
 def get_task_run(
     task_run_id: str,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[TaskRunData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    task_run = db_session.get(TaskRun, task_run_id)
+    task_run = _load_task_run_for_shop(db_session, task_run_id=task_run_id, shop_id=auth.shop_id)
     if task_run is None:
         return _not_found()
 

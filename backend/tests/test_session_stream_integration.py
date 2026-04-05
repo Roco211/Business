@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.api.routes import messages as message_routes
-from conftest import load_create_app, upgrade_test_database
+from conftest import auth_headers, load_create_app, login_and_get_token, upgrade_test_database
 
 
 def _create_websocket_client(monkeypatch, tmp_path, *, keepalive_seconds: str = "0.001") -> TestClient:
@@ -20,23 +20,28 @@ def _receive_business_event(websocket):
     raise AssertionError("Expected a business session stream event")
 
 
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
+
+
 def test_session_stream_ws_receives_message_created_after_post_message(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
 
     with _create_websocket_client(monkeypatch, tmp_path) as client:
+        token = login_and_get_token(client, monkeypatch)
         bootstrap_response = client.post(
             "/api/v1/sessions/bootstrap",
-            headers={"Authorization": "Bearer mock_owner_token"},
+            headers=auth_headers(token),
         )
         session_id = bootstrap_response.json()["data"]["session_id"]
 
         with client.websocket_connect(
-            f"/api/v1/ws/sessions/{session_id}?token=mock_owner_token"
+            f"/api/v1/ws/sessions/{session_id}?token={token}"
         ) as websocket:
             ready_event = websocket.receive_json()
             create_response = client.post(
                 f"/api/v1/sessions/{session_id}/messages",
-                headers={"Authorization": "Bearer mock_owner_token"},
+                headers=auth_headers(token),
                 json={
                     "message_type": "text",
                     "text": "restock cola",
@@ -58,15 +63,16 @@ def test_session_stream_ws_replays_same_backlog_to_independent_subscribers(monke
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
 
     with _create_websocket_client(monkeypatch, tmp_path) as client:
+        token = login_and_get_token(client, monkeypatch)
         bootstrap_response = client.post(
             "/api/v1/sessions/bootstrap",
-            headers={"Authorization": "Bearer mock_owner_token"},
+            headers=auth_headers(token),
         )
         session_id = bootstrap_response.json()["data"]["session_id"]
 
         create_response = client.post(
             f"/api/v1/sessions/{session_id}/messages",
-            headers={"Authorization": "Bearer mock_owner_token"},
+            headers=auth_headers(token),
             json={
                 "message_type": "text",
                 "text": "restock cola",
@@ -76,13 +82,13 @@ def test_session_stream_ws_replays_same_backlog_to_independent_subscribers(monke
         )
 
         with client.websocket_connect(
-            f"/api/v1/ws/sessions/{session_id}?token=mock_owner_token&after_seq=0"
+            f"/api/v1/ws/sessions/{session_id}?token={token}&after_seq=0"
         ) as first_websocket:
             first_websocket.receive_json()
             first_replayed_event = _receive_business_event(first_websocket)
 
         with client.websocket_connect(
-            f"/api/v1/ws/sessions/{session_id}?token=mock_owner_token&after_seq=0"
+            f"/api/v1/ws/sessions/{session_id}?token={token}&after_seq=0"
         ) as second_websocket:
             second_websocket.receive_json()
             second_replayed_event = _receive_business_event(second_websocket)

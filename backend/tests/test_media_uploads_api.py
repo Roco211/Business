@@ -1,7 +1,8 @@
 from app.models import MediaUpload
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def test_create_media_upload_requires_authorization(client) -> None:
@@ -22,7 +23,7 @@ def test_create_media_upload_requires_authorization(client) -> None:
 def test_create_media_upload_returns_pending_upload_contract(client) -> None:
     response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": "audio",
             "file_name": "voice.m4a",
@@ -41,7 +42,7 @@ def test_create_media_upload_returns_pending_upload_contract(client) -> None:
 def test_complete_media_upload_marks_record_uploaded(client) -> None:
     create_response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": "audio",
             "file_name": "voice.m4a",
@@ -53,7 +54,7 @@ def test_complete_media_upload_marks_record_uploaded(client) -> None:
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": "abc123",
             "size_bytes": 1024,
@@ -70,7 +71,7 @@ def test_complete_media_upload_marks_record_uploaded(client) -> None:
 def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
     create_response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": "audio",
             "file_name": "voice.m4a",
@@ -81,7 +82,7 @@ def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
     media_id = create_response.json()["data"]["media_id"]
     client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": "abc123",
             "size_bytes": 1024,
@@ -90,7 +91,7 @@ def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
 
     complete_again = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": "abc123",
             "size_bytes": 1024,

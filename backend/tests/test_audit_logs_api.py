@@ -5,9 +5,10 @@ from app.db.session import get_session_factory
 from app.models import Confirmation
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _commit_stock_in(
@@ -21,7 +22,7 @@ def _commit_stock_in(
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client, monkeypatch),
         json={
             "message_type": "text",
             "text": f"restock {item_name}",
@@ -71,7 +72,7 @@ def test_get_audit_logs_lists_inventory_scope_newest_first(client, monkeypatch) 
         quantity=2,
     )
 
-    response = client.get("/api/v1/audit-logs?scope=inventory&limit=20", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/audit-logs?scope=inventory&limit=20", headers=_auth_headers(client))
 
     assert response.status_code == 200
     payload = response.json()
@@ -81,7 +82,7 @@ def test_get_audit_logs_lists_inventory_scope_newest_first(client, monkeypatch) 
 
 
 def test_get_audit_logs_rejects_unsupported_scope(client) -> None:
-    response = client.get("/api/v1/audit-logs?scope=other", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/audit-logs?scope=other", headers=_auth_headers(client))
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "unsupported_audit_scope"

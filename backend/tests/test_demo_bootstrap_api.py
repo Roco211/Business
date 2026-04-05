@@ -1,9 +1,14 @@
+from conftest import auth_headers, login_and_get_token
+
 DEFAULT_SESSION_ID = "sess_default"
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _post_demo_bootstrap(client) -> dict[str, object]:
-    response = client.post("/api/v1/system/demo/bootstrap", headers=AUTH_HEADERS)
+    response = client.post("/api/v1/system/demo/bootstrap", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
@@ -17,8 +22,8 @@ def test_demo_bootstrap_endpoint_requires_owner_auth(client) -> None:
 
 def test_demo_bootstrap_endpoint_returns_stable_summary_and_seeded_state(client) -> None:
     summary = _post_demo_bootstrap(client)
-    messages_response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=AUTH_HEADERS)
-    dashboard_response = client.get("/api/v1/dashboard/summary", headers=AUTH_HEADERS)
+    messages_response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=_auth_headers(client))
+    dashboard_response = client.get("/api/v1/dashboard/summary", headers=_auth_headers(client))
 
     assert summary == {
         "shop_id": "shop_default",

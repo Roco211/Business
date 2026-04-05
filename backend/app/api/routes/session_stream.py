@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, Header, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context, resolve_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.session_stream import SessionStreamEventEnvelope
 from app.db.session import get_db_session, get_session_factory
@@ -37,13 +39,15 @@ def list_stream_events(
     session_id: str,
     after_seq: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[list[SessionStreamEventEnvelope]] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _build_unauthorized_response()
-
-    session = db_session.get(SessionRecord, session_id)
+    session = db_session.scalar(
+        select(SessionRecord).where(
+            SessionRecord.session_id == session_id,
+            SessionRecord.shop_id == auth.shop_id,
+        )
+    )
     if session is None:
         payload = ErrorEnvelope(
             error=ErrorBody(
@@ -72,17 +76,27 @@ async def _close_websocket(websocket: WebSocket, *, code: int) -> None:
 @router.websocket("/api/v1/ws/sessions/{session_id}")
 async def session_stream_websocket(websocket: WebSocket, session_id: str) -> None:
     token = websocket.query_params.get("token")
-    if token != "mock_owner_token":
-        await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
-        return
-
     session_factory = get_session_factory()
     db_session = session_factory()
     manager = get_session_stream_manager(websocket.app)
     connected = False
 
     try:
-        session = db_session.get(SessionRecord, session_id)
+        if token is None or token == "":
+            await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
+            return
+
+        auth = resolve_authenticated_context(db_session, bearer_token=token)
+        if auth is None:
+            await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
+            return
+
+        session = db_session.scalar(
+            select(SessionRecord).where(
+                SessionRecord.session_id == session_id,
+                SessionRecord.shop_id == auth.shop_id,
+            )
+        )
         if session is None:
             await _close_websocket(websocket, code=SESSION_NOT_FOUND_CLOSE_CODE)
             return

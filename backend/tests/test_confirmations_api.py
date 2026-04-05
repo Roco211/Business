@@ -7,9 +7,10 @@ from app.db.session import get_session_factory
 from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, MediaUpload, Message, OcrDocument, TaskRun
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _create_runtime_pending_confirmation(
@@ -22,7 +23,7 @@ def _create_runtime_pending_confirmation(
 
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "restock apples today",
@@ -56,7 +57,7 @@ def _create_runtime_pending_stock_out_confirmation(
 
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "stock out cola for walk in sale",
@@ -154,7 +155,7 @@ def _create_runtime_pending_receipt_confirmation(
 
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "message_type": "receipt-image",
             "text": None,
@@ -199,7 +200,7 @@ def test_list_confirmations_returns_runtime_created_pending_confirmations_newest
 
     response = client.get(
         "/api/v1/confirmations?status=pending&limit=20",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     assert response.status_code == 200
@@ -233,7 +234,7 @@ def test_list_confirmations_defaults_to_pending_and_excludes_approved_items(
 
     approve_response = client.post(
         f"/api/v1/confirmations/{approved_confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_name": "Apple",
@@ -245,7 +246,7 @@ def test_list_confirmations_defaults_to_pending_and_excludes_approved_items(
     )
     response = client.get(
         "/api/v1/confirmations?limit=20",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     assert approve_response.status_code == 200
@@ -270,7 +271,7 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
 
     approve_response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_name": "Apple",
@@ -282,7 +283,7 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
     )
     task_run_response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     db_session = get_session_factory()()
@@ -344,7 +345,7 @@ def test_approve_receipt_confirmation_commits_all_lines_and_projects_confirmatio
 
     approve_response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "items": [
@@ -368,7 +369,7 @@ def test_approve_receipt_confirmation_commits_all_lines_and_projects_confirmatio
     )
     task_run_response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     db_session = get_session_factory()()
@@ -455,7 +456,7 @@ def test_approve_stock_out_confirmation_commits_inventory_event_and_projects_con
 
     approve_response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_name": "Cola",
@@ -466,7 +467,7 @@ def test_approve_stock_out_confirmation_commits_inventory_event_and_projects_con
     )
     task_run_response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     db_session = get_session_factory()()
@@ -533,7 +534,7 @@ def test_approve_stock_out_confirmation_returns_validation_error_for_insufficien
 
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_name": "Cola",
@@ -559,7 +560,7 @@ def test_reject_confirmation_rejects_task_run_and_writes_runtime_message(
 
     reject_response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/reject",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     db_session = get_session_factory()()
@@ -605,7 +606,7 @@ def test_approve_confirmation_requires_non_empty_fields(client, monkeypatch) -> 
 
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={"fields": {}},
     )
 
@@ -622,7 +623,7 @@ def test_approve_receipt_confirmation_requires_non_empty_items(client, monkeypat
 
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={"fields": {"items": []}},
     )
 
@@ -639,7 +640,7 @@ def test_approve_confirmation_returns_404_for_unknown_item_id(client, monkeypatc
 
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_id": "item_missing",
@@ -688,7 +689,7 @@ def test_approve_confirmation_returns_409_for_unit_mismatch(client, monkeypatch)
 
     response = client.post(
         f"/api/v1/confirmations/{confirmation_id}/approve",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "fields": {
                 "item_name": "Apple",

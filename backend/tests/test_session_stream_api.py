@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.services import session_stream as session_stream_service
 from app.services.bootstrap import ensure_default_context
-from conftest import load_create_app
+from conftest import auth_headers, load_create_app, login_and_get_token
 
 
 def test_session_stream_events_api_replays_events_after_seq_and_requires_auth(db_session) -> None:
@@ -26,12 +26,13 @@ def test_session_stream_events_api_replays_events_after_seq_and_requires_auth(db
     db_session.commit()
 
     with TestClient(load_create_app()()) as client:
+        token = login_and_get_token(client, monkeypatch=None)
         unauthorized_response = client.get(
             f"/api/v1/sessions/{context.session.session_id}/stream-events?after_seq=0&limit=10"
         )
         response = client.get(
             f"/api/v1/sessions/{context.session.session_id}/stream-events?after_seq={first_event.seq}&limit=10",
-            headers={"Authorization": "Bearer mock_owner_token"},
+            headers=auth_headers(token),
         )
 
     assert unauthorized_response.status_code == 401

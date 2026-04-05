@@ -1,9 +1,11 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.message import (
     CreateSessionMessageData,
@@ -12,8 +14,9 @@ from app.contracts.message import (
     SessionMessagesMeta,
     SessionMessagesResponse,
 )
+from app.core.config import get_settings
 from app.db.session import get_db_session
-from app.models import TaskRun
+from app.models import SessionRecord, TaskRun
 from app.services.bootstrap import ensure_default_context
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import (
@@ -89,18 +92,41 @@ def _record_dispatch_attempt(db_session: Session, task_run_id: str, *, dispatche
         return
 
 
+def _load_shop_session(
+    db_session: Session,
+    *,
+    session_id: str,
+    shop_id: str,
+) -> SessionRecord | None:
+    session = db_session.scalar(
+        select(SessionRecord).where(
+            SessionRecord.session_id == session_id,
+            SessionRecord.shop_id == shop_id,
+        )
+    )
+    if session is not None:
+        return session
+
+    settings = get_settings()
+    if session_id != settings.default_session_id or shop_id != settings.default_shop_id:
+        return None
+
+    context = ensure_default_context(db_session)
+    if context.session.session_id == session_id and context.shop.shop_id == shop_id:
+        return context.session
+    return None
+
+
 @router.get("/{session_id}/messages", response_model=SessionMessagesResponse)
 def get_session_messages(
     session_id: str,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     limit: int = Query(default=20, ge=1, le=50),
     cursor: str | None = Query(default=None),
     db_session: Session = Depends(get_db_session),
 ) -> SessionMessagesResponse | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    ensure_default_context(db_session)
+    if _load_shop_session(db_session, session_id=session_id, shop_id=auth.shop_id) is None:
+        return _error_response(status.HTTP_404_NOT_FOUND, "session_not_found", "Session not found")
 
     try:
         page = list_messages(
@@ -138,20 +164,18 @@ def get_session_messages(
 def post_session_message(
     session_id: str,
     payload: CreateSessionMessageRequest,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateSessionMessageData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    ensure_default_context(db_session)
+    if _load_shop_session(db_session, session_id=session_id, shop_id=auth.shop_id) is None:
+        return _error_response(status.HTTP_404_NOT_FOUND, "session_not_found", "Session not found")
 
     try:
         result = create_message(
             db_session,
             session_id=session_id,
             actor_type="owner",
-            actor_id="owner_default",
+            actor_id=auth.actor_id,
             message_type=payload.message_type,
             text=payload.text,
             media_ids=payload.media_ids,

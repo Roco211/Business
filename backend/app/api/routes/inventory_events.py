@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.inventory_event import (
     CreateInventoryCorrectionData,
@@ -9,7 +10,6 @@ from app.contracts.inventory_event import (
     CreateInventoryStockOutData,
     CreateInventoryStockOutRequest,
 )
-from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.services.inventory_corrections import (
     InventoryCorrectionConflictError,
@@ -48,22 +48,18 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
 @router.post("/corrections", response_model=DataEnvelope[CreateInventoryCorrectionData])
 def post_inventory_correction(
     payload: CreateInventoryCorrectionRequest,
-    authorization: str | None = Header(default=None),
-    settings: Settings = Depends(get_settings),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateInventoryCorrectionData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     try:
         result = submit_inventory_correction(
             db_session,
-            shop_id=settings.default_shop_id,
+            shop_id=auth.shop_id,
             item_id=payload.item_id,
             expected_quantity=payload.expected_quantity,
             corrected_quantity=payload.corrected_quantity,
             reason=payload.reason,
-            actor_id=settings.default_owner_actor_id,
+            actor_id=auth.actor_id,
         )
     except InventoryCorrectionItemNotFoundError:
         return _error_response(status.HTTP_404_NOT_FOUND, "item_not_found", "Inventory item not found")
@@ -92,22 +88,18 @@ def post_inventory_correction(
 @router.post("/stock-out", response_model=DataEnvelope[CreateInventoryStockOutData])
 def post_inventory_stock_out(
     payload: CreateInventoryStockOutRequest,
-    authorization: str | None = Header(default=None),
-    settings: Settings = Depends(get_settings),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateInventoryStockOutData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     try:
         result = submit_inventory_stock_out(
             db_session,
-            shop_id=settings.default_shop_id,
+            shop_id=auth.shop_id,
             item_id=payload.item_id,
             expected_quantity=payload.expected_quantity,
             stock_out_quantity=payload.stock_out_quantity,
             reason=payload.reason,
-            actor_id=settings.default_owner_actor_id,
+            actor_id=auth.actor_id,
         )
     except InventoryStockOutItemNotFoundError:
         return _error_response(status.HTTP_404_NOT_FOUND, "item_not_found", "Inventory item not found")

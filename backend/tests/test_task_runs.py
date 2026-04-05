@@ -1,6 +1,11 @@
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
 from app.runtime.processor import process_task_run
+from conftest import auth_headers, login_and_get_token
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def test_get_task_run_requires_authorization(client) -> None:
@@ -15,7 +20,7 @@ def test_get_task_run_returns_runtime_state_shape(client, monkeypatch) -> None:
 
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "poll task state",
@@ -27,7 +32,7 @@ def test_get_task_run_returns_runtime_state_shape(client, monkeypatch) -> None:
 
     response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
     )
 
     assert create_response.status_code == 201
@@ -53,7 +58,7 @@ def test_get_task_run_projects_pending_confirmation_id(client, monkeypatch) -> N
 
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "restock apples today",
@@ -71,7 +76,7 @@ def test_get_task_run_projects_pending_confirmation_id(client, monkeypatch) -> N
 
     response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
     )
 
     assert create_response.status_code == 201
@@ -86,7 +91,7 @@ def test_get_task_run_projects_pending_confirmation_id(client, monkeypatch) -> N
 def test_get_task_run_returns_not_found_for_unknown_task(client) -> None:
     response = client.get(
         "/api/v1/task-runs/task_missing",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
     )
 
     assert response.status_code == 404

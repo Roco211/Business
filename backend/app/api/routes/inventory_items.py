@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.inventory_item import (
     InventoryItemData,
@@ -12,7 +13,6 @@ from app.contracts.inventory_item import (
     RecognizeAndQueryRequest,
     RecognizedItemData,
 )
-from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.models import InventoryItem
 from app.services.inventory_items import (
@@ -62,18 +62,14 @@ def _to_inventory_item_data(item: InventoryItem) -> InventoryItemData:
 
 @router.get("", response_model=ListInventoryItemsResponse)
 def get_inventory_items(
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     query: str | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=50),
-    settings: Settings = Depends(get_settings),
     db_session: Session = Depends(get_db_session),
 ) -> ListInventoryItemsResponse | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
     page = list_inventory_items(
         db_session,
-        shop_id=settings.default_shop_id,
+        shop_id=auth.shop_id,
         query=query,
         limit=limit,
     )
@@ -86,16 +82,13 @@ def get_inventory_items(
 @router.post("/recognize-and-query", response_model=DataEnvelope[RecognizeAndQueryData])
 def post_recognize_and_query_inventory_item(
     payload: RecognizeAndQueryRequest,
-    authorization: str | None = Header(default=None),
-    settings: Settings = Depends(get_settings),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[RecognizeAndQueryData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
     try:
         result = recognize_inventory_item_from_media(
             db_session,
-            shop_id=settings.default_shop_id,
+            shop_id=auth.shop_id,
             media_id=payload.media_id,
         )
     except MediaUploadNotReadyError:
@@ -123,16 +116,13 @@ def post_recognize_and_query_inventory_item(
 @router.get("/{item_id}", response_model=DataEnvelope[InventoryItemData])
 def get_inventory_item_detail(
     item_id: str,
-    authorization: str | None = Header(default=None),
-    settings: Settings = Depends(get_settings),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[InventoryItemData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
     try:
         item = get_inventory_item(
             db_session,
-            shop_id=settings.default_shop_id,
+            shop_id=auth.shop_id,
             item_id=item_id,
         )
     except LookupError:

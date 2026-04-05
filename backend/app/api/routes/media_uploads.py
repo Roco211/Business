@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.media_upload import (
     CompleteMediaUploadData,
@@ -10,7 +11,7 @@ from app.contracts.media_upload import (
     CreateMediaUploadRequest,
 )
 from app.db.session import get_db_session
-from app.services.bootstrap import ensure_default_context
+from app.models import MediaUpload
 from app.services.media_uploads import (
     MediaUploadConflictError,
     MediaUploadValidationError,
@@ -42,20 +43,15 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
 @router.post("", response_model=DataEnvelope[CreateMediaUploadData])
 def post_create_media_upload(
     payload: CreateMediaUploadRequest,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateMediaUploadData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    context = ensure_default_context(db_session)
-
     try:
         result = create_media_upload(
             db_session,
-            shop_id=context.shop.shop_id,
+            shop_id=auth.shop_id,
             uploader_actor_type="owner",
-            uploader_actor_id="owner_default",
+            uploader_actor_id=auth.actor_id,
             media_type=payload.media_type,
             file_name=payload.file_name,
             content_type=payload.content_type,
@@ -80,13 +76,12 @@ def post_create_media_upload(
 def post_complete_media_upload(
     media_id: str,
     payload: CompleteMediaUploadRequest,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CompleteMediaUploadData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    ensure_default_context(db_session)
+    media_upload = db_session.get(MediaUpload, media_id)
+    if media_upload is None or media_upload.shop_id != auth.shop_id:
+        return _error_response(status.HTTP_404_NOT_FOUND, "media_upload_not_found", "Media upload not found")
 
     try:
         result = mark_media_upload_complete(

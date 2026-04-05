@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.alert import ListAlertsMeta, ListLowStockAlertsResponse, LowStockAlertData
 from app.contracts.common import ErrorBody, ErrorEnvelope
 from app.db.session import get_db_session
 from app.models import InventoryItem
 from app.services.alerts import LOW_STOCK_ALERT_TYPE, list_low_stock_alerts
-from app.services.bootstrap import ensure_default_shop
 
 router = APIRouter(prefix="/api/v1/alerts", tags=["alerts"])
 
@@ -36,18 +36,15 @@ def _unsupported_alert_type() -> JSONResponse:
 
 @router.get("", response_model=ListLowStockAlertsResponse)
 def get_alerts(
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     alert_type: str = Query(default=LOW_STOCK_ALERT_TYPE, alias="type"),
     limit: int = Query(default=20, ge=1, le=50),
     db_session: Session = Depends(get_db_session),
 ) -> ListLowStockAlertsResponse | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
     if alert_type != LOW_STOCK_ALERT_TYPE:
         return _unsupported_alert_type()
 
-    shop = ensure_default_shop(db_session)
-    page = list_low_stock_alerts(db_session, shop_id=shop.shop_id, limit=limit)
+    page = list_low_stock_alerts(db_session, shop_id=auth.shop_id, limit=limit)
     data: list[LowStockAlertData] = []
     for alert in page.items:
         item = db_session.get(InventoryItem, alert.item_id)

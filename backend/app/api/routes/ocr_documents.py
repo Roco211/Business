@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.ocr_document import (
     CreateOcrDocumentData,
@@ -9,7 +10,6 @@ from app.contracts.ocr_document import (
     OcrDocumentData,
 )
 from app.db.session import get_db_session
-from app.services.bootstrap import ensure_default_context
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.mock_multimodal import MockMultimodalValidationError
 from app.services.ocr_documents import create_mock_ocr_document, get_ocr_document
@@ -51,17 +51,13 @@ def _to_ocr_document_data(document) -> OcrDocumentData:
 @router.post("", response_model=DataEnvelope[CreateOcrDocumentData])
 def post_create_ocr_document(
     payload: CreateOcrDocumentRequest,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateOcrDocumentData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    context = ensure_default_context(db_session)
     try:
         result = create_mock_ocr_document(
             db_session,
-            shop_id=context.shop.shop_id,
+            shop_id=auth.shop_id,
             media_id=payload.media_id,
             document_type=payload.document_type,
             task_run_id=None,
@@ -88,17 +84,13 @@ def post_create_ocr_document(
 @router.get("/{ocr_document_id}", response_model=DataEnvelope[OcrDocumentData])
 def get_ocr_document_detail(
     ocr_document_id: str,
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[OcrDocumentData] | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
-
-    context = ensure_default_context(db_session)
     try:
         document = get_ocr_document(
             db_session,
-            shop_id=context.shop.shop_id,
+            shop_id=auth.shop_id,
             ocr_document_id=ocr_document_id,
         )
     except LookupError:

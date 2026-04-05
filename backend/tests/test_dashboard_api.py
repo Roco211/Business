@@ -8,16 +8,14 @@ from app.models import Confirmation
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 from app.services.bootstrap import ensure_default_context
+from conftest import auth_headers, login_and_get_token
 
 
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
-
-
-def _create_pending_confirmation(client, monkeypatch, *, client_request_id: str) -> str:
+def _create_pending_confirmation(client, monkeypatch, *, client_request_id: str, token: str) -> str:
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=auth_headers(token),
         json={
             "message_type": "text",
             "text": "restock apples today",
@@ -38,11 +36,12 @@ def _create_pending_confirmation(client, monkeypatch, *, client_request_id: str)
     return task_run_id
 
 
-def _create_open_low_stock_alert(client, monkeypatch, *, client_request_id: str) -> None:
+def _create_open_low_stock_alert(client, monkeypatch, *, client_request_id: str, token: str) -> None:
     task_run_id = _create_pending_confirmation(
         client,
         monkeypatch,
         client_request_id=client_request_id,
+        token=token,
     )
     db_session = get_session_factory()()
     try:
@@ -63,19 +62,23 @@ def _create_open_low_stock_alert(client, monkeypatch, *, client_request_id: str)
         db_session.close()
 
 
-def test_get_dashboard_summary_returns_current_shop_counts(client, monkeypatch) -> None:
+def test_dashboard_summary_uses_authenticated_shop_context(client, monkeypatch) -> None:
+    token = login_and_get_token(client, monkeypatch)
+
     _create_open_low_stock_alert(
         client,
         monkeypatch,
         client_request_id="dashboard_summary_stock_in",
+        token=token,
     )
     _create_pending_confirmation(
         client,
         monkeypatch,
         client_request_id="dashboard_summary_pending_confirmation",
+        token=token,
     )
 
-    response = client.get("/api/v1/dashboard/summary", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/dashboard/summary", headers=auth_headers(token))
 
     assert response.status_code == 200
     payload = response.json()["data"]

@@ -1,7 +1,12 @@
-def test_session_bootstrap_returns_default_workgroup(client) -> None:
+from conftest import auth_headers, login_and_get_token
+
+
+def test_session_bootstrap_accepts_real_login_token(client, monkeypatch) -> None:
+    token = login_and_get_token(client, monkeypatch)
+
     response = client.post(
         "/api/v1/sessions/bootstrap",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=auth_headers(token),
     )
 
     assert response.status_code == 200

@@ -5,11 +5,16 @@ import pytest
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
 from app.models import TaskRun
+from conftest import auth_headers, login_and_get_token
 
 
 @pytest.fixture(autouse=True)
 def _stub_runtime_dispatch(monkeypatch) -> None:
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def test_create_message_requires_authorization(client) -> None:
@@ -30,7 +35,7 @@ def test_create_message_requires_authorization(client) -> None:
 def test_create_message_returns_message_and_task_ids(client) -> None:
     response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "restock cola",
@@ -57,7 +62,7 @@ def test_create_message_dispatches_runtime_once_for_fresh_create(client, monkeyp
 
     response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "dispatch fresh create",
@@ -78,7 +83,7 @@ def test_create_message_marks_task_run_when_initial_dispatch_fails(client, monke
 
     response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "dispatch failure",
@@ -89,7 +94,7 @@ def test_create_message_marks_task_run_when_initial_dispatch_fails(client, monke
     task_run_id = response.json()["data"]["task_run_id"]
     task_run_response = client.get(
         f"/api/v1/task-runs/{task_run_id}",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
     )
 
     assert response.status_code == 201
@@ -103,7 +108,7 @@ def test_create_message_marks_task_run_when_initial_dispatch_fails(client, monke
 
 
 def test_create_message_returns_same_ids_on_idempotent_retry(client) -> None:
-    headers = {"Authorization": "Bearer mock_owner_token"}
+    headers = _auth_headers(client)
     body = {
         "message_type": "text",
         "text": "duplicate submit",
@@ -134,7 +139,7 @@ def test_create_message_retries_dispatch_on_pending_idempotent_retry(client, mon
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
     monkeypatch.setattr(message_routes, "_now", lambda: next(marker_times))
 
-    headers = {"Authorization": "Bearer mock_owner_token"}
+    headers = _auth_headers(client)
     body = {
         "message_type": "text",
         "text": "duplicate dispatch submit",
@@ -184,7 +189,7 @@ def test_create_message_does_not_redispatch_replay_after_task_run_advances(clien
 
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", fake_enqueue_runtime_task)
 
-    headers = {"Authorization": "Bearer mock_owner_token"}
+    headers = _auth_headers(client)
     body = {
         "message_type": "text",
         "text": "duplicate dispatch submit",
@@ -212,7 +217,7 @@ def test_create_message_does_not_redispatch_replay_after_task_run_advances(clien
 
 
 def test_create_message_returns_conflict_for_payload_drift(client) -> None:
-    headers = {"Authorization": "Bearer mock_owner_token"}
+    headers = _auth_headers(client)
 
     first = client.post(
         "/api/v1/sessions/sess_default/messages",
@@ -243,7 +248,7 @@ def test_create_message_returns_conflict_for_payload_drift(client) -> None:
 def test_create_message_returns_404_for_unknown_session(client) -> None:
     response = client.post(
         "/api/v1/sessions/sess_missing/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "text",
             "text": "missing",
@@ -259,7 +264,7 @@ def test_create_message_returns_404_for_unknown_session(client) -> None:
 def test_create_message_rejects_media_that_is_not_uploaded(client) -> None:
     upload_response = client.post(
         "/api/v1/media-uploads",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "media_type": "audio",
             "file_name": "voice.m4a",
@@ -271,7 +276,7 @@ def test_create_message_rejects_media_that_is_not_uploaded(client) -> None:
 
     response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers={"Authorization": "Bearer mock_owner_token"},
+        headers=_auth_headers(client),
         json={
             "message_type": "voice",
             "text": "restock apples today",
@@ -285,7 +290,7 @@ def test_create_message_rejects_media_that_is_not_uploaded(client) -> None:
 
 
 def test_list_messages_returns_newest_first_with_next_cursor(client) -> None:
-    headers = {"Authorization": "Bearer mock_owner_token"}
+    headers = _auth_headers(client)
     client.post(
         "/api/v1/sessions/sess_default/messages",
         headers=headers,

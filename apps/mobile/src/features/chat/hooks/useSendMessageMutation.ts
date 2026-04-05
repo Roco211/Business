@@ -20,6 +20,12 @@ type CreateSessionMessageRequest = {
 };
 
 
+type SubmitMessageOptions = {
+  message_type?: string;
+  media_ids?: string[];
+};
+
+
 function createClientRequestId() {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -29,7 +35,7 @@ export function useSendMessageMutation(sessionId: string | null) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function submitMessage(text: string) {
+  async function submitMessage(text: string, options?: SubmitMessageOptions) {
     const trimmedText = text.trim();
     if (sessionId === null || trimmedText.length === 0) {
       return null;
@@ -41,9 +47,9 @@ export function useSendMessageMutation(sessionId: string | null) {
       return await apiPostJson<CreateSessionMessageResponse, CreateSessionMessageRequest>(
         `/api/v1/sessions/${sessionId}/messages`,
         {
-          message_type: "text",
+          message_type: options?.message_type ?? "text",
           text: trimmedText,
-          media_ids: [],
+          media_ids: options?.media_ids ?? [],
           client_request_id: createClientRequestId(),
         },
       );

@@ -51,6 +51,8 @@ def test_ensure_default_context_is_idempotent(tmp_path) -> None:
         assert first.session.session_id == second.session.session_id
         assert len(db_session.scalars(select(Shop)).all()) == 1
         assert len(db_session.scalars(select(SessionRecord)).all()) == 1
+        assert len(db_session.scalars(select(OwnerAccount)).all()) == 1
+        assert len(db_session.scalars(select(ShopMembership)).all()) == 1
     finally:
         db_session.close()
         engine.dispose()
@@ -146,3 +148,23 @@ def test_get_settings_reads_seed_owner_env(monkeypatch) -> None:
     assert settings.seed_owner_email == "pilot@example.com"
     assert settings.seed_owner_password == "pilot-secret"
     assert settings.auth_session_ttl_minutes == 90
+
+
+def test_default_context_requires_explicit_owner_credentials_in_production(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.delenv("SEED_OWNER_EMAIL", raising=False)
+    monkeypatch.delenv("SEED_OWNER_PASSWORD", raising=False)
+
+    engine, db_session = create_test_session(tmp_path)
+    try:
+        try:
+            ensure_default_context(db_session)
+            assert False, "expected ensure_default_context to reject implicit owner credentials"
+        except ValueError as exc:
+            assert "SEED_OWNER_EMAIL" in str(exc)
+            assert "SEED_OWNER_PASSWORD" in str(exc)
+    finally:
+        db_session.close()
+        engine.dispose()

@@ -11,6 +11,9 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings, get_settings
 from app.models import OwnerAccount, SessionRecord, Shop, ShopMembership
 
+_LOCAL_SEED_OWNER_EMAIL = "owner@example.com"
+_LOCAL_SEED_OWNER_PASSWORD = "dev-password"
+
 
 @dataclass(frozen=True)
 class BootstrapContext:
@@ -59,11 +62,28 @@ def _hash_password(password: str) -> tuple[str, str]:
     return password_hash.hex(), salt.hex()
 
 
+def _resolve_seed_owner_credentials(settings: Settings) -> tuple[str, str]:
+    if settings.app_env in {"development", "test"}:
+        return (
+            settings.seed_owner_email or _LOCAL_SEED_OWNER_EMAIL,
+            settings.seed_owner_password or _LOCAL_SEED_OWNER_PASSWORD,
+        )
+
+    if settings.seed_owner_email and settings.seed_owner_password:
+        return settings.seed_owner_email, settings.seed_owner_password
+
+    raise ValueError(
+        f"APP_ENV '{settings.app_env}' requires explicit SEED_OWNER_EMAIL and "
+        "SEED_OWNER_PASSWORD before seeding default owner context."
+    )
+
+
 def _build_default_owner(settings: Settings, now: datetime) -> OwnerAccount:
-    password_hash, password_salt = _hash_password(settings.seed_owner_password)
+    seed_email, seed_password = _resolve_seed_owner_credentials(settings)
+    password_hash, password_salt = _hash_password(seed_password)
     return OwnerAccount(
         actor_id=settings.default_owner_actor_id,
-        email=settings.seed_owner_email,
+        email=seed_email,
         display_name=settings.seed_owner_display_name,
         password_hash=password_hash,
         password_salt=password_salt,

@@ -51,8 +51,11 @@ def upgrade() -> None:
         sa.Column("revoked_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["actor_id"], ["owner_accounts.actor_id"]),
-        sa.ForeignKeyConstraint(["shop_id"], ["shops.shop_id"]),
+        sa.ForeignKeyConstraint(
+            ["shop_id", "actor_id"],
+            ["shop_memberships.shop_id", "shop_memberships.actor_id"],
+            name="fk_auth_sessions_shop_membership",
+        ),
         sa.PrimaryKeyConstraint("auth_session_id"),
         sa.UniqueConstraint("session_token_hash"),
     )

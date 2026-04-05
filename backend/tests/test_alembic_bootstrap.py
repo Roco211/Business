@@ -25,6 +25,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "media_uploads" in inspector.get_table_names()
     assert "ocr_documents" in inspector.get_table_names()
     assert "session_stream_events" in inspector.get_table_names()
+    assert "owner_accounts" in inspector.get_table_names()
+    assert "shop_memberships" in inspector.get_table_names()
+    assert "auth_sessions" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
     assert {"session_id", "shop_id", "participants", "last_event_seq"} <= {
         column["name"] for column in inspector.get_columns("sessions")
@@ -53,7 +56,25 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert {"event_id", "session_id", "seq", "event_type", "payload"} <= {
         column["name"] for column in inspector.get_columns("session_stream_events")
     }
+    assert {"actor_id", "email", "password_hash", "password_salt", "status"} <= {
+        column["name"] for column in inspector.get_columns("owner_accounts")
+    }
+    assert {"membership_id", "shop_id", "actor_id", "role", "is_default_shop"} <= {
+        column["name"] for column in inspector.get_columns("shop_memberships")
+    }
+    assert {"auth_session_id", "shop_id", "actor_id", "session_token_hash", "expires_at"} <= {
+        column["name"] for column in inspector.get_columns("auth_sessions")
+    }
     assert inspector.get_foreign_keys("sessions")[0]["referred_table"] == "shops"
+
+    auth_session_fks = inspector.get_foreign_keys("auth_sessions")
+    membership_fk = next(
+        fk
+        for fk in auth_session_fks
+        if fk["referred_table"] == "shop_memberships"
+        and set(fk["constrained_columns"]) == {"shop_id", "actor_id"}
+    )
+    assert set(membership_fk["referred_columns"]) == {"shop_id", "actor_id"}
 
     message_indexes = {index["name"] for index in inspector.get_indexes("messages")}
     task_indexes = {index["name"] for index in inspector.get_indexes("task_runs")}
@@ -63,6 +84,7 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     media_upload_indexes = {index["name"] for index in inspector.get_indexes("media_uploads")}
     ocr_document_indexes = {index["name"] for index in inspector.get_indexes("ocr_documents")}
     session_stream_indexes = {index["name"] for index in inspector.get_indexes("session_stream_events")}
+    auth_session_indexes = {index["name"] for index in inspector.get_indexes("auth_sessions")}
     assert "ix_messages_session_created_at" in message_indexes
     assert "ix_task_runs_session_updated_at" in task_indexes
     assert "ix_task_runs_source_message_id" in task_indexes
@@ -72,3 +94,5 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "ix_media_uploads_shop_id_created_at" in media_upload_indexes
     assert "ix_ocr_documents_shop_id_created_at" in ocr_document_indexes
     assert "ix_session_stream_events_session_id_seq" in session_stream_indexes
+    assert "ix_auth_sessions_actor_id" in auth_session_indexes
+    assert "ix_auth_sessions_shop_id" in auth_session_indexes

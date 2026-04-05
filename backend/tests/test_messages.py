@@ -1,10 +1,12 @@
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
-from app.models import TaskRun
+from app.models import SessionRecord, Shop, TaskRun
+from app.services.bootstrap import BootstrapContext
 from conftest import auth_headers, login_and_get_token
 
 
@@ -15,6 +17,36 @@ def _stub_runtime_dispatch(monkeypatch) -> None:
 
 def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
     return auth_headers(login_and_get_token(client, monkeypatch))
+
+
+def _build_seeded_context(*, shop_id: str, session_id: str) -> BootstrapContext:
+    now = datetime.now().replace(microsecond=0)
+    shop = Shop(
+        shop_id=shop_id,
+        name="Seeded Shop",
+        owner_name="Owner",
+        industry="retail",
+        locale="zh-CN",
+        timezone="Asia/Shanghai",
+        require_price_confirmation=True,
+        require_new_item_confirmation=True,
+        low_confidence_threshold=Decimal("0.8500"),
+        default_low_stock_threshold=None,
+        created_at=now,
+        updated_at=now,
+    )
+    session = SessionRecord(
+        session_id=session_id,
+        shop_id=shop_id,
+        session_type="workgroup",
+        title="Seeded Session",
+        participants=["xiaoya"],
+        last_event_seq=0,
+        last_message_at=None,
+        created_at=now,
+        updated_at=now,
+    )
+    return BootstrapContext(shop=shop, session=session)
 
 
 def test_create_message_requires_authorization(client) -> None:
@@ -310,3 +342,23 @@ def test_list_messages_returns_newest_first_with_next_cursor(client) -> None:
     assert first_page.status_code == 200
     assert first_page.json()["data"][0]["text"] == "two"
     assert first_page.json()["meta"]["next_cursor"] is not None
+
+
+def test_load_shop_session_accepts_matching_seeded_fallback_without_default_id_check(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        message_routes,
+        "ensure_default_context",
+        lambda _db_session: _build_seeded_context(shop_id="shop_seeded", session_id="sess_seeded"),
+    )
+
+    session = message_routes._load_shop_session(
+        db_session,
+        session_id="sess_seeded",
+        shop_id="shop_seeded",
+    )
+
+    assert session is not None
+    assert session.session_id == "sess_seeded"

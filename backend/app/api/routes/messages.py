@@ -14,7 +14,6 @@ from app.contracts.message import (
     SessionMessagesMeta,
     SessionMessagesResponse,
 )
-from app.core.config import get_settings
 from app.db.session import get_db_session
 from app.models import SessionRecord, TaskRun
 from app.services.bootstrap import ensure_default_context
@@ -106,10 +105,6 @@ def _load_shop_session(
     )
     if session is not None:
         return session
-
-    settings = get_settings()
-    if session_id != settings.default_session_id or shop_id != settings.default_shop_id:
-        return None
 
     context = ensure_default_context(db_session)
     if context.session.session_id == session_id and context.shop.shop_id == shop_id:

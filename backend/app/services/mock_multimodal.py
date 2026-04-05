@@ -61,7 +61,7 @@ _RECEIPT_FIXTURES: dict[str, MockReceiptExtraction] = {
     "receipt_demo": MockReceiptExtraction(
         document_type="purchase-receipt",
         provider_name="mock-ocr-provider",
-        raw_text="Red Bull 250ml x 3 @ 41.0",
+        raw_text="Red Bull 250ml x 3 @ 41.0; Coca Cola 500ml x 2 @ 12.0",
         extracted_fields={
             "items": [
                 {
@@ -69,9 +69,15 @@ _RECEIPT_FIXTURES: dict[str, MockReceiptExtraction] = {
                     "quantity": 3,
                     "unit": "can",
                     "price": 41.0,
+                },
+                {
+                    "name": "Coca Cola 500ml",
+                    "quantity": 2,
+                    "unit": "bottle",
+                    "price": 12.0,
                 }
             ],
-            "total_amount": 123.0,
+            "total_amount": 147.0,
         },
         low_confidence_fields=[],
     ),

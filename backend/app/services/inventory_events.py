@@ -15,6 +15,7 @@ def append_stock_in_event(
     price: Decimal,
     task_run_id: str,
     created_by: str,
+    source: str = "voice-confirmed",
 ) -> InventoryEvent:
     now = datetime.now(UTC).replace(tzinfo=None)
     quantity_after = Decimal(item.current_stock) + quantity
@@ -27,7 +28,7 @@ def append_stock_in_event(
         quantity_after=quantity_after,
         unit=item.default_unit,
         price=price,
-        source="voice-confirmed",
+        source=source,
         task_run_id=task_run_id,
         created_by=created_by,
         reason=None,

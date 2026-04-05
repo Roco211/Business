@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Confirmation, TaskRun
+from app.models import Confirmation, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
@@ -35,6 +35,7 @@ def _build_confirmation_fields(
     task_type: str,
     transcript: str | None,
     payload: dict[str, object],
+    ocr_document: OcrDocument | None = None,
 ) -> dict[str, object]:
     if task_type == "photo-stock-in":
         return {
@@ -49,6 +50,35 @@ def _build_confirmation_fields(
             "required_fields": ["item_name", "quantity", "unit", "price"],
             "image_media_id": payload.get("image_media_id"),
             "recognized_confidence": payload.get("confidence"),
+        }
+    if task_type == "receipt-ocr":
+        extracted_fields = ocr_document.extracted_fields if ocr_document is not None else {}
+        raw_items = extracted_fields.get("items") if isinstance(extracted_fields, dict) else []
+        draft_items = []
+        if isinstance(raw_items, list):
+            for index, raw_item in enumerate(raw_items, start=1):
+                if not isinstance(raw_item, dict):
+                    continue
+                draft_items.append(
+                    {
+                        "line_id": f"line_{index}",
+                        "item_id": raw_item.get("item_id"),
+                        "item_name": raw_item.get("name"),
+                        "quantity": raw_item.get("quantity"),
+                        "unit": raw_item.get("unit"),
+                        "price": raw_item.get("price"),
+                    }
+                )
+        return {
+            "summary": "Please confirm the receipt line items before committing inventory.",
+            "transcript": (transcript or "").strip(),
+            "ocr_document_id": ocr_document.ocr_document_id if ocr_document is not None else None,
+            "document_type": ocr_document.document_type if ocr_document is not None else payload.get("document_type"),
+            "provider_name": payload.get("provider_name"),
+            "total_amount": extracted_fields.get("total_amount") if isinstance(extracted_fields, dict) else None,
+            "low_confidence_fields": list(ocr_document.low_confidence_fields) if ocr_document is not None else [],
+            "draft_items": draft_items,
+            "required_item_fields": ["item_name", "quantity", "unit", "price"],
         }
     return {
         "summary": "Please confirm the stock-in details before commit.",
@@ -170,6 +200,15 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         decision = route_runtime_input(context)
         policy = evaluate_runtime_policy(task_type=decision.task_type)
         if policy.outcome == "require-confirmation":
+            ocr_document: OcrDocument | None = None
+            if decision.task_type == "receipt-ocr" and context.pending_confirmation_id is None:
+                ocr_document = create_mock_ocr_document(
+                    db_session,
+                    shop_id=context.shop_id,
+                    media_id=context.media_ids[0],
+                    document_type=str(decision.payload.get("document_type") or "purchase-receipt"),
+                    task_run_id=task_run_id,
+                ).ocr_document
             if context.pending_confirmation_id is not None:
                 _load_pending_confirmation(
                     db_session,
@@ -184,6 +223,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                         task_type=decision.task_type,
                         transcript=decision.transcript,
                         payload=decision.payload,
+                        ocr_document=ocr_document,
                     ),
                     requested_by_employee_id=decision.assigned_employee_id,
                 )
@@ -192,13 +232,21 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 task_run_id=task_run_id,
                 task_type=decision.task_type,
                 assigned_employee_id=decision.assigned_employee_id,
-                result_summary="Awaiting owner confirmation for stock-in details.",
+                result_summary=(
+                    "Awaiting owner confirmation for receipt line items."
+                    if decision.task_type == "receipt-ocr"
+                    else "Awaiting owner confirmation for stock-in details."
+                ),
             )
             write_runtime_message(
                 db_session,
                 session_id=context.session_id,
                 task_run_id=task_run_id,
-                text="Mock runtime: please confirm the stock-in details before commit.",
+                text=(
+                    "Mock runtime: please confirm the receipt line items before committing inventory."
+                    if decision.task_type == "receipt-ocr"
+                    else "Mock runtime: please confirm the stock-in details before commit."
+                ),
             )
             db_session.commit()
             return RuntimeProcessResult(

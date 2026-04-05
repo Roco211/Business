@@ -11,6 +11,7 @@ from app.contracts.confirmation import (
 )
 from app.db.session import get_db_session
 from app.models import Confirmation, TaskRun
+from app.services.approved_receipt_stock_in_commits import commit_approved_receipt_stock_in_confirmation
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 from app.services.confirmations import (
     ConfirmationConflictError,
@@ -112,12 +113,23 @@ def post_approve_confirmation(
         return _unauthorized()
 
     try:
-        result = commit_approved_stock_in_confirmation(
-            db_session,
-            confirmation_id=confirmation_id,
-            payload_fields=payload.fields,
-            approved_by_actor_id="owner_default",
-        )
+        confirmation = db_session.get(Confirmation, confirmation_id)
+        if confirmation is None:
+            raise LookupError(confirmation_id)
+        if confirmation.confirmation_type == "receipt-stock-in-batch":
+            result = commit_approved_receipt_stock_in_confirmation(
+                db_session,
+                confirmation_id=confirmation_id,
+                payload_fields=payload.fields,
+                approved_by_actor_id="owner_default",
+            )
+        else:
+            result = commit_approved_stock_in_confirmation(
+                db_session,
+                confirmation_id=confirmation_id,
+                payload_fields=payload.fields,
+                approved_by_actor_id="owner_default",
+            )
     except InventoryItemNotFoundError:
         return _error_response(
             status.HTTP_404_NOT_FOUND,

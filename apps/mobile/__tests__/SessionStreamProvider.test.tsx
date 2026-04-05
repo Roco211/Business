@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 
-import { clearAuthSession, setAuthSession } from "../src/shared/auth/authStore";
+import { clearAuthSession, getAuthSession, setAuthSession } from "../src/shared/auth/authStore";
 
 const SESSION_TITLE = "Demo Workgroup";
 const TEST_ACCESS_TOKEN = "token_session_test";
@@ -23,10 +23,10 @@ class MockWebSocket {
 
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((event: { code: number }) => void) | null = null;
   onerror: (() => void) | null = null;
   close = jest.fn(() => {
-    this.onclose?.();
+    this.onclose?.({ code: 1000 });
   });
 
   constructor(public readonly url: string) {
@@ -39,6 +39,10 @@ class MockWebSocket {
 
   emitMessage(event: MockSessionStreamEvent) {
     this.onmessage?.({ data: JSON.stringify(event) });
+  }
+
+  emitClose(code: number) {
+    this.onclose?.({ code });
   }
 }
 
@@ -283,5 +287,30 @@ describe("SessionStreamProvider", () => {
 
     expect(MockWebSocket.instances).toHaveLength(2);
     expect(MockWebSocket.instances[1]?.url).not.toContain("after_seq=1");
+  });
+
+  it("clears auth and stops reconnect when websocket closes with code 4401", async () => {
+    jest.useFakeTimers();
+    const { SessionStreamProvider } = loadSessionStreamModules();
+
+    render(
+      <SessionStreamProvider>
+        <Text>Session Consumer</Text>
+      </SessionStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(MockWebSocket.instances).toHaveLength(1);
+    });
+
+    act(() => {
+      MockWebSocket.instances[0]?.emitOpen();
+      MockWebSocket.instances[0]?.emitClose(4401);
+      jest.advanceTimersByTime(10_000);
+    });
+
+    expect(getAuthSession()).toBeNull();
+    expect(MockWebSocket.instances).toHaveLength(1);
+    jest.useRealTimers();
   });
 });

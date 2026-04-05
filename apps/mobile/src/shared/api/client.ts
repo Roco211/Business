@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 
-import { getAccessToken } from "../auth/authStore";
+import { clearAuthSession, getAccessToken } from "../auth/authStore";
 
 type ApiRequestOptions = {
   requiresAuth?: boolean;
@@ -30,6 +30,12 @@ function buildAuthHeader(options?: ApiRequestOptions): Record<string, string> {
   };
 }
 
+function handleUnauthorized(responseStatus: number, options?: ApiRequestOptions) {
+  if (responseStatus === 401 && options?.requiresAuth !== false) {
+    clearAuthSession();
+  }
+}
+
 
 export async function apiGetJson<T>(path: string, options?: ApiRequestOptions): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
@@ -37,6 +43,7 @@ export async function apiGetJson<T>(path: string, options?: ApiRequestOptions): 
   });
   const payload = await response.json();
   if (!response.ok) {
+    handleUnauthorized(response.status, options);
     throw new Error(payload?.error?.message ?? "Request failed");
   }
   return payload as T;
@@ -58,6 +65,7 @@ export async function apiPostJson<TResponse, TBody>(
   });
   const payload = await response.json();
   if (!response.ok) {
+    handleUnauthorized(response.status, options);
     throw new Error(payload?.error?.message ?? "Request failed");
   }
   return payload as TResponse;

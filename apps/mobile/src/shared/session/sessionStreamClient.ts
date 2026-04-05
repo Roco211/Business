@@ -1,5 +1,5 @@
 import { getApiBaseUrl } from "../api/client";
-import { getAccessToken } from "../auth/authStore";
+import { clearAuthSession, getAccessToken } from "../auth/authStore";
 
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 5000, 10000];
@@ -109,7 +109,12 @@ export function createSessionStreamClient(options: CreateSessionStreamClientOpti
       options.onConnectionStateChange("error");
     };
 
-    websocket.onclose = () => {
+    websocket.onclose = (closeEvent) => {
+      if (closeEvent.code === 4401) {
+        clearAuthSession();
+        return;
+      }
+
       options.onConnectionStateChange("disconnected");
       if (disposed) {
         return;

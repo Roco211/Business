@@ -25,9 +25,9 @@ export function useLoginMutation() {
 
   async function submitLogin(email: string, password: string) {
     const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
+    const hasNonWhitespacePassword = password.trim().length > 0;
 
-    if (trimmedEmail.length === 0 || trimmedPassword.length === 0) {
+    if (trimmedEmail.length === 0 || !hasNonWhitespacePassword) {
       setError("Email and password are required");
       return false;
     }
@@ -40,7 +40,7 @@ export function useLoginMutation() {
         "/api/v1/auth/login",
         {
           email: trimmedEmail,
-          password: trimmedPassword,
+          password,
         },
         { requiresAuth: false },
       );

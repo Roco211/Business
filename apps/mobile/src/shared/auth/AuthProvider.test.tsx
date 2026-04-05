@@ -3,6 +3,7 @@ import { Pressable, Text } from "react-native";
 
 import RootNavigator from "../../app/navigation/RootNavigator";
 import { useLoginMutation } from "../../features/auth/hooks/useLoginMutation";
+import { apiGetJson } from "../api/client";
 import { AuthProvider, useAuth } from "./AuthProvider";
 import { clearAuthSession, setAuthSession } from "./authStore";
 
@@ -139,6 +140,54 @@ describe("AuthProvider", () => {
     });
   });
 
+  it("preserves raw password bytes when login request is sent", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          access_token: "token_from_api",
+          token_type: "Bearer",
+          owner_actor_id: "owner_default",
+          shop_id: "shop_default",
+          shop_name: "Demo Shop",
+        },
+      }),
+    });
+
+    function Consumer() {
+      const login = useLoginMutation();
+      return (
+        <Pressable
+          testID="login-mutation-raw-password"
+          onPress={() => void login.submitLogin(" owner@example.com ", "  dev-password  ")}
+        >
+          <Text>Login with raw password</Text>
+        </Pressable>
+      );
+    }
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId("login-mutation-raw-password"));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/auth/login"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            email: "owner@example.com",
+            password: "  dev-password  ",
+          }),
+        }),
+      );
+    });
+  });
+
   it("shows login screen and blocks protected session bootstrap when signed out", () => {
     render(<RootNavigator />);
 
@@ -161,5 +210,41 @@ describe("AuthProvider", () => {
 
     expect(screen.getByTestId("session-stream-provider")).toBeTruthy();
     expect(screen.getByText("Mock Dashboard Screen")).toBeTruthy();
+  });
+
+  it("returns to login gate when a protected http request gets 401", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        error: {
+          code: "unauthorized",
+          message: "Token expired",
+          details: [],
+        },
+      }),
+    });
+
+    act(() => {
+      setAuthSession({
+        accessToken: "token_expired",
+        tokenType: "Bearer",
+        ownerActorId: "owner_default",
+        shopId: "shop_default",
+        shopName: "Demo Shop",
+      });
+    });
+
+    render(<RootNavigator />);
+    expect(screen.getByTestId("session-stream-provider")).toBeTruthy();
+
+    await act(async () => {
+      await apiGetJson("/api/v1/dashboard/summary").catch(() => undefined);
+    });
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Sign In").length).toBeGreaterThan(0);
+      expect(screen.queryByTestId("session-stream-provider")).toBeNull();
+    });
   });
 });

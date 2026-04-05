@@ -1,7 +1,10 @@
 import { Platform } from "react-native";
 
+import { getAccessToken } from "../auth/authStore";
 
-const DEFAULT_OWNER_TOKEN = "mock_owner_token";
+type ApiRequestOptions = {
+  requiresAuth?: boolean;
+};
 
 
 export function getApiBaseUrl(): string {
@@ -12,12 +15,25 @@ export function getApiBaseUrl(): string {
   return Platform.OS === "android" ? "http://10.0.2.2:8001" : "http://127.0.0.1:8001";
 }
 
+function buildAuthHeader(options?: ApiRequestOptions): Record<string, string> {
+  if (options?.requiresAuth === false) {
+    return {};
+  }
 
-export async function apiGetJson<T>(path: string): Promise<T> {
+  const accessToken = getAccessToken();
+  if (accessToken === null) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  };
+}
+
+
+export async function apiGetJson<T>(path: string, options?: ApiRequestOptions): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    headers: {
-      Authorization: `Bearer ${DEFAULT_OWNER_TOKEN}`,
-    },
+    headers: buildAuthHeader(options),
   });
   const payload = await response.json();
   if (!response.ok) {
@@ -27,12 +43,16 @@ export async function apiGetJson<T>(path: string): Promise<T> {
 }
 
 
-export async function apiPostJson<TResponse, TBody>(path: string, body: TBody): Promise<TResponse> {
+export async function apiPostJson<TResponse, TBody>(
+  path: string,
+  body: TBody,
+  options?: ApiRequestOptions,
+): Promise<TResponse> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${DEFAULT_OWNER_TOKEN}`,
       "Content-Type": "application/json",
+      ...buildAuthHeader(options),
     },
     body: JSON.stringify(body),
   });

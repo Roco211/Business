@@ -1,7 +1,10 @@
 import { act, render, screen, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 
+import { clearAuthSession, setAuthSession } from "../src/shared/auth/authStore";
+
 const SESSION_TITLE = "Demo Workgroup";
+const TEST_ACCESS_TOKEN = "token_session_test";
 
 type MockSessionStreamEvent = {
   event_id: string;
@@ -65,6 +68,15 @@ function loadSessionStreamModules() {
 describe("SessionStreamProvider", () => {
   beforeEach(() => {
     MockWebSocket.instances = [];
+    act(() => {
+      setAuthSession({
+        accessToken: TEST_ACCESS_TOKEN,
+        tokenType: "Bearer",
+        ownerActorId: "owner_default",
+        shopId: "shop_default",
+        shopName: "Demo Shop",
+      });
+    });
     global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -80,6 +92,9 @@ describe("SessionStreamProvider", () => {
   });
 
   afterEach(() => {
+    act(() => {
+      clearAuthSession();
+    });
     jest.resetAllMocks();
   });
 
@@ -111,7 +126,7 @@ describe("SessionStreamProvider", () => {
     });
 
     expect(MockWebSocket.instances).toHaveLength(1);
-    expect(MockWebSocket.instances[0]?.url).toContain("/api/v1/ws/sessions/sess_default?token=mock_owner_token");
+    expect(MockWebSocket.instances[0]?.url).toContain(`/api/v1/ws/sessions/sess_default?token=${TEST_ACCESS_TOKEN}`);
 
     act(() => {
       MockWebSocket.instances[0]?.emitOpen();

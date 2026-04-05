@@ -3,6 +3,7 @@ from app.models.audit_log import AuditLog
 from app.models.confirmation import Confirmation
 from app.models.inventory_event import InventoryEvent
 from app.models.inventory_item import InventoryItem
+from app.models.media_upload import MediaUpload
 from app.models.message import Message
 from app.models.session_stream_event import SessionStreamEvent
 from app.models.session_record import SessionRecord
@@ -15,6 +16,7 @@ __all__ = [
     "Confirmation",
     "InventoryEvent",
     "InventoryItem",
+    "MediaUpload",
     "Message",
     "SessionStreamEvent",
     "SessionRecord",

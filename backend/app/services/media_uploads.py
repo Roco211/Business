@@ -1,0 +1,144 @@
+from dataclasses import dataclass
+from datetime import UTC, datetime
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.ids import new_prefixed_id
+from app.models import MediaUpload
+
+PENDING_STATUS = "pending"
+UPLOADED_STATUS = "uploaded"
+FAILED_STATUS = "failed"
+SUPPORTED_MEDIA_TYPES = {"audio", "image", "receipt-image"}
+MOCK_UPLOAD_BASE_URL = "https://mock.example/uploads"
+MOCK_PUBLIC_BASE_URL = "https://mock.example/media"
+
+
+class MediaUploadConflictError(ValueError):
+    pass
+
+
+class MediaUploadNotReadyError(ValueError):
+    pass
+
+
+class MediaUploadValidationError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class MediaUploadCreateResult:
+    media_id: str
+    upload_url: str
+    public_url: str
+
+
+@dataclass(frozen=True)
+class MediaUploadCompleteResult:
+    media_id: str
+    status: str
+
+
+def _now() -> datetime:
+    return datetime.now(UTC).replace(tzinfo=None)
+
+
+def create_media_upload(
+    db_session: Session,
+    *,
+    shop_id: str,
+    uploader_actor_type: str,
+    uploader_actor_id: str,
+    media_type: str,
+    file_name: str,
+    content_type: str,
+    size_bytes: int,
+) -> MediaUploadCreateResult:
+    if media_type not in SUPPORTED_MEDIA_TYPES:
+        raise MediaUploadValidationError("Unsupported media_type")
+    if not file_name.strip():
+        raise MediaUploadValidationError("file_name is required")
+    if not content_type.strip():
+        raise MediaUploadValidationError("content_type is required")
+    if size_bytes <= 0:
+        raise MediaUploadValidationError("size_bytes must be greater than 0")
+
+    now = _now()
+    media_id = new_prefixed_id("media")
+    upload = MediaUpload(
+        media_id=media_id,
+        shop_id=shop_id,
+        uploader_actor_type=uploader_actor_type,
+        uploader_actor_id=uploader_actor_id,
+        media_type=media_type,
+        file_name=file_name.strip(),
+        content_type=content_type.strip(),
+        size_bytes=size_bytes,
+        status=PENDING_STATUS,
+        upload_url=f"{MOCK_UPLOAD_BASE_URL}/{media_id}",
+        public_url=f"{MOCK_PUBLIC_BASE_URL}/{media_id}",
+        checksum_sha256=None,
+        uploaded_at=None,
+        created_at=now,
+        updated_at=now,
+    )
+    db_session.add(upload)
+    db_session.commit()
+    return MediaUploadCreateResult(
+        media_id=upload.media_id,
+        upload_url=upload.upload_url,
+        public_url=upload.public_url,
+    )
+
+
+def mark_media_upload_complete(
+    db_session: Session,
+    *,
+    media_id: str,
+    checksum_sha256: str,
+    size_bytes: int,
+) -> MediaUploadCompleteResult:
+    media_upload = db_session.get(MediaUpload, media_id)
+    if media_upload is None:
+        raise LookupError(media_id)
+    if media_upload.status != PENDING_STATUS:
+        raise MediaUploadConflictError(media_id)
+    if size_bytes <= 0:
+        raise MediaUploadValidationError("size_bytes must be greater than 0")
+    if not checksum_sha256.strip():
+        raise MediaUploadValidationError("checksum_sha256 is required")
+
+    now = _now()
+    media_upload.status = UPLOADED_STATUS
+    media_upload.size_bytes = size_bytes
+    media_upload.checksum_sha256 = checksum_sha256.strip()
+    media_upload.uploaded_at = now
+    media_upload.updated_at = now
+    db_session.commit()
+    return MediaUploadCompleteResult(media_id=media_upload.media_id, status=media_upload.status)
+
+
+def ensure_media_uploads_ready(
+    db_session: Session,
+    *,
+    shop_id: str,
+    media_ids: list[str],
+) -> None:
+    if not media_ids:
+        return
+
+    unique_ids = list(dict.fromkeys(media_ids))
+    records = db_session.scalars(
+        select(MediaUpload).where(MediaUpload.media_id.in_(unique_ids))
+    ).all()
+    records_by_id = {record.media_id: record for record in records}
+
+    for media_id in unique_ids:
+        record = records_by_id.get(media_id)
+        if record is None:
+            raise MediaUploadNotReadyError(media_id)
+        if record.shop_id != shop_id:
+            raise MediaUploadNotReadyError(media_id)
+        if record.status != UPLOADED_STATUS:
+            raise MediaUploadNotReadyError(media_id)

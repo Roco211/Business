@@ -1,6 +1,7 @@
 import pytest
 
 from app.core.config import Settings
+from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
 from app.services.asr_gateway import AsrGateway, build_asr_gateway, get_default_asr_gateway
 from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProviderError, AsrTranscription
@@ -30,6 +31,19 @@ def _build_settings(**overrides: object) -> Settings:
     }
     values.update(overrides)
     return Settings(**values)
+
+
+class _StaticProvider:
+    def __init__(self, *, result: AsrTranscription | None = None, error: AsrProviderError | None = None) -> None:
+        self._result = result
+        self._error = error
+
+    def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
+        del media_input
+        if self._error is not None:
+            raise self._error
+        assert self._result is not None
+        return self._result
 
 
 def test_mock_provider_prefers_text_hint() -> None:
@@ -96,3 +110,40 @@ def test_get_default_asr_gateway_uses_cache(monkeypatch: pytest.MonkeyPatch) -> 
     two = get_default_asr_gateway()
     assert one is two
 
+
+def test_gateway_returns_primary_provider_success() -> None:
+    expected = AsrTranscription(text="ok", provider="primary")
+    gateway = AsrGateway(primary_provider=_StaticProvider(result=expected))
+    actual = gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
+    assert actual == expected
+
+
+def test_gateway_uses_fallback_when_primary_raises_provider_error() -> None:
+    primary = _StaticProvider(
+        error=AsrProviderError("asr_unavailable", "primary down", retryable=True)
+    )
+    fallback = _StaticProvider(result=AsrTranscription(text="fallback", provider="mock"))
+    gateway = AsrGateway(primary_provider=primary, fallback_provider=fallback)
+
+    actual = gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
+    assert actual == AsrTranscription(text="fallback", provider="mock")
+
+
+def test_gateway_reraises_provider_error_when_no_fallback() -> None:
+    expected = AsrProviderError("asr_unavailable", "primary down", retryable=False)
+    gateway = AsrGateway(primary_provider=_StaticProvider(error=expected))
+
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
+    assert excinfo.value is expected
+
+
+def test_runtime_transcribe_audio_maps_unimplemented_gateway_to_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_not_implemented() -> AsrGateway:
+        raise NotImplementedError("real provider is added in Task 4")
+
+    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", _raise_not_implemented)
+    with pytest.raises(MockTranscriptionUnavailable, match="real provider is added in Task 4"):
+        transcribe_audio(media_ids=["voice_query_demo"], text_hint=None)

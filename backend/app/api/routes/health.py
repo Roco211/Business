@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
+from app.core.config import get_settings
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.system import DemoBootstrapSummaryData, HealthResponse
 from app.db.session import get_db_session
@@ -20,6 +21,15 @@ def _unauthorized() -> JSONResponse:
     )
 
 
+def _not_found() -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=ErrorEnvelope(
+            error=ErrorBody(code="shop_not_found", message="Shop not found", details=[])
+        ).model_dump(),
+    )
+
+
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok")
@@ -27,9 +37,12 @@ def health() -> HealthResponse:
 
 @router.post("/api/v1/system/demo/bootstrap", response_model=DataEnvelope[DemoBootstrapSummaryData])
 def post_demo_bootstrap(
-    _: AuthenticatedContext = Depends(require_authenticated_context),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[DemoBootstrapSummaryData] | JSONResponse:
+    settings = get_settings()
+    if auth.shop_id != settings.default_shop_id:
+        return _not_found()
     summary = bootstrap_demo_state(db_session)
     return DataEnvelope(
         data=DemoBootstrapSummaryData(

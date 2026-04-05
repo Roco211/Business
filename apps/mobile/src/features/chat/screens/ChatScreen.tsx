@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useSessionStream } from "../../../shared/session/useSessionStream";
-import { MockVoiceEntryPanel } from "../components/MockVoiceEntryPanel";
+import { MockMediaEntryPanel } from "../components/MockMediaEntryPanel";
 import { PendingStockInConfirmationCard } from "../components/PendingStockInConfirmationCard";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
@@ -133,7 +133,7 @@ export default function ChatScreen() {
       })}
 
       <Text>Composer</Text>
-      <MockVoiceEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
+      <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
       <TextInput placeholder="Type a message" value={draftText} onChangeText={setDraftText} />
       {sendMessage.error ? <Text>{sendMessage.error}</Text> : null}
       <Button

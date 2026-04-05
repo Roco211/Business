@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 
 import ChatScreen from "../src/features/chat/screens/ChatScreen";
 
+const SESSION_TITLE = "\u6570\u5b57\u5458\u5de5\u5de5\u4f5c\u7fa4";
 
 let mockLastChatEvent: {
   event_id: string;
@@ -23,11 +24,10 @@ let confirmationRequestCount = 0;
 let mediaUploadRequestCount = 0;
 let mediaUploadCompleteCount = 0;
 
-
 jest.mock("../src/shared/session/useSessionStream", () => ({
   useSessionStream: () => ({
     sessionId: "sess_default",
-    sessionTitle: "数字员工工作群",
+    sessionTitle: SESSION_TITLE,
     connectionState: "connected",
     bootstrapError: null,
     lastEvent: mockLastChatEvent,
@@ -35,8 +35,18 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
   }),
 }));
 
-
 describe("ChatScreen", () => {
+  async function waitForChatReady() {
+    await waitFor(
+      () => {
+        expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
+        expect(screen.getByText("connected")).toBeTruthy();
+        expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
+  }
+
   beforeEach(() => {
     mockLastChatEvent = null;
     approvalShouldFail = false;
@@ -143,13 +153,22 @@ describe("ChatScreen", () => {
             }),
           });
         }
+        const payload = JSON.parse(String(init?.body ?? "{}")) as {
+          media_type?: string;
+        };
+        const mediaId =
+          payload.media_type === "image"
+            ? "image_query_demo"
+            : payload.media_type === "receipt-image"
+              ? "receipt_demo"
+              : "media_voice_demo_1";
         return Promise.resolve({
           ok: true,
           json: async () => ({
             data: {
-              media_id: "media_voice_demo_1",
-              upload_url: "https://mock.example/uploads/media_voice_demo_1",
-              public_url: "https://mock.example/media/media_voice_demo_1",
+              media_id: mediaId,
+              upload_url: `https://mock.example/uploads/${mediaId}`,
+              public_url: `https://mock.example/media/${mediaId}`,
             },
           }),
         });
@@ -274,23 +293,26 @@ describe("ChatScreen", () => {
           message_type?: string;
           media_ids?: string[];
         };
+        const isVoice = payload.message_type === "voice";
+        const isImage = payload.message_type === "image";
+        const isReceipt = payload.message_type === "receipt-image";
         messages.push({
-          message_id: payload.message_type === "voice" ? "msg_voice_demo_1" : "msg_owner_2",
+          message_id: isVoice ? "msg_voice_demo_1" : isImage ? "msg_image_demo_1" : isReceipt ? "msg_receipt_demo_1" : "msg_owner_2",
           session_id: "sess_default",
           actor_type: "owner",
           actor_id: "owner_default",
           message_type: payload.message_type ?? "text",
           text: payload.text ?? "",
           media_ids: payload.media_ids ?? [],
-          task_run_id: payload.message_type === "voice" ? "task_voice_1" : "task_2",
+          task_run_id: isVoice ? "task_voice_1" : isImage ? "task_image_1" : isReceipt ? "task_receipt_1" : "task_2",
           created_at: "2026-04-05T12:05:00.000Z",
         });
         return Promise.resolve({
           ok: true,
           json: async () => ({
             data: {
-              message_id: payload.message_type === "voice" ? "msg_voice_demo_1" : "msg_owner_2",
-              task_run_id: payload.message_type === "voice" ? "task_voice_1" : "task_2",
+              message_id: isVoice ? "msg_voice_demo_1" : isImage ? "msg_image_demo_1" : isReceipt ? "msg_receipt_demo_1" : "msg_owner_2",
+              task_run_id: isVoice ? "task_voice_1" : isImage ? "task_image_1" : isReceipt ? "task_receipt_1" : "task_2",
               status: "created",
             },
           }),
@@ -345,22 +367,16 @@ describe("ChatScreen", () => {
 
     expect(screen.getByText("Loading chat...")).toBeTruthy();
 
-    await waitFor(() => {
-      expect(screen.getByText("数字员工工作群")).toBeTruthy();
-      expect(screen.getByText("connected")).toBeTruthy();
-      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
-      expect(
-        screen.getByText("Mock runtime: please confirm the stock-in details before commit."),
-      ).toBeTruthy();
-    });
+    await waitForChatReady();
+    expect(
+      screen.getByText("Mock runtime: please confirm the stock-in details before commit."),
+    ).toBeTruthy();
   });
 
   it("submits a text message and refreshes the timeline", async () => {
     render(<ChatScreen />);
 
-    await waitFor(() => {
-      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
-    });
+    await waitForChatReady();
 
     fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "Count chips too");
     fireEvent.press(screen.getByText("Send"));
@@ -420,9 +436,7 @@ describe("ChatScreen", () => {
     messagePostShouldFail = true;
     render(<ChatScreen />);
 
-    await waitFor(() => {
-      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
-    });
+    await waitForChatReady();
 
     fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "   ");
     fireEvent.press(screen.getByText("Send"));
@@ -468,9 +482,7 @@ describe("ChatScreen", () => {
   it("sends a voice stock-in demo through upload request, completion, and final message post", async () => {
     render(<ChatScreen />);
 
-    await waitFor(() => {
-      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
-    });
+    await waitForChatReady();
 
     fireEvent.press(screen.getByText("Voice Stock-In Demo"));
 
@@ -492,11 +504,66 @@ describe("ChatScreen", () => {
     mediaUploadCreateShouldFail = true;
     render(<ChatScreen />);
 
-    await waitFor(() => {
-      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
-    });
+    await waitForChatReady();
 
     fireEvent.press(screen.getByText("Voice Query Demo"));
+
+    await waitFor(() => {
+      expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(0);
+    });
+  });
+
+  it("sends a photo query demo through upload request, completion, and final message post", async () => {
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByText("Photo Query Demo"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(screen.getAllByText("check shelf stock for red bull").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"image\""),
+        }),
+      );
+    });
+  });
+
+  it("sends a receipt OCR demo through upload request, completion, and final message post", async () => {
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByText("Receipt OCR Demo"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(screen.getAllByText("receipt scan today").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"receipt-image\""),
+        }),
+      );
+    });
+  });
+
+  it("shows a recoverable error when photo upload request fails", async () => {
+    mediaUploadCreateShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByText("Photo Query Demo"));
 
     await waitFor(() => {
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();

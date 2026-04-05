@@ -15,6 +15,9 @@ let mockLastChatEvent: {
 } | null = null;
 let approvalShouldFail = false;
 let rejectShouldFail = false;
+let messagePostShouldFail = false;
+let messageRequestCount = 0;
+let confirmationRequestCount = 0;
 
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -34,6 +37,9 @@ describe("ChatScreen", () => {
     mockLastChatEvent = null;
     approvalShouldFail = false;
     rejectShouldFail = false;
+    messagePostShouldFail = false;
+    messageRequestCount = 0;
+    confirmationRequestCount = 0;
 
     const messages = [
       {
@@ -191,6 +197,18 @@ describe("ChatScreen", () => {
       }
 
       if (url.includes("/api/v1/sessions/sess_default/messages") && method === "POST") {
+        if (messagePostShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "validation_error",
+                message: "Message text is required",
+                details: [],
+              },
+            }),
+          });
+        }
         const payload = JSON.parse(String(init?.body ?? "{}")) as {
           text?: string;
         };
@@ -218,6 +236,7 @@ describe("ChatScreen", () => {
       }
 
       if (url.includes("/api/v1/sessions/sess_default/messages")) {
+        messageRequestCount += 1;
         return Promise.resolve({
           ok: true,
           json: async () => ({
@@ -230,6 +249,7 @@ describe("ChatScreen", () => {
       }
 
       if (url.includes("/api/v1/confirmations?status=pending&limit=20")) {
+        confirmationRequestCount += 1;
         return Promise.resolve({
           ok: true,
           json: async () => ({
@@ -331,6 +351,55 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Confirmation is not pending")).toBeTruthy();
       expect(screen.getByText("Approve")).toBeTruthy();
       expect(screen.getByText("Reject")).toBeTruthy();
+    });
+  });
+
+  it("shows a recoverable error when text message submission fails", async () => {
+    messagePostShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "   ");
+    fireEvent.press(screen.getByText("Send"));
+
+    fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "cola restock");
+    fireEvent.press(screen.getByText("Send"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Message text is required")).toBeTruthy();
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("refreshes messages and confirmations when a relevant session-stream event arrives", async () => {
+    const { rerender } = render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(messageRequestCount).toBe(1);
+      expect(confirmationRequestCount).toBe(1);
+    });
+
+    mockLastChatEvent = {
+      event_id: "evt_message_created",
+      seq: 4,
+      event_type: "message.created",
+      session_id: "sess_default",
+      task_run_id: "task_2",
+      message_id: "msg_owner_2",
+      occurred_at: "2026-04-05T12:05:00.000Z",
+      data: {
+        preview_text: "Count chips too",
+      },
+    };
+
+    rerender(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(messageRequestCount).toBe(2);
+      expect(confirmationRequestCount).toBe(2);
     });
   });
 });

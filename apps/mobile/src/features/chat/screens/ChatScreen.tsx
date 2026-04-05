@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useSessionStream } from "../../../shared/session/useSessionStream";
@@ -39,6 +39,20 @@ export default function ChatScreen() {
     messages.refresh();
     confirmations.refresh();
   }
+
+  useEffect(() => {
+    const eventType = sessionStream.lastEvent?.event_type;
+    if (
+      eventType !== "message.created"
+      && eventType !== "task.updated"
+      && eventType !== "confirmation.created"
+      && eventType !== "confirmation.resolved"
+      && eventType !== "inventory.updated"
+    ) {
+      return;
+    }
+    refreshChat();
+  }, [sessionStream.lastEvent?.event_id]);
 
   async function handleSend() {
     const result = await sendMessage.submitMessage(draftText);

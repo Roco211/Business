@@ -29,7 +29,10 @@ This addendum records what is actually implemented in the repository today relat
 - The mobile app bootstraps the default session once at the navigation shell
 - One shared websocket connection is reused across the three top-level tabs
 - `DashboardScreen` and `LedgerScreen` react to incoming events by refreshing the relevant REST reads
-- `ChatScreen` shows connection state plus a rolling list of recent session events
+- `ChatScreen` renders the durable message timeline for the default session
+- `ChatScreen` sends owner-authored text messages through the existing session message API
+- `ChatScreen` renders pending stock-in confirmation cards and supports approve/reject actions
+- `ChatScreen` refreshes messages and confirmations when relevant session events arrive
 
 ## Still Out Of Scope
 

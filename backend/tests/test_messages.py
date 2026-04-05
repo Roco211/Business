@@ -256,6 +256,34 @@ def test_create_message_returns_404_for_unknown_session(client) -> None:
     assert response.json()["error"]["code"] == "session_not_found"
 
 
+def test_create_message_rejects_media_that_is_not_uploaded(client) -> None:
+    upload_response = client.post(
+        "/api/v1/media-uploads",
+        headers={"Authorization": "Bearer mock_owner_token"},
+        json={
+            "media_type": "audio",
+            "file_name": "voice.m4a",
+            "content_type": "audio/m4a",
+            "size_bytes": 1024,
+        },
+    )
+    media_id = upload_response.json()["data"]["media_id"]
+
+    response = client.post(
+        "/api/v1/sessions/sess_default/messages",
+        headers={"Authorization": "Bearer mock_owner_token"},
+        json={
+            "message_type": "voice",
+            "text": "restock apples today",
+            "media_ids": [media_id],
+            "client_request_id": "route_media_not_ready",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "media_not_ready"
+
+
 def test_list_messages_returns_newest_first_with_next_cursor(client) -> None:
     headers = {"Authorization": "Bearer mock_owner_token"}
     client.post(

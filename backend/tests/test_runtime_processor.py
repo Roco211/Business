@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Confirmation, Message, SessionRecord, SessionStreamEvent, TaskRun
+from app.models import Confirmation, MediaUpload, Message, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
@@ -28,6 +28,33 @@ def _create_owner_message(
     client_request_id: str,
 ) -> tuple[str, str]:
     context = ensure_default_context(db_session)
+    if media_ids:
+        media_type = {
+            "voice": "audio",
+            "image": "image",
+            "receipt-image": "receipt-image",
+        }[message_type]
+        for media_id in media_ids:
+            db_session.add(
+                MediaUpload(
+                    media_id=media_id,
+                    shop_id=context.shop.shop_id,
+                    uploader_actor_type="owner",
+                    uploader_actor_id="owner_default",
+                    media_type=media_type,
+                    file_name=f"{media_id}.bin",
+                    content_type="application/octet-stream",
+                    size_bytes=1024,
+                    status="uploaded",
+                    upload_url=f"https://mock.example/uploads/{media_id}",
+                    public_url=f"https://mock.example/media/{media_id}",
+                    checksum_sha256="abc123",
+                    uploaded_at=context.session.created_at,
+                    created_at=context.session.created_at,
+                    updated_at=context.session.created_at,
+                )
+            )
+        db_session.commit()
     result = create_message(
         db_session,
         session_id=context.session.session_id,

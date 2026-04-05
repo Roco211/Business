@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import Message, SessionRecord
+from app.services.media_uploads import ensure_media_uploads_ready
 from app.services.session_stream import append_message_created_event
 from app.services.task_runs import create_initial_task_run
 
@@ -158,6 +159,12 @@ def create_message(
             task_run_id=existing.task_run_id or "",
             replayed=True,
         )
+
+    ensure_media_uploads_ready(
+        db_session,
+        shop_id=session.shop_id,
+        media_ids=normalized_media_ids,
+    )
 
     now = datetime.now(UTC).replace(tzinfo=None)
     message = Message(

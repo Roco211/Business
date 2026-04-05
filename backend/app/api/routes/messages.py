@@ -15,6 +15,7 @@ from app.contracts.message import (
 from app.db.session import get_db_session
 from app.models import TaskRun
 from app.services.bootstrap import ensure_default_context
+from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import (
     IdempotencyConflictError,
     MessageValidationError,
@@ -163,6 +164,12 @@ def post_session_message(
             status.HTTP_409_CONFLICT,
             "idempotency_conflict",
             "Request payload conflicts with prior submission",
+        )
+    except MediaUploadNotReadyError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "media_not_ready",
+            "Media upload is not ready",
         )
     except MessageValidationError as exc:
         return _error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, "validation_error", str(exc))

@@ -7,6 +7,10 @@ from sqlalchemy.orm import sessionmaker
 from app.core.ids import new_prefixed_id
 from app.models import Message, SessionRecord, SessionStreamEvent, TaskRun
 from app.services.bootstrap import ensure_default_context
+from app.services.media_uploads import (
+    MediaUploadNotReadyError,
+    create_media_upload,
+)
 from app.services.messages import (
     IdempotencyConflictError,
     SessionNotFoundError,
@@ -119,6 +123,32 @@ def test_create_message_rejects_missing_session(db_session) -> None:
             text="missing session",
             media_ids=[],
             client_request_id="msg_missing",
+        )
+
+
+def test_create_message_rejects_media_that_is_not_uploaded(db_session) -> None:
+    context = ensure_default_context(db_session)
+    pending_upload = create_media_upload(
+        db_session,
+        shop_id=context.shop.shop_id,
+        uploader_actor_type="owner",
+        uploader_actor_id="owner_default",
+        media_type="audio",
+        file_name="voice.m4a",
+        content_type="audio/m4a",
+        size_bytes=1024,
+    )
+
+    with pytest.raises(MediaUploadNotReadyError):
+        create_message(
+            db_session,
+            session_id=context.session.session_id,
+            actor_type="owner",
+            actor_id="owner_default",
+            message_type="voice",
+            text="restock apples today",
+            media_ids=[pending_upload.media_id],
+            client_request_id="msg_media_not_ready",
         )
 
 

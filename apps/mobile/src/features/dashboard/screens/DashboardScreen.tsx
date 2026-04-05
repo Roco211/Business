@@ -1,14 +1,32 @@
+import { useEffect } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
+import { useSessionStream } from "../../../shared/session/useSessionStream";
 
 
 export default function DashboardScreen() {
   const summary = useDashboardSummaryQuery();
   const alerts = useLowStockAlertsQuery();
   const pendingConfirmations = usePendingConfirmationsQuery();
+  const sessionStream = useSessionStream();
+
+  useEffect(() => {
+    const eventType = sessionStream.lastEvent?.event_type;
+    if (
+      eventType !== "inventory.updated"
+      && eventType !== "alert.updated"
+      && eventType !== "confirmation.created"
+      && eventType !== "confirmation.resolved"
+    ) {
+      return;
+    }
+    summary.refresh();
+    alerts.refresh();
+    pendingConfirmations.refresh();
+  }, [sessionStream.lastEvent?.event_id]);
 
   if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
     return (

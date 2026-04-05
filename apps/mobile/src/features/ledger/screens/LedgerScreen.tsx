@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
 import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutation";
 import { useInventoryItemsQuery } from "../hooks/useInventoryItemsQuery";
+import { useSessionStream } from "../../../shared/session/useSessionStream";
 
 
 function formatAuditLine(itemName: string | undefined, quantityDelta: number | undefined) {
@@ -27,6 +28,16 @@ export default function LedgerScreen() {
   const inventory = useInventoryItemsQuery(searchText);
   const auditLogs = useAuditLogsQuery();
   const correction = useCreateCorrectionMutation();
+  const sessionStream = useSessionStream();
+
+  useEffect(() => {
+    const eventType = sessionStream.lastEvent?.event_type;
+    if (eventType !== "inventory.updated" && eventType !== "confirmation.resolved") {
+      return;
+    }
+    inventory.refresh();
+    auditLogs.refresh();
+  }, [sessionStream.lastEvent?.event_id]);
 
   async function handleSubmitCorrection() {
     if (!selectedItemId) {

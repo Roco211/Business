@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from sqlalchemy import select
+
 from app.db.session import get_session_factory
-from app.models import InventoryItem
+from app.models import AuditLog, InventoryEvent, InventoryItem
 from app.services.bootstrap import ensure_default_context
 
 
@@ -157,3 +159,94 @@ def test_post_inventory_correction_returns_inventory_conflict_for_inactive_item(
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "inventory_conflict"
+
+
+def test_post_inventory_stock_out_updates_stock_and_returns_event_id(client) -> None:
+    item = _insert_item(
+        item_id="item_stock_out_api_success",
+        name="Apple",
+        stock=Decimal("6"),
+        threshold=Decimal("5"),
+    )
+
+    response = client.post(
+        "/api/v1/inventory-events/stock-out",
+        headers=AUTH_HEADERS,
+        json={
+            "item_id": item.item_id,
+            "expected_quantity": 6,
+            "stock_out_quantity": 2,
+            "reason": "Walk-in sale",
+        },
+    )
+
+    db_session = get_session_factory()()
+    try:
+        updated_item = db_session.get(InventoryItem, item.item_id)
+        inventory_event = db_session.scalar(
+            select(InventoryEvent).where(InventoryEvent.item_id == item.item_id)
+        )
+        audit_log = db_session.scalar(
+            select(AuditLog).where(AuditLog.target_id == item.item_id)
+        )
+    finally:
+        db_session.close()
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["item_id"] == item.item_id
+    assert payload["new_quantity"] == "4"
+    assert payload["stock_out_event_id"].startswith("inv_evt_")
+    assert updated_item is not None
+    assert updated_item.current_stock == Decimal("4")
+    assert inventory_event is not None
+    assert inventory_event.event_type == "stock-out"
+    assert inventory_event.quantity_delta == Decimal("-2")
+    assert audit_log is not None
+    assert audit_log.action == "inventory.stock_out_submitted"
+
+
+def test_post_inventory_stock_out_returns_inventory_conflict_for_stale_quantity(client) -> None:
+    item = _insert_item(
+        item_id="item_stock_out_api_stale",
+        name="Orange",
+        stock=Decimal("6"),
+        threshold=Decimal("5"),
+    )
+
+    response = client.post(
+        "/api/v1/inventory-events/stock-out",
+        headers=AUTH_HEADERS,
+        json={
+            "item_id": item.item_id,
+            "expected_quantity": 5,
+            "stock_out_quantity": 2,
+            "reason": "Walk-in sale",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "inventory_conflict"
+
+
+def test_post_inventory_stock_out_returns_validation_error_for_insufficient_stock(client) -> None:
+    item = _insert_item(
+        item_id="item_stock_out_api_insufficient",
+        name="Melon",
+        stock=Decimal("2"),
+        threshold=Decimal("5"),
+    )
+
+    response = client.post(
+        "/api/v1/inventory-events/stock-out",
+        headers=AUTH_HEADERS,
+        json={
+            "item_id": item.item_id,
+            "expected_quantity": 2,
+            "stock_out_quantity": 3,
+            "reason": "Walk-in sale",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"

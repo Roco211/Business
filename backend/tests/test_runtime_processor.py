@@ -82,6 +82,21 @@ def _confirmation_fields(transcript: str) -> dict[str, object]:
     }
 
 
+def _stock_out_confirmation_fields(transcript: str) -> dict[str, object]:
+    return {
+        "summary": "Please confirm the stock-out details before commit.",
+        "transcript": transcript,
+        "draft_fields": {
+            "item_id": None,
+            "item_name": None,
+            "stock_out_quantity": None,
+            "unit": None,
+            "reason": "stock out via chat",
+        },
+        "required_fields": ["item_name", "stock_out_quantity", "reason"],
+    }
+
+
 def _insert_confirmation_probe(
     db_session,
     *,
@@ -183,6 +198,66 @@ def test_voice_owner_message_completes_and_writes_runtime_message(db_session) ->
     assert runtime_messages[0].message_type == "text"
     assert runtime_messages[0].task_run_id == task_run_id
     assert "stock query accepted" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_text_stock_out_message_pauses_for_confirmation_and_writes_runtime_message(db_session) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="stock out cola for walk in sale",
+        media_ids=[],
+        client_request_id="runtime_stock_out_awaiting_confirmation",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    stream_events = db_session.scalars(
+        select(SessionStreamEvent)
+        .where(SessionStreamEvent.session_id == session_id)
+        .order_by(SessionStreamEvent.seq.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_run_id == task_run_id
+    assert result.task_type == "voice-stock-out"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert task_run.task_type == "voice-stock-out"
+    assert task_run.assigned_employee_id == "xiaoya"
+    assert task_run.result_summary == "Awaiting owner confirmation for stock-out details."
+    assert task_run.completed_at is None
+    assert confirmation is not None
+    assert confirmation.status == "pending"
+    assert confirmation.confirmation_type == "stock-out"
+    assert confirmation.requested_by_employee_id == "xiaoya"
+    assert confirmation.fields == _stock_out_confirmation_fields("stock out cola for walk in sale")
+    assert len(runtime_messages) == 1
+    assert runtime_messages[0].actor_type == "system"
+    assert runtime_messages[0].actor_id == "runtime_system"
+    assert runtime_messages[0].message_type == "text"
+    assert runtime_messages[0].task_run_id == task_run_id
+    assert "stock-out" in (runtime_messages[0].text or "").lower()
+    assert "confirm" in (runtime_messages[0].text or "").lower()
+    assert [event.event_type for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "confirmation.created",
+        "task.updated",
+        "message.created",
+    ]
+    assert stream_events[2].payload["confirmation_id"] == confirmation.confirmation_id
+    assert stream_events[3].payload["status"] == "awaiting-confirmation"
+    assert stream_events[4].message_id == runtime_messages[0].message_id
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

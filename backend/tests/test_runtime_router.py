@@ -64,6 +64,12 @@ def test_text_input_stock_in_phrase_routes_to_stock_in():
     assert decision.task_type == "voice-stock-in"
 
 
+def test_text_input_stock_out_phrase_routes_to_stock_out():
+    ctx = _build_context(input_kind="text", source_text="stock out cola today", media_ids=[])
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "voice-stock-out"
+
+
 def test_text_input_how_many_phrase_routes_to_query():
     ctx = _build_context(input_kind="text", source_text="how-many apples", media_ids=[])
     decision = route_runtime_input(ctx)
@@ -90,6 +96,13 @@ def test_voice_input_routes_to_stock_in_task():
     decision = route_runtime_input(ctx)
     assert decision.task_type == "voice-stock-in"
     assert decision.transcript == "restock apples today"
+
+
+def test_voice_input_routes_to_stock_out_task():
+    ctx = _build_context(input_kind="voice", source_text=None, media_ids=["voice_stock_out_demo"])
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "voice-stock-out"
+    assert decision.transcript == "stock out cola for walk in sale"
 
 
 def test_voice_input_transcription_failures_block():

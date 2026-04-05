@@ -46,6 +46,41 @@ def _create_runtime_pending_confirmation(
         db_session.close()
 
 
+def _create_runtime_pending_stock_out_confirmation(
+    client,
+    monkeypatch,
+    *,
+    client_request_id: str,
+) -> tuple[str, str]:
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
+
+    create_response = client.post(
+        "/api/v1/sessions/sess_default/messages",
+        headers=AUTH_HEADERS,
+        json={
+            "message_type": "text",
+            "text": "stock out cola for walk in sale",
+            "media_ids": [],
+            "client_request_id": client_request_id,
+        },
+    )
+    assert create_response.status_code == 201
+
+    task_run_id = create_response.json()["data"]["task_run_id"]
+    db_session = get_session_factory()()
+    try:
+        result = process_task_run(db_session, task_run_id)
+        confirmation = db_session.scalar(
+            select(Confirmation).where(Confirmation.task_run_id == task_run_id)
+        )
+        assert result.status == "awaiting-confirmation"
+        assert confirmation is not None
+        assert confirmation.confirmation_type == "stock-out"
+        return confirmation.confirmation_id, task_run_id
+    finally:
+        db_session.close()
+
+
 def _seed_uploaded_media(media_id: str, media_type: str) -> None:
     db_session = get_session_factory()()
     try:
@@ -67,6 +102,40 @@ def _seed_uploaded_media(media_id: str, media_type: str) -> None:
                 uploaded_at=context.session.created_at,
                 created_at=context.session.created_at,
                 updated_at=context.session.created_at,
+            )
+        )
+        db_session.commit()
+    finally:
+        db_session.close()
+
+
+def _seed_inventory_item(
+    *,
+    item_id: str,
+    name: str,
+    unit: str,
+    stock: str,
+    price: str,
+) -> None:
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        db_session.add(
+            InventoryItem(
+                item_id=item_id,
+                shop_id=context.shop.shop_id,
+                sku=None,
+                name=name,
+                category=None,
+                barcode=None,
+                default_unit=unit,
+                current_stock=Decimal(stock),
+                current_price=Decimal(price),
+                low_stock_threshold=context.shop.default_low_stock_threshold,
+                image_media_id=None,
+                is_active=True,
+                created_at=context.shop.created_at,
+                updated_at=context.shop.updated_at,
             )
         )
         db_session.commit()
@@ -365,6 +434,117 @@ def test_approve_receipt_confirmation_commits_all_lines_and_projects_confirmatio
     assert "2 line" in (runtime_messages[-1].text or "").lower()
     assert task_run_response.status_code == 200
     assert task_run_response.json()["data"]["confirmation_id"] == confirmation_id
+
+
+def test_approve_stock_out_confirmation_commits_inventory_event_and_projects_confirmation_id(
+    client,
+    monkeypatch,
+) -> None:
+    _seed_inventory_item(
+        item_id="item_stock_out_confirmation_api",
+        name="Cola",
+        unit="box",
+        stock="6",
+        price="18.5",
+    )
+    confirmation_id, task_run_id = _create_runtime_pending_stock_out_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_stock_out_approve",
+    )
+
+    approve_response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "item_name": "Cola",
+                "stock_out_quantity": 2,
+                "reason": "Walk-in sale",
+            }
+        },
+    )
+    task_run_response = client.get(
+        f"/api/v1/task-runs/{task_run_id}",
+        headers=AUTH_HEADERS,
+    )
+
+    db_session = get_session_factory()()
+    try:
+        confirmation = db_session.get(Confirmation, confirmation_id)
+        task_run = db_session.get(TaskRun, task_run_id)
+        inventory_item = db_session.get(InventoryItem, "item_stock_out_confirmation_api")
+        inventory_events = db_session.scalars(select(InventoryEvent)).all()
+        audit_logs = db_session.scalars(select(AuditLog)).all()
+        runtime_messages = db_session.scalars(
+            select(Message)
+            .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+            .order_by(Message.created_at.asc(), Message.message_id.asc())
+        ).all()
+    finally:
+        db_session.close()
+
+    assert approve_response.status_code == 200
+    approve_payload = approve_response.json()["data"]
+    assert approve_payload["confirmation_id"] == confirmation_id
+    assert approve_payload["status"] == "approved"
+    assert approve_payload["resolution_payload"] == {
+        "fields": {
+            "item_name": "Cola",
+            "stock_out_quantity": 2,
+            "reason": "Walk-in sale",
+        }
+    }
+    assert confirmation is not None
+    assert confirmation.status == "approved"
+    assert task_run is not None
+    assert task_run.status == "completed"
+    assert task_run.completed_at is not None
+    assert inventory_item is not None
+    assert inventory_item.current_stock == Decimal("4")
+    assert len(inventory_events) == 1
+    assert inventory_events[0].event_type == "stock-out"
+    assert inventory_events[0].quantity_delta == Decimal("-2")
+    assert len(audit_logs) == 1
+    assert audit_logs[0].action == "inventory.stock_out_submitted"
+    assert audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
+    assert len(runtime_messages) == 2
+    assert "stock-out committed" in (runtime_messages[-1].text or "").lower()
+    assert task_run_response.status_code == 200
+    assert task_run_response.json()["data"]["confirmation_id"] == confirmation_id
+
+
+def test_approve_stock_out_confirmation_returns_validation_error_for_insufficient_stock(
+    client,
+    monkeypatch,
+) -> None:
+    _seed_inventory_item(
+        item_id="item_stock_out_confirmation_insufficient",
+        name="Cola",
+        unit="box",
+        stock="1",
+        price="18.5",
+    )
+    confirmation_id, _ = _create_runtime_pending_stock_out_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_stock_out_insufficient",
+    )
+
+    response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "item_name": "Cola",
+                "stock_out_quantity": 3,
+                "reason": "Walk-in sale",
+            }
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "confirmation_fields_invalid"
 
 
 def test_reject_confirmation_rejects_task_run_and_writes_runtime_message(

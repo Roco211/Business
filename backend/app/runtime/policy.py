@@ -13,6 +13,11 @@ def evaluate_runtime_policy(*, task_type: str) -> PolicyDecision:
             outcome="require-confirmation",
             confirmation_type="low-confidence-recognition",
         )
+    if task_type == "voice-stock-out":
+        return PolicyDecision(
+            outcome="require-confirmation",
+            confirmation_type="stock-out",
+        )
     if task_type == "receipt-ocr":
         return PolicyDecision(
             outcome="require-confirmation",

@@ -82,6 +82,8 @@ def append_stock_out_event(
     stock_out_quantity: Decimal,
     actor_id: str,
     reason: str,
+    task_run_id: str | None = None,
+    source: str = "owner-stock-out",
 ) -> InventoryEvent:
     now = datetime.now(UTC).replace(tzinfo=None)
     previous_quantity = Decimal(item.current_stock)
@@ -96,8 +98,8 @@ def append_stock_out_event(
         quantity_after=quantity_after,
         unit=item.default_unit,
         price=item.current_price,
-        source="owner-stock-out",
-        task_run_id=None,
+        source=source,
+        task_run_id=task_run_id,
         created_by=actor_id,
         reason=reason,
         created_at=now,

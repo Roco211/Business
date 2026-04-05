@@ -51,6 +51,19 @@ def _build_confirmation_fields(
             "image_media_id": payload.get("image_media_id"),
             "recognized_confidence": payload.get("confidence"),
         }
+    if task_type == "voice-stock-out":
+        return {
+            "summary": "Please confirm the stock-out details before commit.",
+            "transcript": (transcript or "").strip(),
+            "draft_fields": {
+                "item_id": None,
+                "item_name": None,
+                "stock_out_quantity": None,
+                "unit": None,
+                "reason": "stock out via chat",
+            },
+            "required_fields": ["item_name", "stock_out_quantity", "reason"],
+        }
     if task_type == "receipt-ocr":
         extracted_fields = ocr_document.extracted_fields if ocr_document is not None else {}
         raw_items = extracted_fields.get("items") if isinstance(extracted_fields, dict) else []
@@ -235,6 +248,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 result_summary=(
                     "Awaiting owner confirmation for receipt line items."
                     if decision.task_type == "receipt-ocr"
+                    else "Awaiting owner confirmation for stock-out details."
+                    if decision.task_type == "voice-stock-out"
                     else "Awaiting owner confirmation for stock-in details."
                 ),
             )
@@ -245,6 +260,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 text=(
                     "Mock runtime: please confirm the receipt line items before committing inventory."
                     if decision.task_type == "receipt-ocr"
+                    else "Mock runtime: please confirm the stock-out details before commit."
+                    if decision.task_type == "voice-stock-out"
                     else "Mock runtime: please confirm the stock-in details before commit."
                 ),
             )

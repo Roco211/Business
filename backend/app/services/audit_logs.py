@@ -169,7 +169,24 @@ def append_inventory_stock_out_audit_log(
     previous_quantity: float,
     actor_id: str,
     reason: str,
+    task_run_id: str | None = None,
+    confirmation_id: str | None = None,
 ) -> AuditLog:
+    metadata_json = {
+        "inventory_event_id": inventory_event.inventory_event_id,
+        "event_type": inventory_event.event_type,
+        "item_id": item.item_id,
+        "item_name": item.name,
+        "previous_quantity": previous_quantity,
+        "quantity_delta": float(inventory_event.quantity_delta),
+        "quantity_after": float(inventory_event.quantity_after),
+        "unit": item.default_unit,
+        "reason": reason,
+        "source": inventory_event.source,
+    }
+    if confirmation_id is not None:
+        metadata_json["confirmation_id"] = confirmation_id
+
     log = AuditLog(
         audit_log_id=new_prefixed_id("audit"),
         shop_id=item.shop_id,
@@ -177,21 +194,10 @@ def append_inventory_stock_out_audit_log(
         action="inventory.stock_out_submitted",
         actor_type="owner",
         actor_id=actor_id,
-        task_run_id=None,
+        task_run_id=task_run_id,
         target_type="inventory_item",
         target_id=item.item_id,
-        metadata_json={
-            "inventory_event_id": inventory_event.inventory_event_id,
-            "event_type": inventory_event.event_type,
-            "item_id": item.item_id,
-            "item_name": item.name,
-            "previous_quantity": previous_quantity,
-            "quantity_delta": float(inventory_event.quantity_delta),
-            "quantity_after": float(inventory_event.quantity_after),
-            "unit": item.default_unit,
-            "reason": reason,
-            "source": inventory_event.source,
-        },
+        metadata_json=metadata_json,
         created_at=datetime.now(UTC).replace(tzinfo=None),
     )
     db_session.add(log)

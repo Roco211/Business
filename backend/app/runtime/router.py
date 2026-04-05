@@ -6,6 +6,8 @@ from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
 PUNCTUATION_TO_SPACE = str.maketrans({char: " " for char in string.punctuation})
 STOCK_IN_PHRASES = ("restock", "stock in")
+STOCK_OUT_PHRASES = ("stock out",)
+STOCK_OUT_WORDS = ("sold", "remove")
 QUERY_WORDS = ("check", "left", "remaining")
 QUERY_PHRASES = ("how many",)
 
@@ -25,6 +27,10 @@ def _contains_phrase(transcript: str, phrase: str) -> bool:
 def _classify_transcript(transcript: str) -> str:
     normalized = _normalize_transcript(transcript)
     tokens = _tokens(transcript)
+    if any(phrase in normalized for phrase in STOCK_OUT_PHRASES):
+        return "voice-stock-out"
+    if any(word in tokens for word in STOCK_OUT_WORDS):
+        return "voice-stock-out"
     if any(phrase in normalized for phrase in STOCK_IN_PHRASES):
         return "voice-stock-in"
     if any(_contains_phrase(transcript, phrase) for phrase in QUERY_PHRASES):

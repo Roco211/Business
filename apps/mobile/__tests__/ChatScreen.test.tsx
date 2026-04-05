@@ -16,8 +16,12 @@ let mockLastChatEvent: {
 let approvalShouldFail = false;
 let rejectShouldFail = false;
 let messagePostShouldFail = false;
+let mediaUploadCreateShouldFail = false;
+let mediaUploadCompleteShouldFail = false;
 let messageRequestCount = 0;
 let confirmationRequestCount = 0;
+let mediaUploadRequestCount = 0;
+let mediaUploadCompleteCount = 0;
 
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -38,8 +42,12 @@ describe("ChatScreen", () => {
     approvalShouldFail = false;
     rejectShouldFail = false;
     messagePostShouldFail = false;
+    mediaUploadCreateShouldFail = false;
+    mediaUploadCompleteShouldFail = false;
     messageRequestCount = 0;
     confirmationRequestCount = 0;
+    mediaUploadRequestCount = 0;
+    mediaUploadCompleteCount = 0;
 
     const messages = [
       {
@@ -94,6 +102,58 @@ describe("ChatScreen", () => {
     global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
+
+      if (url.includes("/api/v1/media-uploads/") && url.includes("/complete") && method === "POST") {
+        mediaUploadCompleteCount += 1;
+        if (mediaUploadCompleteShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "media_upload_conflict",
+                message: "Media upload cannot transition from its current status",
+                details: [],
+              },
+            }),
+          });
+        }
+        const mediaId = url.split("/api/v1/media-uploads/")[1]?.replace("/complete", "") ?? "media_demo";
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              media_id: mediaId,
+              status: "uploaded",
+            },
+          }),
+        });
+      }
+
+      if (url.includes("/api/v1/media-uploads") && method === "POST") {
+        mediaUploadRequestCount += 1;
+        if (mediaUploadCreateShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "validation_error",
+                message: "size_bytes must be greater than 0",
+                details: [],
+              },
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              media_id: "media_voice_demo_1",
+              upload_url: "https://mock.example/uploads/media_voice_demo_1",
+              public_url: "https://mock.example/media/media_voice_demo_1",
+            },
+          }),
+        });
+      }
 
       if (url.includes("/api/v1/confirmations/conf_1/approve") && method === "POST") {
         if (approvalShouldFail) {
@@ -211,24 +271,26 @@ describe("ChatScreen", () => {
         }
         const payload = JSON.parse(String(init?.body ?? "{}")) as {
           text?: string;
+          message_type?: string;
+          media_ids?: string[];
         };
         messages.push({
-          message_id: "msg_owner_2",
+          message_id: payload.message_type === "voice" ? "msg_voice_demo_1" : "msg_owner_2",
           session_id: "sess_default",
           actor_type: "owner",
           actor_id: "owner_default",
-          message_type: "text",
+          message_type: payload.message_type ?? "text",
           text: payload.text ?? "",
-          media_ids: [],
-          task_run_id: "task_2",
+          media_ids: payload.media_ids ?? [],
+          task_run_id: payload.message_type === "voice" ? "task_voice_1" : "task_2",
           created_at: "2026-04-05T12:05:00.000Z",
         });
         return Promise.resolve({
           ok: true,
           json: async () => ({
             data: {
-              message_id: "msg_owner_2",
-              task_run_id: "task_2",
+              message_id: payload.message_type === "voice" ? "msg_voice_demo_1" : "msg_owner_2",
+              task_run_id: payload.message_type === "voice" ? "task_voice_1" : "task_2",
               status: "created",
             },
           }),
@@ -400,6 +462,46 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(messageRequestCount).toBe(2);
       expect(confirmationRequestCount).toBe(2);
+    });
+  });
+
+  it("sends a voice stock-in demo through upload request, completion, and final message post", async () => {
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.press(screen.getByText("Voice Stock-In Demo"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(screen.getAllByText("restock apples today").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"voice\""),
+        }),
+      );
+    });
+  });
+
+  it("shows a recoverable error when voice upload request fails", async () => {
+    mediaUploadCreateShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.press(screen.getByText("Voice Query Demo"));
+
+    await waitFor(() => {
+      expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(0);
     });
   });
 });

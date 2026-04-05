@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { apiPostJson } from "../api/client";
+import { useAuthStoreState } from "../auth/authStore";
 
 
 export type BootstrappedSession = {
@@ -17,11 +18,20 @@ type SessionBootstrapResponse = {
 
 
 export function useBootstrapSession() {
+  const authStoreState = useAuthStoreState();
+  const accessToken = authStoreState.session?.accessToken ?? null;
   const [data, setData] = useState<BootstrappedSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (accessToken === null) {
+      setData(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     let isActive = true;
 
     setIsLoading(true);
@@ -49,7 +59,7 @@ export function useBootstrapSession() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [accessToken]);
 
   return {
     data,

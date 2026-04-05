@@ -671,16 +671,16 @@
         "title": "DataEnvelope[InventoryItemData]",
         "type": "object"
       },
-      "DataEnvelope_MockLoginData_": {
+      "DataEnvelope_LoginData_": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/MockLoginData"
+            "$ref": "#/components/schemas/LoginData"
           }
         },
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[MockLoginData]",
+        "title": "DataEnvelope[LoginData]",
         "type": "object"
       },
       "DataEnvelope_OcrDocumentData_": {
@@ -1156,6 +1156,57 @@
         "title": "ListLowStockAlertsResponse",
         "type": "object"
       },
+      "LoginData": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "owner_actor_id": {
+            "title": "Owner Actor Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "shop_name": {
+            "title": "Shop Name",
+            "type": "string"
+          },
+          "token_type": {
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "owner_actor_id",
+          "shop_id",
+          "shop_name"
+        ],
+        "title": "LoginData",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
       "LowStockAlertData": {
         "properties": {
           "alert_id": {
@@ -1213,56 +1264,6 @@
           "created_at"
         ],
         "title": "LowStockAlertData",
-        "type": "object"
-      },
-      "MockLoginData": {
-        "properties": {
-          "access_token": {
-            "title": "Access Token",
-            "type": "string"
-          },
-          "owner_actor_id": {
-            "title": "Owner Actor Id",
-            "type": "string"
-          },
-          "shop_id": {
-            "title": "Shop Id",
-            "type": "string"
-          },
-          "shop_name": {
-            "title": "Shop Name",
-            "type": "string"
-          },
-          "token_type": {
-            "title": "Token Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "access_token",
-          "token_type",
-          "owner_actor_id",
-          "shop_id",
-          "shop_name"
-        ],
-        "title": "MockLoginData",
-        "type": "object"
-      },
-      "MockLoginRequest": {
-        "properties": {
-          "shop_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shop Id"
-          }
-        },
-        "title": "MockLoginRequest",
         "type": "object"
       },
       "OcrDocumentData": {
@@ -1929,14 +1930,14 @@
         ]
       }
     },
-    "/api/v1/auth/mock-login": {
+    "/api/v1/auth/login": {
       "post": {
-        "operationId": "mock_login_api_v1_auth_mock_login_post",
+        "operationId": "login_api_v1_auth_login_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MockLoginRequest"
+                "$ref": "#/components/schemas/LoginRequest"
               }
             }
           },
@@ -1947,11 +1948,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_MockLoginData_"
+                  "$ref": "#/components/schemas/DataEnvelope_LoginData_"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
           },
           "422": {
             "content": {
@@ -1964,7 +1975,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Mock Login",
+        "summary": "Login",
         "tags": [
           "auth"
         ]
@@ -2820,6 +2831,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Session not found"
           },
           "422": {
             "content": {

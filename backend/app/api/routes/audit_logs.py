@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Header, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.contracts.audit_log import AuditLogData, ListAuditLogsMeta, ListAuditLogsResponse
 from app.contracts.common import ErrorBody, ErrorEnvelope
-from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.models import AuditLog
 from app.services.audit_logs import UnsupportedAuditScopeError, list_audit_logs
@@ -52,18 +52,15 @@ def _to_audit_log_data(item: AuditLog) -> AuditLogData:
 
 @router.get("", response_model=ListAuditLogsResponse)
 def get_audit_logs(
-    authorization: str | None = Header(default=None),
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
     scope: str = Query(default="inventory"),
     limit: int = Query(default=20, ge=1, le=50),
-    settings: Settings = Depends(get_settings),
     db_session: Session = Depends(get_db_session),
 ) -> ListAuditLogsResponse | JSONResponse:
-    if authorization != "Bearer mock_owner_token":
-        return _unauthorized()
     try:
         page = list_audit_logs(
             db_session,
-            shop_id=settings.default_shop_id,
+            shop_id=auth.shop_id,
             scope=scope,
             limit=limit,
         )

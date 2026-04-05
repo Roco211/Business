@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 
 
-class MockLoginRequest(BaseModel):
-    shop_id: str | None = None
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 
-class MockLoginData(BaseModel):
+class LoginData(BaseModel):
     access_token: str
     token_type: str
     owner_actor_id: str

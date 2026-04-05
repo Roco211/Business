@@ -6,9 +6,10 @@ from sqlalchemy import select
 from app.db.session import get_session_factory
 from app.models import AuditLog, InventoryEvent, InventoryItem
 from app.services.bootstrap import ensure_default_context
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _now() -> datetime:
@@ -59,7 +60,7 @@ def test_post_inventory_correction_updates_stock_and_returns_event_id(client) ->
 
     response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 2,
@@ -78,7 +79,7 @@ def test_post_inventory_correction_updates_stock_and_returns_event_id(client) ->
 def test_post_inventory_correction_returns_item_not_found(client) -> None:
     response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": "item_missing",
             "expected_quantity": 2,
@@ -101,7 +102,7 @@ def test_post_inventory_correction_returns_validation_error_for_negative_quantit
 
     response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 2,
@@ -124,7 +125,7 @@ def test_post_inventory_correction_returns_inventory_conflict_for_stale_quantity
 
     response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 1,
@@ -148,7 +149,7 @@ def test_post_inventory_correction_returns_inventory_conflict_for_inactive_item(
 
     response = client.post(
         "/api/v1/inventory-events/corrections",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 2,
@@ -171,7 +172,7 @@ def test_post_inventory_stock_out_updates_stock_and_returns_event_id(client) -> 
 
     response = client.post(
         "/api/v1/inventory-events/stock-out",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 6,
@@ -216,7 +217,7 @@ def test_post_inventory_stock_out_returns_inventory_conflict_for_stale_quantity(
 
     response = client.post(
         "/api/v1/inventory-events/stock-out",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 5,
@@ -239,7 +240,7 @@ def test_post_inventory_stock_out_returns_validation_error_for_insufficient_stoc
 
     response = client.post(
         "/api/v1/inventory-events/stock-out",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "item_id": item.item_id,
             "expected_quantity": 2,

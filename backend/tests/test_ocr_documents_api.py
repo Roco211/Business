@@ -1,10 +1,14 @@
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+from conftest import auth_headers, login_and_get_token
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _create_uploaded_receipt_media(client) -> str:
     create_response = client.post(
         "/api/v1/media-uploads",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_type": "receipt-image",
             "file_name": "receipt-demo.jpg",
@@ -17,7 +21,7 @@ def _create_uploaded_receipt_media(client) -> str:
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "checksum_sha256": "receipt_demo_checksum",
             "size_bytes": 2048,
@@ -32,7 +36,7 @@ def test_post_and_get_ocr_document_returns_completed_mock_result(client) -> None
 
     create_response = client.post(
         "/api/v1/ocr-documents",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
         json={
             "media_id": media_id,
             "document_type": "purchase-receipt",
@@ -46,7 +50,7 @@ def test_post_and_get_ocr_document_returns_completed_mock_result(client) -> None
 
     detail_response = client.get(
         f"/api/v1/ocr-documents/{create_payload['ocr_document_id']}",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client),
     )
 
     assert detail_response.status_code == 200

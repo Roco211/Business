@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "../api/client";
+import { clearAuthSession, getAccessToken } from "../auth/authStore";
 
 
-const DEFAULT_OWNER_TOKEN = "mock_owner_token";
 const RECONNECT_DELAYS_MS = [1000, 2000, 5000, 10000];
 
 
@@ -34,13 +34,13 @@ type CreateSessionStreamClientOptions = {
 };
 
 
-function buildSessionStreamUrl(sessionId: string, afterSeq: number): string {
+function buildSessionStreamUrl(sessionId: string, afterSeq: number, accessToken: string): string {
   const baseUrl = getApiBaseUrl();
   const websocketBaseUrl = baseUrl.startsWith("https://")
     ? baseUrl.replace("https://", "wss://")
     : baseUrl.replace("http://", "ws://");
   const replaySuffix = afterSeq > 0 ? `&after_seq=${afterSeq}` : "";
-  return `${websocketBaseUrl}/api/v1/ws/sessions/${sessionId}?token=${DEFAULT_OWNER_TOKEN}${replaySuffix}`;
+  return `${websocketBaseUrl}/api/v1/ws/sessions/${sessionId}?token=${accessToken}${replaySuffix}`;
 }
 
 
@@ -84,7 +84,13 @@ export function createSessionStreamClient(options: CreateSessionStreamClientOpti
 
     options.onConnectionStateChange("connecting");
     const afterSeq = options.getAfterSeq?.() ?? 0;
-    websocket = new WebSocket(buildSessionStreamUrl(options.sessionId, afterSeq));
+    const accessToken = getAccessToken();
+    if (accessToken === null) {
+      options.onConnectionStateChange("error");
+      return;
+    }
+
+    websocket = new WebSocket(buildSessionStreamUrl(options.sessionId, afterSeq, accessToken));
 
     websocket.onopen = () => {
       reconnectAttempt = 0;
@@ -103,7 +109,12 @@ export function createSessionStreamClient(options: CreateSessionStreamClientOpti
       options.onConnectionStateChange("error");
     };
 
-    websocket.onclose = () => {
+    websocket.onclose = (closeEvent) => {
+      if (closeEvent.code === 4401) {
+        clearAuthSession();
+        return;
+      }
+
       options.onConnectionStateChange("disconnected");
       if (disposed) {
         return;

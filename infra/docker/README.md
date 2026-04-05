@@ -46,19 +46,21 @@ For local mobile development:
 - set `EXPO_PUBLIC_API_BASE_URL` if you want to point Expo at a non-default backend
 - otherwise the client defaults to `http://10.0.2.2:8001` on Android emulators
 - and defaults to `http://127.0.0.1:8001` on non-Android Expo targets
-- all current mobile reads still use `Authorization: Bearer mock_owner_token`
+- Expo Go now opens on the login screen first
+- use the seeded owner credentials (default: `owner@example.com` / `dev-password`) unless you override `SEED_OWNER_EMAIL` / `SEED_OWNER_PASSWORD`
+- after login, mobile API calls use the issued bearer access token
 
 Phase 8A now adds:
 
 - durable `session_stream_events`
-- a websocket session endpoint at `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- a websocket session endpoint at `WS /api/v1/ws/sessions/{session_id}?token=<access_token>`
 - a mobile shared session bootstrap + websocket provider
 
 Current realtime behavior is intentionally lightweight:
 
 - the API process tails committed `session_stream_events` for connected websocket clients
 - the mobile app re-fetches affected REST reads on incoming events instead of maintaining a local cache graph
-- the current websocket surface is still mock-auth only and scoped to one session at a time
+- the websocket surface is login-token-authenticated and scoped to one session at a time
 
 Replay endpoints, OCR-specific stream events, and stock-out realtime flows remain future work.
 
@@ -86,9 +88,17 @@ npx expo start
 ```
 
 The smoke script talks to the running API at `http://127.0.0.1:8001` by default, calls the demo bootstrap API, and validates the expected owner-facing dashboard/chat/ledger state over HTTP.
+When `--auth-token` is omitted, it first logs in at `POST /api/v1/auth/login` using the CLI login credentials and then uses that issued bearer token for protected calls.
 
 You can override the API target if needed:
 
 ```powershell
 python backend/scripts/run_local_demo_smoke.py --api-base-url http://10.0.2.2:8001
+```
+
+You can also provide explicit login credentials or a pre-issued bearer token:
+
+```powershell
+python backend/scripts/run_local_demo_smoke.py --login-email owner@example.com --login-password dev-password
+python backend/scripts/run_local_demo_smoke.py --auth-token <access_token>
 ```

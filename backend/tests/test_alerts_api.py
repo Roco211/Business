@@ -8,16 +8,17 @@ from app.models import Confirmation
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 from app.services.bootstrap import ensure_default_context
+from conftest import auth_headers, login_and_get_token
 
-
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _create_pending_confirmation(client, monkeypatch, *, client_request_id: str) -> str:
     monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
     create_response = client.post(
         "/api/v1/sessions/sess_default/messages",
-        headers=AUTH_HEADERS,
+        headers=_auth_headers(client, monkeypatch),
         json={
             "message_type": "text",
             "text": "restock apples today",
@@ -66,7 +67,7 @@ def test_get_alerts_returns_open_low_stock_alerts_with_item_context(client, monk
         item_name="Apple",
     )
 
-    response = client.get("/api/v1/alerts?type=low-stock&limit=20", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/alerts?type=low-stock&limit=20", headers=_auth_headers(client))
 
     assert response.status_code == 200
     payload = response.json()
@@ -79,7 +80,7 @@ def test_get_alerts_returns_open_low_stock_alerts_with_item_context(client, monk
 
 
 def test_get_alerts_rejects_unsupported_type(client) -> None:
-    response = client.get("/api/v1/alerts?type=other", headers=AUTH_HEADERS)
+    response = client.get("/api/v1/alerts?type=other", headers=_auth_headers(client))
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "unsupported_alert_type"

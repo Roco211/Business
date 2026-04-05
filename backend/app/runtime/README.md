@@ -40,12 +40,12 @@ Behavior in this phase:
   - `GET /api/v1/confirmations?status=pending`
 - owners can now correct ledger stock directly through:
   - `POST /api/v1/inventory-events/corrections`
-- all read routes continue to require `Authorization: Bearer mock_owner_token`
+- all protected read routes require `Authorization: Bearer <access_token>` from `POST /api/v1/auth/login`
 
 Phase 8A adds the first durable session stream foundation on top of the existing runtime:
 
 - the backend now persists `session_stream_events`
-- the backend exposes `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- the backend exposes `WS /api/v1/ws/sessions/{session_id}?token=<access_token>` where `access_token` comes from `POST /api/v1/auth/login`
 - owner messages, runtime task transitions, confirmation lifecycle changes, inventory writes, and alert refreshes now append durable session events
 - websocket clients receive `session.ready` and `stream.keepalive`, then pick up committed business events from the durable session stream
 - the mobile app now boots one shared default session stream at the navigation shell level

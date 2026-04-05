@@ -39,9 +39,10 @@ For app-adjacent tooling and QA workflows, the backend also exposes:
 
 - `POST /api/v1/system/demo/bootstrap`
 
-Current access control matches the rest of the mock owner surface:
+Current access control follows the formal auth surface:
 
-- `Authorization: Bearer mock_owner_token`
+- login at `POST /api/v1/auth/login` to obtain an access token
+- send `Authorization: Bearer <access_token>` for the protected bootstrap route
 
 The API returns the same stable bootstrap summary as the script so callers can verify the resulting demo state without reading the database directly.
 
@@ -59,8 +60,9 @@ python backend/scripts/run_local_demo_smoke.py
 That smoke runner:
 
 - checks `GET /health`
+- logs in first at `POST /api/v1/auth/login` when no explicit `--auth-token` is provided
 - calls `POST /api/v1/system/demo/bootstrap`
 - validates session bootstrap, dashboard summary, low-stock alerts, pending confirmations, messages, and replay events
 - prints a compact JSON summary of the verified local demo state
 
-This gives developers and QA one repeatable proof that the running local stack matches the expected MVP demo shape before they open the mobile app or start manual walkthroughs.
+This gives developers and QA one repeatable proof that the running local stack matches the expected MVP demo shape before they open the mobile app (which now starts at login first in Expo Go) or start manual walkthroughs.

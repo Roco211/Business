@@ -1,9 +1,20 @@
+from datetime import UTC, datetime
+from decimal import Decimal
+
+from app.db.session import get_session_factory
+from app.models import OwnerAccount, Shop, ShopMembership
+from app.services.auth_sessions import issue_auth_session
+from conftest import auth_headers, login_and_get_token
+
 DEFAULT_SESSION_ID = "sess_default"
-AUTH_HEADERS = {"Authorization": "Bearer mock_owner_token"}
+
+
+def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
+    return auth_headers(login_and_get_token(client, monkeypatch))
 
 
 def _post_demo_bootstrap(client) -> dict[str, object]:
-    response = client.post("/api/v1/system/demo/bootstrap", headers=AUTH_HEADERS)
+    response = client.post("/api/v1/system/demo/bootstrap", headers=_auth_headers(client))
     assert response.status_code == 200
     return response.json()["data"]
 
@@ -17,8 +28,8 @@ def test_demo_bootstrap_endpoint_requires_owner_auth(client) -> None:
 
 def test_demo_bootstrap_endpoint_returns_stable_summary_and_seeded_state(client) -> None:
     summary = _post_demo_bootstrap(client)
-    messages_response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=AUTH_HEADERS)
-    dashboard_response = client.get("/api/v1/dashboard/summary", headers=AUTH_HEADERS)
+    messages_response = client.get(f"/api/v1/sessions/{DEFAULT_SESSION_ID}/messages", headers=_auth_headers(client))
+    dashboard_response = client.get("/api/v1/dashboard/summary", headers=_auth_headers(client))
 
     assert summary == {
         "shop_id": "shop_default",
@@ -45,3 +56,69 @@ def test_demo_bootstrap_endpoint_is_repeatable(client) -> None:
     second_summary = _post_demo_bootstrap(client)
 
     assert second_summary == first_summary
+
+
+def test_demo_bootstrap_endpoint_rejects_non_default_authenticated_shop(client) -> None:
+    db_session = get_session_factory()()
+    try:
+        now = datetime.now(UTC).replace(tzinfo=None)
+        shop = Shop(
+            shop_id="shop_other",
+            name="Other Shop",
+            owner_name="Owner",
+            industry="retail",
+            locale="zh-CN",
+            timezone="Asia/Shanghai",
+            require_price_confirmation=True,
+            require_new_item_confirmation=True,
+            low_confidence_threshold=Decimal("0.8500"),
+            default_low_stock_threshold=None,
+            created_at=now,
+            updated_at=now,
+        )
+        owner = OwnerAccount(
+            actor_id="owner_other",
+            email="other@example.com",
+            display_name="Other Owner",
+            password_hash="hash",
+            password_salt="salt",
+            status="active",
+            created_at=now,
+            updated_at=now,
+        )
+        membership = ShopMembership(
+            membership_id="mship_other",
+            shop_id=shop.shop_id,
+            actor_id=owner.actor_id,
+            role="owner",
+            is_default_shop=True,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(shop)
+        db_session.add(owner)
+        db_session.add(membership)
+        db_session.commit()
+
+        token = issue_auth_session(
+            db_session,
+            actor_id=owner.actor_id,
+            shop_id=shop.shop_id,
+            ttl_minutes=30,
+        ).access_token
+    finally:
+        db_session.close()
+
+    response = client.post(
+        "/api/v1/system/demo/bootstrap",
+        headers=auth_headers(token),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "code": "shop_not_found",
+            "message": "Shop not found",
+            "details": [],
+        }
+    }

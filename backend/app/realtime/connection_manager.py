@@ -23,6 +23,8 @@ class SessionStreamConnectionManager:
         self._connections: dict[str, set[WebSocket]] = defaultdict(set)
         self._keepalive_tasks: dict[int, asyncio.Task[None]] = {}
         self._last_seq_by_connection: dict[int, int] = {}
+        self._auth_validators: dict[int, Callable[[], bool] | None] = {}
+        self._unauthorized_close_codes: dict[int, int] = {}
         self._lock = asyncio.Lock()
 
     async def connect(
@@ -32,11 +34,15 @@ class SessionStreamConnectionManager:
         websocket: WebSocket,
         replay_after_seq: int,
         current_seq: int,
+        auth_is_valid: Callable[[], bool] | None = None,
+        unauthorized_close_code: int = 4401,
     ) -> None:
         await websocket.accept()
         async with self._lock:
             self._connections[session_id].add(websocket)
             self._last_seq_by_connection[id(websocket)] = replay_after_seq
+            self._auth_validators[id(websocket)] = auth_is_valid
+            self._unauthorized_close_codes[id(websocket)] = unauthorized_close_code
             self._keepalive_tasks[id(websocket)] = asyncio.create_task(
                 self._keepalive_loop(session_id=session_id, websocket=websocket),
                 name=f"session-stream-keepalive-{session_id}",
@@ -61,6 +67,8 @@ class SessionStreamConnectionManager:
 
             keepalive_task = self._keepalive_tasks.pop(id(websocket), None)
             self._last_seq_by_connection.pop(id(websocket), None)
+            self._auth_validators.pop(id(websocket), None)
+            self._unauthorized_close_codes.pop(id(websocket), None)
         if keepalive_task is not None:
             keepalive_task.cancel()
             with suppress(asyncio.CancelledError):
@@ -72,10 +80,15 @@ class SessionStreamConnectionManager:
 
         stale_connections: list[WebSocket] = []
         for websocket in recipients:
+            if not await self._revalidate_auth_session(websocket=websocket):
+                stale_connections.append(websocket)
+                continue
+
             async with self._lock:
                 last_seq = self._last_seq_by_connection.get(id(websocket))
             if last_seq is None or event.seq <= last_seq:
                 continue
+
             try:
                 await self._send_event(websocket, event)
                 async with self._lock:
@@ -93,7 +106,10 @@ class SessionStreamConnectionManager:
     async def _keepalive_loop(self, *, session_id: str, websocket: WebSocket) -> None:
         while True:
             await asyncio.sleep(self.keepalive_interval_seconds)
-            await self._flush_pending_events(session_id=session_id, websocket=websocket)
+            if not await self._flush_pending_events(session_id=session_id, websocket=websocket):
+                return
+            if not await self._revalidate_auth_session(websocket=websocket):
+                return
             async with self._lock:
                 seq = self._last_seq_by_connection.get(id(websocket), 0)
             await self._send_event(
@@ -105,11 +121,14 @@ class SessionStreamConnectionManager:
                 ),
             )
 
-    async def _flush_pending_events(self, *, session_id: str, websocket: WebSocket) -> None:
+    async def _flush_pending_events(self, *, session_id: str, websocket: WebSocket) -> bool:
+        if not await self._revalidate_auth_session(websocket=websocket):
+            return False
+
         async with self._lock:
             after_seq = self._last_seq_by_connection.get(id(websocket))
         if after_seq is None:
-            return
+            return False
 
         db_session = self.session_factory()
         try:
@@ -122,6 +141,8 @@ class SessionStreamConnectionManager:
             db_session.close()
 
         for event in pending_events:
+            if not await self._revalidate_auth_session(websocket=websocket):
+                return False
             async with self._lock:
                 current_seq = self._last_seq_by_connection.get(id(websocket))
             if current_seq is None or event.seq <= current_seq:
@@ -133,6 +154,27 @@ class SessionStreamConnectionManager:
                         self._last_seq_by_connection[id(websocket)],
                         event.seq,
                     )
+        return True
+
+    async def _revalidate_auth_session(self, *, websocket: WebSocket) -> bool:
+        async with self._lock:
+            validator = self._auth_validators.get(id(websocket))
+            unauthorized_close_code = self._unauthorized_close_codes.get(id(websocket), 4401)
+
+        if validator is None:
+            return True
+
+        try:
+            is_valid = validator()
+        except Exception:
+            is_valid = False
+
+        if is_valid:
+            return True
+
+        with suppress(Exception):
+            await websocket.close(code=unauthorized_close_code)
+        return False
 
     async def _send_event(self, websocket: WebSocket, event: SessionStreamEventEnvelope) -> None:
         await websocket.send_json(event.model_dump(mode="json"))

@@ -13,6 +13,10 @@ class Settings:
     default_shop_id: str = os.getenv("DEFAULT_SHOP_ID", "shop_default")
     default_owner_actor_id: str = os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default")
     default_session_id: str = os.getenv("DEFAULT_SESSION_ID", "sess_default")
+    seed_owner_email: str | None = os.getenv("SEED_OWNER_EMAIL")
+    seed_owner_password: str | None = os.getenv("SEED_OWNER_PASSWORD")
+    seed_owner_display_name: str = os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner")
+    auth_session_ttl_minutes: int = int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120"))
 
 
 def _build_default_database_url() -> str:
@@ -38,4 +42,8 @@ def get_settings() -> Settings:
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
         default_owner_actor_id=os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default"),
         default_session_id=os.getenv("DEFAULT_SESSION_ID", "sess_default"),
+        seed_owner_email=os.getenv("SEED_OWNER_EMAIL"),
+        seed_owner_password=os.getenv("SEED_OWNER_PASSWORD"),
+        seed_owner_display_name=os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner"),
+        auth_session_ttl_minutes=int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120")),
     )

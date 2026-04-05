@@ -1,5 +1,6 @@
 import importlib.util
 from collections.abc import Iterator
+import os
 from pathlib import Path
 import sys
 
@@ -69,3 +70,30 @@ def client(monkeypatch, tmp_path) -> TestClient:
     upgrade_test_database(database_url)
 
     return TestClient(load_create_app()())
+
+
+def login_and_get_token(
+    client: TestClient,
+    monkeypatch=None,
+    *,
+    email: str = "owner@example.com",
+    password: str = "dev-password",
+) -> str:
+    if monkeypatch is not None:
+        monkeypatch.setenv("SEED_OWNER_EMAIL", email)
+        monkeypatch.setenv("SEED_OWNER_PASSWORD", password)
+    else:
+        os.environ["SEED_OWNER_EMAIL"] = email
+        os.environ["SEED_OWNER_PASSWORD"] = password
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": password},
+    )
+
+    assert response.status_code == 200
+    return response.json()["data"]["access_token"]
+
+
+def auth_headers(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}

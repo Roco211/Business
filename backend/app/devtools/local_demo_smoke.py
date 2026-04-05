@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from json import JSONDecodeError
-from typing import Any, Callable
+import os
+from typing import Any, Protocol
 
 import httpx
 
@@ -21,7 +22,20 @@ EXPECTED_DEMO_SUMMARY = {
 }
 
 
-RequestJson = Callable[[str, str], tuple[int, object]]
+DEFAULT_LOGIN_EMAIL = "owner@example.com"
+DEFAULT_LOGIN_PASSWORD = "dev-password"
+
+
+class RequestJson(Protocol):
+    def __call__(
+        self,
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        ...
 
 
 class LocalDemoSmokeError(RuntimeError):
@@ -45,7 +59,7 @@ class LocalDemoSmokeResult:
         return asdict(self)
 
 
-def _build_live_request(api_base_url: str, auth_token: str) -> RequestJson:
+def _build_live_request(api_base_url: str) -> RequestJson:
     base_url = api_base_url.rstrip("/")
 
     def request_json(
@@ -106,10 +120,12 @@ def _expect_list(value: object, *, label: str) -> list[object]:
 def run_local_demo_smoke(
     *,
     api_base_url: str,
-    auth_token: str,
+    auth_token: str | None = None,
+    login_email: str | None = None,
+    login_password: str | None = None,
     request_json: RequestJson | None = None,
 ) -> LocalDemoSmokeResult:
-    request = request_json or _build_live_request(api_base_url, auth_token)
+    request = request_json or _build_live_request(api_base_url)
 
     health_status_code, health_body = request("GET", "/health", token=None, payload=None)
     health_payload = _expect_status_ok(status_code=health_status_code, body=health_body, label="GET /health")
@@ -117,10 +133,33 @@ def run_local_demo_smoke(
     if health_status != "ok":
         raise LocalDemoSmokeError("Health status was not ok")
 
+    resolved_login_email = login_email or os.getenv("SEED_OWNER_EMAIL", DEFAULT_LOGIN_EMAIL)
+    resolved_login_password = login_password or os.getenv("SEED_OWNER_PASSWORD", DEFAULT_LOGIN_PASSWORD)
+
+    active_auth_token = auth_token
+    if active_auth_token is None:
+        login_status_code, login_body = request(
+            "POST",
+            "/api/v1/auth/login",
+            token=None,
+            payload={"email": resolved_login_email, "password": resolved_login_password},
+        )
+        login_data = _expect_data_envelope(
+            status_code=login_status_code,
+            body=login_body,
+            label="POST /api/v1/auth/login",
+        )
+        if not isinstance(login_data, dict):
+            raise LocalDemoSmokeError("Login payload was not an object")
+        issued_access_token = login_data.get("access_token")
+        if not isinstance(issued_access_token, str) or not issued_access_token:
+            raise LocalDemoSmokeError("Login response did not include an access_token")
+        active_auth_token = issued_access_token
+
     demo_status_code, demo_body = request(
         "POST",
         "/api/v1/system/demo/bootstrap",
-        token=auth_token,
+        token=active_auth_token,
         payload={},
     )
     demo_summary = _expect_data_envelope(
@@ -136,7 +175,7 @@ def run_local_demo_smoke(
     session_status_code, session_body = request(
         "POST",
         "/api/v1/sessions/bootstrap",
-        token=auth_token,
+        token=active_auth_token,
         payload={},
     )
     session_data = _expect_data_envelope(
@@ -153,7 +192,7 @@ def run_local_demo_smoke(
     dashboard_status_code, dashboard_body = request(
         "GET",
         "/api/v1/dashboard/summary",
-        token=auth_token,
+        token=active_auth_token,
         payload=None,
     )
     dashboard_data = _expect_data_envelope(
@@ -171,7 +210,7 @@ def run_local_demo_smoke(
     alerts_status_code, alerts_body = request(
         "GET",
         "/api/v1/alerts?type=low-stock",
-        token=auth_token,
+        token=active_auth_token,
         payload=None,
     )
     alerts_data = _expect_data_envelope(
@@ -186,7 +225,7 @@ def run_local_demo_smoke(
     confirmations_status_code, confirmations_body = request(
         "GET",
         "/api/v1/confirmations?status=pending",
-        token=auth_token,
+        token=active_auth_token,
         payload=None,
     )
     confirmations_data = _expect_data_envelope(
@@ -201,7 +240,7 @@ def run_local_demo_smoke(
     messages_status_code, messages_body = request(
         "GET",
         f"/api/v1/sessions/{session_id}/messages",
-        token=auth_token,
+        token=active_auth_token,
         payload=None,
     )
     messages_data = _expect_data_envelope(
@@ -216,7 +255,7 @@ def run_local_demo_smoke(
     replay_status_code, replay_body = request(
         "GET",
         f"/api/v1/sessions/{session_id}/stream-events?after_seq=0&limit=50",
-        token=auth_token,
+        token=active_auth_token,
         payload=None,
     )
     replay_data = _expect_data_envelope(

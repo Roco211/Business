@@ -56,3 +56,44 @@ def test_session_stream_ws_sends_ready_and_keepalive(monkeypatch, tmp_path) -> N
     assert keepalive_event["seq"] == 0
     assert keepalive_event["event_id"]
     assert keepalive_event["occurred_at"]
+
+
+def test_session_stream_ws_replays_events_after_requested_seq(monkeypatch, tmp_path) -> None:
+    from app.services import session_stream as session_stream_service
+    from app.services.bootstrap import ensure_default_context
+    from app.db.session import get_session_factory
+
+    with _create_websocket_client(monkeypatch, tmp_path, keepalive_seconds="1") as client:
+        db_session = get_session_factory()()
+        try:
+            context = ensure_default_context(db_session)
+            session_stream_service.append_session_event(
+                db_session,
+                session_id=context.session.session_id,
+                event_type="message.created",
+                task_run_id="task_demo_001",
+                message_id="msg_demo_001",
+                data={"preview_text": "restock cola"},
+            )
+            replay_event = session_stream_service.append_session_event(
+                db_session,
+                session_id=context.session.session_id,
+                event_type="task.updated",
+                task_run_id="task_demo_001",
+                message_id=None,
+                data={"status": "completed"},
+            )
+            db_session.commit()
+        finally:
+            db_session.close()
+
+        with client.websocket_connect(
+            f"/api/v1/ws/sessions/{context.session.session_id}?token=mock_owner_token&after_seq=1"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            replayed_event = websocket.receive_json()
+
+    assert ready_event["event_type"] == "session.ready"
+    assert replayed_event["event_type"] == "task.updated"
+    assert replayed_event["seq"] == replay_event.seq
+    assert replayed_event["data"]["status"] == "completed"

@@ -28,17 +28,19 @@ export type SessionStreamConnectionState =
 
 type CreateSessionStreamClientOptions = {
   sessionId: string;
+  getAfterSeq?: () => number;
   onEvent: (event: SessionStreamEvent) => void;
   onConnectionStateChange: (state: SessionStreamConnectionState) => void;
 };
 
 
-function buildSessionStreamUrl(sessionId: string): string {
+function buildSessionStreamUrl(sessionId: string, afterSeq: number): string {
   const baseUrl = getApiBaseUrl();
   const websocketBaseUrl = baseUrl.startsWith("https://")
     ? baseUrl.replace("https://", "wss://")
     : baseUrl.replace("http://", "ws://");
-  return `${websocketBaseUrl}/api/v1/ws/sessions/${sessionId}?token=${DEFAULT_OWNER_TOKEN}`;
+  const replaySuffix = afterSeq > 0 ? `&after_seq=${afterSeq}` : "";
+  return `${websocketBaseUrl}/api/v1/ws/sessions/${sessionId}?token=${DEFAULT_OWNER_TOKEN}${replaySuffix}`;
 }
 
 
@@ -81,7 +83,8 @@ export function createSessionStreamClient(options: CreateSessionStreamClientOpti
     }
 
     options.onConnectionStateChange("connecting");
-    websocket = new WebSocket(buildSessionStreamUrl(options.sessionId));
+    const afterSeq = options.getAfterSeq?.() ?? 0;
+    websocket = new WebSocket(buildSessionStreamUrl(options.sessionId, afterSeq));
 
     websocket.onopen = () => {
       reconnectAttempt = 0;

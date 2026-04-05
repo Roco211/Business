@@ -22,7 +22,7 @@ class SessionStreamConnectionManager:
         self.session_factory = session_factory
         self._connections: dict[str, set[WebSocket]] = defaultdict(set)
         self._keepalive_tasks: dict[int, asyncio.Task[None]] = {}
-        self._last_seq_by_session: dict[str, int] = {}
+        self._last_seq_by_connection: dict[int, int] = {}
         self._lock = asyncio.Lock()
 
     async def connect(
@@ -30,12 +30,13 @@ class SessionStreamConnectionManager:
         *,
         session_id: str,
         websocket: WebSocket,
-        last_seq: int,
+        replay_after_seq: int,
+        current_seq: int,
     ) -> None:
         await websocket.accept()
         async with self._lock:
             self._connections[session_id].add(websocket)
-            self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), last_seq)
+            self._last_seq_by_connection[id(websocket)] = replay_after_seq
             self._keepalive_tasks[id(websocket)] = asyncio.create_task(
                 self._keepalive_loop(session_id=session_id, websocket=websocket),
                 name=f"session-stream-keepalive-{session_id}",
@@ -45,9 +46,10 @@ class SessionStreamConnectionManager:
             self._build_ephemeral_event(
                 session_id=session_id,
                 event_type="session.ready",
-                seq=last_seq,
+                seq=current_seq,
             ),
         )
+        await self._flush_pending_events(session_id=session_id, websocket=websocket)
 
     async def disconnect(self, *, session_id: str, websocket: WebSocket) -> None:
         async with self._lock:
@@ -58,6 +60,7 @@ class SessionStreamConnectionManager:
                     self._connections.pop(session_id, None)
 
             keepalive_task = self._keepalive_tasks.pop(id(websocket), None)
+            self._last_seq_by_connection.pop(id(websocket), None)
         if keepalive_task is not None:
             keepalive_task.cancel()
             with suppress(asyncio.CancelledError):
@@ -65,13 +68,22 @@ class SessionStreamConnectionManager:
 
     async def publish(self, *, session_id: str, event: SessionStreamEventEnvelope) -> None:
         async with self._lock:
-            self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), event.seq)
             recipients = list(self._connections.get(session_id, set()))
 
         stale_connections: list[WebSocket] = []
         for websocket in recipients:
+            async with self._lock:
+                last_seq = self._last_seq_by_connection.get(id(websocket))
+            if last_seq is None or event.seq <= last_seq:
+                continue
             try:
                 await self._send_event(websocket, event)
+                async with self._lock:
+                    if id(websocket) in self._last_seq_by_connection:
+                        self._last_seq_by_connection[id(websocket)] = max(
+                            self._last_seq_by_connection[id(websocket)],
+                            event.seq,
+                        )
             except Exception:
                 stale_connections.append(websocket)
 
@@ -83,7 +95,7 @@ class SessionStreamConnectionManager:
             await asyncio.sleep(self.keepalive_interval_seconds)
             await self._flush_pending_events(session_id=session_id, websocket=websocket)
             async with self._lock:
-                seq = self._last_seq_by_session.get(session_id, 0)
+                seq = self._last_seq_by_connection.get(id(websocket), 0)
             await self._send_event(
                 websocket,
                 self._build_ephemeral_event(
@@ -95,7 +107,9 @@ class SessionStreamConnectionManager:
 
     async def _flush_pending_events(self, *, session_id: str, websocket: WebSocket) -> None:
         async with self._lock:
-            after_seq = self._last_seq_by_session.get(session_id, 0)
+            after_seq = self._last_seq_by_connection.get(id(websocket))
+        if after_seq is None:
+            return
 
         db_session = self.session_factory()
         try:
@@ -108,9 +122,17 @@ class SessionStreamConnectionManager:
             db_session.close()
 
         for event in pending_events:
+            async with self._lock:
+                current_seq = self._last_seq_by_connection.get(id(websocket))
+            if current_seq is None or event.seq <= current_seq:
+                continue
             await self._send_event(websocket, event)
             async with self._lock:
-                self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), event.seq)
+                if id(websocket) in self._last_seq_by_connection:
+                    self._last_seq_by_connection[id(websocket)] = max(
+                        self._last_seq_by_connection[id(websocket)],
+                        event.seq,
+                    )
 
     async def _send_event(self, websocket: WebSocket, event: SessionStreamEventEnvelope) -> None:
         await websocket.send_json(event.model_dump(mode="json"))

@@ -7,6 +7,7 @@ This addendum records what is actually implemented in the repository today relat
 ## Implemented Now
 
 - Durable `session_stream_events` with strict per-session `seq`
+- `GET /api/v1/sessions/{session_id}/stream-events`
 - Durable `media_uploads` with explicit `pending -> uploaded` transition
 - `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
 - `POST /api/v1/media-uploads`
@@ -30,12 +31,17 @@ This addendum records what is actually implemented in the repository today relat
 
 - Business writes append durable session events in the same transaction as business truth
 - The API process then delivers committed events to websocket clients by tailing `session_stream_events`
+- websocket delivery cursors are now tracked per connection instead of per session
+- reconnecting websocket clients can provide `after_seq` to replay missed durable events
 - This keeps the current MVP compatible with separate API and worker processes without adding a broker
 
 ## Mobile Behavior
 
 - The mobile app bootstraps the default session once at the navigation shell
 - One shared websocket connection is reused across the three top-level tabs
+- the shared mobile session stream now remembers the latest accepted durable business `seq`
+- reconnect attempts now include `after_seq=<latest durable seq>` when there is replayable history
+- stale or duplicate replayed business events are ignored on the mobile side
 - `DashboardScreen` and `LedgerScreen` react to incoming events by refreshing the relevant REST reads
 - `LedgerScreen` now supports manual correction and manual stock-out writes
 - `ChatScreen` renders the durable message timeline for the default session
@@ -59,5 +65,5 @@ This addendum records what is actually implemented in the repository today relat
 
 - OCR-specific realtime events
 - Upstream websocket writes from the app
-- Replay or backfill endpoints
 - Broker-backed cross-process push
+- replay-specific UI surfaces or manual operator backfill tooling

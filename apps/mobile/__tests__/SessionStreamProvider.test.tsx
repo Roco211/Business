@@ -135,4 +135,138 @@ describe("SessionStreamProvider", () => {
       expect(screen.getByText("1")).toBeTruthy();
     });
   });
+
+  it("reconnects with the latest durable seq and ignores stale replay duplicates", async () => {
+    jest.useFakeTimers();
+    const { SessionStreamProvider, useSessionStream } = loadSessionStreamModules();
+
+    function Consumer() {
+      const stream = useSessionStream();
+      return (
+        <>
+          <Text>{stream.sessionId ?? "no-session"}</Text>
+          <Text>{stream.connectionState}</Text>
+          <Text>{stream.lastEvent?.event_id ?? "no-event-id"}</Text>
+          <Text>{String(stream.recentEvents.length)}</Text>
+        </>
+      );
+    }
+
+    render(
+      <SessionStreamProvider>
+        <Consumer />
+      </SessionStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("sess_default")).toBeTruthy();
+    });
+
+    act(() => {
+      MockWebSocket.instances[0]?.emitOpen();
+      MockWebSocket.instances[0]?.emitMessage({
+        event_id: "evt_message_created_1",
+        seq: 1,
+        event_type: "message.created",
+        session_id: "sess_default",
+        task_run_id: "task_1",
+        message_id: "msg_1",
+        occurred_at: "2026-04-05T12:00:00.000Z",
+        data: {
+          preview_text: "restock cola",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("evt_message_created_1")).toBeTruthy();
+      expect(screen.getByText("1")).toBeTruthy();
+    });
+
+    act(() => {
+      MockWebSocket.instances[0]?.close();
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(MockWebSocket.instances[1]?.url).toContain("after_seq=1");
+
+    act(() => {
+      MockWebSocket.instances[1]?.emitOpen();
+      MockWebSocket.instances[1]?.emitMessage({
+        event_id: "evt_message_created_1_replay",
+        seq: 1,
+        event_type: "message.created",
+        session_id: "sess_default",
+        task_run_id: "task_1",
+        message_id: "msg_1",
+        occurred_at: "2026-04-05T12:00:05.000Z",
+        data: {
+          preview_text: "restock cola",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("evt_message_created_1")).toBeTruthy();
+      expect(screen.getByText("1")).toBeTruthy();
+    });
+
+    jest.useRealTimers();
+  });
+
+  it("reconnects from seq 0 after a local demo reset clears the durable cursor", async () => {
+    const { SessionStreamProvider, useSessionStream } = loadSessionStreamModules();
+    let latestNotifyDemoReset: (() => void) | null = null;
+
+    function Consumer() {
+      const stream = useSessionStream();
+      latestNotifyDemoReset = stream.notifyDemoDataReset;
+      return (
+        <>
+          <Text>{stream.sessionId ?? "no-session"}</Text>
+          <Text>{stream.lastEvent?.event_id ?? "no-event-id"}</Text>
+          <Text>{String(stream.recentEvents.length)}</Text>
+        </>
+      );
+    }
+
+    render(
+      <SessionStreamProvider>
+        <Consumer />
+      </SessionStreamProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("sess_default")).toBeTruthy();
+    });
+
+    act(() => {
+      MockWebSocket.instances[0]?.emitOpen();
+      MockWebSocket.instances[0]?.emitMessage({
+        event_id: "evt_message_created_1",
+        seq: 1,
+        event_type: "message.created",
+        session_id: "sess_default",
+        task_run_id: "task_1",
+        message_id: "msg_1",
+        occurred_at: "2026-04-05T12:00:00.000Z",
+        data: {
+          preview_text: "restock cola",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("evt_message_created_1")).toBeTruthy();
+      expect(screen.getByText("1")).toBeTruthy();
+    });
+
+    act(() => {
+      latestNotifyDemoReset?.();
+    });
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(MockWebSocket.instances[1]?.url).not.toContain("after_seq=1");
+  });
 });

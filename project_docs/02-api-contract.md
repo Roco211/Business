@@ -633,3 +633,46 @@ Notes:
   - `409 inventory_item_inactive`
 - if requested quantity exceeds current stock, the server returns `422 confirmation_fields_invalid`
 - successful approval resolves the pending confirmation and task run, writes one durable `inventory_events(event_type = stock-out)` row, writes `audit_logs(action = inventory.stock_out_submitted)`, refreshes low-stock alerts, and appends the usual realtime projections
+
+## 16.3 Session Stream Replay Addendum
+
+`GET /api/v1/sessions/{session_id}/stream-events?after_seq=12&limit=50`
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "event_id": "evt_123",
+      "seq": 13,
+      "event_type": "message.created",
+      "session_id": "sess_default",
+      "task_run_id": "task_123",
+      "message_id": "msg_123",
+      "occurred_at": "2026-04-05T14:10:00.000Z",
+      "data": {
+        "preview_text": "restock cola"
+      }
+    }
+  ]
+}
+```
+
+Notes:
+
+- this route replays only durable business events from `session_stream_events`
+- transport events such as `session.ready` and `stream.keepalive` are not included
+- events are returned in ascending `seq` order
+- `after_seq` defaults to `0`
+- `limit` is clamped to a safe upper bound
+- auth matches the rest of the current owner-only surface:
+  - `Authorization: Bearer mock_owner_token`
+
+WebSocket reconnect addendum:
+
+- websocket clients may now reconnect with:
+  - `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token&after_seq=<last_durable_seq>`
+- when `after_seq` is provided, the server replays durable events with `seq > after_seq`
+- when `after_seq` is omitted, the server preserves the earlier MVP behavior and starts from the session's current tail
+- replay state is tracked per websocket connection rather than per session

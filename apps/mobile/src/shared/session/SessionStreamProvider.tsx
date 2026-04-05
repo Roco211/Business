@@ -1,4 +1,4 @@
-import { createContext, startTransition, useEffect, useState } from "react";
+import { createContext, startTransition, useEffect, useRef, useState } from "react";
 
 import {
   createSessionStreamClient,
@@ -41,8 +41,10 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
   const [lastEvent, setLastEvent] = useState<SessionStreamEvent | null>(null);
   const [recentEvents, setRecentEvents] = useState<SessionStreamEvent[]>([]);
   const [dataResetVersion, setDataResetVersion] = useState(0);
+  const lastBusinessSeqRef = useRef(0);
 
   function notifyDemoDataReset() {
+    lastBusinessSeqRef.current = 0;
     startTransition(() => {
       setLastEvent(null);
       setRecentEvents([]);
@@ -69,8 +71,16 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
     setConnectionState("connecting");
     const client = createSessionStreamClient({
       sessionId: bootstrap.data.session_id,
+      getAfterSeq: () => lastBusinessSeqRef.current,
       onConnectionStateChange: setConnectionState,
       onEvent: (event) => {
+        const isTransportEvent = event.event_type === "session.ready" || event.event_type === "stream.keepalive";
+        if (!isTransportEvent && event.seq <= lastBusinessSeqRef.current) {
+          return;
+        }
+        if (!isTransportEvent) {
+          lastBusinessSeqRef.current = event.seq;
+        }
         if (event.event_type === "stream.keepalive") {
           return;
         }
@@ -84,7 +94,7 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
     return () => {
       client.disconnect();
     };
-  }, [bootstrap.data, bootstrap.error, bootstrap.isLoading]);
+  }, [bootstrap.data, bootstrap.error, bootstrap.isLoading, dataResetVersion]);
 
   return (
     <SessionStreamContext.Provider

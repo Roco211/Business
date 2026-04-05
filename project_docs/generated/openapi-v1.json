@@ -731,6 +731,22 @@
         "title": "DataEnvelope[TaskRunData]",
         "type": "object"
       },
+      "DataEnvelope_list_SessionStreamEventEnvelope__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SessionStreamEventEnvelope"
+            },
+            "title": "Data",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[list[SessionStreamEventEnvelope]]",
+        "type": "object"
+      },
       "DemoBootstrapSummaryData": {
         "properties": {
           "inventory_item_count": {
@@ -1550,6 +1566,67 @@
           "meta"
         ],
         "title": "SessionMessagesResponse",
+        "type": "object"
+      },
+      "SessionStreamEventEnvelope": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "task_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Run Id"
+          }
+        },
+        "required": [
+          "event_id",
+          "seq",
+          "event_type",
+          "session_id",
+          "occurred_at"
+        ],
+        "title": "SessionStreamEventEnvelope",
         "type": "object"
       },
       "TaskRunData": {
@@ -2910,6 +2987,97 @@
         "summary": "Post Session Message",
         "tags": [
           "messages"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/stream-events": {
+      "get": {
+        "operationId": "list_stream_events_api_v1_sessions__session_id__stream_events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after_seq",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After Seq",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_list_SessionStreamEventEnvelope__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Stream Events",
+        "tags": [
+          "session-stream"
         ]
       }
     },

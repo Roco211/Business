@@ -1,12 +1,67 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Header, Query, WebSocket, WebSocketDisconnect, status
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
-from app.db.session import get_session_factory
+from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
+from app.contracts.session_stream import SessionStreamEventEnvelope
+from app.db.session import get_db_session, get_session_factory
 from app.models import SessionRecord
 from app.realtime.connection_manager import get_session_stream_manager
+from app.services.session_stream import list_session_events_after
 
 router = APIRouter(tags=["session-stream"])
 UNAUTHORIZED_CLOSE_CODE = 4401
 SESSION_NOT_FOUND_CLOSE_CODE = 4404
+
+
+def _build_unauthorized_response() -> JSONResponse:
+    payload = ErrorEnvelope(
+        error=ErrorBody(
+            code="unauthorized",
+            message="Unauthorized",
+            details=[],
+        )
+    )
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content=payload.model_dump(),
+    )
+
+
+@router.get(
+    "/api/v1/sessions/{session_id}/stream-events",
+    response_model=DataEnvelope[list[SessionStreamEventEnvelope]],
+    responses={401: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
+def list_stream_events(
+    session_id: str,
+    after_seq: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    authorization: str | None = Header(default=None),
+    db_session: Session = Depends(get_db_session),
+) -> DataEnvelope[list[SessionStreamEventEnvelope]] | JSONResponse:
+    if authorization != "Bearer mock_owner_token":
+        return _build_unauthorized_response()
+
+    session = db_session.get(SessionRecord, session_id)
+    if session is None:
+        payload = ErrorEnvelope(
+            error=ErrorBody(
+                code="session_not_found",
+                message="Session not found",
+                details=[],
+            )
+        )
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=payload.model_dump())
+
+    return DataEnvelope(
+        data=list_session_events_after(
+            db_session,
+            session_id=session_id,
+            after_seq=after_seq,
+            limit=limit,
+        )
+    )
 
 
 async def _close_websocket(websocket: WebSocket, *, code: int) -> None:
@@ -32,10 +87,20 @@ async def session_stream_websocket(websocket: WebSocket, session_id: str) -> Non
             await _close_websocket(websocket, code=SESSION_NOT_FOUND_CLOSE_CODE)
             return
 
+        after_seq_param = websocket.query_params.get("after_seq")
+        if after_seq_param is None or after_seq_param == "":
+            replay_after_seq = int(session.last_event_seq)
+        else:
+            try:
+                replay_after_seq = max(0, int(after_seq_param))
+            except ValueError:
+                replay_after_seq = int(session.last_event_seq)
+
         await manager.connect(
             session_id=session_id,
             websocket=websocket,
-            last_seq=int(session.last_event_seq),
+            replay_after_seq=replay_after_seq,
+            current_seq=int(session.last_event_seq),
         )
         connected = True
 

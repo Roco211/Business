@@ -159,3 +159,41 @@ def append_inventory_correction_audit_log(
     db_session.add(log)
     db_session.flush()
     return log
+
+
+def append_inventory_stock_out_audit_log(
+    db_session: Session,
+    *,
+    item: InventoryItem,
+    inventory_event: InventoryEvent,
+    previous_quantity: float,
+    actor_id: str,
+    reason: str,
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=item.shop_id,
+        scope="inventory",
+        action="inventory.stock_out_submitted",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=None,
+        target_type="inventory_item",
+        target_id=item.item_id,
+        metadata_json={
+            "inventory_event_id": inventory_event.inventory_event_id,
+            "event_type": inventory_event.event_type,
+            "item_id": item.item_id,
+            "item_name": item.name,
+            "previous_quantity": previous_quantity,
+            "quantity_delta": float(inventory_event.quantity_delta),
+            "quantity_after": float(inventory_event.quantity_after),
+            "unit": item.default_unit,
+            "reason": reason,
+            "source": inventory_event.source,
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log

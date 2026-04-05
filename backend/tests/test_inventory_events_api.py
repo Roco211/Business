@@ -195,7 +195,7 @@ def test_post_inventory_stock_out_updates_stock_and_returns_event_id(client) -> 
     assert response.status_code == 200
     payload = response.json()["data"]
     assert payload["item_id"] == item.item_id
-    assert payload["new_quantity"] == "4"
+    assert payload["new_quantity"] == "4.000"
     assert payload["stock_out_event_id"].startswith("inv_evt_")
     assert updated_item is not None
     assert updated_item.current_stock == Decimal("4")

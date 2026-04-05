@@ -3,7 +3,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
-from app.contracts.inventory_event import CreateInventoryCorrectionData, CreateInventoryCorrectionRequest
+from app.contracts.inventory_event import (
+    CreateInventoryCorrectionData,
+    CreateInventoryCorrectionRequest,
+    CreateInventoryStockOutData,
+    CreateInventoryStockOutRequest,
+)
 from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.services.inventory_corrections import (
@@ -11,6 +16,12 @@ from app.services.inventory_corrections import (
     InventoryCorrectionItemNotFoundError,
     InventoryCorrectionValidationError,
     submit_inventory_correction,
+)
+from app.services.inventory_stock_outs import (
+    InventoryStockOutConflictError,
+    InventoryStockOutItemNotFoundError,
+    InventoryStockOutValidationError,
+    submit_inventory_stock_out,
 )
 
 router = APIRouter(prefix="/api/v1/inventory-events", tags=["inventory-events"])
@@ -72,6 +83,50 @@ def post_inventory_correction(
     return DataEnvelope(
         data=CreateInventoryCorrectionData(
             correction_event_id=result.inventory_event.inventory_event_id,
+            item_id=result.inventory_item.item_id,
+            new_quantity=result.inventory_item.current_stock,
+        )
+    )
+
+
+@router.post("/stock-out", response_model=DataEnvelope[CreateInventoryStockOutData])
+def post_inventory_stock_out(
+    payload: CreateInventoryStockOutRequest,
+    authorization: str | None = Header(default=None),
+    settings: Settings = Depends(get_settings),
+    db_session: Session = Depends(get_db_session),
+) -> DataEnvelope[CreateInventoryStockOutData] | JSONResponse:
+    if authorization != "Bearer mock_owner_token":
+        return _unauthorized()
+
+    try:
+        result = submit_inventory_stock_out(
+            db_session,
+            shop_id=settings.default_shop_id,
+            item_id=payload.item_id,
+            expected_quantity=payload.expected_quantity,
+            stock_out_quantity=payload.stock_out_quantity,
+            reason=payload.reason,
+            actor_id=settings.default_owner_actor_id,
+        )
+    except InventoryStockOutItemNotFoundError:
+        return _error_response(status.HTTP_404_NOT_FOUND, "item_not_found", "Inventory item not found")
+    except InventoryStockOutConflictError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "inventory_conflict",
+            "Inventory stock-out conflicts with the current item state",
+        )
+    except InventoryStockOutValidationError as exc:
+        return _error_response(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "validation_error",
+            str(exc),
+        )
+
+    return DataEnvelope(
+        data=CreateInventoryStockOutData(
+            stock_out_event_id=result.inventory_event.inventory_event_id,
             item_id=result.inventory_item.item_id,
             new_quantity=result.inventory_item.current_stock,
         )

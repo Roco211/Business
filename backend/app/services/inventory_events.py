@@ -73,3 +73,37 @@ def append_correction_event(
     db_session.add(event)
     db_session.flush()
     return event
+
+
+def append_stock_out_event(
+    db_session: Session,
+    *,
+    item: InventoryItem,
+    stock_out_quantity: Decimal,
+    actor_id: str,
+    reason: str,
+) -> InventoryEvent:
+    now = datetime.now(UTC).replace(tzinfo=None)
+    previous_quantity = Decimal(item.current_stock)
+    quantity_delta = -stock_out_quantity
+    quantity_after = previous_quantity - stock_out_quantity
+    event = InventoryEvent(
+        inventory_event_id=new_prefixed_id("inv_evt"),
+        shop_id=item.shop_id,
+        item_id=item.item_id,
+        event_type="stock-out",
+        quantity_delta=quantity_delta,
+        quantity_after=quantity_after,
+        unit=item.default_unit,
+        price=item.current_price,
+        source="owner-stock-out",
+        task_run_id=None,
+        created_by=actor_id,
+        reason=reason,
+        created_at=now,
+    )
+    item.current_stock = quantity_after
+    item.updated_at = now
+    db_session.add(event)
+    db_session.flush()
+    return event

@@ -43,8 +43,10 @@ This addendum records what is actually implemented in the repository today relat
   - `Photo Stock-In Demo`
   - `Receipt OCR Demo`
 - `ChatScreen` renders pending stock-in confirmation cards and supports approve/reject actions
+- `ChatScreen` now also renders dedicated receipt confirmation cards with editable draft line items
 - `ChatScreen` refreshes messages and confirmations when relevant session events arrive
-- receipt OCR truth is now durable through `ocr_documents`, but batch receipt approval that writes multiple inventory events is still deferred
+- receipt OCR truth is now durable through `ocr_documents`
+- receipt approval now commits multiple inventory events, audit logs, and projection refreshes through the existing confirmation flow
 
 ## Still Out Of Scope
 

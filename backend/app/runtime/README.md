@@ -84,4 +84,12 @@ Phase 9B closes the remaining mock-first multimodal gap:
   - `Photo Stock-In Demo`
   - `Receipt OCR Demo`
 
-The runtime still does not implement OCR-specific websocket events, upstream websocket message sending, stock-out flows, replay endpoints, or batch receipt-to-inventory commits.
+Phase 9C turns receipt OCR into a real owner-confirmed inventory write path:
+
+- `receipt-ocr` now persists durable OCR truth and then pauses in `awaiting-confirmation`
+- runtime now creates `receipt-stock-in-batch` confirmations with editable draft receipt lines
+- owner approval now atomically commits one inventory event per approved receipt line
+- owner approval now also writes receipt-specific audit logs and refreshes low-stock alert projections for affected items
+- `ChatScreen` now renders a dedicated receipt confirmation card instead of forcing receipt confirmations through the single-item stock-in card
+
+The runtime still does not implement OCR-specific websocket events, upstream websocket message sending, stock-out flows, or replay endpoints.

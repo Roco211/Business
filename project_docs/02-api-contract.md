@@ -358,6 +358,43 @@
 }
 ```
 
+说明：
+
+- 普通补货确认继续使用单条字段：
+  - `item_name | item_id`
+  - `quantity`
+  - `unit`
+  - `price`
+- 当 `confirmation_type = receipt-stock-in-batch` 时，`fields` 改为批量行项目：
+
+```json
+{
+  "fields": {
+    "items": [
+      {
+        "line_id": "line_1",
+        "item_name": "Red Bull 250ml",
+        "quantity": 3,
+        "unit": "can",
+        "price": 41.0
+      },
+      {
+        "line_id": "line_2",
+        "item_name": "Coca Cola 500ml",
+        "quantity": 2,
+        "unit": "bottle",
+        "price": 12.0
+      }
+    ]
+  }
+}
+```
+
+- receipt 批量确认约束：
+  - 所有行项目在同一个事务中一起落账
+  - 任一行校验失败时，整次 approval 失败，不写入任何库存真相
+  - 每一行都会生成独立 `inventory_event` 和 `audit_log`
+
 ### 10.3 拒绝确认
 
 `POST /api/v1/confirmations/:confirmation_id/reject`

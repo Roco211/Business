@@ -13,6 +13,8 @@ let mockLastChatEvent: {
   occurred_at: string;
   data: Record<string, unknown>;
 } | null = null;
+let approvalShouldFail = false;
+let rejectShouldFail = false;
 
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -30,6 +32,8 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
 describe("ChatScreen", () => {
   beforeEach(() => {
     mockLastChatEvent = null;
+    approvalShouldFail = false;
+    rejectShouldFail = false;
 
     const messages = [
       {
@@ -55,10 +59,136 @@ describe("ChatScreen", () => {
         created_at: "2026-04-05T12:00:03.000Z",
       },
     ];
+    const pendingConfirmations = [
+      {
+        confirmation_id: "conf_1",
+        session_id: "sess_default",
+        task_run_id: "task_1",
+        confirmation_type: "low-confidence-recognition",
+        status: "pending",
+        fields: {
+          summary: "Please confirm the stock-in details before commit.",
+          transcript: "restock cola",
+          draft_fields: {
+            item_name: "Cola",
+            quantity: 3,
+            unit: "box",
+            price: 18.5,
+          },
+          required_fields: ["item_name", "quantity", "unit", "price"],
+        },
+        requested_by_employee_id: "emp_mock",
+        resolution_payload: null,
+        approved_by_actor_id: null,
+        created_at: "2026-04-05T12:00:04.000Z",
+        resolved_at: null,
+      },
+    ];
 
     global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
+
+      if (url.includes("/api/v1/confirmations/conf_1/approve") && method === "POST") {
+        if (approvalShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "confirmation_fields_invalid",
+                message: "item_name is required",
+                details: [],
+              },
+            }),
+          });
+        }
+        pendingConfirmations.splice(0, 1);
+        messages.push({
+          message_id: "msg_system_approved",
+          session_id: "sess_default",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime: approved stock-in committed to inventory.",
+          media_ids: [],
+          task_run_id: "task_1",
+          created_at: "2026-04-05T12:00:06.000Z",
+        });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              confirmation_id: "conf_1",
+              session_id: "sess_default",
+              task_run_id: "task_1",
+              confirmation_type: "low-confidence-recognition",
+              status: "approved",
+              fields: {
+                summary: "Please confirm the stock-in details before commit.",
+              },
+              requested_by_employee_id: "emp_mock",
+              resolution_payload: {
+                fields: {
+                  item_name: "Cola",
+                  quantity: 3,
+                  unit: "box",
+                  price: 18.5,
+                },
+              },
+              approved_by_actor_id: "owner_default",
+              created_at: "2026-04-05T12:00:04.000Z",
+              resolved_at: "2026-04-05T12:00:06.000Z",
+            },
+          }),
+        });
+      }
+
+      if (url.includes("/api/v1/confirmations/conf_1/reject") && method === "POST") {
+        if (rejectShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "confirmation_not_pending",
+                message: "Confirmation is not pending",
+                details: [],
+              },
+            }),
+          });
+        }
+        pendingConfirmations.splice(0, 1);
+        messages.push({
+          message_id: "msg_system_rejected",
+          session_id: "sess_default",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime: owner rejected the confirmation and the stock-in task was rejected.",
+          media_ids: [],
+          task_run_id: "task_1",
+          created_at: "2026-04-05T12:00:06.000Z",
+        });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              confirmation_id: "conf_1",
+              session_id: "sess_default",
+              task_run_id: "task_1",
+              confirmation_type: "low-confidence-recognition",
+              status: "rejected",
+              fields: {
+                summary: "Please confirm the stock-in details before commit.",
+              },
+              requested_by_employee_id: "emp_mock",
+              resolution_payload: null,
+              approved_by_actor_id: null,
+              created_at: "2026-04-05T12:00:04.000Z",
+              resolved_at: "2026-04-05T12:00:06.000Z",
+            },
+          }),
+        });
+      }
 
       if (url.includes("/api/v1/sessions/sess_default/messages") && method === "POST") {
         const payload = JSON.parse(String(init?.body ?? "{}")) as {
@@ -103,9 +233,9 @@ describe("ChatScreen", () => {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            data: [],
+            data: pendingConfirmations,
             meta: {
-              count: 0,
+              count: pendingConfirmations.length,
             },
           }),
         });
@@ -136,7 +266,7 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("数字员工工作群")).toBeTruthy();
       expect(screen.getByText("connected")).toBeTruthy();
-      expect(screen.getByText("restock cola")).toBeTruthy();
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
       expect(
         screen.getByText("Mock runtime: please confirm the stock-in details before commit."),
       ).toBeTruthy();
@@ -147,7 +277,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("restock cola")).toBeTruthy();
+      expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
     });
 
     fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "Count chips too");
@@ -161,6 +291,46 @@ describe("ChatScreen", () => {
           method: "POST",
         }),
       );
+    });
+  });
+
+  it("renders a pending stock-in confirmation card and approves it from chat", async () => {
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pending confirmation")).toBeTruthy();
+      expect(screen.getByDisplayValue("Cola")).toBeTruthy();
+      expect(screen.getByDisplayValue("3")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Approve"));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Approve")).toBeNull();
+      expect(screen.getByText("Mock runtime: approved stock-in committed to inventory.")).toBeTruthy();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/confirmations/conf_1/approve"),
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
+
+  it("shows a recoverable error when confirmation rejection fails", async () => {
+    rejectShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pending confirmation")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Reject"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Confirmation is not pending")).toBeTruthy();
+      expect(screen.getByText("Approve")).toBeTruthy();
+      expect(screen.getByText("Reject")).toBeTruthy();
     });
   });
 });

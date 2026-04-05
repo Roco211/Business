@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useSessionStream } from "../../../shared/session/useSessionStream";
+import { PendingStockInConfirmationCard } from "../components/PendingStockInConfirmationCard";
+import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 
@@ -30,7 +32,13 @@ export default function ChatScreen() {
   const [draftText, setDraftText] = useState("");
   const title = sessionStream.sessionTitle ?? sessionStream.sessionId ?? "工作群";
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
+  const confirmations = useChatPendingConfirmationsQuery(sessionStream.sessionId);
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
+
+  function refreshChat() {
+    messages.refresh();
+    confirmations.refresh();
+  }
 
   async function handleSend() {
     const result = await sendMessage.submitMessage(draftText);
@@ -38,7 +46,7 @@ export default function ChatScreen() {
       return;
     }
     setDraftText("");
-    messages.refresh();
+    refreshChat();
   }
 
   if (messages.isLoading) {
@@ -48,6 +56,8 @@ export default function ChatScreen() {
       </View>
     );
   }
+
+  const renderedConfirmationIds = new Set<string>();
 
   return (
     <ScrollView>
@@ -68,15 +78,44 @@ export default function ChatScreen() {
         </View>
       ) : null}
 
+      {confirmations.error ? (
+        <View>
+          <Text>Confirmations unavailable</Text>
+          <Text>{confirmations.error}</Text>
+        </View>
+      ) : null}
+
       <Text>Messages</Text>
       {messages.data.length === 0 ? <Text>No messages yet.</Text> : null}
-      {messages.data.map((message) => (
-        <View key={message.message_id}>
-          <Text>{getActorLabel(message.actor_type)}</Text>
-          <Text>{getMessageText(message.message_type, message.text)}</Text>
-          <Text>{message.created_at}</Text>
-        </View>
-      ))}
+      {messages.data.map((message) => {
+        const linkedConfirmations = confirmations.data.filter((confirmation) => {
+          if (confirmation.task_run_id !== message.task_run_id) {
+            return false;
+          }
+          if (renderedConfirmationIds.has(confirmation.confirmation_id)) {
+            return false;
+          }
+          renderedConfirmationIds.add(confirmation.confirmation_id);
+          return true;
+        });
+
+        return (
+          <View key={message.message_id}>
+            <View>
+              <Text>{getActorLabel(message.actor_type)}</Text>
+              <Text>{getMessageText(message.message_type, message.text)}</Text>
+              <Text>{message.created_at}</Text>
+            </View>
+            {linkedConfirmations.map((confirmation) => (
+              <PendingStockInConfirmationCard
+                key={confirmation.confirmation_id}
+                confirmation={confirmation}
+                onResolved={refreshChat}
+              />
+            ))}
+          </View>
+        );
+      })}
 
       <Text>Composer</Text>
       <TextInput placeholder="Type a message" value={draftText} onChangeText={setDraftText} />

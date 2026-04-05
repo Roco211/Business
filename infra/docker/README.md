@@ -48,4 +48,16 @@ For local mobile development:
 - and defaults to `http://127.0.0.1:8001` on non-Android Expo targets
 - all current mobile reads still use `Authorization: Bearer mock_owner_token`
 
-Low-stock alerts, session stream events, and WebSocket fanout remain future work.
+Phase 8A now adds:
+
+- durable `session_stream_events`
+- a websocket session endpoint at `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- a mobile shared session bootstrap + websocket provider
+
+Current realtime behavior is intentionally lightweight:
+
+- the API process tails committed `session_stream_events` for connected websocket clients
+- the mobile app re-fetches affected REST reads on incoming events instead of maintaining a local cache graph
+- the current websocket surface is still mock-auth only and scoped to one session at a time
+
+Replay endpoints, OCR-specific stream events, and stock-out realtime flows remain future work.

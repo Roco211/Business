@@ -42,4 +42,14 @@ Behavior in this phase:
   - `POST /api/v1/inventory-events/corrections`
 - all read routes continue to require `Authorization: Bearer mock_owner_token`
 
-The runtime still does not implement alerts, session stream events, or WebSocket fanout.
+Phase 8A adds the first durable session stream foundation on top of the existing runtime:
+
+- the backend now persists `session_stream_events`
+- the backend exposes `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- owner messages, runtime task transitions, confirmation lifecycle changes, inventory writes, and alert refreshes now append durable session events
+- websocket clients receive `session.ready` and `stream.keepalive`, then pick up committed business events from the durable session stream
+- the mobile app now boots one shared default session stream at the navigation shell level
+- `DashboardScreen` and `LedgerScreen` refresh their reads from incoming session events
+- `ChatScreen` now shows session connection state and recent session events instead of remaining a static placeholder
+
+The runtime still does not implement OCR events, upstream websocket message sending, stock-out flows, or replay endpoints.

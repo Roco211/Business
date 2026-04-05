@@ -52,4 +52,17 @@ Phase 8A adds the first durable session stream foundation on top of the existing
 - `DashboardScreen` and `LedgerScreen` refresh their reads from incoming session events
 - `ChatScreen` now shows session connection state and recent session events instead of remaining a static placeholder
 
+Phase 9A adds the missing upload-backed voice entry contract:
+
+- the backend now persists `media_uploads`
+- the backend exposes:
+  - `POST /api/v1/media-uploads`
+  - `POST /api/v1/media-uploads/{media_id}/complete`
+- session message creation now rejects media references that are missing or not yet `uploaded`
+- the mobile chat surface now includes voice demo entry actions that perform:
+  - upload request
+  - upload completion
+  - final `voice` message post
+- the runtime still reuses `text` as the mock transcript hint for those upload-backed voice messages
+
 The runtime still does not implement OCR events, upstream websocket message sending, stock-out flows, or replay endpoints.

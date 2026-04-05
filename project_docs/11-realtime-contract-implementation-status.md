@@ -7,7 +7,10 @@ This addendum records what is actually implemented in the repository today relat
 ## Implemented Now
 
 - Durable `session_stream_events` with strict per-session `seq`
+- Durable `media_uploads` with explicit `pending -> uploaded` transition
 - `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- `POST /api/v1/media-uploads`
+- `POST /api/v1/media-uploads/{media_id}/complete`
 - Emitted event types:
   - `message.created`
   - `task.updated`
@@ -31,6 +34,7 @@ This addendum records what is actually implemented in the repository today relat
 - `DashboardScreen` and `LedgerScreen` react to incoming events by refreshing the relevant REST reads
 - `ChatScreen` renders the durable message timeline for the default session
 - `ChatScreen` sends owner-authored text messages through the existing session message API
+- `ChatScreen` also exposes upload-backed voice demo actions that request media upload, complete it, and then send a `voice` message
 - `ChatScreen` renders pending stock-in confirmation cards and supports approve/reject actions
 - `ChatScreen` refreshes messages and confirmations when relevant session events arrive
 

@@ -130,7 +130,7 @@ def resolve_auth_session(db_session: Session, bearer_token: str) -> ResolvedAuth
     now = _now()
 
     row = db_session.execute(
-        select(AuthSession, ShopMembership, OwnerAccount)
+        select(AuthSession, ShopMembership, OwnerAccount, Shop)
         .join(
             ShopMembership,
             and_(
@@ -139,6 +139,7 @@ def resolve_auth_session(db_session: Session, bearer_token: str) -> ResolvedAuth
             ),
         )
         .join(OwnerAccount, OwnerAccount.actor_id == AuthSession.actor_id)
+        .join(Shop, Shop.shop_id == AuthSession.shop_id)
         .where(
             AuthSession.session_token_hash == token_hash,
             AuthSession.status == "active",
@@ -150,7 +151,7 @@ def resolve_auth_session(db_session: Session, bearer_token: str) -> ResolvedAuth
     if row is None:
         return None
 
-    auth_session, membership, _ = row
+    auth_session, membership, _, _ = row
     return ResolvedAuthSession(
         auth_session_id=auth_session.auth_session_id,
         actor_id=auth_session.actor_id,

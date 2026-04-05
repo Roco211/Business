@@ -3,7 +3,9 @@ from decimal import Decimal
 
 from app.api.deps.auth import AuthenticatedContext
 from app.api.routes import sessions as session_routes
-from app.models import SessionRecord, Shop
+from app.db.session import get_session_factory
+from app.models import OwnerAccount, SessionRecord, Shop, ShopMembership
+from app.services.auth_sessions import issue_auth_session
 from app.services.bootstrap import BootstrapContext
 from conftest import auth_headers, login_and_get_token
 
@@ -99,3 +101,69 @@ def test_session_bootstrap_accepts_matching_seeded_fallback_without_default_id_c
 
     assert response.data.session_id == "sess_seeded"
     assert response.data.title == "Seeded Session"
+
+
+def test_session_bootstrap_returns_404_envelope_when_authenticated_shop_has_no_session(client) -> None:
+    db_session = get_session_factory()()
+    try:
+        now = datetime.now(UTC).replace(tzinfo=None)
+        shop = Shop(
+            shop_id="shop_no_session",
+            name="No Session Shop",
+            owner_name="Owner",
+            industry="retail",
+            locale="zh-CN",
+            timezone="Asia/Shanghai",
+            require_price_confirmation=True,
+            require_new_item_confirmation=True,
+            low_confidence_threshold=Decimal("0.8500"),
+            default_low_stock_threshold=None,
+            created_at=now,
+            updated_at=now,
+        )
+        owner = OwnerAccount(
+            actor_id="owner_no_session",
+            email="no-session@example.com",
+            display_name="No Session Owner",
+            password_hash="hash",
+            password_salt="salt",
+            status="active",
+            created_at=now,
+            updated_at=now,
+        )
+        membership = ShopMembership(
+            membership_id="mship_no_session",
+            shop_id=shop.shop_id,
+            actor_id=owner.actor_id,
+            role="owner",
+            is_default_shop=True,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(shop)
+        db_session.add(owner)
+        db_session.add(membership)
+        db_session.commit()
+
+        token = issue_auth_session(
+            db_session,
+            actor_id=owner.actor_id,
+            shop_id=shop.shop_id,
+            ttl_minutes=30,
+        ).access_token
+    finally:
+        db_session.close()
+
+    response = client.post(
+        "/api/v1/sessions/bootstrap",
+        headers=auth_headers(token),
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "code": "session_not_found",
+            "message": "Session not found",
+            "details": [],
+        }
+    }

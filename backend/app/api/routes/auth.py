@@ -70,12 +70,19 @@ def mock_login(
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[MockLoginData]:
     shop = ensure_default_shop(db_session)
+    owner = ensure_default_owner_membership(db_session, shop)
+    issued_session = issue_auth_session(
+        db_session,
+        actor_id=owner.actor_id,
+        shop_id=shop.shop_id,
+        ttl_minutes=settings.auth_session_ttl_minutes,
+    )
 
     return DataEnvelope(
         data=MockLoginData(
-            access_token="mock_owner_token",
+            access_token=issued_session.access_token,
             token_type="Bearer",
-            owner_actor_id=settings.default_owner_actor_id,
+            owner_actor_id=owner.actor_id,
             shop_id=shop.shop_id,
             shop_name=shop.name,
         )

@@ -19,7 +19,7 @@ def test_mock_login_returns_default_owner_context(client) -> None:
 
     assert response.status_code == 200
     payload = response.json()["data"]
-    assert payload["access_token"] == "mock_owner_token"
+    assert payload["access_token"] != "mock_owner_token"
     assert payload["owner_actor_id"] == "owner_default"
     assert payload["shop_id"] == "shop_default"
     assert payload["shop_name"] == "演示店铺"
@@ -103,3 +103,18 @@ def test_login_does_not_create_default_session_record(db_session, monkeypatch) -
     assert response.status_code == 200
     assert before_count == 0
     assert after_count == 0
+
+
+def test_mock_login_issued_token_is_accepted_by_protected_routes(client) -> None:
+    mock_login_response = client.post("/api/v1/auth/mock-login", json={"shop_id": "shop_default"})
+
+    assert mock_login_response.status_code == 200
+    token = mock_login_response.json()["data"]["access_token"]
+
+    protected_response = client.post(
+        "/api/v1/sessions/bootstrap",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert protected_response.status_code == 200
+    assert protected_response.json()["data"]["session_id"] == "sess_default"

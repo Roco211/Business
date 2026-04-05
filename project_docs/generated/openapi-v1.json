@@ -2935,6 +2935,16 @@
             },
             "description": "Unauthorized"
           },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Session not found"
+          },
           "422": {
             "content": {
               "application/json": {

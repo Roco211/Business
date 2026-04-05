@@ -3,14 +3,6 @@ import { useState } from "react";
 import { apiPostJson } from "../../../shared/api/client";
 
 
-type ApproveConfirmationPayload = {
-  item_name: string;
-  quantity: number;
-  unit: string;
-  price: number;
-};
-
-
 type ApproveConfirmationResponse = {
   data: {
     confirmation_id: string;
@@ -25,12 +17,12 @@ export function useApproveConfirmationMutation() {
 
   async function approveConfirmation(
     confirmationId: string,
-    fields: ApproveConfirmationPayload,
+    fields: Record<string, unknown>,
   ) {
     setIsSubmitting(true);
     setError(null);
     try {
-      return await apiPostJson<ApproveConfirmationResponse, { fields: ApproveConfirmationPayload }>(
+      return await apiPostJson<ApproveConfirmationResponse, { fields: Record<string, unknown> }>(
         `/api/v1/confirmations/${confirmationId}/approve`,
         { fields },
       );

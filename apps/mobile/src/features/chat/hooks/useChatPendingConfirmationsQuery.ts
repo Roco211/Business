@@ -11,11 +11,26 @@ type ConfirmationDraftFields = {
 };
 
 
+export type ReceiptDraftItem = {
+  line_id?: string;
+  item_id?: string | null;
+  item_name?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+  price?: number | null;
+};
+
+
 type ConfirmationFields = {
   summary?: string;
   transcript?: string;
   draft_fields?: ConfirmationDraftFields;
   required_fields?: string[];
+  ocr_document_id?: string;
+  total_amount?: number;
+  low_confidence_fields?: string[];
+  draft_items?: ReceiptDraftItem[];
+  required_item_fields?: string[];
 };
 
 

@@ -3,6 +3,7 @@ import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import { MockMediaEntryPanel } from "../components/MockMediaEntryPanel";
+import { PendingReceiptConfirmationCard } from "../components/PendingReceiptConfirmationCard";
 import { PendingStockInConfirmationCard } from "../components/PendingStockInConfirmationCard";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
@@ -122,11 +123,19 @@ export default function ChatScreen() {
               <Text>{message.created_at}</Text>
             </View>
             {linkedConfirmations.map((confirmation) => (
-              <PendingStockInConfirmationCard
-                key={confirmation.confirmation_id}
-                confirmation={confirmation}
-                onResolved={refreshChat}
-              />
+              confirmation.confirmation_type === "receipt-stock-in-batch" ? (
+                <PendingReceiptConfirmationCard
+                  key={confirmation.confirmation_id}
+                  confirmation={confirmation}
+                  onResolved={refreshChat}
+                />
+              ) : (
+                <PendingStockInConfirmationCard
+                  key={confirmation.confirmation_id}
+                  confirmation={confirmation}
+                  onResolved={refreshChat}
+                />
+              )
             ))}
           </View>
         );

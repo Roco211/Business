@@ -19,6 +19,8 @@ let rejectShouldFail = false;
 let messagePostShouldFail = false;
 let mediaUploadCreateShouldFail = false;
 let mediaUploadCompleteShouldFail = false;
+let includeReceiptConfirmation = false;
+let receiptConfirmationResolved = false;
 let messageRequestCount = 0;
 let confirmationRequestCount = 0;
 let mediaUploadRequestCount = 0;
@@ -54,6 +56,8 @@ describe("ChatScreen", () => {
     messagePostShouldFail = false;
     mediaUploadCreateShouldFail = false;
     mediaUploadCompleteShouldFail = false;
+    includeReceiptConfirmation = false;
+    receiptConfirmationResolved = false;
     messageRequestCount = 0;
     confirmationRequestCount = 0;
     mediaUploadRequestCount = 0;
@@ -109,9 +113,85 @@ describe("ChatScreen", () => {
       },
     ];
 
+    function ensureReceiptFixture() {
+      if (!includeReceiptConfirmation || receiptConfirmationResolved) {
+        return;
+      }
+      const hasReceiptMessages = messages.some((message) => message.task_run_id === "task_receipt_confirm_1");
+      if (!hasReceiptMessages) {
+        messages.push(
+          {
+            message_id: "msg_receipt_owner_1",
+            session_id: "sess_default",
+            actor_type: "owner",
+            actor_id: "owner_default",
+            message_type: "receipt-image",
+            text: "receipt scan today",
+            media_ids: ["receipt_demo"],
+            task_run_id: "task_receipt_confirm_1",
+            created_at: "2026-04-05T12:10:00.000Z",
+          },
+          {
+            message_id: "msg_receipt_system_1",
+            session_id: "sess_default",
+            actor_type: "system",
+            actor_id: "runtime",
+            message_type: "text",
+            text: "Mock runtime: please confirm the receipt line items before committing inventory.",
+            media_ids: [],
+            task_run_id: "task_receipt_confirm_1",
+            created_at: "2026-04-05T12:10:03.000Z",
+          },
+        );
+      }
+      const hasReceiptConfirmation = pendingConfirmations.some(
+        (confirmation) => confirmation.confirmation_id === "conf_receipt_1",
+      );
+      if (!hasReceiptConfirmation) {
+        pendingConfirmations.push({
+          confirmation_id: "conf_receipt_1",
+          session_id: "sess_default",
+          task_run_id: "task_receipt_confirm_1",
+          confirmation_type: "receipt-stock-in-batch",
+          status: "pending",
+          fields: {
+            summary: "Please confirm the receipt line items before committing inventory.",
+            ocr_document_id: "ocr_1",
+            total_amount: 147,
+            low_confidence_fields: [],
+            draft_items: [
+              {
+                line_id: "line_1",
+                item_id: null,
+                item_name: "Red Bull 250ml",
+                quantity: 3,
+                unit: "can",
+                price: 41,
+              },
+              {
+                line_id: "line_2",
+                item_id: null,
+                item_name: "Coca Cola 500ml",
+                quantity: 2,
+                unit: "bottle",
+                price: 12,
+              },
+            ],
+            required_item_fields: ["item_name", "quantity", "unit", "price"],
+          },
+          requested_by_employee_id: "emp_mock",
+          resolution_payload: null,
+          approved_by_actor_id: null,
+          created_at: "2026-04-05T12:10:04.000Z",
+          resolved_at: null,
+        });
+      }
+    }
+
     global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
+      ensureReceiptFixture();
 
       if (url.includes("/api/v1/media-uploads/") && url.includes("/complete") && method === "POST") {
         mediaUploadCompleteCount += 1;
@@ -223,6 +303,59 @@ describe("ChatScreen", () => {
               approved_by_actor_id: "owner_default",
               created_at: "2026-04-05T12:00:04.000Z",
               resolved_at: "2026-04-05T12:00:06.000Z",
+            },
+          }),
+        });
+      }
+
+      if (url.includes("/api/v1/confirmations/conf_receipt_1/approve") && method === "POST") {
+        if (approvalShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "confirmation_fields_invalid",
+                message: "items must be a non-empty list",
+                details: [],
+              },
+            }),
+          });
+        }
+        const receiptIndex = pendingConfirmations.findIndex(
+          (confirmation) => confirmation.confirmation_id === "conf_receipt_1",
+        );
+        if (receiptIndex >= 0) {
+          pendingConfirmations.splice(receiptIndex, 1);
+        }
+        receiptConfirmationResolved = true;
+        messages.push({
+          message_id: "msg_receipt_system_approved",
+          session_id: "sess_default",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime: receipt stock-in committed for 2 line items.",
+          media_ids: [],
+          task_run_id: "task_receipt_confirm_1",
+          created_at: "2026-04-05T12:10:06.000Z",
+        });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              confirmation_id: "conf_receipt_1",
+              session_id: "sess_default",
+              task_run_id: "task_receipt_confirm_1",
+              confirmation_type: "receipt-stock-in-batch",
+              status: "approved",
+              fields: {
+                summary: "Please confirm the receipt line items before committing inventory.",
+              },
+              requested_by_employee_id: "emp_mock",
+              resolution_payload: JSON.parse(String(init?.body ?? "{\"fields\":{}}")).fields,
+              approved_by_actor_id: "owner_default",
+              created_at: "2026-04-05T12:10:04.000Z",
+              resolved_at: "2026-04-05T12:10:06.000Z",
             },
           }),
         });
@@ -429,6 +562,47 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Confirmation is not pending")).toBeTruthy();
       expect(screen.getByText("Approve")).toBeTruthy();
       expect(screen.getByText("Reject")).toBeTruthy();
+    });
+  });
+
+  it("renders a pending receipt confirmation card and approves edited line items from chat", async () => {
+    includeReceiptConfirmation = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Receipt confirmation")).toBeTruthy();
+      expect(screen.getByDisplayValue("Red Bull 250ml")).toBeTruthy();
+      expect(screen.getByDisplayValue("Coca Cola 500ml")).toBeTruthy();
+    });
+
+    fireEvent.changeText(screen.getByPlaceholderText("Quantity 1"), "4");
+    fireEvent.changeText(screen.getByPlaceholderText("Price 2"), "13");
+    fireEvent.press(screen.getByText("Approve Receipt"));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Approve Receipt")).toBeNull();
+      expect(screen.getByText("Mock runtime: receipt stock-in committed for 2 line items.")).toBeTruthy();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/confirmations/conf_receipt_1/approve"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"line_id\":\"line_1\""),
+        }),
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/confirmations/conf_receipt_1/approve"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"quantity\":4"),
+        }),
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/confirmations/conf_receipt_1/approve"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"price\":13"),
+        }),
+      );
     });
   });
 

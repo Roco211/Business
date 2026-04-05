@@ -102,6 +102,21 @@ def test_run_local_demo_smoke_logs_in_when_auth_token_is_not_provided(client) ->
     assert result.shop_id == "shop_default"
 
 
+def test_run_local_demo_smoke_uses_seed_owner_env_credentials_by_default(client, monkeypatch) -> None:
+    module = _load_local_demo_smoke_module()
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "pilot-owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "pilot-pass-123")
+
+    result = module.run_local_demo_smoke(
+        api_base_url="http://127.0.0.1:8001",
+        auth_token=None,
+        request_json=_build_request_adapter(client),
+    )
+
+    assert result.health_status == "ok"
+    assert result.shop_id == "shop_default"
+
+
 def test_run_local_demo_smoke_cli_defaults_to_login_credentials() -> None:
     script_module = _load_local_demo_smoke_script_module()
     parser = script_module.build_parser()
@@ -111,3 +126,16 @@ def test_run_local_demo_smoke_cli_defaults_to_login_credentials() -> None:
     assert args.auth_token is None
     assert args.login_email == "owner@example.com"
     assert args.login_password == "dev-password"
+
+
+def test_run_local_demo_smoke_cli_defaults_follow_seed_owner_env(monkeypatch) -> None:
+    script_module = _load_local_demo_smoke_script_module()
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "pilot-owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "pilot-pass-123")
+    parser = script_module.build_parser()
+
+    args = parser.parse_args([])
+
+    assert args.auth_token is None
+    assert args.login_email == "pilot-owner@example.com"
+    assert args.login_password == "pilot-pass-123"

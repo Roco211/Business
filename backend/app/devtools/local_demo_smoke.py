@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from json import JSONDecodeError
+import os
 from typing import Any, Protocol
 
 import httpx
@@ -120,8 +121,8 @@ def run_local_demo_smoke(
     *,
     api_base_url: str,
     auth_token: str | None = None,
-    login_email: str = DEFAULT_LOGIN_EMAIL,
-    login_password: str = DEFAULT_LOGIN_PASSWORD,
+    login_email: str | None = None,
+    login_password: str | None = None,
     request_json: RequestJson | None = None,
 ) -> LocalDemoSmokeResult:
     request = request_json or _build_live_request(api_base_url)
@@ -132,13 +133,16 @@ def run_local_demo_smoke(
     if health_status != "ok":
         raise LocalDemoSmokeError("Health status was not ok")
 
+    resolved_login_email = login_email or os.getenv("SEED_OWNER_EMAIL", DEFAULT_LOGIN_EMAIL)
+    resolved_login_password = login_password or os.getenv("SEED_OWNER_PASSWORD", DEFAULT_LOGIN_PASSWORD)
+
     active_auth_token = auth_token
     if active_auth_token is None:
         login_status_code, login_body = request(
             "POST",
             "/api/v1/auth/login",
             token=None,
-            payload={"email": login_email, "password": login_password},
+            payload={"email": resolved_login_email, "password": resolved_login_password},
         )
         login_data = _expect_data_envelope(
             status_code=login_status_code,

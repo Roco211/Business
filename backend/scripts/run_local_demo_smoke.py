@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -10,7 +11,12 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.devtools.local_demo_smoke import LocalDemoSmokeError, run_local_demo_smoke
+from app.devtools.local_demo_smoke import (
+    DEFAULT_LOGIN_EMAIL,
+    DEFAULT_LOGIN_PASSWORD,
+    LocalDemoSmokeError,
+    run_local_demo_smoke,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,12 +33,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--login-email",
-        default="owner@example.com",
+        default=os.getenv("SEED_OWNER_EMAIL", DEFAULT_LOGIN_EMAIL),
         help="Login email used to fetch a bearer token when --auth-token is omitted.",
     )
     parser.add_argument(
         "--login-password",
-        default="dev-password",
+        default=os.getenv("SEED_OWNER_PASSWORD", DEFAULT_LOGIN_PASSWORD),
         help="Login password used to fetch a bearer token when --auth-token is omitted.",
     )
     return parser

@@ -1,32 +1,53 @@
-import { ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useSessionStream } from "../../../shared/session/useSessionStream";
+import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
+import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 
 
-function describeEvent(event: {
-  event_type: string;
-  occurred_at: string;
-  data: Record<string, unknown>;
-}) {
-  const previewText = typeof event.data.preview_text === "string" ? event.data.preview_text : null;
-  if (previewText) {
-    return previewText;
+function getActorLabel(actorType: string) {
+  if (actorType === "owner") {
+    return "Owner";
   }
-  const summary = typeof event.data.summary === "string" ? event.data.summary : null;
-  if (summary) {
-    return summary;
+  if (actorType === "system") {
+    return "System";
   }
-  const status = typeof event.data.status === "string" ? event.data.status : null;
-  if (status) {
-    return status;
+  return actorType;
+}
+
+
+function getMessageText(messageType: string, text: string | null) {
+  if (text && text.trim().length > 0) {
+    return text;
   }
-  return event.occurred_at;
+  return `Unsupported ${messageType} message`;
 }
 
 
 export default function ChatScreen() {
   const sessionStream = useSessionStream();
+  const [draftText, setDraftText] = useState("");
   const title = sessionStream.sessionTitle ?? sessionStream.sessionId ?? "工作群";
+  const messages = useSessionMessagesQuery(sessionStream.sessionId);
+  const sendMessage = useSendMessageMutation(sessionStream.sessionId);
+
+  async function handleSend() {
+    const result = await sendMessage.submitMessage(draftText);
+    if (result === null) {
+      return;
+    }
+    setDraftText("");
+    messages.refresh();
+  }
+
+  if (messages.isLoading) {
+    return (
+      <View>
+        <Text>Loading chat...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView>
@@ -40,14 +61,33 @@ export default function ChatScreen() {
         </View>
       ) : null}
 
-      <Text>Recent session events</Text>
-      {sessionStream.recentEvents.length === 0 ? <Text>No recent session events yet.</Text> : null}
-      {sessionStream.recentEvents.map((event) => (
-        <View key={event.event_id}>
-          <Text>{event.event_type}</Text>
-          <Text>{describeEvent(event)}</Text>
+      {messages.error ? (
+        <View>
+          <Text>Chat unavailable</Text>
+          <Text>{messages.error}</Text>
+        </View>
+      ) : null}
+
+      <Text>Messages</Text>
+      {messages.data.length === 0 ? <Text>No messages yet.</Text> : null}
+      {messages.data.map((message) => (
+        <View key={message.message_id}>
+          <Text>{getActorLabel(message.actor_type)}</Text>
+          <Text>{getMessageText(message.message_type, message.text)}</Text>
+          <Text>{message.created_at}</Text>
         </View>
       ))}
+
+      <Text>Composer</Text>
+      <TextInput placeholder="Type a message" value={draftText} onChangeText={setDraftText} />
+      {sendMessage.error ? <Text>{sendMessage.error}</Text> : null}
+      <Button
+        title={sendMessage.isSubmitting ? "Sending..." : "Send"}
+        onPress={() => {
+          void handleSend();
+        }}
+        disabled={sendMessage.isSubmitting}
+      />
     </ScrollView>
   );
 }

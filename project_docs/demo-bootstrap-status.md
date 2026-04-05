@@ -47,3 +47,20 @@ The API returns the same stable bootstrap summary as the script so callers can v
 
 The tool only resets mutable records for the default demo shop/session.
 It preserves the default shop/session identities while rebuilding their inventory, alerts, confirmations, tasks, messages, and session stream history.
+
+## Recommended Post-Startup Verification
+
+After the local stack is running, the preferred verification path is now:
+
+```powershell
+python backend/scripts/run_local_demo_smoke.py
+```
+
+That smoke runner:
+
+- checks `GET /health`
+- calls `POST /api/v1/system/demo/bootstrap`
+- validates session bootstrap, dashboard summary, low-stock alerts, pending confirmations, messages, and replay events
+- prints a compact JSON summary of the verified local demo state
+
+This gives developers and QA one repeatable proof that the running local stack matches the expected MVP demo shape before they open the mobile app or start manual walkthroughs.

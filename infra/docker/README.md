@@ -61,3 +61,34 @@ Current realtime behavior is intentionally lightweight:
 - the current websocket surface is still mock-auth only and scoped to one session at a time
 
 Replay endpoints, OCR-specific stream events, and stock-out realtime flows remain future work.
+
+## Local Demo Run Order
+
+With the current MVP slices in place, the recommended local operator flow is now:
+
+1. Start the local stack:
+
+```powershell
+docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker
+```
+
+2. Verify the running API and reset the demo state:
+
+```powershell
+python backend/scripts/run_local_demo_smoke.py
+```
+
+3. Start Expo if you want to exercise the mobile client:
+
+```powershell
+cd apps/mobile
+npx expo start
+```
+
+The smoke script talks to the running API at `http://127.0.0.1:8001` by default, calls the demo bootstrap API, and validates the expected owner-facing dashboard/chat/ledger state over HTTP.
+
+You can override the API target if needed:
+
+```powershell
+python backend/scripts/run_local_demo_smoke.py --api-base-url http://10.0.2.2:8001
+```

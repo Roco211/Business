@@ -87,8 +87,12 @@ def test_session_bootstrap_accepts_matching_seeded_fallback_without_default_id_c
     )
     monkeypatch.setattr(
         session_routes,
-        "ensure_default_context",
-        lambda _db_session: _build_seeded_context(shop_id="shop_seeded", session_id="sess_seeded"),
+        "ensure_shop_context",
+        lambda _db_session, *, shop_id, owner_actor_id: (
+            _build_seeded_context(shop_id="shop_seeded", session_id="sess_seeded")
+            if shop_id == "shop_seeded" and owner_actor_id == "owner_seeded"
+            else None
+        ),
     )
 
     response = session_routes.bootstrap_session(auth=auth, db_session=db_session)

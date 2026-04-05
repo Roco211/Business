@@ -16,7 +16,7 @@ from app.contracts.message import (
 )
 from app.db.session import get_db_session
 from app.models import SessionRecord, TaskRun
-from app.services.bootstrap import ensure_default_context
+from app.services.bootstrap import ensure_shop_context
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import (
     IdempotencyConflictError,
@@ -96,6 +96,7 @@ def _load_shop_session(
     *,
     session_id: str,
     shop_id: str,
+    owner_actor_id: str,
 ) -> SessionRecord | None:
     session = db_session.scalar(
         select(SessionRecord).where(
@@ -106,7 +107,13 @@ def _load_shop_session(
     if session is not None:
         return session
 
-    context = ensure_default_context(db_session)
+    context = ensure_shop_context(
+        db_session,
+        shop_id=shop_id,
+        owner_actor_id=owner_actor_id,
+    )
+    if context is None:
+        return None
     if context.session.session_id == session_id and context.shop.shop_id == shop_id:
         return context.session
     return None
@@ -120,7 +127,12 @@ def get_session_messages(
     cursor: str | None = Query(default=None),
     db_session: Session = Depends(get_db_session),
 ) -> SessionMessagesResponse | JSONResponse:
-    if _load_shop_session(db_session, session_id=session_id, shop_id=auth.shop_id) is None:
+    if _load_shop_session(
+        db_session,
+        session_id=session_id,
+        shop_id=auth.shop_id,
+        owner_actor_id=auth.actor_id,
+    ) is None:
         return _error_response(status.HTTP_404_NOT_FOUND, "session_not_found", "Session not found")
 
     try:
@@ -162,7 +174,12 @@ def post_session_message(
     auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[CreateSessionMessageData] | JSONResponse:
-    if _load_shop_session(db_session, session_id=session_id, shop_id=auth.shop_id) is None:
+    if _load_shop_session(
+        db_session,
+        session_id=session_id,
+        shop_id=auth.shop_id,
+        owner_actor_id=auth.actor_id,
+    ) is None:
         return _error_response(status.HTTP_404_NOT_FOUND, "session_not_found", "Session not found")
 
     try:

@@ -350,14 +350,19 @@ def test_load_shop_session_accepts_matching_seeded_fallback_without_default_id_c
 ) -> None:
     monkeypatch.setattr(
         message_routes,
-        "ensure_default_context",
-        lambda _db_session: _build_seeded_context(shop_id="shop_seeded", session_id="sess_seeded"),
+        "ensure_shop_context",
+        lambda _db_session, *, shop_id, owner_actor_id: (
+            _build_seeded_context(shop_id="shop_seeded", session_id="sess_seeded")
+            if shop_id == "shop_seeded" and owner_actor_id == "owner_seeded"
+            else None
+        ),
     )
 
     session = message_routes._load_shop_session(
         db_session,
         session_id="sess_seeded",
         shop_id="shop_seeded",
+        owner_actor_id="owner_seeded",
     )
 
     assert session is not None

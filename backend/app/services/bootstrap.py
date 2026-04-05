@@ -196,3 +196,29 @@ def ensure_default_context(db_session: Session) -> BootstrapContext:
     ensure_default_owner_membership(db_session, shop)
     session_record = ensure_default_session(db_session, shop)
     return BootstrapContext(shop=shop, session=session_record)
+
+
+def ensure_shop_context(
+    db_session: Session,
+    *,
+    shop_id: str,
+    owner_actor_id: str,
+) -> BootstrapContext | None:
+    shop = db_session.get(Shop, shop_id)
+    if shop is not None:
+        session_record = db_session.scalar(
+            select(SessionRecord)
+            .where(SessionRecord.shop_id == shop_id)
+            .order_by(SessionRecord.created_at.asc(), SessionRecord.session_id.asc())
+        )
+        if session_record is not None:
+            return BootstrapContext(shop=shop, session=session_record)
+
+    settings = get_settings()
+    if shop_id != settings.default_shop_id or owner_actor_id != settings.default_owner_actor_id:
+        return None
+
+    context = ensure_default_context(db_session)
+    if context.shop.shop_id != shop_id:
+        return None
+    return context

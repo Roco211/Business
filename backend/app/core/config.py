@@ -17,6 +17,12 @@ class Settings:
     seed_owner_password: str | None = os.getenv("SEED_OWNER_PASSWORD")
     seed_owner_display_name: str = os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner")
     auth_session_ttl_minutes: int = int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120"))
+    asr_provider: str = os.getenv("ASR_PROVIDER", "mock")
+    asr_provider_api_url: str | None = os.getenv("ASR_PROVIDER_API_URL")
+    asr_provider_api_key: str | None = os.getenv("ASR_PROVIDER_API_KEY")
+    asr_provider_model: str | None = os.getenv("ASR_PROVIDER_MODEL")
+    asr_timeout_seconds: float = float(os.getenv("ASR_TIMEOUT_SECONDS", "15"))
+    asr_allow_mock_fallback: bool = os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
 
 
 def _build_default_database_url() -> str:
@@ -46,4 +52,10 @@ def get_settings() -> Settings:
         seed_owner_password=os.getenv("SEED_OWNER_PASSWORD"),
         seed_owner_display_name=os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner"),
         auth_session_ttl_minutes=int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120")),
+        asr_provider=os.getenv("ASR_PROVIDER", "mock"),
+        asr_provider_api_url=os.getenv("ASR_PROVIDER_API_URL"),
+        asr_provider_api_key=os.getenv("ASR_PROVIDER_API_KEY"),
+        asr_provider_model=os.getenv("ASR_PROVIDER_MODEL"),
+        asr_timeout_seconds=float(os.getenv("ASR_TIMEOUT_SECONDS", "15")),
+        asr_allow_mock_fallback=os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
     )

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from app.core.ids import new_prefixed_id
-from app.models import Message, SessionRecord, TaskRun
+from app.models import Message, SessionRecord, SessionStreamEvent, TaskRun
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import (
     IdempotencyConflictError,
@@ -33,6 +33,9 @@ def test_create_message_persists_message_task_and_last_message_at(db_session) ->
     message = db_session.get(Message, result.message_id)
     task_run = db_session.get(TaskRun, result.task_run_id)
     refreshed_session = db_session.get(SessionRecord, context.session.session_id)
+    stream_events = db_session.scalars(
+        select(SessionStreamEvent).order_by(SessionStreamEvent.seq.asc())
+    ).all()
 
     assert message is not None
     assert task_run is not None
@@ -41,6 +44,11 @@ def test_create_message_persists_message_task_and_last_message_at(db_session) ->
     assert task_run.status == "created"
     assert refreshed_session is not None
     assert refreshed_session.last_message_at == message.created_at
+    assert len(stream_events) == 1
+    assert stream_events[0].event_type == "message.created"
+    assert stream_events[0].message_id == message.message_id
+    assert stream_events[0].task_run_id == task_run.task_run_id
+    assert stream_events[0].payload["preview_text"] == "restock water"
 
 
 def test_create_message_replays_same_ids_for_same_idempotency_key(db_session) -> None:

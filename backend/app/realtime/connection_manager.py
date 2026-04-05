@@ -2,16 +2,24 @@ import asyncio
 from collections import defaultdict
 from contextlib import suppress
 from datetime import UTC, datetime
+from typing import Callable
 
 from fastapi import FastAPI, WebSocket
 
 from app.contracts.session_stream import SessionStreamEventEnvelope
 from app.core.ids import new_prefixed_id
+from app.services.session_stream import list_session_events_after
 
 
 class SessionStreamConnectionManager:
-    def __init__(self, *, keepalive_interval_seconds: float) -> None:
+    def __init__(
+        self,
+        *,
+        keepalive_interval_seconds: float,
+        session_factory: Callable[[], object],
+    ) -> None:
         self.keepalive_interval_seconds = keepalive_interval_seconds
+        self.session_factory = session_factory
         self._connections: dict[str, set[WebSocket]] = defaultdict(set)
         self._keepalive_tasks: dict[int, asyncio.Task[None]] = {}
         self._last_seq_by_session: dict[str, int] = {}
@@ -73,6 +81,7 @@ class SessionStreamConnectionManager:
     async def _keepalive_loop(self, *, session_id: str, websocket: WebSocket) -> None:
         while True:
             await asyncio.sleep(self.keepalive_interval_seconds)
+            await self._flush_pending_events(session_id=session_id, websocket=websocket)
             async with self._lock:
                 seq = self._last_seq_by_session.get(session_id, 0)
             await self._send_event(
@@ -83,6 +92,25 @@ class SessionStreamConnectionManager:
                     seq=seq,
                 ),
             )
+
+    async def _flush_pending_events(self, *, session_id: str, websocket: WebSocket) -> None:
+        async with self._lock:
+            after_seq = self._last_seq_by_session.get(session_id, 0)
+
+        db_session = self.session_factory()
+        try:
+            pending_events = list_session_events_after(
+                db_session,
+                session_id=session_id,
+                after_seq=after_seq,
+            )
+        finally:
+            db_session.close()
+
+        for event in pending_events:
+            await self._send_event(websocket, event)
+            async with self._lock:
+                self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), event.seq)
 
     async def _send_event(self, websocket: WebSocket, event: SessionStreamEventEnvelope) -> None:
         await websocket.send_json(event.model_dump(mode="json"))

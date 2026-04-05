@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import get_settings
+from app.db.session import get_session_factory
 from app.api.router import api_router
 from app.realtime.connection_manager import SessionStreamConnectionManager
 
@@ -12,7 +13,8 @@ def create_app() -> FastAPI:
         version="0.1.0",
     )
     app.state.session_stream_manager = SessionStreamConnectionManager(
-        keepalive_interval_seconds=settings.session_stream_keepalive_seconds
+        keepalive_interval_seconds=settings.session_stream_keepalive_seconds,
+        session_factory=get_session_factory(),
     )
     app.include_router(api_router)
     return app

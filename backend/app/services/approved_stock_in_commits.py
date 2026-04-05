@@ -14,6 +14,7 @@ from app.services.inventory_items import (
     resolve_inventory_item_for_stock_in,
 )
 from app.services.runtime_messages import write_runtime_message
+from app.services.session_stream import append_alert_updated_event, append_inventory_updated_event
 from app.services.task_runs import resolve_awaiting_confirmation_task_run
 
 
@@ -89,6 +90,19 @@ def commit_approved_stock_in_confirmation(
         alert = refresh_low_stock_alert_for_item(
             db_session,
             item=inventory_item,
+        )
+        append_inventory_updated_event(
+            db_session,
+            session_id=session_record.session_id,
+            item=inventory_item,
+            inventory_event=inventory_event,
+        )
+        append_alert_updated_event(
+            db_session,
+            session_id=session_record.session_id,
+            item=inventory_item,
+            alert=alert,
+            occurred_at=inventory_event.created_at,
         )
         audit_log = append_inventory_stock_in_audit_log(
             db_session,

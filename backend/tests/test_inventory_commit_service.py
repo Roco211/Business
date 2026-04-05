@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import select
 
-from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, TaskRun
+from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, SessionStreamEvent, TaskRun
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 from app.services.bootstrap import ensure_default_context
@@ -57,6 +57,11 @@ def test_commit_approved_stock_in_confirmation_writes_truth_and_completes_task(d
         .where(Message.task_run_id == task_run.task_run_id, Message.actor_type == "system")
         .order_by(Message.created_at.asc(), Message.message_id.asc())
     ).all()
+    stream_events = db_session.scalars(
+        select(SessionStreamEvent)
+        .where(SessionStreamEvent.session_id == task_run.session_id)
+        .order_by(SessionStreamEvent.seq.asc())
+    ).all()
 
     assert persisted_confirmation is not None
     assert persisted_confirmation.status == "approved"
@@ -75,6 +80,18 @@ def test_commit_approved_stock_in_confirmation_writes_truth_and_completes_task(d
     assert audit_log.metadata_json["confirmation_id"] == confirmation.confirmation_id
     assert len(runtime_messages) == 2
     assert "committed" in (runtime_messages[-1].text or "").lower()
+    assert [event.event_type for event in stream_events[-5:]] == [
+        "confirmation.resolved",
+        "inventory.updated",
+        "alert.updated",
+        "task.updated",
+        "message.created",
+    ]
+    assert stream_events[-5].payload["status"] == "approved"
+    assert stream_events[-4].payload["inventory_event_id"] == inventory_event.inventory_event_id
+    assert stream_events[-3].payload["alert_type"] == "low-stock"
+    assert stream_events[-2].payload["status"] == "completed"
+    assert stream_events[-1].message_id == runtime_messages[-1].message_id
 
 
 def test_commit_approved_stock_in_confirmation_reuses_existing_inventory_item(db_session) -> None:

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import Confirmation, TaskRun
+from app.services.session_stream import append_confirmation_created_event, append_confirmation_resolved_event
 
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
@@ -55,6 +56,10 @@ def _require_task_run(db_session: Session, task_run_id: str) -> TaskRun:
     if task_run is None:
         raise LookupError(task_run_id)
     return task_run
+
+
+def _require_session_id_for_task_run(db_session: Session, task_run_id: str) -> str:
+    return _require_task_run(db_session, task_run_id).session_id
 
 
 def _require_task_run_ready_for_confirmation_creation(db_session: Session, task_run_id: str) -> TaskRun:
@@ -120,6 +125,11 @@ def create_pending_confirmation(
         with db_session.begin_nested():
             db_session.add(confirmation)
             db_session.flush()
+            append_confirmation_created_event(
+                db_session,
+                session_id=_require_session_id_for_task_run(db_session, task_run_id),
+                confirmation=confirmation,
+            )
     except IntegrityError:
         existing_pending = get_pending_confirmation_for_task_run(db_session, task_run_id=task_run_id)
         if existing_pending is not None:
@@ -160,6 +170,11 @@ def approve_confirmation(
         raise ConfirmationConflictError(
             f"Confirmation {confirmation_id} must be in '{PENDING_STATUS}' status; found '{confirmation.status}'."
         )
+    append_confirmation_resolved_event(
+        db_session,
+        session_id=_require_session_id_for_task_run(db_session, confirmation.task_run_id),
+        confirmation=confirmation,
+    )
     return confirmation
 
 
@@ -188,6 +203,11 @@ def reject_confirmation(
         raise ConfirmationConflictError(
             f"Confirmation {confirmation_id} must be in '{PENDING_STATUS}' status; found '{confirmation.status}'."
         )
+    append_confirmation_resolved_event(
+        db_session,
+        session_id=_require_session_id_for_task_run(db_session, confirmation.task_run_id),
+        confirmation=confirmation,
+    )
     return confirmation
 
 

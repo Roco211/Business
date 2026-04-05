@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import Message, SessionRecord
+from app.services.session_stream import append_message_created_event
 from app.services.task_runs import create_initial_task_run
 
 
@@ -182,6 +183,7 @@ def create_message(
         )
         message.task_run_id = task_run.task_run_id
         session.last_message_at = message.created_at
+        append_message_created_event(db_session, message=message)
         db_session.commit()
     except IntegrityError:
         db_session.rollback()

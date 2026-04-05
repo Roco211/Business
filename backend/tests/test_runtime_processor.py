@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Confirmation, Message, SessionRecord, TaskRun
+from app.models import Confirmation, Message, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
@@ -177,6 +177,11 @@ def test_text_stock_in_message_pauses_for_confirmation_and_writes_runtime_messag
         .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
         .order_by(Message.created_at.asc(), Message.message_id.asc())
     ).all()
+    stream_events = db_session.scalars(
+        select(SessionStreamEvent)
+        .where(SessionStreamEvent.session_id == session_id)
+        .order_by(SessionStreamEvent.seq.asc())
+    ).all()
     session_record = db_session.get(SessionRecord, session_id)
 
     assert result.status == "awaiting-confirmation"
@@ -202,6 +207,17 @@ def test_text_stock_in_message_pauses_for_confirmation_and_writes_runtime_messag
     assert runtime_messages[0].message_type == "text"
     assert runtime_messages[0].task_run_id == task_run_id
     assert "confirm" in (runtime_messages[0].text or "").lower()
+    assert [event.event_type for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "confirmation.created",
+        "task.updated",
+        "message.created",
+    ]
+    assert stream_events[1].payload["status"] == "processing"
+    assert stream_events[2].payload["confirmation_id"] == confirmation.confirmation_id
+    assert stream_events[3].payload["status"] == "awaiting-confirmation"
+    assert stream_events[4].message_id == runtime_messages[0].message_id
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

@@ -7,6 +7,11 @@ from app.models import Alert, AuditLog, InventoryEvent, InventoryItem
 from app.services.alerts import refresh_low_stock_alert_for_item
 from app.services.audit_logs import append_inventory_correction_audit_log
 from app.services.inventory_events import append_correction_event
+from app.services.session_stream import (
+    append_alert_updated_event,
+    append_inventory_updated_event,
+    find_shop_session_id,
+)
 
 
 class InventoryCorrectionValidationError(ValueError):
@@ -78,6 +83,20 @@ def submit_inventory_correction(
         alert = refresh_low_stock_alert_for_item(
             db_session,
             item=item,
+        )
+        session_id = find_shop_session_id(db_session, shop_id=shop_id)
+        append_inventory_updated_event(
+            db_session,
+            session_id=session_id,
+            item=item,
+            inventory_event=event,
+        )
+        append_alert_updated_event(
+            db_session,
+            session_id=session_id,
+            item=item,
+            alert=alert,
+            occurred_at=event.created_at,
         )
         audit_log = append_inventory_correction_audit_log(
             db_session,

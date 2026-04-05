@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import Message, SessionRecord
+from app.services.session_stream import append_message_created_event
 
 
 def write_runtime_message(
@@ -33,4 +34,5 @@ def write_runtime_message(
     db_session.add(message)
     session_record.last_message_at = now
     db_session.flush()
+    append_message_created_event(db_session, message=message)
     return message

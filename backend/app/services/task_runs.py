@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models.task_run import TaskRun
+from app.services.session_stream import append_task_updated_event
 
 PENDING_CLASSIFICATION_TASK_TYPE = "pending-classification"
 CREATED_STATUS = "created"
@@ -87,6 +88,8 @@ def claim_task_run_for_runtime(
         .execution_options(synchronize_session=False)
     )
     task_run = _require_task_run(db_session, task_run_id)
+    if result.rowcount == 1:
+        append_task_updated_event(db_session, task_run=task_run)
     return TaskRunTransitionResult(changed=result.rowcount == 1, task_run=task_run)
 
 
@@ -122,6 +125,7 @@ def complete_task_run(
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to complete; found '{task_run.status}'."
         )
+    append_task_updated_event(db_session, task_run=task_run)
     return task_run
 
 
@@ -156,6 +160,7 @@ def fail_task_run(
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to fail; found '{task_run.status}'."
         )
+    append_task_updated_event(db_session, task_run=task_run)
     return task_run
 
 
@@ -191,6 +196,7 @@ def mark_task_run_awaiting_confirmation(
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{PROCESSING_STATUS}' status to await confirmation; found '{task_run.status}'."
         )
+    append_task_updated_event(db_session, task_run=task_run)
     return task_run
 
 
@@ -222,6 +228,7 @@ def resolve_awaiting_confirmation_task_run(
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{AWAITING_CONFIRMATION_STATUS}' status to resolve; found '{task_run.status}'."
         )
+    append_task_updated_event(db_session, task_run=task_run)
     return task_run
 
 
@@ -253,4 +260,5 @@ def reject_awaiting_confirmation_task_run(
         raise TaskRunTransitionError(
             f"Task run {task_run_id} must be in '{AWAITING_CONFIRMATION_STATUS}' status to reject; found '{task_run.status}'."
         )
+    append_task_updated_event(db_session, task_run=task_run)
     return task_run

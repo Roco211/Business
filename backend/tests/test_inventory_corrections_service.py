@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import select
 
-from app.models import AuditLog, InventoryEvent, InventoryItem
+from app.models import AuditLog, InventoryEvent, InventoryItem, SessionStreamEvent
 from app.services.alerts import list_low_stock_alerts
 from app.services.bootstrap import ensure_default_context
 from app.services.inventory_corrections import (
@@ -72,6 +72,11 @@ def test_submit_inventory_correction_writes_event_audit_and_resolves_alert(db_se
     persisted_item = db_session.get(InventoryItem, item.item_id)
     persisted_event = db_session.get(InventoryEvent, result.inventory_event.inventory_event_id)
     persisted_audit = db_session.get(AuditLog, result.audit_log.audit_log_id)
+    stream_events = db_session.scalars(
+        select(SessionStreamEvent)
+        .where(SessionStreamEvent.session_id == context.session.session_id)
+        .order_by(SessionStreamEvent.seq.asc())
+    ).all()
     open_alerts = list_low_stock_alerts(db_session, shop_id=context.shop.shop_id, limit=20)
 
     assert persisted_item is not None
@@ -85,6 +90,12 @@ def test_submit_inventory_correction_writes_event_audit_and_resolves_alert(db_se
     assert persisted_audit.action == "inventory.correction_submitted"
     assert persisted_audit.metadata_json["previous_quantity"] == 2.0
     assert persisted_audit.metadata_json["corrected_quantity"] == 6.0
+    assert [event.event_type for event in stream_events] == [
+        "inventory.updated",
+        "alert.updated",
+    ]
+    assert stream_events[0].payload["inventory_event_id"] == persisted_event.inventory_event_id
+    assert stream_events[1].payload["item_id"] == item.item_id
     assert open_alerts.items == []
 
 

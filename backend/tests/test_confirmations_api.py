@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
-from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, TaskRun
+from app.models import AuditLog, Confirmation, InventoryEvent, InventoryItem, MediaUpload, Message, OcrDocument, TaskRun
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
 
@@ -42,6 +42,73 @@ def _create_runtime_pending_confirmation(
         assert result.status == "awaiting-confirmation"
         assert confirmation is not None
         return confirmation.confirmation_id, task_run_id
+    finally:
+        db_session.close()
+
+
+def _seed_uploaded_media(media_id: str, media_type: str) -> None:
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        db_session.add(
+            MediaUpload(
+                media_id=media_id,
+                shop_id=context.shop.shop_id,
+                uploader_actor_type="owner",
+                uploader_actor_id="owner_default",
+                media_type=media_type,
+                file_name=f"{media_id}.bin",
+                content_type="application/octet-stream",
+                size_bytes=1024,
+                status="uploaded",
+                upload_url=f"https://mock.example/uploads/{media_id}",
+                public_url=f"https://mock.example/media/{media_id}",
+                checksum_sha256="receipt-seeded-checksum",
+                uploaded_at=context.session.created_at,
+                created_at=context.session.created_at,
+                updated_at=context.session.created_at,
+            )
+        )
+        db_session.commit()
+    finally:
+        db_session.close()
+
+
+def _create_runtime_pending_receipt_confirmation(
+    client,
+    monkeypatch,
+    *,
+    client_request_id: str,
+) -> tuple[str, str, str]:
+    monkeypatch.setattr(message_routes, "enqueue_runtime_task", lambda _task_run_id: True)
+    _seed_uploaded_media("receipt_demo", "receipt-image")
+
+    create_response = client.post(
+        "/api/v1/sessions/sess_default/messages",
+        headers=AUTH_HEADERS,
+        json={
+            "message_type": "receipt-image",
+            "text": None,
+            "media_ids": ["receipt_demo"],
+            "client_request_id": client_request_id,
+        },
+    )
+    assert create_response.status_code == 201
+
+    task_run_id = create_response.json()["data"]["task_run_id"]
+    db_session = get_session_factory()()
+    try:
+        result = process_task_run(db_session, task_run_id)
+        confirmation = db_session.scalar(
+            select(Confirmation).where(Confirmation.task_run_id == task_run_id)
+        )
+        ocr_document = db_session.scalar(
+            select(OcrDocument).where(OcrDocument.task_run_id == task_run_id)
+        )
+        assert result.status == "awaiting-confirmation"
+        assert confirmation is not None
+        assert ocr_document is not None
+        return confirmation.confirmation_id, task_run_id, ocr_document.ocr_document_id
     finally:
         db_session.close()
 
@@ -196,6 +263,110 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
     assert task_run_response.json()["data"]["confirmation_id"] == confirmation_id
 
 
+def test_approve_receipt_confirmation_commits_all_lines_and_projects_confirmation_id(
+    client,
+    monkeypatch,
+) -> None:
+    confirmation_id, task_run_id, ocr_document_id = _create_runtime_pending_receipt_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_receipt_approve",
+    )
+
+    approve_response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={
+            "fields": {
+                "items": [
+                    {
+                        "line_id": "line_1",
+                        "item_name": "Red Bull 250ml",
+                        "quantity": 3,
+                        "unit": "can",
+                        "price": 41.0,
+                    },
+                    {
+                        "line_id": "line_2",
+                        "item_name": "Coca Cola 500ml",
+                        "quantity": 2,
+                        "unit": "bottle",
+                        "price": 12.0,
+                    },
+                ]
+            }
+        },
+    )
+    task_run_response = client.get(
+        f"/api/v1/task-runs/{task_run_id}",
+        headers=AUTH_HEADERS,
+    )
+
+    db_session = get_session_factory()()
+    try:
+        confirmation = db_session.get(Confirmation, confirmation_id)
+        task_run = db_session.get(TaskRun, task_run_id)
+        inventory_items = db_session.scalars(
+            select(InventoryItem).order_by(InventoryItem.name.asc())
+        ).all()
+        inventory_events = db_session.scalars(
+            select(InventoryEvent).order_by(InventoryEvent.created_at.asc(), InventoryEvent.inventory_event_id.asc())
+        ).all()
+        audit_logs = db_session.scalars(
+            select(AuditLog).order_by(AuditLog.created_at.asc(), AuditLog.audit_log_id.asc())
+        ).all()
+        runtime_messages = db_session.scalars(
+            select(Message)
+            .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+            .order_by(Message.created_at.asc(), Message.message_id.asc())
+        ).all()
+    finally:
+        db_session.close()
+
+    assert approve_response.status_code == 200
+    approve_payload = approve_response.json()["data"]
+    assert approve_payload["confirmation_id"] == confirmation_id
+    assert approve_payload["status"] == "approved"
+    assert approve_payload["resolution_payload"] == {
+        "fields": {
+            "items": [
+                {
+                    "line_id": "line_1",
+                    "item_name": "Red Bull 250ml",
+                    "quantity": 3,
+                    "unit": "can",
+                    "price": 41.0,
+                },
+                {
+                    "line_id": "line_2",
+                    "item_name": "Coca Cola 500ml",
+                    "quantity": 2,
+                    "unit": "bottle",
+                    "price": 12.0,
+                },
+            ]
+        }
+    }
+    assert confirmation is not None
+    assert confirmation.status == "approved"
+    assert task_run is not None
+    assert task_run.status == "completed"
+    assert task_run.completed_at is not None
+    assert len(inventory_items) == 2
+    assert [item.name for item in inventory_items] == ["Coca Cola 500ml", "Red Bull 250ml"]
+    assert len(inventory_events) == 2
+    assert all(event.event_type == "stock-in" for event in inventory_events)
+    assert len(audit_logs) == 2
+    assert all(log.action == "inventory.receipt_stock_in_confirmed" for log in audit_logs)
+    assert all(log.metadata_json["confirmation_id"] == confirmation_id for log in audit_logs)
+    assert all(log.metadata_json["ocr_document_id"] == ocr_document_id for log in audit_logs)
+    assert len(runtime_messages) == 2
+    assert runtime_messages[-1].actor_id == "runtime_system"
+    assert "2 line" in (runtime_messages[-1].text or "").lower()
+    assert task_run_response.status_code == 200
+    assert task_run_response.json()["data"]["confirmation_id"] == confirmation_id
+
+
 def test_reject_confirmation_rejects_task_run_and_writes_runtime_message(
     client,
     monkeypatch,
@@ -256,6 +427,23 @@ def test_approve_confirmation_requires_non_empty_fields(client, monkeypatch) -> 
         f"/api/v1/confirmations/{confirmation_id}/approve",
         headers=AUTH_HEADERS,
         json={"fields": {}},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "confirmation_fields_invalid"
+
+
+def test_approve_receipt_confirmation_requires_non_empty_items(client, monkeypatch) -> None:
+    confirmation_id, _, _ = _create_runtime_pending_receipt_confirmation(
+        client,
+        monkeypatch,
+        client_request_id="confirmations_api_receipt_validation",
+    )
+
+    response = client.post(
+        f"/api/v1/confirmations/{confirmation_id}/approve",
+        headers=AUTH_HEADERS,
+        json={"fields": {"items": []}},
     )
 
     assert response.status_code == 422

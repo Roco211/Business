@@ -2,10 +2,10 @@ from dataclasses import replace
 from datetime import datetime
 
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Confirmation, MediaUpload, Message, SessionRecord, SessionStreamEvent, TaskRun
+from app.models import Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
@@ -462,7 +462,7 @@ def test_image_stock_in_message_pauses_for_confirmation_and_writes_runtime_messa
     assert session_record.last_message_at == runtime_messages[0].created_at
 
 
-def test_receipt_image_message_completes_persists_ocr_document_and_writes_runtime_message(db_session) -> None:
+def test_receipt_image_message_pauses_for_receipt_confirmation_and_persists_ocr_document(db_session) -> None:
     session_id, task_run_id = _create_owner_message(
         db_session,
         message_type="receipt-image",
@@ -473,34 +473,37 @@ def test_receipt_image_message_completes_persists_ocr_document_and_writes_runtim
 
     result = process_task_run(db_session, task_run_id)
     task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
     runtime_messages = db_session.scalars(
         select(Message)
         .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
         .order_by(Message.created_at.asc(), Message.message_id.asc())
     ).all()
-    persisted_document = db_session.execute(
-        text(
-            """
-            SELECT ocr_document_id, media_id, status
-            FROM ocr_documents
-            WHERE task_run_id = :task_run_id
-            """
-        ),
-        {"task_run_id": task_run_id},
-    ).mappings().one()
+    persisted_document = db_session.scalar(
+        select(OcrDocument).where(OcrDocument.task_run_id == task_run_id)
+    )
     session_record = db_session.get(SessionRecord, session_id)
 
-    assert result.status == "completed"
+    assert result.status == "awaiting-confirmation"
     assert result.task_type == "receipt-ocr"
     assert result.error_code is None
     assert task_run is not None
-    assert task_run.status == "completed"
+    assert task_run.status == "awaiting-confirmation"
     assert task_run.task_type == "receipt-ocr"
-    assert persisted_document["media_id"] == "receipt_demo"
-    assert persisted_document["status"] == "completed"
+    assert confirmation is not None
+    assert confirmation.status == "pending"
+    assert confirmation.confirmation_type == "receipt-stock-in-batch"
+    assert confirmation.fields["ocr_document_id"]
+    assert confirmation.fields["total_amount"] == 147.0
+    assert len(confirmation.fields["draft_items"]) == 2
+    assert confirmation.fields["draft_items"][0]["item_name"] == "Red Bull 250ml"
+    assert confirmation.fields["draft_items"][1]["item_name"] == "Coca Cola 500ml"
+    assert persisted_document is not None
+    assert persisted_document.media_id == "receipt_demo"
+    assert persisted_document.status == "completed"
     assert len(runtime_messages) == 1
     assert "receipt" in (runtime_messages[0].text or "").lower()
-    assert "total" in (runtime_messages[0].text or "").lower()
+    assert "confirm" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

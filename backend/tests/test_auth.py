@@ -43,3 +43,32 @@ def test_get_settings_reads_environment_overrides(monkeypatch) -> None:
     assert settings.default_owner_actor_id == "owner_env"
     assert settings.default_session_id == "sess_env"
     assert settings.redis_url == "redis://cache:6379/1"
+
+
+def test_login_returns_opaque_bearer_token(client, monkeypatch) -> None:
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "dev-password")
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["token_type"] == "Bearer"
+    assert payload["access_token"] != "mock_owner_token"
+    assert payload["shop_id"] == "shop_default"
+
+
+def test_login_rejects_invalid_password(client, monkeypatch) -> None:
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "dev-password")
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "owner@example.com", "password": "wrong-password"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "unauthorized"

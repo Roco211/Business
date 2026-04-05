@@ -1,9 +1,23 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
+from app.api.deps.auth import AuthUnauthorizedError
 from app.core.config import get_settings
+from app.contracts.common import ErrorBody, ErrorEnvelope
 from app.db.session import get_session_factory
 from app.api.router import api_router
 from app.realtime.connection_manager import SessionStreamConnectionManager
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AuthUnauthorizedError)
+    async def _handle_auth_unauthorized(_, __) -> JSONResponse:
+        return JSONResponse(
+            status_code=401,
+            content=ErrorEnvelope(
+                error=ErrorBody(code="unauthorized", message="Unauthorized", details=[])
+            ).model_dump(),
+        )
 
 
 def create_app() -> FastAPI:
@@ -16,5 +30,6 @@ def create_app() -> FastAPI:
         keepalive_interval_seconds=settings.session_stream_keepalive_seconds,
         session_factory=get_session_factory(),
     )
+    register_exception_handlers(app)
     app.include_router(api_router)
     return app

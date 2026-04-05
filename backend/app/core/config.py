@@ -9,6 +9,7 @@ class Settings:
     app_port: int
     redis_url: str
     database_url: str
+    session_stream_keepalive_seconds: float
     default_shop_id: str = os.getenv("DEFAULT_SHOP_ID", "shop_default")
     default_owner_actor_id: str = os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default")
     default_session_id: str = os.getenv("DEFAULT_SESSION_ID", "sess_default")
@@ -33,6 +34,7 @@ def get_settings() -> Settings:
         app_port=int(os.getenv("APP_PORT", "8001")),
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
         database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
+        session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
         default_owner_actor_id=os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default"),
         default_session_id=os.getenv("DEFAULT_SESSION_ID", "sess_default"),

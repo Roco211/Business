@@ -1,0 +1,110 @@
+import asyncio
+from collections import defaultdict
+from contextlib import suppress
+from datetime import UTC, datetime
+
+from fastapi import FastAPI, WebSocket
+
+from app.contracts.session_stream import SessionStreamEventEnvelope
+from app.core.ids import new_prefixed_id
+
+
+class SessionStreamConnectionManager:
+    def __init__(self, *, keepalive_interval_seconds: float) -> None:
+        self.keepalive_interval_seconds = keepalive_interval_seconds
+        self._connections: dict[str, set[WebSocket]] = defaultdict(set)
+        self._keepalive_tasks: dict[int, asyncio.Task[None]] = {}
+        self._last_seq_by_session: dict[str, int] = {}
+        self._lock = asyncio.Lock()
+
+    async def connect(
+        self,
+        *,
+        session_id: str,
+        websocket: WebSocket,
+        last_seq: int,
+    ) -> None:
+        await websocket.accept()
+        async with self._lock:
+            self._connections[session_id].add(websocket)
+            self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), last_seq)
+            self._keepalive_tasks[id(websocket)] = asyncio.create_task(
+                self._keepalive_loop(session_id=session_id, websocket=websocket),
+                name=f"session-stream-keepalive-{session_id}",
+            )
+        await self._send_event(
+            websocket,
+            self._build_ephemeral_event(
+                session_id=session_id,
+                event_type="session.ready",
+                seq=last_seq,
+            ),
+        )
+
+    async def disconnect(self, *, session_id: str, websocket: WebSocket) -> None:
+        async with self._lock:
+            connections = self._connections.get(session_id)
+            if connections is not None:
+                connections.discard(websocket)
+                if not connections:
+                    self._connections.pop(session_id, None)
+
+            keepalive_task = self._keepalive_tasks.pop(id(websocket), None)
+        if keepalive_task is not None:
+            keepalive_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await keepalive_task
+
+    async def publish(self, *, session_id: str, event: SessionStreamEventEnvelope) -> None:
+        async with self._lock:
+            self._last_seq_by_session[session_id] = max(self._last_seq_by_session.get(session_id, 0), event.seq)
+            recipients = list(self._connections.get(session_id, set()))
+
+        stale_connections: list[WebSocket] = []
+        for websocket in recipients:
+            try:
+                await self._send_event(websocket, event)
+            except Exception:
+                stale_connections.append(websocket)
+
+        for websocket in stale_connections:
+            await self.disconnect(session_id=session_id, websocket=websocket)
+
+    async def _keepalive_loop(self, *, session_id: str, websocket: WebSocket) -> None:
+        while True:
+            await asyncio.sleep(self.keepalive_interval_seconds)
+            async with self._lock:
+                seq = self._last_seq_by_session.get(session_id, 0)
+            await self._send_event(
+                websocket,
+                self._build_ephemeral_event(
+                    session_id=session_id,
+                    event_type="stream.keepalive",
+                    seq=seq,
+                ),
+            )
+
+    async def _send_event(self, websocket: WebSocket, event: SessionStreamEventEnvelope) -> None:
+        await websocket.send_json(event.model_dump(mode="json"))
+
+    def _build_ephemeral_event(
+        self,
+        *,
+        session_id: str,
+        event_type: str,
+        seq: int,
+    ) -> SessionStreamEventEnvelope:
+        return SessionStreamEventEnvelope(
+            event_id=new_prefixed_id("ws_evt"),
+            seq=seq,
+            event_type=event_type,
+            session_id=session_id,
+            task_run_id=None,
+            message_id=None,
+            occurred_at=datetime.now(UTC).replace(tzinfo=None),
+            data={},
+        )
+
+
+def get_session_stream_manager(app: FastAPI) -> SessionStreamConnectionManager:
+    return app.state.session_stream_manager  # type: ignore[no-any-return]

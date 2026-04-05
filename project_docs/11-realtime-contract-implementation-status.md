@@ -15,6 +15,7 @@ This addendum records what is actually implemented in the repository today relat
 - `GET /api/v1/ocr-documents/{ocr_document_id}`
 - `POST /api/v1/inventory-items/recognize-and-query`
 - `POST /api/v1/inventory-events/stock-out`
+- runtime routing for `voice-stock-out` with pending `stock-out` confirmations
 - Emitted event types:
   - `message.created`
   - `task.updated`
@@ -43,13 +44,16 @@ This addendum records what is actually implemented in the repository today relat
 - `ChatScreen` now also exposes upload-backed:
   - `Photo Query Demo`
   - `Photo Stock-In Demo`
+  - `Voice Stock-Out Demo`
   - `Receipt OCR Demo`
 - `ChatScreen` renders pending stock-in confirmation cards and supports approve/reject actions
+- `ChatScreen` now also renders dedicated stock-out confirmation cards with editable item name, quantity, and reason
 - `ChatScreen` now also renders dedicated receipt confirmation cards with editable draft line items
 - `ChatScreen` refreshes messages and confirmations when relevant session events arrive
 - receipt OCR truth is now durable through `ocr_documents`
 - receipt approval now commits multiple inventory events, audit logs, and projection refreshes through the existing confirmation flow
 - manual ledger stock-out now writes durable inventory truth, audit logs, and refreshed alert projections through the same session stream
+- runtime/chat stock-out now resolves through the same durable inventory truth as manual stock-out
 
 ## Still Out Of Scope
 

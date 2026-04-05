@@ -826,12 +826,12 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(1);
-      expect(screen.getAllByText("stock out 2 cola").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("stock out cola for walk in sale").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/sessions/sess_default/messages"),
         expect.objectContaining({
           method: "POST",
-          body: expect.stringContaining("\"text\":\"stock out 2 cola\""),
+          body: expect.stringContaining("\"text\":\"stock out cola for walk in sale\""),
         }),
       );
     });

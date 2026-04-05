@@ -604,3 +604,32 @@ Notes:
 - when inventory changed after the ledger was loaded, the server returns `409 inventory_conflict`
 - when `stock_out_quantity <= 0` or exceeds current stock, the server returns `422 validation_error`
 - success also writes `inventory_events(event_type = stock-out)`, `audit_logs(action = inventory.stock_out_submitted)`, refreshed low-stock alerts, and realtime events
+
+## 16.2 Runtime Stock-Out Confirmation Addendum
+
+`POST /api/v1/confirmations/{confirmation_id}/approve`
+
+When `confirmation_type = stock-out`, the approval payload uses stock-out-specific fields:
+
+```json
+{
+  "fields": {
+    "item_id": "item_001",
+    "item_name": "Cola",
+    "stock_out_quantity": 2,
+    "reason": "Walk-in sale"
+  }
+}
+```
+
+Notes:
+
+- `item_id` is optional when `item_name` uniquely resolves to one active inventory item in the shop
+- `stock_out_quantity` must be numeric and greater than 0
+- `reason` is required
+- if the item cannot be uniquely resolved, the server returns:
+  - `404 inventory_item_not_found`
+  - `409 inventory_item_ambiguous`
+  - `409 inventory_item_inactive`
+- if requested quantity exceeds current stock, the server returns `422 confirmation_fields_invalid`
+- successful approval resolves the pending confirmation and task run, writes one durable `inventory_events(event_type = stock-out)` row, writes `audit_logs(action = inventory.stock_out_submitted)`, refreshes low-stock alerts, and appends the usual realtime projections

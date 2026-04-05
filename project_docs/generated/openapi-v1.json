@@ -683,18 +683,6 @@
         "title": "DataEnvelope[LoginData]",
         "type": "object"
       },
-      "DataEnvelope_MockLoginData_": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/MockLoginData"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "title": "DataEnvelope[MockLoginData]",
-        "type": "object"
-      },
       "DataEnvelope_OcrDocumentData_": {
         "properties": {
           "data": {
@@ -1276,56 +1264,6 @@
           "created_at"
         ],
         "title": "LowStockAlertData",
-        "type": "object"
-      },
-      "MockLoginData": {
-        "properties": {
-          "access_token": {
-            "title": "Access Token",
-            "type": "string"
-          },
-          "owner_actor_id": {
-            "title": "Owner Actor Id",
-            "type": "string"
-          },
-          "shop_id": {
-            "title": "Shop Id",
-            "type": "string"
-          },
-          "shop_name": {
-            "title": "Shop Name",
-            "type": "string"
-          },
-          "token_type": {
-            "title": "Token Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "access_token",
-          "token_type",
-          "owner_actor_id",
-          "shop_id",
-          "shop_name"
-        ],
-        "title": "MockLoginData",
-        "type": "object"
-      },
-      "MockLoginRequest": {
-        "properties": {
-          "shop_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shop Id"
-          }
-        },
-        "title": "MockLoginRequest",
         "type": "object"
       },
       "OcrDocumentData": {
@@ -2038,47 +1976,6 @@
           }
         },
         "summary": "Login",
-        "tags": [
-          "auth"
-        ]
-      }
-    },
-    "/api/v1/auth/mock-login": {
-      "post": {
-        "operationId": "mock_login_api_v1_auth_mock_login_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MockLoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_MockLoginData_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Mock Login",
         "tags": [
           "auth"
         ]

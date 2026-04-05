@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.contracts.auth import LoginData, LoginRequest, MockLoginData, MockLoginRequest
+from app.contracts.auth import LoginData, LoginRequest
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
@@ -54,32 +54,6 @@ def login(
     )
     return DataEnvelope(
         data=LoginData(
-            access_token=issued_session.access_token,
-            token_type="Bearer",
-            owner_actor_id=owner.actor_id,
-            shop_id=shop.shop_id,
-            shop_name=shop.name,
-        )
-    )
-
-
-@router.post("/mock-login", response_model=DataEnvelope[MockLoginData])
-def mock_login(
-    payload: MockLoginRequest,
-    settings: Settings = Depends(get_settings),
-    db_session: Session = Depends(get_db_session),
-) -> DataEnvelope[MockLoginData]:
-    shop = ensure_default_shop(db_session)
-    owner = ensure_default_owner_membership(db_session, shop)
-    issued_session = issue_auth_session(
-        db_session,
-        actor_id=owner.actor_id,
-        shop_id=shop.shop_id,
-        ttl_minutes=settings.auth_session_ttl_minutes,
-    )
-
-    return DataEnvelope(
-        data=MockLoginData(
             access_token=issued_session.access_token,
             token_type="Bearer",
             owner_actor_id=owner.actor_id,

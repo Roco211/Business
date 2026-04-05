@@ -1,5 +1,8 @@
+from datetime import UTC, datetime
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from starlette.websockets import WebSocketDisconnect
 
 from conftest import auth_headers, load_create_app, login_and_get_token, upgrade_test_database
@@ -115,3 +118,47 @@ def test_session_stream_ws_accepts_real_login_token(monkeypatch, tmp_path) -> No
             ready_event = websocket.receive_json()
 
     assert ready_event["event_type"] == "session.ready"
+
+
+def test_session_stream_ws_closes_when_auth_session_is_revoked(monkeypatch, tmp_path) -> None:
+    from app.db.session import get_session_factory
+    from app.models import AuthSession
+    from app.services.auth_sessions import hash_session_token
+
+    with _create_websocket_client(monkeypatch, tmp_path, keepalive_seconds="0.001") as client:
+        token = login_and_get_token(client, monkeypatch)
+        bootstrap_response = client.post(
+            "/api/v1/sessions/bootstrap",
+            headers=auth_headers(token),
+        )
+        session_id = bootstrap_response.json()["data"]["session_id"]
+
+        with client.websocket_connect(f"/api/v1/ws/sessions/{session_id}?token={token}") as websocket:
+            ready_event = websocket.receive_json()
+            assert ready_event["event_type"] == "session.ready"
+
+            db_session = get_session_factory()()
+            try:
+                auth_session = db_session.scalar(
+                    select(AuthSession).where(
+                        AuthSession.session_token_hash == hash_session_token(token),
+                    )
+                )
+                assert auth_session is not None
+                now = datetime.now(UTC).replace(tzinfo=None)
+                auth_session.revoked_at = now
+                auth_session.updated_at = now
+                db_session.commit()
+            finally:
+                db_session.close()
+
+            disconnect = None
+            for _ in range(25):
+                try:
+                    websocket.receive_json()
+                except WebSocketDisconnect as exc:
+                    disconnect = exc
+                    break
+
+    assert disconnect is not None
+    assert disconnect.code == 4401

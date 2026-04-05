@@ -14,29 +14,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.core.config import get_settings
 
 
-def test_mock_login_returns_default_owner_context(client) -> None:
+def test_mock_login_endpoint_is_not_available(client) -> None:
     response = client.post("/api/v1/auth/mock-login", json={"shop_id": "shop_default"})
 
-    assert response.status_code == 200
-    payload = response.json()["data"]
-    assert payload["access_token"] != "mock_owner_token"
-    assert payload["owner_actor_id"] == "owner_default"
-    assert payload["shop_id"] == "shop_default"
-    assert payload["shop_name"] == "演示店铺"
-
-
-def test_mock_login_uses_default_shop_when_request_omits_shop_id(client) -> None:
-    response = client.post("/api/v1/auth/mock-login", json={})
-
-    assert response.status_code == 200
-    assert response.json()["data"]["shop_id"] == "shop_default"
-
-
-def test_mock_login_ignores_unknown_shop_id_and_returns_default_shop(client) -> None:
-    response = client.post("/api/v1/auth/mock-login", json={"shop_id": "shop_other"})
-
-    assert response.status_code == 200
-    assert response.json()["data"]["shop_id"] == "shop_default"
+    assert response.status_code == 404
 
 
 def test_get_settings_reads_environment_overrides(monkeypatch) -> None:
@@ -105,11 +86,16 @@ def test_login_does_not_create_default_session_record(db_session, monkeypatch) -
     assert after_count == 0
 
 
-def test_mock_login_issued_token_is_accepted_by_protected_routes(client) -> None:
-    mock_login_response = client.post("/api/v1/auth/mock-login", json={"shop_id": "shop_default"})
+def test_login_issued_token_is_accepted_by_protected_routes(client, monkeypatch) -> None:
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "dev-password")
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
 
-    assert mock_login_response.status_code == 200
-    token = mock_login_response.json()["data"]["access_token"]
+    assert login_response.status_code == 200
+    token = login_response.json()["data"]["access_token"]
 
     protected_response = client.post(
         "/api/v1/sessions/bootstrap",

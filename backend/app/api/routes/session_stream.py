@@ -3,7 +3,11 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps.auth import AuthenticatedContext, require_authenticated_context, resolve_authenticated_context
+from app.api.deps.auth import (
+    AuthenticatedContext,
+    require_authenticated_context,
+    resolve_authenticated_context,
+)
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.session_stream import SessionStreamEventEnvelope
 from app.db.session import get_db_session, get_session_factory
@@ -115,6 +119,12 @@ async def session_stream_websocket(websocket: WebSocket, session_id: str) -> Non
             websocket=websocket,
             replay_after_seq=replay_after_seq,
             current_seq=int(session.last_event_seq),
+            auth_is_valid=lambda: _is_websocket_auth_still_valid(
+                session_factory=session_factory,
+                bearer_token=token,
+                expected_shop_id=auth.shop_id,
+            ),
+            unauthorized_close_code=UNAUTHORIZED_CLOSE_CODE,
         )
         connected = True
 
@@ -128,3 +138,17 @@ async def session_stream_websocket(websocket: WebSocket, session_id: str) -> Non
         db_session.close()
         if connected:
             await manager.disconnect(session_id=session_id, websocket=websocket)
+
+
+def _is_websocket_auth_still_valid(
+    *,
+    session_factory,
+    bearer_token: str,
+    expected_shop_id: str,
+) -> bool:
+    db_session = session_factory()
+    try:
+        refreshed_auth = resolve_authenticated_context(db_session, bearer_token=bearer_token)
+        return refreshed_auth is not None and refreshed_auth.shop_id == expected_shop_id
+    finally:
+        db_session.close()

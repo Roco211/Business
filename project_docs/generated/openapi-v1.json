@@ -671,6 +671,18 @@
         "title": "DataEnvelope[InventoryItemData]",
         "type": "object"
       },
+      "DataEnvelope_LoginData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LoginData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[LoginData]",
+        "type": "object"
+      },
       "DataEnvelope_MockLoginData_": {
         "properties": {
           "data": {
@@ -1154,6 +1166,57 @@
           "meta"
         ],
         "title": "ListLowStockAlertsResponse",
+        "type": "object"
+      },
+      "LoginData": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "owner_actor_id": {
+            "title": "Owner Actor Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "shop_name": {
+            "title": "Shop Name",
+            "type": "string"
+          },
+          "token_type": {
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "owner_actor_id",
+          "shop_id",
+          "shop_name"
+        ],
+        "title": "LoginData",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
         "type": "object"
       },
       "LowStockAlertData": {
@@ -1926,6 +1989,57 @@
         "summary": "Get Audit Logs",
         "tags": [
           "audit-logs"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_LoginData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
         ]
       }
     },

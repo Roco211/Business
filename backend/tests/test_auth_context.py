@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
+from app.api.routes.auth import router as auth_router
 from app.db.session import get_db_session
 from app.main import register_exception_handlers
 from app.models import AuthSession
@@ -149,3 +150,33 @@ def test_require_authenticated_context_rejects_inactive_session(db_session) -> N
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "unauthorized"
+
+
+def test_login_issued_token_is_accepted_by_authenticated_context(db_session, monkeypatch) -> None:
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "dev-password")
+
+    app = FastAPI()
+    register_exception_handlers(app)
+    app.include_router(auth_router)
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    @app.get("/protected")
+    def protected(
+        auth: AuthenticatedContext = Depends(require_authenticated_context),
+    ) -> dict[str, str]:
+        return {"shop_id": auth.shop_id, "actor_id": auth.actor_id}
+
+    client = TestClient(app)
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+
+    assert login_response.status_code == 200
+    token = login_response.json()["data"]["access_token"]
+
+    protected_response = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
+
+    assert protected_response.status_code == 200
+    assert protected_response.json() == {"shop_id": "shop_default", "actor_id": "owner_default"}

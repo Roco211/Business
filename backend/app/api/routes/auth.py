@@ -11,7 +11,7 @@ from app.services.auth_sessions import (
     issue_auth_session,
     resolve_owner_membership_and_shop,
 )
-from app.services.bootstrap import ensure_default_context, ensure_default_shop
+from app.services.bootstrap import ensure_default_owner_membership, ensure_default_shop
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -35,7 +35,8 @@ def login(
     settings: Settings = Depends(get_settings),
     db_session: Session = Depends(get_db_session),
 ) -> DataEnvelope[LoginData] | JSONResponse:
-    ensure_default_context(db_session)
+    shop = ensure_default_shop(db_session)
+    ensure_default_owner_membership(db_session, shop)
     owner = authenticate_owner(db_session, payload.email, payload.password)
     if owner is None:
         return _unauthorized()

@@ -1,6 +1,14 @@
 from pathlib import Path
 import sys
 
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+
+from app.api.routes.auth import router as auth_router
+from app.db.session import get_db_session
+from app.models import SessionRecord
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import get_settings
@@ -72,3 +80,26 @@ def test_login_rejects_invalid_password(client, monkeypatch) -> None:
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "unauthorized"
+
+
+def test_login_does_not_create_default_session_record(db_session, monkeypatch) -> None:
+    monkeypatch.setenv("SEED_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("SEED_OWNER_PASSWORD", "dev-password")
+
+    app = FastAPI()
+    app.include_router(auth_router)
+    app.dependency_overrides[get_db_session] = lambda: db_session
+    client = TestClient(app)
+
+    before_count = db_session.scalar(select(func.count()).select_from(SessionRecord)) or 0
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+
+    after_count = db_session.scalar(select(func.count()).select_from(SessionRecord)) or 0
+
+    assert response.status_code == 200
+    assert before_count == 0
+    assert after_count == 0

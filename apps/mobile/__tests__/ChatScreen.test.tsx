@@ -21,6 +21,8 @@ let mediaUploadCreateShouldFail = false;
 let mediaUploadCompleteShouldFail = false;
 let includeReceiptConfirmation = false;
 let receiptConfirmationResolved = false;
+let stockOutApprovalShouldFail = false;
+let includeStockOutConfirmation = false;
 let messageRequestCount = 0;
 let confirmationRequestCount = 0;
 let mediaUploadRequestCount = 0;
@@ -58,6 +60,8 @@ describe("ChatScreen", () => {
     mediaUploadCompleteShouldFail = false;
     includeReceiptConfirmation = false;
     receiptConfirmationResolved = false;
+    stockOutApprovalShouldFail = false;
+    includeStockOutConfirmation = false;
     messageRequestCount = 0;
     confirmationRequestCount = 0;
     mediaUploadRequestCount = 0;
@@ -86,6 +90,17 @@ describe("ChatScreen", () => {
         task_run_id: "task_1",
         created_at: "2026-04-05T12:00:03.000Z",
       },
+      {
+        message_id: "msg_stock_out_1",
+        session_id: "sess_default",
+        actor_type: "owner",
+        actor_id: "owner_default",
+        message_type: "text",
+        text: "stock out 2 cola",
+        media_ids: [],
+        task_run_id: "task_stock_out_1",
+        created_at: "2026-04-05T12:15:00.000Z",
+      },
     ];
     const pendingConfirmations = [
       {
@@ -109,6 +124,28 @@ describe("ChatScreen", () => {
         resolution_payload: null,
         approved_by_actor_id: null,
         created_at: "2026-04-05T12:00:04.000Z",
+        resolved_at: null,
+      },
+      {
+        confirmation_id: "conf_stock_out_1",
+        session_id: "sess_default",
+        task_run_id: "task_stock_out_1",
+        confirmation_type: "stock-out",
+        status: "pending",
+        fields: {
+          summary: "Please confirm the stock-out details before commit.",
+          transcript: "stock out 2 cola",
+          draft_fields: {
+            item_name: "Cola",
+            stock_out_quantity: 2,
+            reason: "Sold two boxes",
+          },
+          required_fields: ["item_name", "stock_out_quantity", "reason"],
+        },
+        requested_by_employee_id: "emp_mock",
+        resolution_payload: null,
+        approved_by_actor_id: null,
+        created_at: "2026-04-05T12:15:01.000Z",
         resolved_at: null,
       },
     ];
@@ -361,6 +398,64 @@ describe("ChatScreen", () => {
         });
       }
 
+      if (url.includes("/api/v1/confirmations/conf_stock_out_1/approve") && method === "POST") {
+        if (stockOutApprovalShouldFail) {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "insufficient_stock",
+                message: "Not enough stock to remove",
+                details: [],
+              },
+            }),
+          });
+        }
+        const confirmationIndex = pendingConfirmations.findIndex(
+          (confirmation) => confirmation.confirmation_id === "conf_stock_out_1",
+        );
+        if (confirmationIndex >= 0) {
+          pendingConfirmations.splice(confirmationIndex, 1);
+        }
+        messages.push({
+          message_id: "msg_stock_out_system_approved",
+          session_id: "sess_default",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime: approved stock-out committed to inventory.",
+          media_ids: [],
+          task_run_id: "task_stock_out_1",
+          created_at: "2026-04-05T12:15:06.000Z",
+        });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              confirmation_id: "conf_stock_out_1",
+              session_id: "sess_default",
+              task_run_id: "task_stock_out_1",
+              confirmation_type: "stock-out",
+              status: "approved",
+              fields: {
+                summary: "Please confirm the stock-out details before commit.",
+              },
+              requested_by_employee_id: "emp_mock",
+              resolution_payload: {
+                fields: {
+                  item_name: "Cola",
+                  stock_out_quantity: 2,
+                  reason: "Sold two boxes",
+                },
+              },
+              approved_by_actor_id: "owner_default",
+              created_at: "2026-04-05T12:15:01.000Z",
+              resolved_at: "2026-04-05T12:15:06.000Z",
+            },
+          }),
+        });
+      }
+
       if (url.includes("/api/v1/confirmations/conf_1/reject") && method === "POST") {
         if (rejectShouldFail) {
           return Promise.resolve({
@@ -467,12 +562,15 @@ describe("ChatScreen", () => {
 
       if (url.includes("/api/v1/confirmations?status=pending&limit=20")) {
         confirmationRequestCount += 1;
+        const filteredConfirmations = includeStockOutConfirmation
+          ? pendingConfirmations
+          : pendingConfirmations.filter((confirmation) => confirmation.confirmation_type !== "stock-out");
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            data: pendingConfirmations,
+            data: filteredConfirmations,
             meta: {
-              count: pendingConfirmations.length,
+              count: filteredConfirmations.length,
             },
           }),
         });
@@ -530,8 +628,8 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Pending confirmation")).toBeTruthy();
-      expect(screen.getByDisplayValue("Cola")).toBeTruthy();
-      expect(screen.getByDisplayValue("3")).toBeTruthy();
+      expect(screen.getAllByDisplayValue("Cola").length).toBeGreaterThan(0);
+      expect(screen.getAllByDisplayValue("3").length).toBeGreaterThan(0);
     });
 
     fireEvent.press(screen.getByText("Approve"));
@@ -541,6 +639,30 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Mock runtime: approved stock-in committed to inventory.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_1/approve"),
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
+
+  it("renders a pending stock-out confirmation card and approves it from chat", async () => {
+    includeStockOutConfirmation = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pending stock-out confirmation")).toBeTruthy();
+      expect(screen.getAllByDisplayValue("Cola").length).toBeGreaterThan(0);
+      expect(screen.getAllByDisplayValue("2").length).toBeGreaterThan(0);
+    });
+
+    const approveButtons = screen.getAllByText("Approve");
+    fireEvent.press(approveButtons[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mock runtime: approved stock-out committed to inventory.")).toBeTruthy();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/confirmations/conf_stock_out_1/approve"),
         expect.objectContaining({
           method: "POST",
         }),
@@ -562,6 +684,25 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Confirmation is not pending")).toBeTruthy();
       expect(screen.getByText("Approve")).toBeTruthy();
       expect(screen.getByText("Reject")).toBeTruthy();
+    });
+  });
+
+  it("shows a recoverable error when stock-out approval fails", async () => {
+    includeStockOutConfirmation = true;
+    stockOutApprovalShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pending stock-out confirmation")).toBeTruthy();
+    });
+
+    const approveButtons = screen.getAllByText("Approve");
+    fireEvent.press(approveButtons[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Not enough stock to remove")).toBeTruthy();
+      expect(screen.getAllByText("Approve").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Reject").length).toBeGreaterThan(0);
     });
   });
 
@@ -669,6 +810,28 @@ describe("ChatScreen", () => {
         expect.objectContaining({
           method: "POST",
           body: expect.stringContaining("\"message_type\":\"voice\""),
+        }),
+      );
+    });
+  });
+
+  it("sends a voice stock-out demo through upload request, completion, and final message post", async () => {
+    includeStockOutConfirmation = true;
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByText("Voice Stock-Out Demo"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(screen.getAllByText("stock out 2 cola").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"text\":\"stock out 2 cola\""),
         }),
       );
     });

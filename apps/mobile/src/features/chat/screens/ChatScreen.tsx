@@ -5,6 +5,7 @@ import { useSessionStream } from "../../../shared/session/useSessionStream";
 import { MockMediaEntryPanel } from "../components/MockMediaEntryPanel";
 import { PendingReceiptConfirmationCard } from "../components/PendingReceiptConfirmationCard";
 import { PendingStockInConfirmationCard } from "../components/PendingStockInConfirmationCard";
+import { PendingStockOutConfirmationCard } from "../components/PendingStockOutConfirmationCard";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
@@ -122,21 +123,33 @@ export default function ChatScreen() {
               <Text>{getMessageText(message.message_type, message.text)}</Text>
               <Text>{message.created_at}</Text>
             </View>
-            {linkedConfirmations.map((confirmation) => (
-              confirmation.confirmation_type === "receipt-stock-in-batch" ? (
-                <PendingReceiptConfirmationCard
-                  key={confirmation.confirmation_id}
-                  confirmation={confirmation}
-                  onResolved={refreshChat}
-                />
-              ) : (
+            {linkedConfirmations.map((confirmation) => {
+              if (confirmation.confirmation_type === "receipt-stock-in-batch") {
+                return (
+                  <PendingReceiptConfirmationCard
+                    key={confirmation.confirmation_id}
+                    confirmation={confirmation}
+                    onResolved={refreshChat}
+                  />
+                );
+              }
+              if (confirmation.confirmation_type === "stock-out") {
+                return (
+                  <PendingStockOutConfirmationCard
+                    key={confirmation.confirmation_id}
+                    confirmation={confirmation}
+                    onResolved={refreshChat}
+                  />
+                );
+              }
+              return (
                 <PendingStockInConfirmationCard
                   key={confirmation.confirmation_id}
                   confirmation={confirmation}
                   onResolved={refreshChat}
                 />
-              )
-            ))}
+              );
+            })}
           </View>
         );
       })}

@@ -18,7 +18,7 @@ export function MockMediaEntryPanel({
   const isSubmitting = voiceDemo.isSubmitting || imageDemo.isSubmitting || receiptDemo.isSubmitting;
   const error = voiceDemo.error ?? imageDemo.error ?? receiptDemo.error;
 
-  async function handleVoiceSubmit(kind: "query" | "stock_in") {
+  async function handleVoiceSubmit(kind: "query" | "stock_in" | "stock_out") {
     const result = await voiceDemo.submitVoiceDemo(kind);
     if (result === null) {
       return;
@@ -57,6 +57,13 @@ export function MockMediaEntryPanel({
         title={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-In Demo"}
         onPress={() => {
           void handleVoiceSubmit("stock_in");
+        }}
+        disabled={isSubmitting}
+      />
+      <Button
+        title={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-Out Demo"}
+        onPress={() => {
+          void handleVoiceSubmit("stock_out");
         }}
         disabled={isSubmitting}
       />

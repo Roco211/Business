@@ -14,6 +14,11 @@ const DEMO_CONFIG = {
     transcript: "restock apples today",
     checksum: "voice-stock-in-demo-checksum",
   },
+  stock_out: {
+    fileName: "voice-stock-out-demo.m4a",
+    transcript: "stock out 2 cola",
+    checksum: "voice-stock-out-demo-checksum",
+  },
 } as const;
 
 

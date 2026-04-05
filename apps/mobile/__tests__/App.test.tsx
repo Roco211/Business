@@ -26,6 +26,10 @@ jest.mock("../src/features/ledger/screens/LedgerScreen", () => {
   };
 });
 
+jest.mock("../src/shared/session/SessionStreamProvider", () => ({
+  SessionStreamProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 
 test("renders the three primary screen labels", () => {
   render(<App />);

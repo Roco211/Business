@@ -36,10 +36,40 @@ describe("LedgerScreen", () => {
     inventoryRequests = 0;
     auditLogRequests = 0;
     let correctionApplied = false;
+    let stockOutApplied = false;
 
     global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
+      if (url.includes("/api/v1/inventory-events/stock-out") && method === "POST") {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as {
+          reason?: string;
+        };
+        if (payload.reason === "Outdated sale") {
+          return Promise.resolve({
+            ok: false,
+            json: async () => ({
+              error: {
+                code: "inventory_conflict",
+                message: "Inventory stock-out conflicts with the current item state",
+                details: [],
+              },
+            }),
+          });
+        }
+        stockOutApplied = true;
+        correctionApplied = false;
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: {
+              stock_out_event_id: "inv_evt_stock_out_1",
+              item_id: "item_apple",
+              new_quantity: "1.000",
+            },
+          }),
+        });
+      }
       if (url.includes("/api/v1/inventory-events/corrections") && method === "POST") {
         const payload = JSON.parse(String(init?.body ?? "{}")) as {
           expected_quantity?: number;
@@ -110,7 +140,7 @@ describe("LedgerScreen", () => {
                 category: null,
                 barcode: null,
                 default_unit: "box",
-                current_stock: correctionApplied ? "6.000" : "3.000",
+                current_stock: stockOutApplied ? "1.000" : correctionApplied ? "6.000" : "3.000",
                 current_price: "11.50",
                 low_stock_threshold: "5.000",
                 image_media_id: null,
@@ -133,7 +163,11 @@ describe("LedgerScreen", () => {
                 audit_log_id: "audit_1",
                 shop_id: "shop_default",
                 scope: "inventory",
-                action: correctionApplied ? "inventory.correction_submitted" : "inventory.stock_in_confirmed",
+                action: correctionApplied
+                  ? "inventory.correction_submitted"
+                  : stockOutApplied
+                    ? "inventory.stock_out_submitted"
+                    : "inventory.stock_in_confirmed",
                 actor_type: "owner",
                 actor_id: "owner_default",
                 task_run_id: "task_1",
@@ -141,8 +175,8 @@ describe("LedgerScreen", () => {
                 target_id: "item_apple",
                 metadata: {
                   item_name: "Apple",
-                  quantity_delta: correctionApplied ? 4 : 3,
-                  quantity_after: correctionApplied ? 6 : 3,
+                  quantity_delta: correctionApplied ? 4 : stockOutApplied ? -2 : 3,
+                  quantity_after: correctionApplied ? 6 : stockOutApplied ? 1 : 3,
                 },
                 created_at: "2026-04-05T09:00:00",
               },
@@ -228,6 +262,52 @@ describe("LedgerScreen", () => {
     await waitFor(() => {
       expect(
         screen.getByText("Inventory correction conflicts with the current item state"),
+      ).toBeTruthy();
+      expect(screen.getByText("3.000 box")).toBeTruthy();
+    });
+  });
+
+  it("submits a stock-out and refreshes inventory plus audit activity", async () => {
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByText("3.000 box")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Stock out Apple"));
+    fireEvent.changeText(screen.getByPlaceholderText("Stock-out quantity"), "2");
+    fireEvent.changeText(screen.getByPlaceholderText("Stock-out reason"), "Walk-in sale");
+    fireEvent.press(screen.getByText("Submit stock-out"));
+
+    await waitFor(() => {
+      expect(screen.getByText("1.000 box")).toBeTruthy();
+      expect(screen.getByText("inventory.stock_out_submitted")).toBeTruthy();
+      expect(screen.getByText("Apple -2")).toBeTruthy();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/inventory-events/stock-out"),
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
+
+  it("shows a recoverable error when stock-out submission fails", async () => {
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Apple")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Stock out Apple"));
+    fireEvent.changeText(screen.getByPlaceholderText("Stock-out quantity"), "2");
+    fireEvent.changeText(screen.getByPlaceholderText("Stock-out reason"), "Outdated sale");
+    fireEvent.press(screen.getByText("Submit stock-out"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Inventory stock-out conflicts with the current item state"),
       ).toBeTruthy();
       expect(screen.getByText("3.000 box")).toBeTruthy();
     });

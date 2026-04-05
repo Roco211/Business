@@ -3,6 +3,7 @@ import { Button, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
 import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutation";
+import { useCreateStockOutMutation } from "../hooks/useCreateStockOutMutation";
 import { useInventoryItemsQuery } from "../hooks/useInventoryItemsQuery";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 
@@ -14,20 +15,27 @@ function formatAuditLine(itemName: string | undefined, quantityDelta: number | u
   if (typeof quantityDelta !== "number") {
     return itemName;
   }
-  return `${itemName} +${quantityDelta}`;
+  if (quantityDelta > 0) {
+    return `${itemName} +${quantityDelta}`;
+  }
+  return `${itemName} ${quantityDelta}`;
 }
 
 
 export default function LedgerScreen() {
   const [searchText, setSearchText] = useState("");
+  const [selectedAction, setSelectedAction] = useState<"correction" | "stock-out" | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedItemCurrentStock, setSelectedItemCurrentStock] = useState("");
   const [correctedQuantity, setCorrectedQuantity] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
+  const [stockOutQuantity, setStockOutQuantity] = useState("");
+  const [stockOutReason, setStockOutReason] = useState("");
 
   const inventory = useInventoryItemsQuery(searchText);
   const auditLogs = useAuditLogsQuery();
   const correction = useCreateCorrectionMutation();
+  const stockOut = useCreateStockOutMutation();
   const sessionStream = useSessionStream();
 
   useEffect(() => {
@@ -54,6 +62,29 @@ export default function LedgerScreen() {
     }
     setCorrectedQuantity("");
     setCorrectionReason("");
+    setSelectedAction(null);
+    setSelectedItemId(null);
+    setSelectedItemCurrentStock("");
+    inventory.refresh();
+    auditLogs.refresh();
+  }
+
+  async function handleSubmitStockOut() {
+    if (!selectedItemId) {
+      return;
+    }
+    const result = await stockOut.submitStockOut({
+      item_id: selectedItemId,
+      expected_quantity: Number(selectedItemCurrentStock),
+      stock_out_quantity: Number(stockOutQuantity),
+      reason: stockOutReason,
+    });
+    if (result === null) {
+      return;
+    }
+    setStockOutQuantity("");
+    setStockOutReason("");
+    setSelectedAction(null);
     setSelectedItemId(null);
     setSelectedItemCurrentStock("");
     inventory.refresh();
@@ -92,16 +123,27 @@ export default function LedgerScreen() {
           <Button
             title={`Correct ${item.name}`}
             onPress={() => {
+              setSelectedAction("correction");
               setSelectedItemId(item.item_id);
               setSelectedItemCurrentStock(item.current_stock);
               setCorrectedQuantity(item.current_stock.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1"));
               setCorrectionReason("");
             }}
           />
+          <Button
+            title={`Stock out ${item.name}`}
+            onPress={() => {
+              setSelectedAction("stock-out");
+              setSelectedItemId(item.item_id);
+              setSelectedItemCurrentStock(item.current_stock);
+              setStockOutQuantity("");
+              setStockOutReason("");
+            }}
+          />
         </View>
       ))}
 
-      {selectedItemId ? (
+      {selectedItemId && selectedAction === "correction" ? (
         <View>
           <Text>Correction form</Text>
           <TextInput
@@ -122,6 +164,31 @@ export default function LedgerScreen() {
               void handleSubmitCorrection();
             }}
             disabled={correction.isSubmitting}
+          />
+        </View>
+      ) : null}
+
+      {selectedItemId && selectedAction === "stock-out" ? (
+        <View>
+          <Text>Stock-out form</Text>
+          <TextInput
+            placeholder="Stock-out quantity"
+            keyboardType="numeric"
+            value={stockOutQuantity}
+            onChangeText={setStockOutQuantity}
+          />
+          <TextInput
+            placeholder="Stock-out reason"
+            value={stockOutReason}
+            onChangeText={setStockOutReason}
+          />
+          {stockOut.error ? <Text>{stockOut.error}</Text> : null}
+          <Button
+            title={stockOut.isSubmitting ? "Submitting..." : "Submit stock-out"}
+            onPress={() => {
+              void handleSubmitStockOut();
+            }}
+            disabled={stockOut.isSubmitting}
           />
         </View>
       ) : null}

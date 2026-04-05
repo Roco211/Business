@@ -14,6 +14,7 @@ This addendum records what is actually implemented in the repository today relat
 - `POST /api/v1/ocr-documents`
 - `GET /api/v1/ocr-documents/{ocr_document_id}`
 - `POST /api/v1/inventory-items/recognize-and-query`
+- `POST /api/v1/inventory-events/stock-out`
 - Emitted event types:
   - `message.created`
   - `task.updated`
@@ -35,6 +36,7 @@ This addendum records what is actually implemented in the repository today relat
 - The mobile app bootstraps the default session once at the navigation shell
 - One shared websocket connection is reused across the three top-level tabs
 - `DashboardScreen` and `LedgerScreen` react to incoming events by refreshing the relevant REST reads
+- `LedgerScreen` now supports manual correction and manual stock-out writes
 - `ChatScreen` renders the durable message timeline for the default session
 - `ChatScreen` sends owner-authored text messages through the existing session message API
 - `ChatScreen` also exposes upload-backed voice demo actions that request media upload, complete it, and then send a `voice` message
@@ -47,6 +49,7 @@ This addendum records what is actually implemented in the repository today relat
 - `ChatScreen` refreshes messages and confirmations when relevant session events arrive
 - receipt OCR truth is now durable through `ocr_documents`
 - receipt approval now commits multiple inventory events, audit logs, and projection refreshes through the existing confirmation flow
+- manual ledger stock-out now writes durable inventory truth, audit logs, and refreshed alert projections through the same session stream
 
 ## Still Out Of Scope
 

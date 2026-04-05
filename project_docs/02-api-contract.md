@@ -569,3 +569,38 @@
 - `inventory_conflict`
 - `item_not_found`
 - `idempotency_conflict`
+
+## 16.1 Manual Stock-Out Addendum
+
+`POST /api/v1/inventory-events/stock-out`
+
+Request body:
+
+```json
+{
+  "item_id": "item_001",
+  "expected_quantity": 6,
+  "stock_out_quantity": 2,
+  "reason": "Walk-in sale"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "stock_out_event_id": "inv_evt_123",
+    "item_id": "item_001",
+    "new_quantity": 4
+  }
+}
+```
+
+Notes:
+
+- this route is used by `LedgerScreen` for manual owner-triggered stock-out
+- `expected_quantity` provides optimistic concurrency protection
+- when inventory changed after the ledger was loaded, the server returns `409 inventory_conflict`
+- when `stock_out_quantity <= 0` or exceeds current stock, the server returns `422 validation_error`
+- success also writes `inventory_events(event_type = stock-out)`, `audit_logs(action = inventory.stock_out_submitted)`, refreshed low-stock alerts, and realtime events

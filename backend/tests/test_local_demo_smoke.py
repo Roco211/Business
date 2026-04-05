@@ -12,6 +12,13 @@ def _load_local_demo_smoke_module():
         pytest.fail(f"app.devtools.local_demo_smoke module is missing: {exc}")
 
 
+def _load_local_demo_smoke_script_module():
+    try:
+        return importlib.import_module("scripts.run_local_demo_smoke")
+    except ModuleNotFoundError as exc:
+        pytest.fail(f"scripts.run_local_demo_smoke module is missing: {exc}")
+
+
 def _build_request_adapter(client):
     def request_json(
         method: str,
@@ -77,3 +84,30 @@ def test_run_local_demo_smoke_raises_clear_error_on_demo_state_drift(client) -> 
             auth_token=auth_token,
             request_json=drifting_request,
         )
+
+
+def test_run_local_demo_smoke_logs_in_when_auth_token_is_not_provided(client) -> None:
+    module = _load_local_demo_smoke_module()
+
+    result = module.run_local_demo_smoke(
+        api_base_url="http://127.0.0.1:8001",
+        auth_token=None,
+        login_email="owner@example.com",
+        login_password="dev-password",
+        request_json=_build_request_adapter(client),
+    )
+
+    assert result.health_status == "ok"
+    assert result.session_id == "sess_default"
+    assert result.shop_id == "shop_default"
+
+
+def test_run_local_demo_smoke_cli_defaults_to_login_credentials() -> None:
+    script_module = _load_local_demo_smoke_script_module()
+    parser = script_module.build_parser()
+
+    args = parser.parse_args([])
+
+    assert args.auth_token is None
+    assert args.login_email == "owner@example.com"
+    assert args.login_password == "dev-password"

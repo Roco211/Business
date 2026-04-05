@@ -22,8 +22,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--auth-token",
-        default="mock_owner_token",
-        help="Owner auth token used for the current MVP smoke flow.",
+        default=None,
+        help="Optional bearer token for protected calls. When omitted, the script logs in first.",
+    )
+    parser.add_argument(
+        "--login-email",
+        default="owner@example.com",
+        help="Login email used to fetch a bearer token when --auth-token is omitted.",
+    )
+    parser.add_argument(
+        "--login-password",
+        default="dev-password",
+        help="Login password used to fetch a bearer token when --auth-token is omitted.",
     )
     return parser
 
@@ -34,6 +44,8 @@ def main() -> int:
         result = run_local_demo_smoke(
             api_base_url=args.api_base_url,
             auth_token=args.auth_token,
+            login_email=args.login_email,
+            login_password=args.login_password,
         )
     except LocalDemoSmokeError as exc:
         print(f"Local demo smoke failed: {exc}", file=sys.stderr)

@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import InventoryItem, Shop
+from app.services.media_uploads import get_ready_media_upload
+from app.services.mock_multimodal import recognize_and_query_inventory
 
 
 class ApprovedFieldsValidationError(ValueError):
@@ -42,6 +44,16 @@ class ApprovedStockInFields:
 @dataclass(frozen=True)
 class InventoryItemListPage:
     items: list[InventoryItem]
+
+
+@dataclass(frozen=True)
+class RecognizeAndQueryInventoryPage:
+    item_id: str | None
+    item_name: str
+    confidence: float
+    stock: Decimal | None
+    unit: str | None
+    is_low_stock: bool | None
 
 
 def _now() -> datetime:
@@ -84,6 +96,34 @@ def get_inventory_item(
     if item is None:
         raise LookupError(item_id)
     return item
+
+
+def recognize_inventory_item_from_media(
+    db_session: Session,
+    *,
+    shop_id: str,
+    media_id: str,
+) -> RecognizeAndQueryInventoryPage:
+    get_ready_media_upload(
+        db_session,
+        shop_id=shop_id,
+        media_id=media_id,
+        expected_media_types={"image"},
+    )
+    result = recognize_and_query_inventory(
+        db_session,
+        shop_id=shop_id,
+        media_ids=[media_id],
+        text_hint=None,
+    )
+    return RecognizeAndQueryInventoryPage(
+        item_id=result.item_id,
+        item_name=result.item_name,
+        confidence=result.confidence,
+        stock=result.stock,
+        unit=result.unit,
+        is_low_stock=result.is_low_stock,
+    )
 
 
 def parse_approved_stock_in_fields(payload: dict[str, Any]) -> ApprovedStockInFields:

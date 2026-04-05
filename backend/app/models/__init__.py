@@ -5,6 +5,7 @@ from app.models.inventory_event import InventoryEvent
 from app.models.inventory_item import InventoryItem
 from app.models.media_upload import MediaUpload
 from app.models.message import Message
+from app.models.ocr_document import OcrDocument
 from app.models.session_stream_event import SessionStreamEvent
 from app.models.session_record import SessionRecord
 from app.models.shop import Shop
@@ -18,6 +19,7 @@ __all__ = [
     "InventoryItem",
     "MediaUpload",
     "Message",
+    "OcrDocument",
     "SessionStreamEvent",
     "SessionRecord",
     "Shop",

@@ -25,6 +25,7 @@ class RuntimeRouteDecision:
     task_type: str
     assigned_employee_id: str
     transcript: Optional[str]
+    payload: Dict[str, object] = field(default_factory=dict)
 
 
 class RuntimeRouteBlocked(Exception):

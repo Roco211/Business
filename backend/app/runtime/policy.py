@@ -8,7 +8,7 @@ class PolicyDecision:
 
 
 def evaluate_runtime_policy(*, task_type: str) -> PolicyDecision:
-    if task_type == "voice-stock-in":
+    if task_type in {"voice-stock-in", "photo-stock-in"}:
         return PolicyDecision(
             outcome="require-confirmation",
             confirmation_type="low-confidence-recognition",

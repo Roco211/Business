@@ -100,13 +100,34 @@ def test_voice_input_transcription_failures_block():
     assert "transcription" in excinfo.value.error_message.lower()
 
 
-@pytest.mark.parametrize(
-    "kind",
-    ["image", "receipt-image"],
-)
-def test_image_inputs_are_blocked(kind: str):
-    ctx = _build_context(input_kind=kind, source_text=None, media_ids=[])
-    with pytest.raises(RuntimeRouteBlocked) as excinfo:
-        route_runtime_input(ctx)
-    assert excinfo.value.error_code == "runtime_input_not_supported"
-    assert kind in excinfo.value.error_message.lower()
+def test_image_input_routes_to_photo_stock_query():
+    ctx = _build_context(
+        input_kind="image",
+        source_text="check shelf stock for red bull",
+        media_ids=["image_query_demo"],
+    )
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "photo-stock-query"
+    assert decision.assigned_employee_id == "xiaoya"
+
+
+def test_image_input_routes_to_photo_stock_in():
+    ctx = _build_context(
+        input_kind="image",
+        source_text="restock red bull cans",
+        media_ids=["image_stock_in_demo"],
+    )
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "photo-stock-in"
+    assert decision.assigned_employee_id == "xiaoya"
+
+
+def test_receipt_image_routes_to_receipt_ocr():
+    ctx = _build_context(
+        input_kind="receipt-image",
+        source_text=None,
+        media_ids=["receipt_demo"],
+    )
+    decision = route_runtime_input(ctx)
+    assert decision.task_type == "receipt-ocr"
+    assert decision.assigned_employee_id == "xiaoya"

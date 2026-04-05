@@ -2,7 +2,7 @@ from dataclasses import replace
 from datetime import datetime
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import sessionmaker
 
 from app.models import Confirmation, MediaUpload, Message, SessionRecord, SessionStreamEvent, TaskRun
@@ -380,13 +380,13 @@ def test_text_stock_in_message_freshly_loads_pending_confirmation_status(db_sess
     assert "could not process" in (runtime_messages[0].text or "").lower()
 
 
-def test_unsupported_image_owner_message_fails_and_writes_runtime_message(db_session) -> None:
+def test_image_query_owner_message_completes_and_writes_runtime_message(db_session) -> None:
     session_id, task_run_id = _create_owner_message(
         db_session,
         message_type="image",
-        text=None,
-        media_ids=["image_demo"],
-        client_request_id="runtime_image_001",
+        text="check shelf stock for red bull",
+        media_ids=["image_query_demo"],
+        client_request_id="runtime_image_query_001",
     )
 
     result = process_task_run(db_session, task_run_id)
@@ -398,24 +398,109 @@ def test_unsupported_image_owner_message_fails_and_writes_runtime_message(db_ses
     ).all()
     session_record = db_session.get(SessionRecord, session_id)
 
-    assert result.status == "failed"
+    assert result.status == "completed"
     assert result.task_run_id == task_run_id
-    assert result.task_type is None
-    assert result.error_code == "runtime_input_not_supported"
+    assert result.task_type == "photo-stock-query"
+    assert result.error_code is None
     assert task_run is not None
-    assert task_run.status == "failed"
-    assert task_run.task_type == "pending-classification"
-    assert task_run.assigned_employee_id is None
-    assert task_run.result_summary == "Runtime failed with runtime_input_not_supported"
-    assert task_run.error_code == "runtime_input_not_supported"
-    assert task_run.error_message == "image inputs are not supported yet"
+    assert task_run.status == "completed"
+    assert task_run.task_type == "photo-stock-query"
+    assert task_run.assigned_employee_id == "xiaoya"
+    assert "red bull" in (task_run.result_summary or "").lower()
+    assert task_run.error_code is None
+    assert task_run.error_message is None
     assert task_run.completed_at is not None
     assert len(runtime_messages) == 1
     assert runtime_messages[0].actor_type == "system"
     assert runtime_messages[0].actor_id == "runtime_system"
     assert runtime_messages[0].message_type == "text"
     assert runtime_messages[0].task_run_id == task_run_id
-    assert "could not process" in (runtime_messages[0].text or "").lower()
+    assert "red bull" in (runtime_messages[0].text or "").lower()
+    assert "stock" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_image_stock_in_message_pauses_for_confirmation_and_writes_runtime_message(db_session) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="image",
+        text="restock red bull cans",
+        media_ids=["image_stock_in_demo"],
+        client_request_id="runtime_image_stock_in_awaiting_confirmation",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_type == "photo-stock-in"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert task_run.task_type == "photo-stock-in"
+    assert task_run.assigned_employee_id == "xiaoya"
+    assert confirmation is not None
+    assert confirmation.status == "pending"
+    assert confirmation.confirmation_type == "low-confidence-recognition"
+    assert confirmation.fields["draft_fields"]["item_name"] == "Red Bull 250ml"
+    assert confirmation.fields["draft_fields"]["quantity"] == 2
+    assert confirmation.fields["draft_fields"]["unit"] == "can"
+    assert confirmation.fields["draft_fields"]["price"] == 6.5
+    assert confirmation.fields["image_media_id"] == "image_stock_in_demo"
+    assert "red bull" in str(confirmation.fields["summary"]).lower()
+    assert len(runtime_messages) == 1
+    assert "confirm" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_receipt_image_message_completes_persists_ocr_document_and_writes_runtime_message(db_session) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_ocr_001",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    persisted_document = db_session.execute(
+        text(
+            """
+            SELECT ocr_document_id, media_id, status
+            FROM ocr_documents
+            WHERE task_run_id = :task_run_id
+            """
+        ),
+        {"task_run_id": task_run_id},
+    ).mappings().one()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "completed"
+    assert result.task_type == "receipt-ocr"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "completed"
+    assert task_run.task_type == "receipt-ocr"
+    assert persisted_document["media_id"] == "receipt_demo"
+    assert persisted_document["status"] == "completed"
+    assert len(runtime_messages) == 1
+    assert "receipt" in (runtime_messages[0].text or "").lower()
+    assert "total" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

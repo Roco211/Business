@@ -23,6 +23,7 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "inventory_events" in inspector.get_table_names()
     assert "audit_logs" in inspector.get_table_names()
     assert "media_uploads" in inspector.get_table_names()
+    assert "ocr_documents" in inspector.get_table_names()
     assert "session_stream_events" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
     assert {"session_id", "shop_id", "participants", "last_event_seq"} <= {
@@ -46,6 +47,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert {"media_id", "shop_id", "media_type", "status", "public_url"} <= {
         column["name"] for column in inspector.get_columns("media_uploads")
     }
+    assert {"ocr_document_id", "shop_id", "media_id", "document_type", "status", "extracted_fields"} <= {
+        column["name"] for column in inspector.get_columns("ocr_documents")
+    }
     assert {"event_id", "session_id", "seq", "event_type", "payload"} <= {
         column["name"] for column in inspector.get_columns("session_stream_events")
     }
@@ -57,6 +61,7 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     inventory_event_indexes = {index["name"] for index in inspector.get_indexes("inventory_events")}
     audit_log_indexes = {index["name"] for index in inspector.get_indexes("audit_logs")}
     media_upload_indexes = {index["name"] for index in inspector.get_indexes("media_uploads")}
+    ocr_document_indexes = {index["name"] for index in inspector.get_indexes("ocr_documents")}
     session_stream_indexes = {index["name"] for index in inspector.get_indexes("session_stream_events")}
     assert "ix_messages_session_created_at" in message_indexes
     assert "ix_task_runs_session_updated_at" in task_indexes
@@ -65,4 +70,5 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "ix_inventory_events_shop_id_item_created_at" in inventory_event_indexes
     assert "ix_audit_logs_shop_id_created_at" in audit_log_indexes
     assert "ix_media_uploads_shop_id_created_at" in media_upload_indexes
+    assert "ix_ocr_documents_shop_id_created_at" in ocr_document_indexes
     assert "ix_session_stream_events_session_id_seq" in session_stream_indexes

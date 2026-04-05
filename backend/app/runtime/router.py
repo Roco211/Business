@@ -1,5 +1,6 @@
 import string
 
+from app.services.mock_multimodal import classify_image_task, extract_receipt, recognize_image
 from .tools import MockTranscriptionUnavailable, transcribe_audio
 from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
@@ -60,9 +61,33 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             assigned_employee_id="xiaoya",
             transcript=transcript,
         )
-    if ctx.input_kind in ("image", "receipt-image"):
-        raise RuntimeRouteBlocked(
-            "runtime_input_not_supported",
-            f"{ctx.input_kind} inputs are not supported yet",
+    if ctx.input_kind == "image":
+        recognition = recognize_image(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        task_type = classify_image_task(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        return RuntimeRouteDecision(
+            task_type=task_type,
+            assigned_employee_id="xiaoya",
+            transcript=(ctx.source_text or recognition.item_name).strip(),
+            payload={
+                "item_name": recognition.item_name,
+                "confidence": recognition.confidence,
+                "quantity": recognition.quantity,
+                "unit": recognition.unit,
+                "price": recognition.price,
+                "image_media_id": ctx.media_ids[0] if ctx.media_ids else None,
+            },
+        )
+    if ctx.input_kind == "receipt-image":
+        receipt = extract_receipt(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        return RuntimeRouteDecision(
+            task_type="receipt-ocr",
+            assigned_employee_id="xiaoya",
+            transcript=ctx.source_text,
+            payload={
+                "document_type": receipt.document_type,
+                "provider_name": receipt.provider_name,
+                "fields": receipt.extracted_fields,
+                "low_confidence_fields": list(receipt.low_confidence_fields),
+            },
         )
     raise RuntimeRouteBlocked("runtime_processing_error", "Unsupported input kind")

@@ -9,6 +9,8 @@ from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
 from app.services.confirmations import create_pending_confirmation
+from app.services.mock_multimodal import recognize_and_query_inventory
+from app.services.ocr_documents import create_mock_ocr_document
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
@@ -28,7 +30,26 @@ class RuntimeProcessResult:
     error_code: str | None
 
 
-def _build_confirmation_fields(transcript: str | None) -> dict[str, object]:
+def _build_confirmation_fields(
+    *,
+    task_type: str,
+    transcript: str | None,
+    payload: dict[str, object],
+) -> dict[str, object]:
+    if task_type == "photo-stock-in":
+        return {
+            "summary": f"Please confirm the stock-in details for {payload.get('item_name') or 'the recognized item'}.",
+            "transcript": (transcript or "").strip(),
+            "draft_fields": {
+                "item_name": payload.get("item_name"),
+                "quantity": payload.get("quantity"),
+                "unit": payload.get("unit"),
+                "price": payload.get("price"),
+            },
+            "required_fields": ["item_name", "quantity", "unit", "price"],
+            "image_media_id": payload.get("image_media_id"),
+            "recognized_confidence": payload.get("confidence"),
+        }
     return {
         "summary": "Please confirm the stock-in details before commit.",
         "transcript": (transcript or "").strip(),
@@ -159,7 +180,11 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     db_session,
                     task_run_id=task_run_id,
                     confirmation_type=policy.confirmation_type or "low-confidence-recognition",
-                    fields=_build_confirmation_fields(decision.transcript),
+                    fields=_build_confirmation_fields(
+                        task_type=decision.task_type,
+                        transcript=decision.transcript,
+                        payload=decision.payload,
+                    ),
                     requested_by_employee_id=decision.assigned_employee_id,
                 )
             mark_task_run_awaiting_confirmation(
@@ -183,10 +208,51 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 error_code=None,
             )
 
-        result_summary, runtime_text = summarize_completed_task(
-            task_type=decision.task_type,
-            transcript=decision.transcript,
-        )
+        completed_payload = dict(decision.payload)
+        if decision.task_type == "photo-stock-query":
+            query_result = recognize_and_query_inventory(
+                db_session,
+                shop_id=context.shop_id,
+                media_ids=context.media_ids,
+                text_hint=decision.transcript,
+            )
+            completed_payload.update(
+                {
+                    "item_id": query_result.item_id,
+                    "item_name": query_result.item_name,
+                    "confidence": query_result.confidence,
+                    "stock": query_result.stock,
+                    "unit": query_result.unit,
+                    "is_low_stock": query_result.is_low_stock,
+                }
+            )
+        if decision.task_type == "receipt-ocr":
+            ocr_document = create_mock_ocr_document(
+                db_session,
+                shop_id=context.shop_id,
+                media_id=context.media_ids[0],
+                document_type=str(decision.payload.get("document_type") or "purchase-receipt"),
+                task_run_id=task_run_id,
+            ).ocr_document
+            completed_payload.update(
+                {
+                    "ocr_document_id": ocr_document.ocr_document_id,
+                    "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
+                    "low_confidence_fields": list(ocr_document.low_confidence_fields),
+                }
+            )
+
+        if completed_payload:
+            result_summary, runtime_text = summarize_completed_task(
+                task_type=decision.task_type,
+                transcript=decision.transcript,
+                payload=completed_payload,
+            )
+        else:
+            result_summary, runtime_text = summarize_completed_task(
+                task_type=decision.task_type,
+                transcript=decision.transcript,
+            )
         complete_task_run(
             db_session,
             task_run_id=task_run_id,

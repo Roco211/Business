@@ -28,3 +28,24 @@ class ListInventoryItemsMeta(BaseModel):
 class ListInventoryItemsResponse(BaseModel):
     data: list[InventoryItemData]
     meta: ListInventoryItemsMeta
+
+
+class RecognizeAndQueryRequest(BaseModel):
+    media_id: str
+
+
+class RecognizedItemData(BaseModel):
+    item_id: str | None
+    name: str
+    confidence: float
+
+
+class RecognizeAndQueryInventoryData(BaseModel):
+    stock: Decimal | None
+    unit: str | None
+    is_low_stock: bool | None
+
+
+class RecognizeAndQueryData(BaseModel):
+    recognized_item: RecognizedItemData
+    inventory: RecognizeAndQueryInventoryData

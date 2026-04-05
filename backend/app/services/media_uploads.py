@@ -142,3 +142,20 @@ def ensure_media_uploads_ready(
             raise MediaUploadNotReadyError(media_id)
         if record.status != UPLOADED_STATUS:
             raise MediaUploadNotReadyError(media_id)
+
+
+def get_ready_media_upload(
+    db_session: Session,
+    *,
+    shop_id: str,
+    media_id: str,
+    expected_media_types: set[str] | None = None,
+) -> MediaUpload:
+    record = db_session.get(MediaUpload, media_id)
+    if record is None:
+        raise MediaUploadNotReadyError(media_id)
+    if record.shop_id != shop_id or record.status != UPLOADED_STATUS:
+        raise MediaUploadNotReadyError(media_id)
+    if expected_media_types is not None and record.media_type not in expected_media_types:
+        raise MediaUploadNotReadyError(media_id)
+    return record

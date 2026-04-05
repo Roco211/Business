@@ -1,8 +1,10 @@
+from decimal import Decimal
+
 from sqlalchemy import select
 
 from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
-from app.models import Confirmation
+from app.models import Confirmation, InventoryItem
 from app.runtime.processor import process_task_run
 from app.services.approved_stock_in_commits import commit_approved_stock_in_confirmation
 
@@ -55,6 +57,32 @@ def _commit_stock_in(
         return commit_result.inventory_item.item_id
     finally:
         db_session.close()
+
+
+def _create_uploaded_media(client, *, media_type: str, file_name: str, content_type: str) -> str:
+    create_response = client.post(
+        "/api/v1/media-uploads",
+        headers=AUTH_HEADERS,
+        json={
+            "media_type": media_type,
+            "file_name": file_name,
+            "content_type": content_type,
+            "size_bytes": 2048,
+        },
+    )
+    assert create_response.status_code == 201
+    media_id = create_response.json()["data"]["media_id"]
+
+    complete_response = client.post(
+        f"/api/v1/media-uploads/{media_id}/complete",
+        headers=AUTH_HEADERS,
+        json={
+            "checksum_sha256": f"{media_id}_checksum",
+            "size_bytes": 2048,
+        },
+    )
+    assert complete_response.status_code == 200
+    return media_id
 
 
 def test_get_inventory_items_lists_active_items_newest_first(client, monkeypatch) -> None:
@@ -121,3 +149,42 @@ def test_get_inventory_item_returns_detail_and_not_found(client, monkeypatch) ->
     assert response.json()["data"]["current_stock"] == "3.000"
     assert not_found_response.status_code == 404
     assert not_found_response.json()["error"]["code"] == "inventory_item_not_found"
+
+
+def test_post_recognize_and_query_returns_recognized_item_and_inventory(client, monkeypatch) -> None:
+    item_id = _commit_stock_in(
+        client,
+        monkeypatch,
+        client_request_id="inventory_items_api_photo_query",
+        item_name="Red Bull 250ml",
+        quantity=2,
+    )
+    db_session = get_session_factory()()
+    try:
+        item = db_session.get(InventoryItem, item_id)
+        assert item is not None
+        item.low_stock_threshold = Decimal("5")
+        db_session.commit()
+    finally:
+        db_session.close()
+    media_id = _create_uploaded_media(
+        client,
+        media_type="image",
+        file_name="red-bull-query.jpg",
+        content_type="image/jpeg",
+    )
+
+    response = client.post(
+        "/api/v1/inventory-items/recognize-and-query",
+        headers=AUTH_HEADERS,
+        json={
+            "media_id": media_id,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["recognized_item"]["name"] == "Red Bull 250ml"
+    assert payload["recognized_item"]["confidence"] >= 0.6
+    assert payload["inventory"]["stock"] == "2.000"
+    assert payload["inventory"]["is_low_stock"] is True

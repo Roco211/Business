@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 
+const SESSION_TITLE = "Demo Workgroup";
 
 type MockSessionStreamEvent = {
   event_id: string;
@@ -71,7 +72,7 @@ describe("SessionStreamProvider", () => {
         data: {
           session_id: "sess_default",
           session_type: "workgroup",
-          title: "数字员工工作群",
+          title: SESSION_TITLE,
           participants: ["xiaoya", "laoli"],
         },
       }),
@@ -106,7 +107,7 @@ describe("SessionStreamProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByText("sess_default")).toBeTruthy();
-      expect(screen.getByText("数字员工工作群")).toBeTruthy();
+      expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
     });
 
     expect(MockWebSocket.instances).toHaveLength(1);

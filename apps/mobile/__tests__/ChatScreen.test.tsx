@@ -27,6 +27,8 @@ let messageRequestCount = 0;
 let confirmationRequestCount = 0;
 let mediaUploadRequestCount = 0;
 let mediaUploadCompleteCount = 0;
+let mockChatResetVersion = 0;
+const mockNotifyChatDemoDataReset = jest.fn();
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
   useSessionStream: () => ({
@@ -36,6 +38,8 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
     bootstrapError: null,
     lastEvent: mockLastChatEvent,
     recentEvents: mockLastChatEvent === null ? [] : [mockLastChatEvent],
+    dataResetVersion: mockChatResetVersion,
+    notifyDemoDataReset: mockNotifyChatDemoDataReset,
   }),
 }));
 
@@ -53,6 +57,8 @@ describe("ChatScreen", () => {
 
   beforeEach(() => {
     mockLastChatEvent = null;
+    mockChatResetVersion = 0;
+    mockNotifyChatDemoDataReset.mockReset();
     approvalShouldFail = false;
     rejectShouldFail = false;
     messagePostShouldFail = false;
@@ -786,6 +792,23 @@ describe("ChatScreen", () => {
       },
     };
 
+    rerender(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(messageRequestCount).toBe(2);
+      expect(confirmationRequestCount).toBe(2);
+    });
+  });
+
+  it("refreshes messages and confirmations when demo reset version changes locally", async () => {
+    const { rerender } = render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(messageRequestCount).toBe(1);
+      expect(confirmationRequestCount).toBe(1);
+    });
+
+    mockChatResetVersion = 1;
     rerender(<ChatScreen />);
 
     await waitFor(() => {

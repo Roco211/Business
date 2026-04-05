@@ -47,6 +47,14 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }, [sessionStream.lastEvent?.event_id]);
 
+  useEffect(() => {
+    if (sessionStream.dataResetVersion === 0) {
+      return;
+    }
+    inventory.refresh();
+    auditLogs.refresh();
+  }, [sessionStream.dataResetVersion]);
+
   async function handleSubmitCorrection() {
     if (!selectedItemId) {
       return;

@@ -57,6 +57,13 @@ export default function ChatScreen() {
     refreshChat();
   }, [sessionStream.lastEvent?.event_id]);
 
+  useEffect(() => {
+    if (sessionStream.dataResetVersion === 0) {
+      return;
+    }
+    refreshChat();
+  }, [sessionStream.dataResetVersion]);
+
   async function handleSend() {
     const result = await sendMessage.submitMessage(draftText);
     if (result === null) {

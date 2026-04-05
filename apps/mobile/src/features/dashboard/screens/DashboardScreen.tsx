@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Button, ScrollView, Text, View } from "react-native";
 
+import { useDemoBootstrapMutation } from "../hooks/useDemoBootstrapMutation";
 import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
@@ -11,7 +12,14 @@ export default function DashboardScreen() {
   const summary = useDashboardSummaryQuery();
   const alerts = useLowStockAlertsQuery();
   const pendingConfirmations = usePendingConfirmationsQuery();
+  const demoBootstrap = useDemoBootstrapMutation();
   const sessionStream = useSessionStream();
+
+  function refreshDashboard() {
+    summary.refresh();
+    alerts.refresh();
+    pendingConfirmations.refresh();
+  }
 
   useEffect(() => {
     const eventType = sessionStream.lastEvent?.event_type;
@@ -23,10 +31,23 @@ export default function DashboardScreen() {
     ) {
       return;
     }
-    summary.refresh();
-    alerts.refresh();
-    pendingConfirmations.refresh();
+    refreshDashboard();
   }, [sessionStream.lastEvent?.event_id]);
+
+  useEffect(() => {
+    if (sessionStream.dataResetVersion === 0) {
+      return;
+    }
+    refreshDashboard();
+  }, [sessionStream.dataResetVersion]);
+
+  async function handleDemoReset() {
+    const result = await demoBootstrap.runDemoBootstrap();
+    if (result === null) {
+      return;
+    }
+    sessionStream.notifyDemoDataReset();
+  }
 
   if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
     return (
@@ -48,6 +69,15 @@ export default function DashboardScreen() {
   return (
     <ScrollView>
       <Text>Dashboard</Text>
+      <Button
+        title={demoBootstrap.isSubmitting ? "Resetting Demo..." : "Reset Demo State"}
+        onPress={() => {
+          void handleDemoReset();
+        }}
+        disabled={demoBootstrap.isSubmitting}
+      />
+      {demoBootstrap.successMessage ? <Text>{demoBootstrap.successMessage}</Text> : null}
+      {demoBootstrap.error ? <Text>{demoBootstrap.error}</Text> : null}
 
       <Text>{`Today stock-in: ${summary.data.today_stock_in_count}`}</Text>
       <Text>{`Completed tasks: ${summary.data.today_task_completed_count}`}</Text>

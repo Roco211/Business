@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 
 import LedgerScreen from "../src/features/ledger/screens/LedgerScreen";
 
+const SESSION_TITLE = "Demo Workgroup";
 
 let mockLastLedgerEvent: {
   event_id: string;
@@ -13,16 +14,20 @@ let mockLastLedgerEvent: {
   occurred_at: string;
   data: Record<string, unknown>;
 } | null = null;
+let mockLedgerResetVersion = 0;
+const mockNotifyLedgerDemoDataReset = jest.fn();
 
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
   useSessionStream: () => ({
     sessionId: "sess_default",
-    sessionTitle: "数字员工工作群",
+    sessionTitle: SESSION_TITLE,
     connectionState: "connected",
     bootstrapError: null,
     lastEvent: mockLastLedgerEvent,
     recentEvents: mockLastLedgerEvent === null ? [] : [mockLastLedgerEvent],
+    dataResetVersion: mockLedgerResetVersion,
+    notifyDemoDataReset: mockNotifyLedgerDemoDataReset,
   }),
 }));
 
@@ -33,6 +38,8 @@ describe("LedgerScreen", () => {
 
   beforeEach(() => {
     mockLastLedgerEvent = null;
+    mockLedgerResetVersion = 0;
+    mockNotifyLedgerDemoDataReset.mockReset();
     inventoryRequests = 0;
     auditLogRequests = 0;
     let correctionApplied = false;
@@ -333,6 +340,23 @@ describe("LedgerScreen", () => {
         item_id: "item_apple",
       },
     };
+    rerender(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(inventoryRequests).toBe(2);
+      expect(auditLogRequests).toBe(2);
+    });
+  });
+
+  it("refreshes inventory and audit reads when demo reset version changes locally", async () => {
+    const { rerender } = render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(inventoryRequests).toBe(1);
+      expect(auditLogRequests).toBe(1);
+    });
+
+    mockLedgerResetVersion = 1;
     rerender(<LedgerScreen />);
 
     await waitFor(() => {

@@ -15,6 +15,8 @@ type SessionStreamContextValue = {
   bootstrapError: string | null;
   lastEvent: SessionStreamEvent | null;
   recentEvents: SessionStreamEvent[];
+  dataResetVersion: number;
+  notifyDemoDataReset: () => void;
 };
 
 
@@ -25,6 +27,8 @@ const DEFAULT_CONTEXT_VALUE: SessionStreamContextValue = {
   bootstrapError: null,
   lastEvent: null,
   recentEvents: [],
+  dataResetVersion: 0,
+  notifyDemoDataReset: () => undefined,
 };
 
 
@@ -36,6 +40,15 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
   const [connectionState, setConnectionState] = useState<SessionStreamConnectionState>("bootstrapping");
   const [lastEvent, setLastEvent] = useState<SessionStreamEvent | null>(null);
   const [recentEvents, setRecentEvents] = useState<SessionStreamEvent[]>([]);
+  const [dataResetVersion, setDataResetVersion] = useState(0);
+
+  function notifyDemoDataReset() {
+    startTransition(() => {
+      setLastEvent(null);
+      setRecentEvents([]);
+      setDataResetVersion((current) => current + 1);
+    });
+  }
 
   useEffect(() => {
     if (bootstrap.isLoading) {
@@ -82,6 +95,8 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
         bootstrapError: bootstrap.error,
         lastEvent,
         recentEvents,
+        dataResetVersion,
+        notifyDemoDataReset,
       }}
     >
       {children}

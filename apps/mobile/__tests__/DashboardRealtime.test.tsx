@@ -2,6 +2,7 @@ import { render, waitFor } from "@testing-library/react-native";
 
 import DashboardScreen from "../src/features/dashboard/screens/DashboardScreen";
 
+const SESSION_TITLE = "Demo Workgroup";
 
 let mockLastDashboardEvent: {
   event_id: string;
@@ -13,16 +14,20 @@ let mockLastDashboardEvent: {
   occurred_at: string;
   data: Record<string, unknown>;
 } | null = null;
+let mockDashboardResetVersion = 0;
+const mockNotifyDemoDataReset = jest.fn();
 
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
   useSessionStream: () => ({
     sessionId: "sess_default",
-    sessionTitle: "数字员工工作群",
+    sessionTitle: SESSION_TITLE,
     connectionState: "connected",
     bootstrapError: null,
     lastEvent: mockLastDashboardEvent,
     recentEvents: mockLastDashboardEvent === null ? [] : [mockLastDashboardEvent],
+    dataResetVersion: mockDashboardResetVersion,
+    notifyDemoDataReset: mockNotifyDemoDataReset,
   }),
 }));
 
@@ -34,6 +39,8 @@ describe("DashboardScreen realtime refresh", () => {
 
   beforeEach(() => {
     mockLastDashboardEvent = null;
+    mockDashboardResetVersion = 0;
+    mockNotifyDemoDataReset.mockReset();
     summaryRequests = 0;
     alertRequests = 0;
     confirmationRequests = 0;
@@ -118,6 +125,25 @@ describe("DashboardScreen realtime refresh", () => {
         item_id: "item_apple",
       },
     };
+    rerender(<DashboardScreen />);
+
+    await waitFor(() => {
+      expect(summaryRequests).toBe(2);
+      expect(alertRequests).toBe(2);
+      expect(confirmationRequests).toBe(2);
+    });
+  });
+
+  it("refreshes dashboard reads when demo reset version changes locally", async () => {
+    const { rerender } = render(<DashboardScreen />);
+
+    await waitFor(() => {
+      expect(summaryRequests).toBe(1);
+      expect(alertRequests).toBe(1);
+      expect(confirmationRequests).toBe(1);
+    });
+
+    mockDashboardResetVersion = 1;
     rerender(<DashboardScreen />);
 
     await waitFor(() => {

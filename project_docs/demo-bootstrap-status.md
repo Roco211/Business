@@ -27,9 +27,23 @@ It is intended for local demos, QA resets, and onboarding walkthroughs of the cu
 
 ## Usage
 
+### Script Entry Point
+
 1. Point `DATABASE_URL` at a migrated database.
 2. Run `python backend/scripts/bootstrap_demo_state.py`.
 3. Use the printed JSON summary to confirm the resulting demo state.
+
+### API Entry Point
+
+For app-adjacent tooling and QA workflows, the backend also exposes:
+
+- `POST /api/v1/system/demo/bootstrap`
+
+Current access control matches the rest of the mock owner surface:
+
+- `Authorization: Bearer mock_owner_token`
+
+The API returns the same stable bootstrap summary as the script so callers can verify the resulting demo state without reading the database directly.
 
 The tool only resets mutable records for the default demo shop/session.
 It preserves the default shop/session identities while rebuilding their inventory, alerts, confirmations, tasks, messages, and session stream history.

@@ -647,6 +647,18 @@
         "title": "DataEnvelope[DashboardSummaryData]",
         "type": "object"
       },
+      "DataEnvelope_DemoBootstrapSummaryData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DemoBootstrapSummaryData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[DemoBootstrapSummaryData]",
+        "type": "object"
+      },
       "DataEnvelope_InventoryItemData_": {
         "properties": {
           "data": {
@@ -717,6 +729,73 @@
           "data"
         ],
         "title": "DataEnvelope[TaskRunData]",
+        "type": "object"
+      },
+      "DemoBootstrapSummaryData": {
+        "properties": {
+          "inventory_item_count": {
+            "title": "Inventory Item Count",
+            "type": "integer"
+          },
+          "inventory_item_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Inventory Item Names",
+            "type": "array"
+          },
+          "message_count": {
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "open_low_stock_alert_count": {
+            "title": "Open Low Stock Alert Count",
+            "type": "integer"
+          },
+          "open_low_stock_item_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Low Stock Item Names",
+            "type": "array"
+          },
+          "pending_confirmation_count": {
+            "title": "Pending Confirmation Count",
+            "type": "integer"
+          },
+          "pending_confirmation_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Pending Confirmation Types",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "task_run_count": {
+            "title": "Task Run Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shop_id",
+          "session_id",
+          "inventory_item_count",
+          "inventory_item_names",
+          "pending_confirmation_count",
+          "pending_confirmation_types",
+          "open_low_stock_alert_count",
+          "open_low_stock_item_names",
+          "message_count",
+          "task_run_count"
+        ],
+        "title": "DemoBootstrapSummaryData",
         "type": "object"
       },
       "ErrorBody": {
@@ -2831,6 +2910,55 @@
         "summary": "Post Session Message",
         "tags": [
           "messages"
+        ]
+      }
+    },
+    "/api/v1/system/demo/bootstrap": {
+      "post": {
+        "operationId": "post_demo_bootstrap_api_v1_system_demo_bootstrap_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_DemoBootstrapSummaryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Demo Bootstrap",
+        "tags": [
+          "system"
         ]
       }
     },

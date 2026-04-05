@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 const DEFAULT_OWNER_TOKEN = "mock_owner_token";
 
 
-function getBaseUrl(): string {
+export function getApiBaseUrl(): string {
   const configuredBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   if (configuredBaseUrl) {
     return configuredBaseUrl.replace(/\/+$/, "");
@@ -14,7 +14,7 @@ function getBaseUrl(): string {
 
 
 export async function apiGetJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${getBaseUrl()}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: {
       Authorization: `Bearer ${DEFAULT_OWNER_TOKEN}`,
     },
@@ -28,7 +28,7 @@ export async function apiGetJson<T>(path: string): Promise<T> {
 
 
 export async function apiPostJson<TResponse, TBody>(path: string, body: TBody): Promise<TResponse> {
-  const response = await fetch(`${getBaseUrl()}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${DEFAULT_OWNER_TOKEN}`,

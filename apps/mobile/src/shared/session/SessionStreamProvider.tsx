@@ -1,0 +1,90 @@
+import { createContext, startTransition, useEffect, useState } from "react";
+
+import {
+  createSessionStreamClient,
+  SessionStreamConnectionState,
+  SessionStreamEvent,
+} from "./sessionStreamClient";
+import { useBootstrapSession } from "./useBootstrapSession";
+
+
+type SessionStreamContextValue = {
+  sessionId: string | null;
+  sessionTitle: string | null;
+  connectionState: SessionStreamConnectionState;
+  bootstrapError: string | null;
+  lastEvent: SessionStreamEvent | null;
+  recentEvents: SessionStreamEvent[];
+};
+
+
+const DEFAULT_CONTEXT_VALUE: SessionStreamContextValue = {
+  sessionId: null,
+  sessionTitle: null,
+  connectionState: "idle",
+  bootstrapError: null,
+  lastEvent: null,
+  recentEvents: [],
+};
+
+
+export const SessionStreamContext = createContext<SessionStreamContextValue>(DEFAULT_CONTEXT_VALUE);
+
+
+export function SessionStreamProvider({ children }: { children: React.ReactNode }) {
+  const bootstrap = useBootstrapSession();
+  const [connectionState, setConnectionState] = useState<SessionStreamConnectionState>("bootstrapping");
+  const [lastEvent, setLastEvent] = useState<SessionStreamEvent | null>(null);
+  const [recentEvents, setRecentEvents] = useState<SessionStreamEvent[]>([]);
+
+  useEffect(() => {
+    if (bootstrap.isLoading) {
+      setConnectionState("bootstrapping");
+      return;
+    }
+
+    if (bootstrap.error) {
+      setConnectionState("error");
+      return;
+    }
+
+    if (bootstrap.data === null) {
+      setConnectionState("idle");
+      return;
+    }
+
+    setConnectionState("connecting");
+    const client = createSessionStreamClient({
+      sessionId: bootstrap.data.session_id,
+      onConnectionStateChange: setConnectionState,
+      onEvent: (event) => {
+        if (event.event_type === "stream.keepalive") {
+          return;
+        }
+        startTransition(() => {
+          setLastEvent(event);
+          setRecentEvents((current) => [event, ...current].slice(0, 10));
+        });
+      },
+    });
+
+    return () => {
+      client.disconnect();
+    };
+  }, [bootstrap.data, bootstrap.error, bootstrap.isLoading]);
+
+  return (
+    <SessionStreamContext.Provider
+      value={{
+        sessionId: bootstrap.data?.session_id ?? null,
+        sessionTitle: bootstrap.data?.title ?? null,
+        connectionState,
+        bootstrapError: bootstrap.error,
+        lastEvent,
+        recentEvents,
+      }}
+    >
+      {children}
+    </SessionStreamContext.Provider>
+  );
+}

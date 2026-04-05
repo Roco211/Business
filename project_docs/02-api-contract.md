@@ -63,32 +63,34 @@
 
 ## 4. 当前阶段鉴权合同
 
-### 4.1 Mock Login
+### 4.1 Owner Login
 
-`POST /api/v1/auth/mock-login`
+`POST /api/v1/auth/login`
 
 用途：
 
-- 当前施工阶段生成默认老板身份和默认店铺上下文
+- 为老板级别的 API 握手返回 opaque bearer token
 
 请求体：
 
 ```json
 {
-  "shop_id": "shop_default"
+  "email": "owner@example.com",
+  "password": "dev-password"
 }
 ```
 
 说明：
 
-- 当前阶段只有一个默认店铺时，服务端也可以忽略请求体中的 `shop_id`
+- 默认 demo 流程使用 `owner@example.com` / `dev-password`，其他环境由实际老板账号填写
+- 返回值除了 access_token，还带回老板与店铺上下文 (`owner_actor_id`, `shop_id`, `shop_name`)
 
 响应：
 
 ```json
 {
   "data": {
-    "access_token": "mock_owner_token",
+    "access_token": "<opaque bearer token>",
     "token_type": "Bearer",
     "owner_actor_id": "owner_default",
     "shop_id": "shop_default",
@@ -97,10 +99,15 @@
 }
 ```
 
+使用说明：
+
+- 将 bearer token 通过 `Authorization: Bearer <opaque bearer token>` 发送在老板接口的 REST 请求头中
+- WebSocket 连接与重连时通过 `token=<opaque bearer token>` 查询参数携带同一串令牌
+
 ### 4.2 REST 鉴权规则
 
-- 除 `/health` 和 `/api/v1/auth/mock-login` 外，其余接口默认都要求：
-  - `Authorization: Bearer <access_token>`
+- 除 `/health` 和 `/api/v1/auth/login` 外，其余接口默认都要求：
+  - `Authorization: Bearer <opaque bearer token>`
 
 当前阶段约定：
 
@@ -113,7 +120,7 @@
 
 - WebSocket 使用与 REST 相同的 token
 - 当前阶段通过 query 参数传递：
-  - `WS /api/v1/ws/sessions/:session_id?token=<access_token>`
+  - `WS /api/v1/ws/sessions/:session_id?token=<opaque bearer token>`
 
 ---
 
@@ -667,12 +674,12 @@ Notes:
 - `after_seq` defaults to `0`
 - `limit` is clamped to a safe upper bound
 - auth matches the rest of the current owner-only surface:
-  - `Authorization: Bearer mock_owner_token`
+  - `Authorization: Bearer <opaque bearer token>`
 
 WebSocket reconnect addendum:
 
 - websocket clients may now reconnect with:
-  - `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token&after_seq=<last_durable_seq>`
+  - `WS /api/v1/ws/sessions/{session_id}?token=<opaque bearer token>&after_seq=<last_durable_seq>`
 - when `after_seq` is provided, the server replays durable events with `seq > after_seq`
 - when `after_seq` is omitted, the server preserves the earlier MVP behavior and starts from the session's current tail
 - replay state is tracked per websocket connection rather than per session

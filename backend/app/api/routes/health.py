@@ -44,7 +44,9 @@ def health() -> HealthResponse:
 def get_system_readiness(
     _: AuthenticatedContext = Depends(require_authenticated_context),
 ) -> DataEnvelope[SystemReadinessData]:
-    return DataEnvelope(data=build_system_readiness(get_settings()))
+    settings = get_settings()
+    readiness_data: SystemReadinessData = build_system_readiness(settings)
+    return DataEnvelope(data=readiness_data)
 
 
 @router.post("/api/v1/system/demo/bootstrap", response_model=DataEnvelope[DemoBootstrapSummaryData])

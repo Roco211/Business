@@ -103,6 +103,42 @@ python backend/scripts/run_local_demo_smoke.py --login-email owner@example.com -
 python backend/scripts/run_local_demo_smoke.py --auth-token <access_token>
 ```
 
+## Trial Readiness Run Order
+
+Use this flow for operator trial checks (not demo reset):
+
+1. Start the local stack:
+
+```powershell
+docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker
+```
+
+2. Switch runtime/provider env vars to the trial profile:
+
+- `APP_RUNTIME_MODE=trial`
+- `OBJECT_STORAGE_PROVIDER=s3-compatible`
+- `ASR_PROVIDER=real-provider`
+- `OCR_PROVIDER=real-provider`
+- `VISION_PROVIDER=real-provider`
+- `ASR_ALLOW_MOCK_FALLBACK=0`
+- `OCR_ALLOW_MOCK_FALLBACK=0`
+- `VISION_ALLOW_MOCK_FALLBACK=0`
+
+3. Run the trial readiness CLI:
+
+```powershell
+python backend/scripts/run_trial_readiness_check.py
+```
+
+Behavior notes:
+
+- the CLI calls `GET /health` and authenticated `GET /api/v1/system/readiness`
+- when `--auth-token` is omitted, it logs in with owner credentials first (same auth flow as local demo smoke)
+- it prints compact JSON and exits `0` only when readiness is `ready`
+- `degraded`, `not-ready`, auth errors, health failures, and malformed responses all exit non-zero
+
+Full operator checklist lives in `project_docs/trial-readiness-runbook.md`.
+
 ## Local ASR Config
 
 The backend ASR gateway is controlled through environment variables:

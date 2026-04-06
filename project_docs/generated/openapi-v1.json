@@ -719,6 +719,18 @@
         "title": "DataEnvelope[SessionBootstrapData]",
         "type": "object"
       },
+      "DataEnvelope_SystemReadinessData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SystemReadinessData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[SystemReadinessData]",
+        "type": "object"
+      },
       "DataEnvelope_TaskRunData_": {
         "properties": {
           "data": {
@@ -1327,6 +1339,37 @@
         "title": "OcrDocumentData",
         "type": "object"
       },
+      "ReadinessCheckData": {
+        "properties": {
+          "details": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "mode",
+          "message",
+          "details"
+        ],
+        "title": "ReadinessCheckData",
+        "type": "object"
+      },
       "RecognizeAndQueryData": {
         "properties": {
           "inventory": {
@@ -1628,6 +1671,32 @@
           "occurred_at"
         ],
         "title": "SessionStreamEventEnvelope",
+        "type": "object"
+      },
+      "SystemReadinessData": {
+        "properties": {
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ReadinessCheckData"
+            },
+            "title": "Checks",
+            "type": "object"
+          },
+          "overall_status": {
+            "title": "Overall Status",
+            "type": "string"
+          },
+          "runtime_mode": {
+            "title": "Runtime Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "overall_status",
+          "runtime_mode",
+          "checks"
+        ],
+        "title": "SystemReadinessData",
         "type": "object"
       },
       "TaskRunData": {
@@ -3146,6 +3215,55 @@
           }
         },
         "summary": "Post Demo Bootstrap",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/readiness": {
+      "get": {
+        "operationId": "get_system_readiness_api_v1_system_readiness_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_SystemReadinessData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get System Readiness",
         "tags": [
           "system"
         ]

@@ -683,3 +683,90 @@ WebSocket reconnect addendum:
 - when `after_seq` is provided, the server replays durable events with `seq > after_seq`
 - when `after_seq` is omitted, the server preserves the earlier MVP behavior and starts from the session's current tail
 - replay state is tracked per websocket connection rather than per session
+
+## 17. Trial Readiness Addendum
+
+### 17.1 System Readiness
+
+`GET /api/v1/system/readiness`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Response:
+
+```json
+{
+  "data": {
+    "overall_status": "ready",
+    "runtime_mode": "trial",
+    "checks": {
+      "object_storage": {
+        "status": "ready",
+        "mode": "s3-compatible",
+        "message": "object storage is configured with a live provider.",
+        "details": {
+          "provider": "s3-compatible"
+        }
+      },
+      "asr": {
+        "status": "ready",
+        "mode": "real-provider",
+        "message": "asr is configured with a live provider.",
+        "details": {
+          "provider": "real-provider",
+          "allow_mock_fallback": "false"
+        }
+      },
+      "ocr": {
+        "status": "ready",
+        "mode": "real-provider",
+        "message": "ocr is configured with a live provider.",
+        "details": {
+          "provider": "real-provider",
+          "allow_mock_fallback": "false"
+        }
+      },
+      "vision": {
+        "status": "ready",
+        "mode": "real-provider",
+        "message": "vision is configured with a live provider.",
+        "details": {
+          "provider": "real-provider",
+          "allow_mock_fallback": "false"
+        }
+      }
+    }
+  }
+}
+```
+
+Notes:
+
+- in trial mode, any mock/unset/unsupported dependency or missing live configuration reports degraded readiness
+- for ASR/OCR/Vision in trial mode, `*_ALLOW_MOCK_FALLBACK` must be `0`, otherwise readiness degrades with `reason=trial_guardrail`
+
+### 17.2 Demo Bootstrap Clarification
+
+`POST /api/v1/system/demo/bootstrap`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Notes:
+
+- this endpoint is for local demo reset/bootstrap only
+- it remains protected and only works for the default seeded shop context
+- operators should use `/api/v1/system/readiness` for trial checks and must not treat demo bootstrap as a trial readiness signal
+
+### 17.3 Upload Completion Clarification
+
+`POST /api/v1/media-uploads/{media_id}/complete`
+
+Notes:
+
+- this call now requires that object storage already contains the uploaded bytes for the requested media object
+- issuing `complete` before the file bytes are uploaded returns `409 media_upload_conflict`
+- checksum and size validation happen against the uploaded object before the record can transition to `uploaded`

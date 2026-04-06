@@ -1,5 +1,6 @@
 import pytest
 
+from app.runtime import tools as runtime_tools
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input, transcribe_runtime_audio
 from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
 from app.runtime.types import RuntimeMediaRef, RuntimeTurnContext
@@ -233,7 +234,7 @@ def test_transcribe_runtime_audio_blocks_low_confidence_transcription(monkeypatc
             assert media_input.text_hint is None
             return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.42)
 
-    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", lambda: _LowConfidenceGateway())
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _LowConfidenceGateway())
 
     with pytest.raises(RuntimeRouteBlocked) as excinfo:
         transcribe_runtime_audio(ctx)

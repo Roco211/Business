@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
+from app.runtime import tools as runtime_tools
 from app.runtime.processor import process_task_run
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
@@ -847,7 +848,7 @@ def test_process_task_run_persists_asr_low_confidence_failures(db_session, monke
             assert media_input.media_ids == ["voice_query_demo"]
             return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.42)
 
-    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", lambda: _LowConfidenceGateway())
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _LowConfidenceGateway())
 
     result = process_task_run(db_session, task_run_id)
     task_run = db_session.get(TaskRun, task_run_id)

@@ -10,6 +10,15 @@ class Settings:
     redis_url: str
     database_url: str
     session_stream_keepalive_seconds: float
+    app_runtime_mode: str = os.getenv("APP_RUNTIME_MODE", "local-demo")
+    object_storage_provider: str = os.getenv("OBJECT_STORAGE_PROVIDER", "mock")
+    object_storage_bucket: str | None = os.getenv("OBJECT_STORAGE_BUCKET")
+    object_storage_region: str | None = os.getenv("OBJECT_STORAGE_REGION")
+    object_storage_endpoint_url: str | None = os.getenv("OBJECT_STORAGE_ENDPOINT_URL")
+    object_storage_access_key: str | None = os.getenv("OBJECT_STORAGE_ACCESS_KEY")
+    object_storage_secret_key: str | None = os.getenv("OBJECT_STORAGE_SECRET_KEY")
+    object_storage_public_base_url: str | None = os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL")
+    object_storage_presign_ttl_seconds: int = int(os.getenv("OBJECT_STORAGE_PRESIGN_TTL_SECONDS", "900"))
     default_shop_id: str = os.getenv("DEFAULT_SHOP_ID", "shop_default")
     default_owner_actor_id: str = os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default")
     default_session_id: str = os.getenv("DEFAULT_SESSION_ID", "sess_default")
@@ -62,11 +71,20 @@ def get_settings() -> Settings:
     vision_allow_env = os.getenv("VISION_ALLOW_MOCK_FALLBACK")
     return Settings(
         app_env=app_env,
+        app_runtime_mode=os.getenv("APP_RUNTIME_MODE", "local-demo"),
         app_host=os.getenv("APP_HOST", "0.0.0.0"),
         app_port=int(os.getenv("APP_PORT", "8001")),
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
         database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
         session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),
+        object_storage_provider=os.getenv("OBJECT_STORAGE_PROVIDER", "mock"),
+        object_storage_bucket=os.getenv("OBJECT_STORAGE_BUCKET"),
+        object_storage_region=os.getenv("OBJECT_STORAGE_REGION"),
+        object_storage_endpoint_url=os.getenv("OBJECT_STORAGE_ENDPOINT_URL"),
+        object_storage_access_key=os.getenv("OBJECT_STORAGE_ACCESS_KEY"),
+        object_storage_secret_key=os.getenv("OBJECT_STORAGE_SECRET_KEY"),
+        object_storage_public_base_url=os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL"),
+        object_storage_presign_ttl_seconds=int(os.getenv("OBJECT_STORAGE_PRESIGN_TTL_SECONDS", "900")),
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
         default_owner_actor_id=os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default"),
         default_session_id=os.getenv("DEFAULT_SESSION_ID", "sess_default"),

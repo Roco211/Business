@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 from app.api.deps.auth import AuthenticatedContext, require_authenticated_context
 from app.core.config import get_settings
 from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
-from app.contracts.system import DemoBootstrapSummaryData, HealthResponse
+from app.contracts.system import DemoBootstrapSummaryData, HealthResponse, SystemReadinessData
 from app.db.session import get_db_session
 from app.services.demo_state import bootstrap_demo_state
+from app.services.system_readiness import build_system_readiness
 
 router = APIRouter(tags=["system"])
 
@@ -33,6 +34,13 @@ def _not_found() -> JSONResponse:
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok")
+
+
+@router.get("/api/v1/system/readiness", response_model=DataEnvelope[SystemReadinessData])
+def get_system_readiness(
+    _: AuthenticatedContext = Depends(require_authenticated_context),
+) -> DataEnvelope[SystemReadinessData]:
+    return DataEnvelope(data=build_system_readiness(get_settings()))
 
 
 @router.post("/api/v1/system/demo/bootstrap", response_model=DataEnvelope[DemoBootstrapSummaryData])

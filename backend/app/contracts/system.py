@@ -5,6 +5,19 @@ class HealthResponse(BaseModel):
     status: str
 
 
+class ReadinessCheckData(BaseModel):
+    status: str
+    mode: str
+    message: str
+    details: dict[str, str]
+
+
+class SystemReadinessData(BaseModel):
+    overall_status: str
+    runtime_mode: str
+    checks: dict[str, ReadinessCheckData]
+
+
 class DemoBootstrapSummaryData(BaseModel):
     shop_id: str
     session_id: str

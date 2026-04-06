@@ -8,6 +8,11 @@ from sqlalchemy.orm import Session
 from app.models import InventoryItem
 from app.services.ocr_mock_provider import MockOcrProvider
 from app.services.ocr_types import OcrMediaInput
+from app.services.vision_mock_provider import (
+    MockVisionProvider,
+    contains_query_intent,
+)
+from app.services.vision_types import VisionMediaInput
 
 
 class MockMultimodalValidationError(ValueError):
@@ -42,45 +47,32 @@ class MockReceiptExtraction:
     low_confidence_fields: list[str]
 
 
-_IMAGE_FIXTURES: dict[str, MockImageRecognition] = {
-    "image_query_demo": MockImageRecognition(
-        item_name="Red Bull 250ml",
-        confidence=0.93,
-        quantity=2,
-        unit="can",
-        price=6.5,
-    ),
-    "image_stock_in_demo": MockImageRecognition(
-        item_name="Red Bull 250ml",
-        confidence=0.61,
-        quantity=2,
-        unit="can",
-        price=6.5,
-    ),
-}
-
-
-def _contains_query_intent(text_hint: str | None, media_id: str) -> bool:
-    normalized = (text_hint or "").strip().lower()
-    if "query" in media_id or "check" in media_id:
-        return True
-    return any(phrase in normalized for phrase in ("check", "left", "remaining", "how many", "query"))
-
-
 def classify_image_task(*, media_ids: list[str], text_hint: str | None) -> str:
     media_id = media_ids[0] if media_ids else ""
-    return "photo-stock-query" if _contains_query_intent(text_hint, media_id) else "photo-stock-in"
+    return "photo-stock-query" if contains_query_intent(text_hint, media_id) else "photo-stock-in"
 
 
 def recognize_image(*, media_ids: list[str], text_hint: str | None) -> MockImageRecognition:
     if not media_ids:
         raise MockMultimodalValidationError("image media is required")
     media_id = media_ids[0]
-    if media_id in _IMAGE_FIXTURES:
-        return _IMAGE_FIXTURES[media_id]
-    if _contains_query_intent(text_hint, media_id):
-        return _IMAGE_FIXTURES["image_query_demo"]
-    return _IMAGE_FIXTURES["image_stock_in_demo"]
+    recognition = MockVisionProvider().recognize_product(
+        VisionMediaInput(
+            media_id=media_id,
+            public_url=None,
+            content_type=None,
+            file_name=None,
+        )
+    )
+    candidate = recognition.candidates[0]
+    payload = recognition.raw_payload
+    return MockImageRecognition(
+        item_name=candidate.item_name,
+        confidence=candidate.confidence,
+        quantity=int(payload.get("quantity", 1)),
+        unit=payload.get("unit") or candidate.packaging_hint or "",
+        price=float(payload.get("price", 0.0)),
+    )
 
 
 def recognize_and_query_inventory(

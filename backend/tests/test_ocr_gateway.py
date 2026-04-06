@@ -6,11 +6,22 @@ from app.services.ocr_mock_provider import MockOcrProvider
 from app.services.ocr_types import OcrMediaInput, OcrProviderError
 
 
+def _clear_ocr_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in (
+        "OCR_PROVIDER",
+        "OCR_PROVIDER_API_URL",
+        "OCR_PROVIDER_API_KEY",
+        "OCR_PROVIDER_MODEL",
+        "OCR_ALLOW_MOCK_FALLBACK",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+
 def _ensure_mock_provider_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    _clear_ocr_env(monkeypatch)
+    monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("OCR_PROVIDER", "mock")
-    monkeypatch.delenv("OCR_PROVIDER_API_URL", raising=False)
-    monkeypatch.delenv("OCR_PROVIDER_API_KEY", raising=False)
-    monkeypatch.delenv("OCR_PROVIDER_MODEL", raising=False)
+    monkeypatch.setenv("OCR_ALLOW_MOCK_FALLBACK", "1")
 
 
 def test_build_ocr_gateway_defaults_to_mock(monkeypatch) -> None:
@@ -65,3 +76,29 @@ def test_fallback_provider_flagged_after_retryable_failure() -> None:
         )
     )
     assert extraction.used_fallback is True
+
+
+def test_development_without_ocr_provider_still_uses_mock(monkeypatch) -> None:
+    _clear_ocr_env(monkeypatch)
+    monkeypatch.setenv("APP_ENV", "development")
+
+    gateway = build_ocr_gateway(get_settings())
+    assert isinstance(gateway.primary_provider, MockOcrProvider)
+
+
+def test_production_without_provider_fails_closed(monkeypatch) -> None:
+    _clear_ocr_env(monkeypatch)
+    monkeypatch.setenv("APP_ENV", "production")
+
+    with pytest.raises(OcrProviderError, match="OCR provider is not configured"):
+        build_ocr_gateway(get_settings())
+
+
+def test_mock_provider_disabled_by_configuration(monkeypatch) -> None:
+    _clear_ocr_env(monkeypatch)
+    monkeypatch.setenv("APP_ENV", "development")
+    monkeypatch.setenv("OCR_PROVIDER", "mock")
+    monkeypatch.setenv("OCR_ALLOW_MOCK_FALLBACK", "0")
+
+    with pytest.raises(OcrProviderError, match="mock OCR provider is disabled by configuration"):
+        build_ocr_gateway(get_settings())

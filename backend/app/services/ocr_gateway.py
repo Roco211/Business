@@ -31,7 +31,21 @@ class OcrGateway:
 
 def build_ocr_gateway(settings: Settings) -> OcrGateway:
     provider_name = settings.ocr_provider.strip().lower()
-    if provider_name == "mock" or not provider_name:
+    if not provider_name:
+        if settings.ocr_allow_mock_fallback:
+            return OcrGateway(primary_provider=MockOcrProvider())
+        raise OcrProviderError(
+            "ocr_unavailable",
+            "OCR provider is not configured",
+            retryable=False,
+        )
+    if provider_name == "mock":
+        if not settings.ocr_allow_mock_fallback:
+            raise OcrProviderError(
+                "ocr_unavailable",
+                "mock OCR provider is disabled by configuration",
+                retryable=False,
+            )
         return OcrGateway(primary_provider=MockOcrProvider())
 
     if provider_name == "real-provider":

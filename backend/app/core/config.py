@@ -23,12 +23,12 @@ class Settings:
     asr_provider_model: str | None = os.getenv("ASR_PROVIDER_MODEL")
     asr_timeout_seconds: float = float(os.getenv("ASR_TIMEOUT_SECONDS", "15"))
     asr_allow_mock_fallback: bool = os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
-    ocr_provider: str = os.getenv("OCR_PROVIDER", "mock")
+    ocr_provider: str = os.getenv("OCR_PROVIDER", "")
     ocr_provider_api_url: str | None = os.getenv("OCR_PROVIDER_API_URL")
     ocr_provider_api_key: str | None = os.getenv("OCR_PROVIDER_API_KEY")
     ocr_provider_model: str | None = os.getenv("OCR_PROVIDER_MODEL")
     ocr_timeout_seconds: float = float(os.getenv("OCR_TIMEOUT_SECONDS", "15"))
-    ocr_allow_mock_fallback: bool = os.getenv("OCR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
+    ocr_allow_mock_fallback: bool = True
 
 
 def _build_default_database_url() -> str:
@@ -43,9 +43,18 @@ def _build_default_database_url() -> str:
     )
 
 
+def _parse_bool_env(value: str | None, default: bool) -> bool:
+    if value is None:
+        return default
+    return value not in ("0", "false", "False")
+
+
 def get_settings() -> Settings:
+    app_env = os.getenv("APP_ENV", "development")
+    ocr_provider = os.getenv("OCR_PROVIDER", "")
+    ocr_allow_env = os.getenv("OCR_ALLOW_MOCK_FALLBACK")
     return Settings(
-        app_env=os.getenv("APP_ENV", "development"),
+        app_env=app_env,
         app_host=os.getenv("APP_HOST", "0.0.0.0"),
         app_port=int(os.getenv("APP_PORT", "8001")),
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
@@ -64,10 +73,13 @@ def get_settings() -> Settings:
         asr_provider_model=os.getenv("ASR_PROVIDER_MODEL"),
         asr_timeout_seconds=float(os.getenv("ASR_TIMEOUT_SECONDS", "15")),
         asr_allow_mock_fallback=os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
-        ocr_provider=os.getenv("OCR_PROVIDER", "mock"),
+        ocr_provider=ocr_provider,
         ocr_provider_api_url=os.getenv("OCR_PROVIDER_API_URL"),
         ocr_provider_api_key=os.getenv("OCR_PROVIDER_API_KEY"),
         ocr_provider_model=os.getenv("OCR_PROVIDER_MODEL"),
         ocr_timeout_seconds=float(os.getenv("OCR_TIMEOUT_SECONDS", "15")),
-        ocr_allow_mock_fallback=os.getenv("OCR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
+        ocr_allow_mock_fallback=_parse_bool_env(
+            ocr_allow_env,
+            app_env.lower() != "production",
+        ),
     )

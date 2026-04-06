@@ -210,6 +210,36 @@ def test_real_provider_timeout_maps_to_retryable_timeout(monkeypatch: pytest.Mon
     assert excinfo.value.retryable is True
 
 
+def test_real_provider_permanent_http_error_does_not_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        del method, url, kwargs
+        return _HttpxJsonResponse({"detail": "forbidden"}, status_code=403)
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway(asr_allow_mock_fallback=True)
+
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.transcribe(AsrMediaInput(media_ids=["voice_stock_in_demo"], text_hint=None))
+
+    assert excinfo.value.code == "asr_unavailable"
+    assert excinfo.value.retryable is False
+
+
+def test_real_provider_retryable_http_status_uses_mock_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        del method, url, kwargs
+        return _HttpxJsonResponse({"detail": "server error"}, status_code=503)
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway(asr_allow_mock_fallback=True)
+
+    result = gateway.transcribe(AsrMediaInput(media_ids=["voice_stock_in_demo"], text_hint=None))
+
+    assert result == AsrTranscription(text="restock apples today", provider="mock")
+
+
 def test_real_provider_uses_mock_fallback_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
     def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
         del method, url, kwargs

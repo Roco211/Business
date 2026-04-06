@@ -8,6 +8,8 @@ import httpx
 
 from app.services.asr_types import AsrMediaInput, AsrProviderError, AsrTranscription
 
+RETRYABLE_HTTP_STATUS_CODES = {408, 429}
+
 
 @dataclass(frozen=True)
 class RealAsrProvider:
@@ -33,7 +35,11 @@ class RealAsrProvider:
         except httpx.TimeoutException as exc:
             raise AsrProviderError("asr_timeout", str(exc), retryable=True) from exc
         except httpx.HTTPError as exc:
-            raise AsrProviderError("asr_unavailable", str(exc), retryable=True) from exc
+            raise AsrProviderError(
+                "asr_unavailable",
+                str(exc),
+                retryable=self._is_retryable_http_error(exc),
+            ) from exc
 
         try:
             payload = response.json()
@@ -45,6 +51,13 @@ class RealAsrProvider:
             ) from exc
 
         return self._normalize_transcription(payload)
+
+    def _is_retryable_http_error(self, error: httpx.HTTPError) -> bool:
+        if not isinstance(error, httpx.HTTPStatusError):
+            return True
+
+        status_code = error.response.status_code
+        return status_code in RETRYABLE_HTTP_STATUS_CODES or 500 <= status_code < 600
 
     def _normalize_transcription(self, payload: object) -> AsrTranscription:
         if not isinstance(payload, dict):

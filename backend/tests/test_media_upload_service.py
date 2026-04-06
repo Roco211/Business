@@ -10,10 +10,49 @@ from app.services.media_uploads import (
     ensure_media_uploads_ready,
     mark_media_upload_complete,
 )
+from app.services.object_storage import (
+    ObjectStorageObjectNotFoundError,
+    ObjectStorageUploadTarget,
+    derive_media_object_key,
+)
+
+
+class _StubObjectStorage:
+    def __init__(self) -> None:
+        self.create_calls: list[tuple[str, str, int]] = []
+        self.verify_calls: list[tuple[str, int | None, str | None]] = []
+        self.fail_verification = False
+
+    def create_upload_target(
+        self,
+        *,
+        object_key: str,
+        content_type: str,
+        size_bytes: int,
+    ) -> ObjectStorageUploadTarget:
+        self.create_calls.append((object_key, content_type, size_bytes))
+        return ObjectStorageUploadTarget(
+            object_key=object_key,
+            upload_url=f"https://upload.example/{object_key}",
+            public_url=f"https://public.example/{object_key}",
+        )
+
+    def verify_uploaded_object(
+        self,
+        *,
+        object_key: str,
+        expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
+    ) -> dict[str, object]:
+        self.verify_calls.append((object_key, expected_size_bytes, expected_checksum_sha256))
+        if self.fail_verification:
+            raise ObjectStorageObjectNotFoundError(object_key)
+        return {"object_key": object_key, "size_bytes": expected_size_bytes}
 
 
 def test_create_media_upload_persists_pending_record(db_session) -> None:
     context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
 
     result = create_media_upload(
         db_session,
@@ -24,9 +63,15 @@ def test_create_media_upload_persists_pending_record(db_session) -> None:
         file_name="voice.m4a",
         content_type="audio/m4a",
         size_bytes=1024,
+        object_storage=storage,
     )
 
     media_upload = db_session.get(MediaUpload, result.media_id)
+    expected_key = derive_media_object_key(
+        shop_id=context.shop.shop_id,
+        media_id=result.media_id,
+        file_name="voice.m4a",
+    )
 
     assert media_upload is not None
     assert media_upload.shop_id == context.shop.shop_id
@@ -36,12 +81,14 @@ def test_create_media_upload_persists_pending_record(db_session) -> None:
     assert media_upload.content_type == "audio/m4a"
     assert media_upload.size_bytes == 1024
     assert media_upload.uploaded_at is None
-    assert result.upload_url.endswith(result.media_id)
-    assert result.public_url.endswith(result.media_id)
+    assert result.upload_url == f"https://upload.example/{expected_key}"
+    assert result.public_url == f"https://public.example/{expected_key}"
+    assert storage.create_calls == [(expected_key, "audio/m4a", 1024)]
 
 
 def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
     context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
     created = create_media_upload(
         db_session,
         shop_id=context.shop.shop_id,
@@ -51,6 +98,12 @@ def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
         file_name="voice.m4a",
         content_type="audio/m4a",
         size_bytes=1024,
+        object_storage=storage,
+    )
+    expected_key = derive_media_object_key(
+        shop_id=context.shop.shop_id,
+        media_id=created.media_id,
+        file_name="voice.m4a",
     )
 
     result = mark_media_upload_complete(
@@ -58,6 +111,7 @@ def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
         media_id=created.media_id,
         checksum_sha256="abc123",
         size_bytes=1024,
+        object_storage=storage,
     )
     media_upload = db_session.get(MediaUpload, created.media_id)
 
@@ -67,10 +121,12 @@ def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
     assert media_upload.status == "uploaded"
     assert media_upload.checksum_sha256 == "abc123"
     assert media_upload.uploaded_at is not None
+    assert storage.verify_calls == [(expected_key, 1024, "abc123")]
 
 
-def test_mark_media_upload_complete_rejects_already_uploaded_record(db_session) -> None:
+def test_mark_media_upload_complete_rejects_when_uploaded_object_is_missing(db_session) -> None:
     context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
     created = create_media_upload(
         db_session,
         shop_id=context.shop.shop_id,
@@ -80,12 +136,45 @@ def test_mark_media_upload_complete_rejects_already_uploaded_record(db_session) 
         file_name="voice.m4a",
         content_type="audio/m4a",
         size_bytes=1024,
+        object_storage=storage,
+    )
+    storage.fail_verification = True
+
+    with pytest.raises(MediaUploadNotReadyError):
+        mark_media_upload_complete(
+            db_session,
+            media_id=created.media_id,
+            checksum_sha256="abc123",
+            size_bytes=1024,
+            object_storage=storage,
+        )
+
+    media_upload = db_session.get(MediaUpload, created.media_id)
+    assert media_upload is not None
+    assert media_upload.status == "pending"
+    assert media_upload.uploaded_at is None
+
+
+def test_mark_media_upload_complete_rejects_already_uploaded_record(db_session) -> None:
+    context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
+    created = create_media_upload(
+        db_session,
+        shop_id=context.shop.shop_id,
+        uploader_actor_type="owner",
+        uploader_actor_id="owner_default",
+        media_type="audio",
+        file_name="voice.m4a",
+        content_type="audio/m4a",
+        size_bytes=1024,
+        object_storage=storage,
     )
     mark_media_upload_complete(
         db_session,
         media_id=created.media_id,
         checksum_sha256="abc123",
         size_bytes=1024,
+        object_storage=storage,
     )
 
     with pytest.raises(MediaUploadConflictError):
@@ -94,11 +183,13 @@ def test_mark_media_upload_complete_rejects_already_uploaded_record(db_session) 
             media_id=created.media_id,
             checksum_sha256="abc123",
             size_bytes=1024,
+            object_storage=storage,
         )
 
 
 def test_ensure_media_uploads_ready_requires_uploaded_status_for_all_media_ids(db_session) -> None:
     context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
     created = create_media_upload(
         db_session,
         shop_id=context.shop.shop_id,
@@ -108,6 +199,7 @@ def test_ensure_media_uploads_ready_requires_uploaded_status_for_all_media_ids(d
         file_name="voice.m4a",
         content_type="audio/m4a",
         size_bytes=1024,
+        object_storage=storage,
     )
 
     with pytest.raises(MediaUploadNotReadyError):
@@ -122,6 +214,7 @@ def test_ensure_media_uploads_ready_requires_uploaded_status_for_all_media_ids(d
         media_id=created.media_id,
         checksum_sha256="abc123",
         size_bytes=1024,
+        object_storage=storage,
     )
 
     ensure_media_uploads_ready(

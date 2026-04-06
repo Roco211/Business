@@ -6,13 +6,18 @@ from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
 from app.models import MediaUpload
+from app.services.object_storage import (
+    ObjectStorageObjectNotFoundError,
+    ObjectStorageProvider,
+    ObjectStorageVerificationError,
+    derive_media_object_key,
+    get_default_object_storage,
+)
 
 PENDING_STATUS = "pending"
 UPLOADED_STATUS = "uploaded"
 FAILED_STATUS = "failed"
 SUPPORTED_MEDIA_TYPES = {"audio", "image", "receipt-image"}
-MOCK_UPLOAD_BASE_URL = "https://mock.example/uploads"
-MOCK_PUBLIC_BASE_URL = "https://mock.example/media"
 
 
 class MediaUploadConflictError(ValueError):
@@ -54,6 +59,7 @@ def create_media_upload(
     file_name: str,
     content_type: str,
     size_bytes: int,
+    object_storage: ObjectStorageProvider | None = None,
 ) -> MediaUploadCreateResult:
     if media_type not in SUPPORTED_MEDIA_TYPES:
         raise MediaUploadValidationError("Unsupported media_type")
@@ -66,6 +72,16 @@ def create_media_upload(
 
     now = _now()
     media_id = new_prefixed_id("media")
+    object_key = derive_media_object_key(
+        shop_id=shop_id,
+        media_id=media_id,
+        file_name=file_name,
+    )
+    upload_target = _resolve_object_storage(object_storage).create_upload_target(
+        object_key=object_key,
+        content_type=content_type.strip(),
+        size_bytes=size_bytes,
+    )
     upload = MediaUpload(
         media_id=media_id,
         shop_id=shop_id,
@@ -76,8 +92,8 @@ def create_media_upload(
         content_type=content_type.strip(),
         size_bytes=size_bytes,
         status=PENDING_STATUS,
-        upload_url=f"{MOCK_UPLOAD_BASE_URL}/{media_id}",
-        public_url=f"{MOCK_PUBLIC_BASE_URL}/{media_id}",
+        upload_url=upload_target.upload_url,
+        public_url=upload_target.public_url,
         checksum_sha256=None,
         uploaded_at=None,
         created_at=now,
@@ -98,6 +114,7 @@ def mark_media_upload_complete(
     media_id: str,
     checksum_sha256: str,
     size_bytes: int,
+    object_storage: ObjectStorageProvider | None = None,
 ) -> MediaUploadCompleteResult:
     media_upload = db_session.get(MediaUpload, media_id)
     if media_upload is None:
@@ -108,6 +125,22 @@ def mark_media_upload_complete(
         raise MediaUploadValidationError("size_bytes must be greater than 0")
     if not checksum_sha256.strip():
         raise MediaUploadValidationError("checksum_sha256 is required")
+
+    object_key = derive_media_object_key(
+        shop_id=media_upload.shop_id,
+        media_id=media_upload.media_id,
+        file_name=media_upload.file_name,
+    )
+    try:
+        _resolve_object_storage(object_storage).verify_uploaded_object(
+            object_key=object_key,
+            expected_size_bytes=size_bytes,
+            expected_checksum_sha256=checksum_sha256.strip(),
+        )
+    except ObjectStorageObjectNotFoundError as exc:
+        raise MediaUploadNotReadyError(media_id) from exc
+    except ObjectStorageVerificationError as exc:
+        raise MediaUploadConflictError(media_id) from exc
 
     now = _now()
     media_upload.status = UPLOADED_STATUS
@@ -142,6 +175,14 @@ def ensure_media_uploads_ready(
             raise MediaUploadNotReadyError(media_id)
         if record.status != UPLOADED_STATUS:
             raise MediaUploadNotReadyError(media_id)
+
+
+def _resolve_object_storage(
+    object_storage: ObjectStorageProvider | None,
+) -> ObjectStorageProvider:
+    if object_storage is not None:
+        return object_storage
+    return get_default_object_storage()
 
 
 def get_ready_media_upload(

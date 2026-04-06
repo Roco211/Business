@@ -45,6 +45,23 @@ class Settings:
     vision_timeout_seconds: float = float(os.getenv("VISION_TIMEOUT_SECONDS", "15"))
     vision_allow_mock_fallback: bool = True
 
+    def normalized_runtime_mode(self) -> str:
+        normalized = self.app_runtime_mode.strip().lower()
+        return normalized or "local-demo"
+
+    def normalized_object_storage_provider(self) -> str:
+        normalized = self.object_storage_provider.strip().lower()
+        return normalized or "mock"
+
+    def object_storage_live_required_config(self) -> dict[str, str]:
+        return {
+            "bucket": self.object_storage_bucket or "",
+            "region": self.object_storage_region or "",
+            "endpoint_url": self.object_storage_endpoint_url or "",
+            "access_key": self.object_storage_access_key or "",
+            "secret_key": self.object_storage_secret_key or "",
+        }
+
 
 def _build_default_database_url() -> str:
     mysql_user = os.getenv("MYSQL_USER", "aism")

@@ -14,6 +14,7 @@ from app.db.session import get_db_session
 from app.models import MediaUpload
 from app.services.media_uploads import (
     MediaUploadConflictError,
+    MediaUploadNotReadyError,
     MediaUploadValidationError,
     create_media_upload,
     mark_media_upload_complete,
@@ -97,6 +98,12 @@ def post_complete_media_upload(
             status.HTTP_409_CONFLICT,
             "media_upload_conflict",
             "Media upload cannot transition from its current status",
+        )
+    except MediaUploadNotReadyError:
+        return _error_response(
+            status.HTTP_409_CONFLICT,
+            "media_upload_conflict",
+            "Media upload is not ready for completion",
         )
     except MediaUploadValidationError as exc:
         return _error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, "validation_error", str(exc))

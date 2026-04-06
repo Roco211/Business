@@ -1,7 +1,7 @@
 import string
 
 from app.services.vision_gateway import get_default_vision_gateway
-from app.services.vision_types import VisionMediaInput
+from app.services.vision_types import VisionMediaInput, VisionProviderError
 from .tools import MockTranscriptionUnavailable, transcribe_audio_input
 from .types import RuntimeMediaRef, RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
@@ -113,30 +113,34 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
         )
     if ctx.input_kind == "image":
         media_ref = _select_image_media_ref(ctx)
-        recognition = get_default_vision_gateway().recognize_product(
-            VisionMediaInput(
-                media_id=media_ref.media_id,
-                public_url=media_ref.public_url,
-                content_type=media_ref.content_type,
-                file_name=media_ref.file_name,
+        try:
+            recognition = get_default_vision_gateway().recognize_product(
+                VisionMediaInput(
+                    media_id=media_ref.media_id,
+                    public_url=media_ref.public_url,
+                    content_type=media_ref.content_type,
+                    file_name=media_ref.file_name,
+                )
             )
-        )
+        except VisionProviderError as exc:
+            raise RuntimeRouteBlocked(
+                exc.code,
+                f"Image recognition failed: {exc.message}",
+            ) from exc
         if not recognition.candidates:
             raise RuntimeRouteBlocked(
                 "runtime_processing_error",
                 "Image recognition failed: no candidates returned",
             )
 
-        top_candidate = recognition.candidates[0]
-        task_type = (
-            "photo-stock-query"
-            if "check" in (ctx.source_text or "").lower()
-            else "photo-stock-in"
-        )
+        top_candidate = max(recognition.candidates, key=lambda candidate: candidate.confidence)
+        transcript = (ctx.source_text or top_candidate.item_name).strip()
+        transcript_intent = _classify_transcript(transcript) if transcript else "voice-stock-in"
+        task_type = "photo-stock-query" if transcript_intent == "voice-stock-query" else "photo-stock-in"
         return RuntimeRouteDecision(
             task_type=task_type,
             assigned_employee_id="xiaoya",
-            transcript=(ctx.source_text or top_candidate.item_name).strip(),
+            transcript=transcript,
             payload={
                 "item_name": top_candidate.item_name,
                 "confidence": top_candidate.confidence,

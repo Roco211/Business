@@ -350,12 +350,21 @@ def test_acceptance_upload_backed_photo_query_flow_uses_vision_gateway_source_of
     client,
     monkeypatch,
 ) -> None:
+    from app.runtime import processor as runtime_processor
+
     media_id = _create_and_complete_media_upload(
         client,
         media_type="image",
         file_name="shelf-demo.jpg",
         content_type="image/jpeg",
     )
+
+    def _legacy_bomb(*_args, **_kwargs):
+        raise AssertionError("legacy photo recognition path should not be used for photo queries")
+
+    monkeypatch.setattr(runtime_processor, "recognize_and_query_inventory", _legacy_bomb, raising=False)
+    monkeypatch.setattr(runtime_router, "recognize_image", _legacy_bomb, raising=False)
+    monkeypatch.setattr(runtime_router, "classify_image_task", _legacy_bomb, raising=False)
 
     class _UploadedVisionGateway:
         def recognize_product(self, media_input):

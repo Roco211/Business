@@ -5,7 +5,7 @@ from app.runtime.router import RuntimeRouteBlocked, route_runtime_input, transcr
 from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
 from app.runtime.types import RuntimeMediaRef, RuntimeTurnContext
 from app.services.asr_types import AsrTranscription
-from app.services.vision_types import VisionCandidate, VisionRecognition
+from app.services.vision_types import VisionCandidate, VisionProviderError, VisionRecognition
 
 
 def _build_context(
@@ -350,6 +350,103 @@ def test_photo_query_uses_vision_gateway_for_inventory_lookup(runtime_context, m
     assert decision.payload["confidence"] == 0.95
     assert decision.payload["packaging_hint"] == "can"
     assert decision.payload["provider_name"] == "stub-vision"
+
+
+def test_image_query_classification_uses_transcript_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[VisionCandidate(item_name="Red Bull 250ml", confidence=0.4, packaging_hint="can")],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="how many red bull left",
+        media_ids=["uploaded_image_01"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_01",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="shelf.jpg",
+                public_url="https://mock.example/media/uploaded_image_01",
+            )
+        ],
+    )
+    decision = router.route_runtime_input(ctx)
+    assert decision.task_type == "photo-stock-query"
+
+
+def test_image_input_selects_highest_confidence_candidate(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            # Unsorted on purpose: highest-confidence is not first.
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[
+                    VisionCandidate(item_name="Wrong Item", confidence=0.11, packaging_hint="box"),
+                    VisionCandidate(item_name="Right Item", confidence=0.97, packaging_hint="can"),
+                    VisionCandidate(item_name="Middle Item", confidence=0.42, packaging_hint="bottle"),
+                ],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="restock something",
+        media_ids=["uploaded_image_02"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_02",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="stock_in.jpg",
+                public_url="https://mock.example/media/uploaded_image_02",
+            )
+        ],
+    )
+    decision = router.route_runtime_input(ctx)
+    assert decision.payload["item_name"] == "Right Item"
+    assert decision.payload["confidence"] == 0.97
+
+
+def test_image_input_maps_vision_provider_error_to_route_block(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            raise VisionProviderError("vision_unavailable", "vision provider blew up", retryable=False)
+
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="check stock",
+        media_ids=["uploaded_image_03"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_03",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="shelf.jpg",
+                public_url="https://mock.example/media/uploaded_image_03",
+            )
+        ],
+    )
+    with pytest.raises(RuntimeRouteBlocked) as excinfo:
+        router.route_runtime_input(ctx)
+    assert excinfo.value.error_code == "vision_unavailable"
+    assert "image recognition" in excinfo.value.error_message.lower()
+    assert "blew up" in excinfo.value.error_message.lower()
 
 
 def test_receipt_image_routes_to_receipt_ocr():

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, aliased
 
 from app.models import Confirmation, Message, SessionRecord, Shop, TaskRun
 from app.runtime.types import RuntimeMediaRef, RuntimeTurnContext
-from app.services.media_uploads import MediaUploadNotReadyError, get_ready_media_upload
+from app.services.media_uploads import get_ready_media_upload
 
 
 def _require_record(record, record_id: str):
@@ -28,14 +28,11 @@ def _resolve_runtime_media_refs(
 ) -> list[RuntimeMediaRef]:
     media_refs: list[RuntimeMediaRef] = []
     for media_id in media_ids:
-        try:
-            media_upload = get_ready_media_upload(
-                db_session,
-                shop_id=shop_id,
-                media_id=media_id,
-            )
-        except MediaUploadNotReadyError:
-            continue
+        media_upload = get_ready_media_upload(
+            db_session,
+            shop_id=shop_id,
+            media_id=media_id,
+        )
         media_refs.append(
             RuntimeMediaRef(
                 media_id=media_upload.media_id,

@@ -169,6 +169,32 @@ def test_voice_input_transcription_failures_block():
     assert "transcription" in excinfo.value.error_message.lower()
 
 
+def test_transcribe_runtime_audio_preserves_all_ready_audio_media_refs():
+    ctx = _build_context(
+        input_kind="voice",
+        source_text=None,
+        media_ids=["unknown", "voice_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="unknown",
+                media_type="audio",
+                content_type="audio/m4a",
+                file_name="unknown.m4a",
+                public_url="https://mock.example/media/unknown",
+            ),
+            RuntimeMediaRef(
+                media_id="voice_query_demo",
+                media_type="audio",
+                content_type="audio/m4a",
+                file_name="voice_query_demo.m4a",
+                public_url="https://mock.example/media/voice_query_demo",
+            ),
+        ],
+    )
+
+    assert transcribe_runtime_audio(ctx) == "check stock left for cola"
+
+
 def test_transcribe_runtime_audio_blocks_when_no_audio_media_ref_exists():
     ctx = _build_context(
         input_kind="voice",
@@ -201,12 +227,13 @@ def test_transcribe_runtime_audio_blocks_low_confidence_transcription(monkeypatc
         shop_rules={"low_confidence_threshold": 0.85},
     )
 
-    def low_confidence_transcription(*, media_ids: list[str], text_hint: str | None) -> AsrTranscription:
-        assert media_ids == ["voice_query_demo"]
-        assert text_hint is None
-        return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.42)
+    class _LowConfidenceGateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == ["voice_query_demo"]
+            assert media_input.text_hint is None
+            return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.42)
 
-    monkeypatch.setattr("app.runtime.router.transcribe_audio_input", low_confidence_transcription)
+    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", lambda: _LowConfidenceGateway())
 
     with pytest.raises(RuntimeRouteBlocked) as excinfo:
         transcribe_runtime_audio(ctx)

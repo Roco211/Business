@@ -9,7 +9,9 @@ from app.models import Confirmation, MediaUpload, Message, OcrDocument, SessionR
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime.processor import process_task_run
+from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
+from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import create_message
 from app.services.task_runs import (
     TaskRunTransitionError,
@@ -797,6 +799,77 @@ def test_build_runtime_turn_context_resolves_ready_media_refs_for_voice_uploads(
     assert context.media_refs[0].media_id == "voice_query_demo"
     assert context.media_refs[0].media_type == "audio"
     assert context.media_refs[0].public_url == "https://mock.example/media/voice_query_demo"
+
+
+def test_build_runtime_turn_context_raises_when_media_upload_is_not_ready(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_context_voice_media_not_ready",
+    )
+    media_upload = db_session.get(MediaUpload, "voice_query_demo")
+    assert media_upload is not None
+    media_upload.status = "pending"
+    db_session.commit()
+
+    with pytest.raises(MediaUploadNotReadyError):
+        build_runtime_turn_context(db_session, task_run_id=task_run_id)
+
+
+def test_build_runtime_turn_context_preserves_multiple_audio_media_refs(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["unknown", "voice_query_demo"],
+        client_request_id="runtime_context_multiple_voice_media_refs",
+    )
+
+    context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
+
+    assert context.media_ids == ["unknown", "voice_query_demo"]
+    assert [media_ref.media_id for media_ref in context.media_refs] == ["unknown", "voice_query_demo"]
+
+
+def test_process_task_run_persists_asr_low_confidence_failures(db_session, monkeypatch) -> None:
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_low_confidence",
+    )
+
+    class _LowConfidenceGateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == ["voice_query_demo"]
+            return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.42)
+
+    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", lambda: _LowConfidenceGateway())
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    runtime_messages = db_session.scalars(
+        select(Message)
+        .where(Message.task_run_id == task_run_id, Message.actor_type == "system")
+        .order_by(Message.created_at.asc(), Message.message_id.asc())
+    ).all()
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "failed"
+    assert result.task_run_id == task_run_id
+    assert result.task_type is None
+    assert result.error_code == "asr_low_confidence"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert task_run.error_code == "asr_low_confidence"
+    assert "confidence" in (task_run.error_message or "").lower()
+    assert len(runtime_messages) == 1
+    assert "could not process" in (runtime_messages[0].text or "").lower()
+    assert session_record is not None
+    assert session_record.last_message_at == runtime_messages[0].created_at
 
 
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:

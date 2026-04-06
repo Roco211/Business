@@ -44,16 +44,13 @@ def _text_or_none(value: str | None) -> str:
     return value or ""
 
 
-def _select_audio_media_ref(ctx: RuntimeTurnContext) -> RuntimeMediaRef | None:
-    for media_ref in ctx.media_refs:
-        if media_ref.media_type == "audio":
-            return media_ref
-    return None
+def _select_audio_media_refs(ctx: RuntimeTurnContext) -> list[RuntimeMediaRef]:
+    return [media_ref for media_ref in ctx.media_refs if media_ref.media_type == "audio"]
 
 
 def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
-    audio_media_ref = _select_audio_media_ref(ctx)
-    if audio_media_ref is None:
+    audio_media_refs = _select_audio_media_refs(ctx)
+    if not audio_media_refs:
         raise RuntimeRouteBlocked(
             "runtime_processing_error",
             "Transcription failed: no ready audio media available",
@@ -61,7 +58,7 @@ def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
 
     try:
         transcription = transcribe_audio_input(
-            media_ids=[audio_media_ref.media_id],
+            media_ids=[media_ref.media_id for media_ref in audio_media_refs],
             text_hint=ctx.source_text,
         )
     except MockTranscriptionUnavailable as exc:

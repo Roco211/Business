@@ -1052,6 +1052,77 @@ def test_process_task_run_appends_provider_telemetry_for_asr_low_confidence_fail
     }
 
 
+def test_process_task_run_appends_ocr_provider_telemetry_for_receipt_confirmation(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_provider_telemetry_awaiting_confirmation",
+    )
+    persisted_document = OcrDocument(
+        ocr_document_id="ocr_receipt_provider_telemetry",
+        shop_id="shop_default",
+        task_run_id=task_run_id,
+        media_id="receipt_demo",
+        document_type="purchase-receipt",
+        status="completed",
+        provider_name="stub-ocr",
+        raw_text="receipt text",
+        extracted_fields={
+            "items": [{"name": "Red Bull 250ml", "quantity": 3, "unit": "can", "price": 41.0}],
+            "total_amount": 123.0,
+        },
+        low_confidence_fields=["items[0].price"],
+        created_at=datetime(2026, 4, 4, 12, 0, 0),
+        updated_at=datetime(2026, 4, 4, 12, 0, 0),
+    )
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("OCR_PROVIDER", "real-provider")
+    monkeypatch.setenv("OCR_PROVIDER_LABEL", "ocr-primary")
+
+    class StubCreateResult:
+        def __init__(self):
+            self.ocr_document = persisted_document
+            self.response_status = "processing"
+            self.provider_name = "stub-ocr"
+            self.used_fallback = True
+            self.low_confidence_fields = ["items[0].price"]
+
+    def stub_create_ocr_document(*args, **kwargs):
+        return StubCreateResult()
+
+    monkeypatch.setattr(runtime_processor, "create_ocr_document", stub_create_ocr_document)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "awaiting-confirmation"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "receipt-ocr",
+        "capability": "ocr",
+        "provider_mode": "real-provider",
+        "provider_label": "ocr-primary",
+        "used_fallback": True,
+        "recognized_confidence": None,
+        "low_confidence": True,
+        "outcome": "awaiting-confirmation",
+        "error_code": None,
+        "trial_provider_profile": "pilot-v1",
+    }
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,

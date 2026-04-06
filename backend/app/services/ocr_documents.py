@@ -19,6 +19,9 @@ SUPPORTED_DOCUMENT_TYPES = {"purchase-receipt"}
 class OcrDocumentCreateResult:
     ocr_document: OcrDocument
     response_status: str
+    provider_name: str
+    used_fallback: bool
+    low_confidence_fields: list[str]
 
 
 def _now() -> datetime:
@@ -109,6 +112,9 @@ def create_ocr_document(
     return OcrDocumentCreateResult(
         ocr_document=document,
         response_status=PROCESSING_STATUS,
+        provider_name=extraction.provider_name,
+        used_fallback=extraction.used_fallback,
+        low_confidence_fields=list(extraction.low_confidence_fields),
     )
 
 

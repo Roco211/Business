@@ -32,6 +32,28 @@ class RuntimeProcessResult:
     error_code: str | None
 
 
+def _build_ocr_provider_payload(
+    *,
+    payload: dict[str, object],
+    provider_name: str,
+    used_fallback: bool,
+    low_confidence_fields: list[str],
+) -> dict[str, object]:
+    settings = get_settings()
+    enriched_payload = dict(payload)
+    enriched_payload.update(
+        {
+            "capability": "ocr",
+            "provider_mode": settings.ocr_provider.strip().lower() or "mock",
+            "provider_label": settings.ocr_provider_label.strip() or provider_name or "mock",
+            "provider_name": provider_name,
+            "used_fallback": used_fallback,
+            "low_confidence_fields": list(low_confidence_fields),
+        }
+    )
+    return enriched_payload
+
+
 def _default_provider_telemetry(context_input_kind: str) -> tuple[str, str, str]:
     settings = get_settings()
     if context_input_kind == "voice":
@@ -376,14 +398,22 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         policy = evaluate_runtime_policy(task_type=decision.task_type)
         if policy.outcome == "require-confirmation":
             ocr_document: OcrDocument | None = None
+            provider_payload = dict(decision.payload)
             if decision.task_type == "receipt-ocr" and context.pending_confirmation_id is None:
-                ocr_document = create_ocr_document(
+                ocr_result = create_ocr_document(
                     db_session,
                     shop_id=context.shop_id,
                     media_id=context.media_ids[0],
                     document_type=str(decision.payload.get("document_type") or "purchase-receipt"),
                     task_run_id=task_run_id,
-                ).ocr_document
+                )
+                ocr_document = ocr_result.ocr_document
+                provider_payload = _build_ocr_provider_payload(
+                    payload=provider_payload,
+                    provider_name=ocr_result.provider_name,
+                    used_fallback=ocr_result.used_fallback,
+                    low_confidence_fields=ocr_result.low_confidence_fields,
+                )
             if context.pending_confirmation_id is not None:
                 _load_pending_confirmation(
                     db_session,
@@ -397,7 +427,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     fields=_build_confirmation_fields(
                         task_type=decision.task_type,
                         transcript=decision.transcript,
-                        payload=decision.payload,
+                        payload=provider_payload,
                         ocr_document=ocr_document,
                     ),
                     requested_by_employee_id=decision.assigned_employee_id,
@@ -436,7 +466,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 provider_telemetry=_build_provider_telemetry_record(
                     context_input_kind=context.input_kind,
                     task_type=decision.task_type,
-                    payload=decision.payload,
+                    payload=provider_payload,
                 ),
             )
             db_session.commit()
@@ -484,23 +514,36 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     }
                 )
         if decision.task_type == "receipt-ocr":
-            ocr_document = create_ocr_document(
+            ocr_result = create_ocr_document(
                 db_session,
                 shop_id=context.shop_id,
                 media_id=context.media_ids[0],
                 document_type=str(decision.payload.get("document_type") or "purchase-receipt"),
                 task_run_id=task_run_id,
-            ).ocr_document
+            )
+            ocr_document = ocr_result.ocr_document
+            completed_payload.update(
+                _build_ocr_provider_payload(
+                    payload={
+                        "ocr_document_id": ocr_document.ocr_document_id,
+                        "document_type": ocr_document.document_type,
+                        "provider_name": ocr_result.provider_name,
+                        "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
+                        "low_confidence_fields": list(ocr_result.low_confidence_fields),
+                    },
+                    provider_name=ocr_result.provider_name,
+                    used_fallback=ocr_result.used_fallback,
+                    low_confidence_fields=ocr_result.low_confidence_fields,
+                )
+            )
             completed_payload.update(
                 {
                     "ocr_document_id": ocr_document.ocr_document_id,
                     "document_type": ocr_document.document_type,
-                    "provider_name": ocr_document.provider_name,
+                    "provider_name": ocr_result.provider_name,
                     "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
-                    "low_confidence_fields": list(ocr_document.low_confidence_fields),
-                    "capability": "ocr",
-                    "provider_mode": get_settings().ocr_provider.strip().lower() or "mock",
-                    "provider_label": get_settings().ocr_provider_label.strip() or ocr_document.provider_name or "mock",
+                    "low_confidence_fields": list(ocr_result.low_confidence_fields),
+                    "used_fallback": ocr_result.used_fallback,
                 }
             )
 

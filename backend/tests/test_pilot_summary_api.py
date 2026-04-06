@@ -3,8 +3,10 @@ from decimal import Decimal
 
 from app.core.ids import new_prefixed_id
 from app.db.session import get_session_factory
-from app.models import AuditLog, Confirmation, Message, SessionRecord, Shop, TaskRun
+from app.models import AuditLog, Confirmation, MediaUpload, Message, SessionRecord, Shop, TaskRun
+from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
+from app.services.messages import create_message
 from conftest import auth_headers, login_and_get_token
 
 
@@ -165,6 +167,41 @@ def _insert_provider_telemetry(
         )
     )
     db_session.flush()
+
+
+def _create_receipt_runtime_task(db_session, *, media_id: str, client_request_id: str) -> str:
+    context = ensure_default_context(db_session)
+    db_session.add(
+        MediaUpload(
+            media_id=media_id,
+            shop_id=context.shop.shop_id,
+            uploader_actor_type="owner",
+            uploader_actor_id="owner_default",
+            media_type="receipt-image",
+            file_name=f"{media_id}.bin",
+            content_type="application/octet-stream",
+            size_bytes=1024,
+            status="uploaded",
+            upload_url=f"https://mock.example/uploads/{media_id}",
+            public_url=f"https://mock.example/media/{media_id}",
+            checksum_sha256="abc123",
+            uploaded_at=context.session.created_at,
+            created_at=context.session.created_at,
+            updated_at=context.session.created_at,
+        )
+    )
+    db_session.commit()
+    result = create_message(
+        db_session,
+        session_id=context.session.session_id,
+        actor_type="owner",
+        actor_id="owner_default",
+        message_type="receipt-image",
+        text=None,
+        media_ids=[media_id],
+        client_request_id=client_request_id,
+    )
+    return result.task_run_id
 
 
 def test_pilot_summary_endpoint_requires_owner_auth(client) -> None:
@@ -400,4 +437,71 @@ def test_pilot_summary_endpoint_returns_recent_aggregates_for_the_authenticated_
     assert payload["fallback_count"] == 1
     assert payload["provider_failures"]["asr_low_confidence"] == 1
     assert payload["provider_failures"]["vision_unavailable"] == 1
+    assert payload["trial_provider_profile"] == "pilot-v1"
+
+
+def test_pilot_summary_counts_ocr_fallback_and_low_confidence_from_real_runtime_telemetry(
+    client,
+    monkeypatch,
+) -> None:
+    from app.runtime import processor as runtime_processor
+    from app.models import OcrDocument
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("OCR_PROVIDER", "real-provider")
+    monkeypatch.setenv("OCR_PROVIDER_LABEL", "ocr-primary")
+
+    db_session = get_session_factory()()
+    try:
+        task_run_id = _create_receipt_runtime_task(
+            db_session,
+            media_id="receipt_summary_demo",
+            client_request_id="pilot_summary_receipt_telemetry",
+        )
+        persisted_document = OcrDocument(
+            ocr_document_id="ocr_summary_receipt",
+            shop_id="shop_default",
+            task_run_id=task_run_id,
+            media_id="receipt_summary_demo",
+            document_type="purchase-receipt",
+            status="completed",
+            provider_name="stub-ocr",
+            raw_text="receipt text",
+            extracted_fields={
+                "items": [{"name": "Red Bull 250ml", "quantity": 3, "unit": "can", "price": 41.0}],
+                "total_amount": 123.0,
+            },
+            low_confidence_fields=["items[0].price"],
+            created_at=_now(),
+            updated_at=_now(),
+        )
+
+        class StubCreateResult:
+            def __init__(self):
+                self.ocr_document = persisted_document
+                self.response_status = "processing"
+                self.provider_name = "stub-ocr"
+                self.used_fallback = True
+                self.low_confidence_fields = ["items[0].price"]
+
+        def stub_create_ocr_document(*args, **kwargs):
+            return StubCreateResult()
+
+        monkeypatch.setattr(runtime_processor, "create_ocr_document", stub_create_ocr_document)
+
+        result = process_task_run(db_session, task_run_id)
+        assert result.status == "awaiting-confirmation"
+    finally:
+        db_session.close()
+
+    response = client.get(
+        "/api/v1/system/pilot-summary?hours=24",
+        headers=_auth_headers(client, monkeypatch),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["task_totals"]["receipt-ocr"]["awaiting-confirmation"] == 1
+    assert payload["low_confidence_count"] == 1
+    assert payload["fallback_count"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"

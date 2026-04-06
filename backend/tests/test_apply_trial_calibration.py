@@ -65,6 +65,9 @@ def test_apply_trial_calibration_updates_shop_rules_and_writes_audit_log(
 ) -> None:
     module = _load_apply_script_module()
     context = ensure_default_context(db_session)
+    context.shop.require_price_confirmation = False
+    context.shop.require_new_item_confirmation = False
+    db_session.flush()
     report_path = _create_generated_report(tmp_path, monkeypatch)
 
     report_payload = json.loads(report_path.read_text(encoding="utf-8"))
@@ -106,8 +109,8 @@ def test_apply_trial_calibration_updates_shop_rules_and_writes_audit_log(
     assert metadata["artifact_id"] == report_payload["artifact_id"]
     assert metadata["before"] == {
         "low_confidence_threshold": 0.85,
-        "require_price_confirmation": True,
-        "require_new_item_confirmation": True,
+        "require_price_confirmation": False,
+        "require_new_item_confirmation": False,
     }
     assert metadata["after"] == {
         "low_confidence_threshold": 0.9,

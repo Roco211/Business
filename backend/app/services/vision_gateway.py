@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.services.vision_mock_provider import MockVisionProvider
+from app.services.vision_real_provider import RealVisionProvider
 from app.services.vision_types import (
     VisionMediaInput,
     VisionProvider,
@@ -70,10 +71,15 @@ def build_vision_gateway(settings: Settings) -> VisionGateway:
             retryable=False,
         )
 
-    raise VisionProviderError(
-        "vision_unavailable",
-        "real vision provider is not implemented",
-        retryable=False,
+    fallback_provider = MockVisionProvider() if allow_mock else None
+    return VisionGateway(
+        primary_provider=RealVisionProvider(
+            api_url=settings.vision_provider_api_url,
+            api_key=settings.vision_provider_api_key,
+            model=settings.vision_provider_model,
+            timeout_seconds=settings.vision_timeout_seconds,
+        ),
+        fallback_provider=fallback_provider,
     )
 
 

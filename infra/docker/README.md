@@ -143,3 +143,83 @@ python backend/scripts/evaluate_real_asr.py C:\path\to\sample.m4a
 ```
 
 If you still want retryable real-provider failures to fall back to the mock layer during local operator checks, leave `ASR_ALLOW_MOCK_FALLBACK=1` and pass a fixture media ID such as `voice_query_demo`, `voice_stock_in_demo`, or `voice_stock_out_demo`.
+
+## Local OCR Config
+
+The backend OCR gateway is controlled through environment variables:
+
+- `OCR_PROVIDER=mock` keeps local development on the deterministic receipt OCR fixture.
+- `OCR_PROVIDER=real-provider` enables the configured remote OCR adapter.
+- `OCR_PROVIDER_API_URL` points at the real OCR HTTP endpoint when `OCR_PROVIDER=real-provider`.
+- `OCR_PROVIDER_API_KEY` provides the bearer token for the real OCR endpoint.
+- `OCR_PROVIDER_MODEL` selects the upstream OCR model.
+- `OCR_TIMEOUT_SECONDS` controls request timeout for the real provider.
+- `OCR_ALLOW_MOCK_FALLBACK=1` allows retryable real-provider failures to fall back to the mock receipt provider.
+- `OCR_ALLOW_MOCK_FALLBACK=0` disables that fallback so operators can see hard real-provider failures directly.
+
+The OCR eval CLI reads a local image file, infers the content type, and forwards inline image bytes through the OCR gateway. That means it works both for hosted-media environments and for local operator checks where the file is not uploaded anywhere yet.
+
+For a mock-friendly operator check, keep `OCR_PROVIDER=mock` and run:
+
+```powershell
+python backend/scripts/evaluate_real_ocr.py C:\path\to\receipt.jpg
+```
+
+That prints compact JSON with:
+
+- `provider_name`
+- `used_fallback`
+- `total_amount`
+- `line_items`
+- `low_confidence_fields`
+
+For a real-provider smoke check, export the OCR settings first and then point the same CLI at a local receipt image:
+
+```powershell
+$env:OCR_PROVIDER='real-provider'
+$env:OCR_PROVIDER_API_URL='https://ocr.example.com/v1/receipts'
+$env:OCR_PROVIDER_API_KEY='replace-me'
+$env:OCR_PROVIDER_MODEL='replace-me'
+python backend/scripts/evaluate_real_ocr.py C:\path\to\receipt.jpg
+```
+
+If you still want retryable real-provider failures to fall back to the mock layer during local operator checks, leave `OCR_ALLOW_MOCK_FALLBACK=1`.
+
+## Local Vision Config
+
+The backend vision gateway is controlled through environment variables:
+
+- `VISION_PROVIDER=mock` keeps local development on the deterministic photo recognition fixture.
+- `VISION_PROVIDER=real-provider` enables the configured remote vision adapter.
+- `VISION_PROVIDER_API_URL` points at the real vision HTTP endpoint when `VISION_PROVIDER=real-provider`.
+- `VISION_PROVIDER_API_KEY` provides the bearer token for the real vision endpoint.
+- `VISION_PROVIDER_MODEL` selects the upstream recognition model.
+- `VISION_TIMEOUT_SECONDS` controls request timeout for the real provider.
+- `VISION_ALLOW_MOCK_FALLBACK=1` allows retryable real-provider failures to fall back to the mock vision provider.
+- `VISION_ALLOW_MOCK_FALLBACK=0` disables that fallback so operators can see hard real-provider failures directly.
+
+The vision eval CLI reads a local image file, infers the content type, and forwards inline image bytes through the vision gateway so local checks do not depend on pre-hosted media.
+
+For a mock-friendly operator check, keep `VISION_PROVIDER=mock` and run:
+
+```powershell
+python backend/scripts/evaluate_real_vision.py C:\path\to\product.jpg
+```
+
+That prints compact JSON with:
+
+- `provider_name`
+- `used_fallback`
+- `candidates`
+
+For a real-provider smoke check, export the vision settings first and then point the same CLI at a local product image:
+
+```powershell
+$env:VISION_PROVIDER='real-provider'
+$env:VISION_PROVIDER_API_URL='https://vision.example.com/v1/recognize'
+$env:VISION_PROVIDER_API_KEY='replace-me'
+$env:VISION_PROVIDER_MODEL='replace-me'
+python backend/scripts/evaluate_real_vision.py C:\path\to\product.jpg
+```
+
+If you still want retryable real-provider failures to fall back to the mock layer during local operator checks, leave `VISION_ALLOW_MOCK_FALLBACK=1`.

@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.services.ocr_mock_provider import MockOcrProvider
+from app.services.ocr_real_provider import RealOcrProvider
 from app.services.ocr_types import (
     OcrExtraction,
     OcrMediaInput,
@@ -59,10 +60,15 @@ def build_ocr_gateway(settings: Settings) -> OcrGateway:
                 "missing OCR provider configuration",
                 retryable=False,
             )
-        raise OcrProviderError(
-            "ocr_unavailable",
-            "real OCR provider is not implemented",
-            retryable=False,
+        fallback_provider = MockOcrProvider() if settings.ocr_allow_mock_fallback else None
+        return OcrGateway(
+            primary_provider=RealOcrProvider(
+                api_url=settings.ocr_provider_api_url,
+                api_key=settings.ocr_provider_api_key,
+                model=settings.ocr_provider_model,
+                timeout_seconds=settings.ocr_timeout_seconds,
+            ),
+            fallback_provider=fallback_provider,
         )
 
     raise OcrProviderError(

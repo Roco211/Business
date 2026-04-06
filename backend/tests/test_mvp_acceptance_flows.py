@@ -10,6 +10,7 @@ from app.runtime import router as runtime_router
 from app.runtime import tools as runtime_tools
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
+from app.services.ocr_types import OcrExtractedLineItem, OcrExtraction
 from app.services.vision_types import VisionCandidate, VisionRecognition
 from conftest import auth_headers, login_and_get_token
 
@@ -298,6 +299,82 @@ def test_acceptance_receipt_batch_stock_in_flow(client, monkeypatch) -> None:
     assert all(event.event_type == "stock-in" for event in inventory_events)
     assert len(audit_logs) == 2
     assert all(log.action == "inventory.receipt_stock_in_confirmed" for log in audit_logs)
+
+
+def test_acceptance_upload_backed_receipt_flow_uses_ocr_gateway_source_of_truth(
+    client,
+    monkeypatch,
+) -> None:
+    from app.services import ocr_documents
+
+    media_id = _create_and_complete_media_upload(
+        client,
+        media_type="receipt-image",
+        file_name="receipt-gateway-demo.jpg",
+        content_type="image/jpeg",
+    )
+
+    class _UploadedOcrGateway:
+        def extract_purchase_receipt(self, media_input):
+            assert media_input.media_id == media_id
+            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            return OcrExtraction(
+                document_type="purchase-receipt",
+                provider_name="stub-ocr",
+                raw_text="Sprite 500ml x 2",
+                line_items=[
+                    OcrExtractedLineItem(
+                        item_name="Sprite 500ml",
+                        quantity=2.0,
+                        unit="bottle",
+                        price=7.5,
+                    )
+                ],
+                total_amount=15.0,
+                low_confidence_fields=["items[0].price"],
+                used_fallback=False,
+                raw_payload={"provider": "stub-ocr"},
+            )
+
+    monkeypatch.setattr(ocr_documents, "get_default_ocr_gateway", lambda: _UploadedOcrGateway())
+
+    task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_upload_backed_receipt_gateway",
+        message_type="receipt-image",
+        text=None,
+        media_ids=[media_id],
+    )
+
+    _process_runtime_task_run(task_run_id)
+    awaiting_task_run = _get_task_run(client, task_run_id=task_run_id)
+    confirmation = _load_confirmation_for_task_run(task_run_id)
+
+    db_session = get_session_factory()()
+    try:
+        ocr_document = db_session.scalar(select(OcrDocument).where(OcrDocument.task_run_id == task_run_id))
+    finally:
+        db_session.close()
+
+    assert awaiting_task_run["status"] == "awaiting-confirmation"
+    assert awaiting_task_run["task_type"] == "receipt-ocr"
+    assert confirmation.fields["provider_name"] == "stub-ocr"
+    assert confirmation.fields["total_amount"] == 15.0
+    assert confirmation.fields["low_confidence_fields"] == ["items[0].price"]
+    assert confirmation.fields["draft_items"] == [
+        {
+            "line_id": "line_1",
+            "item_id": None,
+            "item_name": "Sprite 500ml",
+            "quantity": 2.0,
+            "unit": "bottle",
+            "price": 7.5,
+        }
+    ]
+    assert ocr_document is not None
+    assert ocr_document.provider_name == "stub-ocr"
+    assert ocr_document.low_confidence_fields == ["items[0].price"]
 
 
 def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:

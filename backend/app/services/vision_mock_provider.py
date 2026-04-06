@@ -26,6 +26,9 @@ _IMAGE_FIXTURES: Mapping[str, Mapping[str, object]] = {
 }
 
 
+_FIXTURE_MEDIA_IDS = frozenset(_IMAGE_FIXTURES.keys())
+
+
 def contains_query_intent(text_hint: str | None, media_id: str) -> bool:
     normalized_hint = (text_hint or "").strip().lower()
     if "query" in media_id or "check" in media_id:
@@ -36,17 +39,21 @@ def contains_query_intent(text_hint: str | None, media_id: str) -> bool:
     )
 
 
-def _select_fixture(media_id: str, text_hint: str | None) -> Mapping[str, object]:
-    if media_id in _IMAGE_FIXTURES:
-        return _IMAGE_FIXTURES[media_id]
+def _select_fixture(media_id: str) -> Mapping[str, object]:
+    return _IMAGE_FIXTURES.get(media_id, _IMAGE_FIXTURES["image_stock_in_demo"])
+
+
+def select_fixture_media_id(media_id: str, text_hint: str | None) -> str:
+    if media_id in _FIXTURE_MEDIA_IDS:
+        return media_id
     if contains_query_intent(text_hint, media_id):
-        return _IMAGE_FIXTURES["image_query_demo"]
-    return _IMAGE_FIXTURES["image_stock_in_demo"]
+        return "image_query_demo"
+    return "image_stock_in_demo"
 
 
 class MockVisionProvider:
     def recognize_product(self, media_input: VisionMediaInput) -> VisionRecognition:
-        fixture = _select_fixture(media_input.media_id, None)
+        fixture = _select_fixture(media_input.media_id)
         candidate = VisionCandidate(
             item_name=fixture["item_name"],  # type: ignore[arg-type]
             confidence=float(fixture["confidence"]),  # type: ignore[arg-type]

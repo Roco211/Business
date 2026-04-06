@@ -11,6 +11,7 @@ from app.services.ocr_types import OcrMediaInput
 from app.services.vision_mock_provider import (
     MockVisionProvider,
     contains_query_intent,
+    select_fixture_media_id,
 )
 from app.services.vision_types import VisionMediaInput
 
@@ -56,9 +57,10 @@ def recognize_image(*, media_ids: list[str], text_hint: str | None) -> MockImage
     if not media_ids:
         raise MockMultimodalValidationError("image media is required")
     media_id = media_ids[0]
+    fixture_media_id = select_fixture_media_id(media_id, text_hint)
     recognition = MockVisionProvider().recognize_product(
         VisionMediaInput(
-            media_id=media_id,
+            media_id=fixture_media_id,
             public_url=None,
             content_type=None,
             file_name=None,

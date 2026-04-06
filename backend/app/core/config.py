@@ -29,16 +29,12 @@ class Settings:
     ocr_provider_model: str | None = os.getenv("OCR_PROVIDER_MODEL")
     ocr_timeout_seconds: float = float(os.getenv("OCR_TIMEOUT_SECONDS", "15"))
     ocr_allow_mock_fallback: bool = True
-    vision_provider: str = os.getenv("VISION_PROVIDER", "mock")
+    vision_provider: str = os.getenv("VISION_PROVIDER", "")
     vision_provider_api_url: str | None = os.getenv("VISION_PROVIDER_API_URL")
     vision_provider_api_key: str | None = os.getenv("VISION_PROVIDER_API_KEY")
     vision_provider_model: str | None = os.getenv("VISION_PROVIDER_MODEL")
     vision_timeout_seconds: float = float(os.getenv("VISION_TIMEOUT_SECONDS", "15"))
-    vision_allow_mock_fallback: bool = os.getenv("VISION_ALLOW_MOCK_FALLBACK", "1") not in (
-        "0",
-        "false",
-        "False",
-    )
+    vision_allow_mock_fallback: bool = True
 
 
 def _build_default_database_url() -> str:
@@ -63,6 +59,7 @@ def get_settings() -> Settings:
     app_env = os.getenv("APP_ENV", "development")
     ocr_provider = os.getenv("OCR_PROVIDER", "")
     ocr_allow_env = os.getenv("OCR_ALLOW_MOCK_FALLBACK")
+    vision_allow_env = os.getenv("VISION_ALLOW_MOCK_FALLBACK")
     return Settings(
         app_env=app_env,
         app_host=os.getenv("APP_HOST", "0.0.0.0"),
@@ -83,22 +80,22 @@ def get_settings() -> Settings:
         asr_provider_model=os.getenv("ASR_PROVIDER_MODEL"),
         asr_timeout_seconds=float(os.getenv("ASR_TIMEOUT_SECONDS", "15")),
         asr_allow_mock_fallback=os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
-    ocr_provider=ocr_provider,
-    ocr_provider_api_url=os.getenv("OCR_PROVIDER_API_URL"),
-    ocr_provider_api_key=os.getenv("OCR_PROVIDER_API_KEY"),
-    ocr_provider_model=os.getenv("OCR_PROVIDER_MODEL"),
-    ocr_timeout_seconds=float(os.getenv("OCR_TIMEOUT_SECONDS", "15")),
-    ocr_allow_mock_fallback=_parse_bool_env(
-        ocr_allow_env,
-        app_env.lower() != "production",
-    ),
-    vision_provider=os.getenv("VISION_PROVIDER", "mock"),
-    vision_provider_api_url=os.getenv("VISION_PROVIDER_API_URL"),
-    vision_provider_api_key=os.getenv("VISION_PROVIDER_API_KEY"),
-    vision_provider_model=os.getenv("VISION_PROVIDER_MODEL"),
-    vision_timeout_seconds=float(os.getenv("VISION_TIMEOUT_SECONDS", "15")),
-    vision_allow_mock_fallback=_parse_bool_env(
-        os.getenv("VISION_ALLOW_MOCK_FALLBACK"),
-        app_env.lower() != "production",
-    ),
+        ocr_provider=ocr_provider,
+        ocr_provider_api_url=os.getenv("OCR_PROVIDER_API_URL"),
+        ocr_provider_api_key=os.getenv("OCR_PROVIDER_API_KEY"),
+        ocr_provider_model=os.getenv("OCR_PROVIDER_MODEL"),
+        ocr_timeout_seconds=float(os.getenv("OCR_TIMEOUT_SECONDS", "15")),
+        ocr_allow_mock_fallback=_parse_bool_env(
+            ocr_allow_env,
+            app_env.lower() != "production",
+        ),
+        vision_provider=os.getenv("VISION_PROVIDER", ""),
+        vision_provider_api_url=os.getenv("VISION_PROVIDER_API_URL"),
+        vision_provider_api_key=os.getenv("VISION_PROVIDER_API_KEY"),
+        vision_provider_model=os.getenv("VISION_PROVIDER_MODEL"),
+        vision_timeout_seconds=float(os.getenv("VISION_TIMEOUT_SECONDS", "15")),
+        vision_allow_mock_fallback=_parse_bool_env(
+            vision_allow_env,
+            app_env.lower() != "production",
+        ),
     )

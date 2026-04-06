@@ -7,13 +7,15 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Literal
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.devtools.asr_provider_eval import evaluate_asr_file
 from app.devtools.ocr_provider_eval import evaluate_ocr_path
 from app.devtools.vision_provider_eval import evaluate_vision_path
 
 Capability = Literal["asr", "ocr", "vision"]
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_ARTIFACTS_DIR = BACKEND_ROOT / "devdata" / "trial_calibration_artifacts"
 
 
 class ManifestValidationError(ValueError):
@@ -21,15 +23,19 @@ class ManifestValidationError(ValueError):
 
 
 class _ManifestCaseModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     case_id: str
     capability: Capability
     media_path: str
     media_id: str | None = None
     text_hint: str | None = None
-    expected: dict[str, Any] = Field(default_factory=dict)
+    expected: dict[str, Any]
 
 
 class _ManifestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     trial_id: str
     cases: list[_ManifestCaseModel] = Field(min_length=1)
 
@@ -212,7 +218,7 @@ def run_pilot_calibration(
     evaluate_vision: Callable[..., dict[str, Any]] = evaluate_vision_path,
 ) -> dict[str, Any]:
     manifest = load_manifest(manifest_path)
-    artifact_dir = Path(output_dir) if output_dir is not None else manifest.manifest_path.parent / "calibration_artifacts"
+    artifact_dir = Path(output_dir) if output_dir is not None else DEFAULT_ARTIFACTS_DIR
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
     case_outcomes: list[dict[str, Any]] = []

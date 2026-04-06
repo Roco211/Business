@@ -31,6 +31,57 @@ def test_load_manifest_rejects_unknown_capability(tmp_path: Path) -> None:
         load_manifest(manifest_path)
 
 
+def test_load_manifest_rejects_missing_expected(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "cases": [
+                    {
+                        "case_id": "missing-expected",
+                        "capability": "asr",
+                        "media_path": "fixtures/voice.m4a",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ManifestValidationError, match="expected"):
+        load_manifest(manifest_path)
+
+
+def test_load_manifest_rejects_extra_properties(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "unexpected_root": True,
+                "cases": [
+                    {
+                        "case_id": "has-extra-field",
+                        "capability": "ocr",
+                        "media_path": "fixtures/receipt.jpg",
+                        "expected": {},
+                        "extra_case_field": 123,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ManifestValidationError, match="Extra inputs are not permitted"):
+        load_manifest(manifest_path)
+
+
 def test_run_pilot_calibration_dispatches_and_aggregates(tmp_path: Path) -> None:
     from app.devtools.pilot_calibration import run_pilot_calibration
 
@@ -156,6 +207,48 @@ def test_run_pilot_calibration_dispatches_and_aggregates(tmp_path: Path) -> None
     assert "# Pilot Calibration Report" in markdown
     assert "| pass | warn | fail |" in markdown
     assert "| 1 | 1 | 1 |" in markdown
+
+
+def test_run_pilot_calibration_defaults_artifacts_to_private_devdata(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import DEFAULT_ARTIFACTS_DIR, run_pilot_calibration
+
+    media_path = tmp_path / "voice.m4a"
+    media_path.write_bytes(b"asr")
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-private-default",
+                "cases": [
+                    {
+                        "case_id": "asr-pass",
+                        "capability": "asr",
+                        "media_path": str(media_path),
+                        "expected": {"transcript_contains": ["cola"]},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_pilot_calibration(
+        manifest_path=manifest_path,
+        evaluate_asr=lambda **_: {
+            "transcript": "cola in stock",
+            "confidence": None,
+            "provider_name": "stub-asr",
+            "used_fallback": False,
+            "latency_ms": 1,
+        },
+        evaluate_ocr=lambda **_: {},
+        evaluate_vision=lambda **_: {},
+    )
+
+    report_path = Path(result["json_report_path"])
+    assert report_path.parent == DEFAULT_ARTIFACTS_DIR
+    assert str(report_path).startswith(str(DEFAULT_ARTIFACTS_DIR))
+    assert "fixtures/provider_calibration" not in str(report_path).replace("\\", "/")
 
 
 def test_fixture_example_manifest_is_valid() -> None:

@@ -8,9 +8,8 @@
       "media_id": "voice_query_demo",
       "expected": {
         "transcript_contains": [
-          "stock"
-        ],
-        "min_confidence": 0.7
+          "cola"
+        ]
       }
     },
     {
@@ -18,8 +17,8 @@
       "capability": "ocr",
       "media_path": "../providers/ocr/success.json",
       "expected": {
-        "total_amount": 13.0,
-        "amount_tolerance": 0.5
+        "total_amount": 147.0,
+        "amount_tolerance": 0.0
       }
     },
     {

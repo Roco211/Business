@@ -462,3 +462,45 @@ def test_fixture_example_manifest_is_valid() -> None:
 
     assert manifest.trial_id == "example-live-trial-calibration"
     assert len(manifest.cases) == 3
+
+
+def test_manifest_schema_tracks_capability_specific_expected_contract() -> None:
+    schema_path = (
+        Path(__file__).resolve().parent
+        / "fixtures"
+        / "provider_calibration"
+        / "manifest.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    case_schema = schema["properties"]["cases"]["items"]
+    conditional_rules = case_schema.get("allOf", [])
+
+    assert conditional_rules, "schema must encode capability-specific expected rules"
+
+    asr_rule = next(
+        rule
+        for rule in conditional_rules
+        if rule.get("if", {}).get("properties", {}).get("capability", {}).get("const") == "asr"
+    )
+    asr_expected = asr_rule["then"]["properties"]["expected"]
+    assert asr_expected["additionalProperties"] is False
+    assert asr_expected["properties"]["transcript_contains"]["type"] == "array"
+    assert asr_expected["properties"]["min_confidence"]["type"] == "number"
+
+    ocr_rule = next(
+        rule
+        for rule in conditional_rules
+        if rule.get("if", {}).get("properties", {}).get("capability", {}).get("const") == "ocr"
+    )
+    ocr_expected = ocr_rule["then"]["properties"]["expected"]
+    assert ocr_expected["additionalProperties"] is False
+    assert ocr_expected["properties"]["amount_tolerance"]["minimum"] == 0
+
+    vision_rule = next(
+        rule
+        for rule in conditional_rules
+        if rule.get("if", {}).get("properties", {}).get("capability", {}).get("const") == "vision"
+    )
+    vision_expected = vision_rule["then"]["properties"]["expected"]
+    assert vision_expected["additionalProperties"] is False
+    assert vision_expected["properties"]["top_candidate_in"]["type"] == "array"

@@ -1,0 +1,173 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+
+def test_load_manifest_rejects_unknown_capability(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "cases": [
+                    {
+                        "case_id": "bad-capability",
+                        "capability": "barcode",
+                        "media_path": "fixtures/barcode.jpg",
+                        "expected": {},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ManifestValidationError, match="capability"):
+        load_manifest(manifest_path)
+
+
+def test_run_pilot_calibration_dispatches_and_aggregates(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import run_pilot_calibration
+
+    media_dir = tmp_path / "media"
+    media_dir.mkdir()
+    asr_file = media_dir / "voice.m4a"
+    ocr_file = media_dir / "receipt.jpg"
+    vision_file = media_dir / "shelf.jpg"
+    asr_file.write_bytes(b"asr")
+    ocr_file.write_bytes(b"ocr")
+    vision_file.write_bytes(b"vision")
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "cases": [
+                    {
+                        "case_id": "asr-pass",
+                        "capability": "asr",
+                        "media_path": str(asr_file),
+                        "expected": {
+                            "transcript_contains": ["cola"],
+                            "min_confidence": 0.8,
+                        },
+                    },
+                    {
+                        "case_id": "ocr-warn",
+                        "capability": "ocr",
+                        "media_path": str(ocr_file),
+                        "expected": {"total_amount": 13.0, "amount_tolerance": 0.5},
+                    },
+                    {
+                        "case_id": "vision-fail",
+                        "capability": "vision",
+                        "media_path": str(vision_file),
+                        "expected": {
+                            "top_candidate_in": ["Red Bull 250ml"],
+                            "min_confidence": 0.9,
+                        },
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    calls: list[tuple[str, Path]] = []
+
+    def _fake_asr(*, audio_path: Path, media_id: str | None, text_hint: str | None):
+        assert media_id is None
+        assert text_hint is None
+        calls.append(("asr", audio_path))
+        return {
+            "transcript": "please check cola stock",
+            "confidence": 0.96,
+            "provider_name": "stub-asr",
+            "used_fallback": False,
+            "latency_ms": 80,
+        }
+
+    def _fake_ocr(*, file_path: Path):
+        calls.append(("ocr", file_path))
+        return {
+            "provider_name": "stub-ocr",
+            "used_fallback": True,
+            "total_amount": 13.0,
+            "line_items": [],
+            "low_confidence_fields": ["items[0].price"],
+            "latency_ms": 140,
+        }
+
+    def _fake_vision(*, file_path: Path):
+        calls.append(("vision", file_path))
+        return {
+            "provider_name": "stub-vision",
+            "used_fallback": False,
+            "candidates": [
+                {
+                    "item_name": "Unknown Drink",
+                    "confidence": 0.52,
+                    "packaging_hint": "can",
+                }
+            ],
+            "latency_ms": 200,
+        }
+
+    result = run_pilot_calibration(
+        manifest_path=manifest_path,
+        output_dir=tmp_path / "artifacts",
+        evaluate_asr=_fake_asr,
+        evaluate_ocr=_fake_ocr,
+        evaluate_vision=_fake_vision,
+    )
+
+    assert calls == [("asr", asr_file), ("ocr", ocr_file), ("vision", vision_file)]
+    assert result["summary"] == {
+        "total_cases": 3,
+        "pass": 1,
+        "warn": 1,
+        "fail": 1,
+        "fallback_count": 1,
+        "low_confidence_count": 2,
+    }
+    assert result["latency_ms"] == {"min": 80, "max": 200, "avg": 140, "p95": 200}
+    assert result["failure_buckets"] == {
+        "used_fallback": 1,
+        "low_confidence_signal": 1,
+        "top_candidate_mismatch": 1,
+    }
+
+    json_report_path = Path(result["json_report_path"])
+    markdown_report_path = Path(result["markdown_report_path"])
+    assert json_report_path.is_file()
+    assert markdown_report_path.is_file()
+
+    report_payload = json.loads(json_report_path.read_text(encoding="utf-8"))
+    assert report_payload["summary"]["warn"] == 1
+    assert report_payload["cases"][2]["outcome"] == "fail"
+
+    markdown = markdown_report_path.read_text(encoding="utf-8")
+    assert "# Pilot Calibration Report" in markdown
+    assert "| pass | warn | fail |" in markdown
+    assert "| 1 | 1 | 1 |" in markdown
+
+
+def test_fixture_example_manifest_is_valid() -> None:
+    from app.devtools.pilot_calibration import load_manifest
+
+    fixture_path = (
+        Path(__file__).resolve().parent
+        / "fixtures"
+        / "provider_calibration"
+        / "example_manifest.json"
+    )
+    manifest = load_manifest(fixture_path)
+
+    assert manifest.trial_id == "example-live-trial-calibration"
+    assert len(manifest.cases) == 3

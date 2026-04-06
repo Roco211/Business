@@ -5,6 +5,15 @@ from typing import Dict, List, Optional
 
 
 @dataclass(frozen=True)
+class RuntimeMediaRef:
+    media_id: str
+    media_type: str
+    content_type: str
+    file_name: str
+    public_url: str
+
+
+@dataclass(frozen=True)
 class RuntimeTurnContext:
     shop_id: str
     session_id: str
@@ -13,6 +22,7 @@ class RuntimeTurnContext:
     input_kind: str
     source_text: Optional[str] = None
     media_ids: List[str] = field(default_factory=list)
+    media_refs: List[RuntimeMediaRef] = field(default_factory=list)
     locale: str = "en-US"
     timezone: str = "UTC"
     shop_rules: Dict[str, object] = field(default_factory=dict)

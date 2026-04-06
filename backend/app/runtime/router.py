@@ -1,8 +1,8 @@
 import string
 
 from app.services.mock_multimodal import classify_image_task, extract_receipt, recognize_image
-from .tools import MockTranscriptionUnavailable, transcribe_audio
-from .types import RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
+from .tools import MockTranscriptionUnavailable, transcribe_audio_input
+from .types import RuntimeMediaRef, RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
 PUNCTUATION_TO_SPACE = str.maketrans({char: " " for char in string.punctuation})
 STOCK_IN_PHRASES = ("restock", "stock in")
@@ -44,6 +44,47 @@ def _text_or_none(value: str | None) -> str:
     return value or ""
 
 
+def _select_audio_media_ref(ctx: RuntimeTurnContext) -> RuntimeMediaRef | None:
+    for media_ref in ctx.media_refs:
+        if media_ref.media_type == "audio":
+            return media_ref
+    return None
+
+
+def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
+    audio_media_ref = _select_audio_media_ref(ctx)
+    if audio_media_ref is None:
+        raise RuntimeRouteBlocked(
+            "runtime_processing_error",
+            "Transcription failed: no ready audio media available",
+        )
+
+    try:
+        transcription = transcribe_audio_input(
+            media_ids=[audio_media_ref.media_id],
+            text_hint=ctx.source_text,
+        )
+    except MockTranscriptionUnavailable as exc:
+        raise RuntimeRouteBlocked(
+            "runtime_processing_error",
+            f"Transcription failed: {exc}",
+        ) from exc
+
+    confidence = transcription.confidence
+    low_confidence_threshold = ctx.shop_rules.get("low_confidence_threshold")
+    if (
+        confidence is not None
+        and isinstance(low_confidence_threshold, (int, float))
+        and confidence < float(low_confidence_threshold)
+    ):
+        raise RuntimeRouteBlocked(
+            "asr_low_confidence",
+            f"ASR confidence {confidence:.2f} is below threshold {float(low_confidence_threshold):.2f}",
+        )
+
+    return transcription.text
+
+
 def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
     if ctx.input_kind == "text":
         text = _text_or_none(ctx.source_text).strip()
@@ -55,13 +96,7 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             transcript=text,
         )
     if ctx.input_kind == "voice":
-        try:
-            transcript = transcribe_audio(media_ids=ctx.media_ids, text_hint=ctx.source_text)
-        except MockTranscriptionUnavailable as exc:
-            raise RuntimeRouteBlocked(
-                "runtime_processing_error",
-                f"Transcription failed: {exc}",
-            ) from exc
+        transcript = transcribe_runtime_audio(ctx)
         return RuntimeRouteDecision(
             task_type=_classify_transcript(transcript),
             assigned_employee_id="xiaoya",

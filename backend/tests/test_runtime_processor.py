@@ -781,6 +781,24 @@ def test_build_runtime_turn_context_uses_existing_pending_confirmation_id(db_ses
     assert context.pending_confirmation_id == confirmation.confirmation_id
 
 
+def test_build_runtime_turn_context_resolves_ready_media_refs_for_voice_uploads(db_session) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_context_voice_media_refs",
+    )
+
+    context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
+
+    assert context.media_ids == ["voice_query_demo"]
+    assert len(context.media_refs) == 1
+    assert context.media_refs[0].media_id == "voice_query_demo"
+    assert context.media_refs[0].media_type == "audio"
+    assert context.media_refs[0].public_url == "https://mock.example/media/voice_query_demo"
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,

@@ -12,6 +12,7 @@ class AsrMediaInput:
 class AsrTranscription:
     text: str
     provider: str
+    confidence: float | None = None
 
 
 class AsrProviderError(Exception):
@@ -25,4 +26,3 @@ class AsrProviderError(Exception):
 class AsrProvider(Protocol):
     def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
         ...
-

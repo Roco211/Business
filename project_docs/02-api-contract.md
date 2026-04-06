@@ -820,6 +820,7 @@ Response:
       "approved": 1,
       "rejected": 1
     },
+    "telemetry_task_count": 4,
     "low_confidence_count": 1,
     "fallback_count": 1,
     "provider_failures": {
@@ -837,6 +838,7 @@ Notes:
 - counts are scoped to the authenticated shop and the requested rolling time window
 - `confirmations.created` is counted by `confirmations.created_at`
 - `confirmations.approved` and `confirmations.rejected` are counted by `confirmations.resolved_at`
+- `telemetry_task_count` counts distinct `task_run_id` values from matching pilot telemetry rows in the requested window
 - `low_confidence_count`, `fallback_count`, and `provider_failures` are derived from `audit_logs(scope = pilot, action = runtime.provider_telemetry)`
 - telemetry rows from a different `trial_provider_profile` are ignored
 - an empty `trial_provider_profile` should be treated by operator tooling as a degraded pilot summary signal

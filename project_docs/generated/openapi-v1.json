@@ -1404,6 +1404,10 @@
             "title": "Task Totals",
             "type": "object"
           },
+          "telemetry_task_count": {
+            "title": "Telemetry Task Count",
+            "type": "integer"
+          },
           "time_window": {
             "$ref": "#/components/schemas/PilotSummaryTimeWindowData"
           },
@@ -1416,6 +1420,7 @@
           "time_window",
           "task_totals",
           "confirmations",
+          "telemetry_task_count",
           "low_confidence_count",
           "fallback_count",
           "provider_failures",

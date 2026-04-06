@@ -333,6 +333,19 @@ def test_pilot_summary_endpoint_returns_recent_aggregates_for_the_authenticated_
             provider_mode="real-provider",
             provider_label="vision-primary",
             outcome="completed",
+            used_fallback=False,
+            recognized_confidence=0.91,
+        )
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=approved_photo_task,
+            created_at=now - timedelta(hours=2) + timedelta(seconds=5),
+            task_type="photo-stock-in",
+            capability="vision",
+            provider_mode="real-provider",
+            provider_label="vision-primary",
+            outcome="completed",
             used_fallback=True,
             recognized_confidence=0.90,
         )
@@ -435,6 +448,7 @@ def test_pilot_summary_endpoint_returns_recent_aggregates_for_the_authenticated_
     assert payload["confirmations"]["rejected"] == 1
     assert payload["low_confidence_count"] == 1
     assert payload["fallback_count"] == 1
+    assert payload["telemetry_task_count"] == 5
     assert payload["provider_failures"]["asr_low_confidence"] == 1
     assert payload["provider_failures"]["vision_unavailable"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"
@@ -504,6 +518,7 @@ def test_pilot_summary_counts_ocr_fallback_and_low_confidence_from_real_runtime_
     assert payload["task_totals"]["receipt-ocr"]["awaiting-confirmation"] == 1
     assert payload["low_confidence_count"] == 1
     assert payload["fallback_count"] == 1
+    assert payload["telemetry_task_count"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"
 
 
@@ -555,5 +570,6 @@ def test_pilot_summary_ignores_telemetry_from_other_trial_provider_profiles(
     payload = response.json()["data"]
     assert payload["low_confidence_count"] == 0
     assert payload["fallback_count"] == 0
+    assert payload["telemetry_task_count"] == 0
     assert payload["provider_failures"] == {}
     assert payload["trial_provider_profile"] == "pilot-v1"

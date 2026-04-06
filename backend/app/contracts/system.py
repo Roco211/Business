@@ -48,6 +48,7 @@ class PilotSummaryData(BaseModel):
     time_window: PilotSummaryTimeWindowData
     task_totals: dict[str, dict[str, int]]
     confirmations: PilotSummaryConfirmationData
+    telemetry_task_count: int
     low_confidence_count: int
     fallback_count: int
     provider_failures: dict[str, int]

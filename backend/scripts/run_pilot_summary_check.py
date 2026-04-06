@@ -112,6 +112,14 @@ def _normalize_flat_int_map(value: object, *, label: str) -> dict[str, int]:
     return normalized
 
 
+def _normalize_trial_provider_profile(value: object, *, label: str) -> str:
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise TrialReadinessError(f"{label} was not a string")
+    return value
+
+
 def _resolve_auth_token(
     *,
     auth_token: str | None,
@@ -196,6 +204,10 @@ def _load_pilot_summary(
                 label="Pilot summary confirmations.rejected",
             ),
         },
+        "telemetry_task_count": _expect_int(
+            summary_payload.get("telemetry_task_count"),
+            label="Pilot summary telemetry_task_count",
+        ),
         "low_confidence_count": _expect_int(
             summary_payload.get("low_confidence_count"),
             label="Pilot summary low_confidence_count",
@@ -208,7 +220,10 @@ def _load_pilot_summary(
             summary_payload.get("provider_failures"),
             label="GET /api/v1/system/pilot-summary provider_failures",
         ),
-        "trial_provider_profile": str(summary_payload.get("trial_provider_profile") or ""),
+        "trial_provider_profile": _normalize_trial_provider_profile(
+            summary_payload.get("trial_provider_profile"),
+            label="Pilot summary trial_provider_profile",
+        ),
     }
 
 
@@ -228,6 +243,7 @@ def _build_pilot_summary_verdict(
     confirmations = pilot_summary["confirmations"]
     fallback_count = pilot_summary["fallback_count"]
     low_confidence_count = pilot_summary["low_confidence_count"]
+    telemetry_task_count = pilot_summary["telemetry_task_count"]
     provider_failures = pilot_summary["provider_failures"]
     trial_provider_profile = pilot_summary["trial_provider_profile"]
 
@@ -238,8 +254,8 @@ def _build_pilot_summary_verdict(
     )
     confirmation_rate = _compute_rate(confirmations["created"], total_task_count)
     rejection_rate = _compute_rate(confirmations["rejected"], confirmations["created"])
-    fallback_rate = _compute_rate(fallback_count, total_task_count)
-    low_confidence_rate = _compute_rate(low_confidence_count, total_task_count)
+    fallback_rate = _compute_rate(fallback_count, telemetry_task_count)
+    low_confidence_rate = _compute_rate(low_confidence_count, telemetry_task_count)
 
     reasons: list[str] = []
     if not str(trial_provider_profile).strip():
@@ -264,6 +280,7 @@ def _build_pilot_summary_verdict(
         "rejection_rate": rejection_rate,
         "task_totals": task_totals,
         "time_window": pilot_summary["time_window"],
+        "telemetry_task_count": telemetry_task_count,
         "total_task_count": total_task_count,
         "trial_provider_profile": trial_provider_profile,
     }

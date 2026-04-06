@@ -33,6 +33,7 @@ The CLI runs readiness first and the protected pilot summary route second. It pr
 - `pilot_summary.time_window`
 - `pilot_summary.task_totals`
 - `pilot_summary.total_task_count`
+- `pilot_summary.telemetry_task_count`
 - `pilot_summary.confirmations`
 - `pilot_summary.confirmation_rate`
 - `pilot_summary.rejection_rate`
@@ -60,6 +61,11 @@ Treat the pilot summary as degraded when any of the following appears in `pilot_
 - `low_confidence_rate_exceeded`
 
 The CLI also degrades when readiness is not green, even if the pilot summary metrics are otherwise within threshold.
+
+Rate denominator note:
+
+- `confirmation_rate` continues to use `total_task_count`
+- `fallback_rate` and `low_confidence_rate` use `telemetry_task_count`, which is the count of distinct in-window task runs with telemetry for the current `trial_provider_profile`
 
 ## Suggested Daily Review Cadence
 

@@ -54,6 +54,7 @@ def build_pilot_summary(
 
     low_confidence_count = 0
     fallback_count = 0
+    telemetry_task_ids: set[str] = set()
     provider_failures: dict[str, int] = defaultdict(int)
     telemetry_rows = db_session.scalars(
         select(AuditLog)
@@ -70,6 +71,8 @@ def build_pilot_summary(
         metadata = audit_log.metadata_json
         if str(metadata.get("trial_provider_profile") or "") != trial_provider_profile:
             continue
+        if isinstance(audit_log.task_run_id, str) and audit_log.task_run_id:
+            telemetry_task_ids.add(audit_log.task_run_id)
         if bool(metadata.get("low_confidence")):
             low_confidence_count += 1
         if bool(metadata.get("used_fallback")):
@@ -90,6 +93,7 @@ def build_pilot_summary(
             approved=approved_count,
             rejected=rejected_count,
         ),
+        telemetry_task_count=len(telemetry_task_ids),
         low_confidence_count=low_confidence_count,
         fallback_count=fallback_count,
         provider_failures=dict(provider_failures),

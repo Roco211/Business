@@ -1103,20 +1103,36 @@ def test_process_task_run_open_mode_allows_normal_policy_for_write_intent(
     result = process_task_run(db_session, task_run_id)
     task_run = db_session.get(TaskRun, task_run_id)
     confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
 
     assert result.status == "completed"
     assert result.task_type == "voice-stock-in"
     assert task_run is not None
     assert task_run.status == "completed"
     assert confirmation is None
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "voice-stock-in"
+    assert audit_log.metadata_json["cutover_mode"] == "open"
+    assert audit_log.metadata_json["guardrail_status"] == "allowed"
 
 
 def test_process_task_run_appends_cutover_guardrail_telemetry_for_open_allowed_voice_completion(
     db_session,
     monkeypatch,
 ) -> None:
+    class _Gateway:
+        def transcribe(self, _media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.97)
+
     monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
     monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
     _set_pilot_cutover_state(db_session, cutover_mode="open")
 
     _, task_run_id = _create_owner_message(

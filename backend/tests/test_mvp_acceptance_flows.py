@@ -247,6 +247,7 @@ def test_acceptance_chat_stock_in_confirmation_flow(client, monkeypatch) -> None
         audit_logs = db_session.scalars(select(AuditLog)).all()
     finally:
         db_session.close()
+    inventory_audit_logs = [log for log in audit_logs if log.scope == "inventory"]
 
     assert awaiting_task_run["status"] == "awaiting-confirmation"
     assert awaiting_task_run["task_type"] == "voice-stock-in"
@@ -256,8 +257,8 @@ def test_acceptance_chat_stock_in_confirmation_flow(client, monkeypatch) -> None
     assert completed_task_run["task_type"] == "voice-stock-in"
     assert len(inventory_events) == 1
     assert inventory_events[0].event_type == "stock-in"
-    assert len(audit_logs) == 1
-    assert audit_logs[0].action == "inventory.stock_in_confirmed"
+    assert len(inventory_audit_logs) == 1
+    assert inventory_audit_logs[0].action == "inventory.stock_in_confirmed"
     assert any("please confirm the stock-in details" in (message["text"] or "").lower() for message in messages)
     assert any("stock-in committed" in (message["text"] or "").lower() for message in messages)
 
@@ -734,7 +735,11 @@ def test_acceptance_chat_stock_out_confirmation_flow(client, monkeypatch) -> Non
             )
         )
         audit_log = db_session.scalar(
-            select(AuditLog).where(AuditLog.task_run_id == task_run_id)
+            select(AuditLog).where(
+                AuditLog.task_run_id == task_run_id,
+                AuditLog.scope == "inventory",
+                AuditLog.action == "inventory.stock_out_submitted",
+            )
         )
     finally:
         db_session.close()

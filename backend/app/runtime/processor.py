@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
-from app.runtime.guardrails import evaluate_pilot_cutover_guardrail
+from app.runtime.guardrails import evaluate_pilot_cutover_guardrail, is_write_intent_task_type
 from app.runtime.policy import PolicyDecision, evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
@@ -548,14 +548,25 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 ),
             )
 
+        decision_payload = {
+            **dict(decision.payload),
+            **guardrail_telemetry,
+        }
+        if (
+            context.input_kind == "text"
+            and "capability" not in decision_payload
+            and is_write_intent_task_type(decision.task_type)
+        ):
+            decision_payload = _with_guardrail_telemetry_payload(
+                payload=decision_payload,
+                task_type=decision.task_type,
+                guardrail_telemetry=guardrail_telemetry,
+            )
         decision = RuntimeRouteDecision(
             task_type=decision.task_type,
             assigned_employee_id=decision.assigned_employee_id,
             transcript=decision.transcript,
-            payload={
-                **dict(decision.payload),
-                **guardrail_telemetry,
-            },
+            payload=decision_payload,
         )
         policy = evaluate_runtime_policy(task_type=decision.task_type)
         provider_payload = dict(decision.payload)

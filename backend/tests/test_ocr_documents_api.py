@@ -127,3 +127,37 @@ def test_create_ocr_document_uses_gateway_result(db_session, seeded_shop, upload
 
     assert result.ocr_document.provider_name == "stub-ocr"
     assert result.ocr_document.low_confidence_fields == ["items[0].price"]
+    extracted_fields = result.ocr_document.extracted_fields
+    assert isinstance(extracted_fields, dict)
+    assert extracted_fields["items"][0]["name"] == "Red Bull 250ml"
+    assert extracted_fields["total_amount"] == 123.0
+
+
+def test_post_create_ocr_document_returns_structured_503_for_ocr_provider_error(client, monkeypatch) -> None:
+    from app.services import ocr_documents as ocr_documents_service
+    from app.services.ocr_types import OcrProviderError
+
+    class StubGateway:
+        def extract_purchase_receipt(self, _media_input):
+            raise OcrProviderError(
+                "ocr_unavailable",
+                "OCR provider is not configured",
+                retryable=False,
+            )
+
+    monkeypatch.setattr(ocr_documents_service, "get_default_ocr_gateway", lambda: StubGateway())
+
+    media_id = _create_uploaded_receipt_media(client)
+    response = client.post(
+        "/api/v1/ocr-documents",
+        headers=_auth_headers(client),
+        json={
+            "media_id": media_id,
+            "document_type": "purchase-receipt",
+        },
+    )
+
+    assert response.status_code == 503
+    payload = response.json()["error"]
+    assert payload["code"] == "ocr_unavailable"
+    assert payload["message"] == "OCR provider is not configured"

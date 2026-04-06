@@ -11,6 +11,7 @@ from app.runtime.summarizer import summarize_completed_task, summarize_failed_ta
 from app.services.confirmations import create_pending_confirmation
 from app.services.mock_multimodal import recognize_and_query_inventory
 from app.services.ocr_documents import create_ocr_document
+from app.services.ocr_types import OcrProviderError
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
@@ -198,6 +199,46 @@ def _recover_unexpected_failure(
     )
 
 
+def _recover_ocr_provider_failure(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    session_id: str,
+    error_code: str,
+    error_message: str,
+) -> RuntimeProcessResult:
+    # Preserve structured provider errors (for example ocr_unavailable) instead of
+    # collapsing them into runtime_processing_error.
+    db_session.rollback()
+    current_task_run = db_session.get(TaskRun, task_run_id)
+    if current_task_run is None:
+        raise LookupError(task_run_id)
+    if current_task_run.status != CREATED_STATUS or current_task_run.task_type != PENDING_CLASSIFICATION_TASK_TYPE:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=current_task_run.task_run_id,
+            task_type=current_task_run.task_type,
+            error_code=current_task_run.error_code,
+        )
+
+    recovery_claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
+    if not recovery_claim.changed:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=recovery_claim.task_run.task_run_id,
+            task_type=recovery_claim.task_run.task_type,
+            error_code=recovery_claim.task_run.error_code,
+        )
+
+    return _build_failed_result(
+        db_session,
+        task_run_id=task_run_id,
+        session_id=session_id,
+        error_code=error_code,
+        error_message=error_message,
+    )
+
+
 def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessResult:
     claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
     if not claim.changed:
@@ -347,6 +388,14 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             session_id=claim.task_run.session_id,
             error_code=exc.error_code,
             error_message=exc.error_message,
+        )
+    except OcrProviderError as exc:
+        return _recover_ocr_provider_failure(
+            db_session,
+            task_run_id=task_run_id,
+            session_id=claim.task_run.session_id,
+            error_code=exc.code,
+            error_message=exc.message,
         )
     except Exception as exc:
         return _recover_unexpected_failure(

@@ -638,6 +638,41 @@ def test_receipt_image_message_uses_gateway_backed_ocr_document(db_session, monk
     assert session_record is not None
 
 
+def test_receipt_image_message_fails_with_ocr_provider_error_code(db_session, monkeypatch) -> None:
+    from app.services import ocr_documents as ocr_documents_service
+    from app.services.ocr_types import OcrProviderError
+
+    class StubGateway:
+        def extract_purchase_receipt(self, _media_input):
+            raise OcrProviderError(
+                "ocr_unavailable",
+                "OCR provider is not configured",
+                retryable=False,
+            )
+
+    monkeypatch.setattr(ocr_documents_service, "get_default_ocr_gateway", lambda: StubGateway())
+
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_gateway_fail_001",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+
+    assert result.status == "failed"
+    assert result.task_run_id == task_run_id
+    assert result.task_type is None
+    assert result.error_code == "ocr_unavailable"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert task_run.error_code == "ocr_unavailable"
+    assert task_run.error_message == "OCR provider is not configured"
+
+
 def test_build_runtime_turn_context_scopes_recent_messages_to_source_turn(db_session) -> None:
     _, first_task_run_id = _create_owner_message(
         db_session,

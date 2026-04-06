@@ -9,7 +9,7 @@ DEGRADED_STATUS = "degraded"
 LOCAL_DEMO_RUNTIME_MODE = "local-demo"
 MOCK_MODE = "mock"
 UNSET_MODE = "unset"
-SUPPORTED_OBJECT_STORAGE_PROVIDER_NAMES = {"s3", "minio", "r2"}
+SUPPORTED_OBJECT_STORAGE_PROVIDER_NAMES = {"s3-compatible"}
 
 
 def _normalize_runtime_mode(mode: str) -> str:

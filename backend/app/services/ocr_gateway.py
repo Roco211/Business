@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from app.core.config import Settings, get_settings
@@ -25,7 +25,8 @@ class OcrGateway:
         except OcrProviderError as exc:
             if self.fallback_provider is None or not exc.retryable:
                 raise
-        return self.fallback_provider.extract_purchase_receipt(media_input)
+        fallback_extraction = self.fallback_provider.extract_purchase_receipt(media_input)
+        return replace(fallback_extraction, used_fallback=True)
 
 
 def build_ocr_gateway(settings: Settings) -> OcrGateway:

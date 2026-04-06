@@ -177,6 +177,32 @@ def test_real_vision_provider_recognize_normalizes_http_response(monkeypatch: py
     ]
 
 
+def test_real_vision_provider_falls_through_empty_candidates_alias(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        httpx,
+        "request",
+        lambda *args, **kwargs: _HttpxJsonResponse(
+            {
+                "candidates": [],
+                "result": {
+                    "candidates": [
+                        {"item_name": "Nested Candidate", "confidence": 0.73, "packaging_hint": "bottle"}
+                    ]
+                },
+            }
+        ),
+    )
+    gateway = _build_real_gateway()
+
+    result = gateway.primary_provider.recognize_product(
+        VisionMediaInput("image_alias_fallthrough", "https://example.com/i.jpg", "image/jpeg", "i.jpg")
+    )
+
+    assert result.candidates == [
+        VisionCandidate(item_name="Nested Candidate", confidence=0.73, packaging_hint="bottle")
+    ]
+
+
 def test_real_vision_provider_recognize_includes_inline_image_payload_when_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

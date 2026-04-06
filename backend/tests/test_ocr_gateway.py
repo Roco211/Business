@@ -195,6 +195,64 @@ def test_real_ocr_provider_extract_normalizes_http_response(monkeypatch: pytest.
     ]
 
 
+def test_real_ocr_provider_preserves_zero_total_amount(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        httpx,
+        "request",
+        lambda *args, **kwargs: _HttpxJsonResponse(
+            {
+                "fields": {
+                    "items": [
+                        {"name": "Promo Item", "quantity": 1, "unit": "bag", "price": 0}
+                    ],
+                    "total_amount": 0,
+                },
+                "total_amount": 42.0,
+            }
+        ),
+    )
+    gateway = _build_real_gateway()
+
+    result = gateway.primary_provider.extract_purchase_receipt(
+        OcrMediaInput("receipt_zero_total", "https://example.com/r.jpg", "image/jpeg", "r.jpg")
+    )
+
+    assert result.total_amount == 0.0
+
+
+def test_real_ocr_provider_falls_through_empty_items_aliases(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        httpx,
+        "request",
+        lambda *args, **kwargs: _HttpxJsonResponse(
+            {
+                "fields": {
+                    "items": [],
+                    "line_items": [
+                        {"name": "Fallback Item", "quantity": 2, "unit": "box", "price": 5.5}
+                    ],
+                    "total_amount": 11.0,
+                }
+            }
+        ),
+    )
+    gateway = _build_real_gateway()
+
+    result = gateway.primary_provider.extract_purchase_receipt(
+        OcrMediaInput("receipt_alias_fallthrough", "https://example.com/r.jpg", "image/jpeg", "r.jpg")
+    )
+
+    assert result.line_items == [
+        OcrExtractedLineItem(
+            item_name="Fallback Item",
+            quantity=2.0,
+            unit="box",
+            price=5.5,
+        )
+    ]
+    assert result.total_amount == 11.0
+
+
 def test_real_ocr_provider_extract_includes_inline_image_payload_when_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

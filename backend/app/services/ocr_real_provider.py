@@ -130,9 +130,7 @@ class RealOcrProvider:
             provider_name=provider_name,
             raw_text=self._as_optional_text(payload.get("raw_text") or payload.get("text")),
             line_items=line_items,
-            total_amount=self._as_float(
-                normalized_fields.get("total_amount") or payload.get("total_amount")
-            ),
+            total_amount=self._extract_total_amount(normalized_fields, payload),
             low_confidence_fields=[
                 value for value in low_confidence_fields if isinstance(value, str)
             ]
@@ -153,9 +151,18 @@ class RealOcrProvider:
             payload.get("items"),
             payload.get("line_items"),
         ):
-            if candidate is not None:
+            if candidate is not None and candidate != []:
                 return candidate
         return None
+
+    def _extract_total_amount(
+        self,
+        fields: dict[str, object],
+        payload: dict[str, object],
+    ) -> float | None:
+        if "total_amount" in fields:
+            return self._as_float(fields.get("total_amount"))
+        return self._as_float(payload.get("total_amount"))
 
     def _as_optional_text(self, value: object) -> str | None:
         if isinstance(value, str):

@@ -130,12 +130,14 @@ class RealVisionProvider:
 
     def _extract_candidates(self, payload: dict[str, object]) -> object:
         candidates = payload.get("candidates")
-        if candidates is not None:
+        if candidates is not None and candidates != []:
             return candidates
 
         result = payload.get("result")
         if isinstance(result, dict):
-            return result.get("candidates")
+            nested_candidates = result.get("candidates")
+            if nested_candidates is not None and nested_candidates != []:
+                return nested_candidates
         return None
 
     def _candidate_name(self, candidate: dict[str, object]) -> str | None:

@@ -18,6 +18,13 @@ def _load_trial_readiness_script_module():
         pytest.fail(f"scripts.run_trial_readiness_check module is missing: {exc}")
 
 
+def _load_pilot_summary_check_script_module():
+    try:
+        return importlib.import_module("scripts.run_pilot_summary_check")
+    except ModuleNotFoundError as exc:
+        pytest.fail(f"scripts.run_pilot_summary_check module is missing: {exc}")
+
+
 def test_run_trial_readiness_reports_compact_ready_summary() -> None:
     module = _load_trial_readiness_module()
     calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
@@ -323,3 +330,243 @@ def test_trial_readiness_cli_reports_error_and_exits_non_zero(capsys, monkeypatc
     assert exit_code == 1
     assert captured.out == ""
     assert "Trial readiness check failed" in captured.err
+
+
+def test_pilot_summary_check_cli_prints_compact_json_and_exits_zero_when_summary_is_ready(
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_pilot_summary_check_script_module()
+    readiness = script_module.TrialReadinessSummary(
+        api_base_url="http://127.0.0.1:8001",
+        health_status="ok",
+        runtime_mode="trial",
+        readiness_status="ready",
+        overall_status="ready",
+        object_storage={"status": "ready", "mode": "s3-compatible"},
+        providers={
+            "asr": {"status": "ready", "mode": "real-provider"},
+            "ocr": {"status": "ready", "mode": "real-provider"},
+            "vision": {"status": "ready", "mode": "real-provider"},
+        },
+    )
+    calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
+
+    def _fake_run_trial_readiness(**_: object):
+        return readiness
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        calls.append((method, path, token, payload))
+        return 200, {
+            "data": {
+                "time_window": {
+                    "hours": 24,
+                    "started_at": "2026-04-07T00:00:00",
+                    "ended_at": "2026-04-08T00:00:00",
+                },
+                "task_totals": {
+                    "voice-stock-query": {"completed": 2, "failed": 1},
+                    "photo-stock-in": {"awaiting-confirmation": 1, "completed": 1},
+                },
+                "confirmations": {"created": 2, "approved": 1, "rejected": 1},
+                "low_confidence_count": 1,
+                "fallback_count": 1,
+                "provider_failures": {},
+                "trial_provider_profile": "pilot-v1",
+            }
+        }
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", _fake_run_trial_readiness)
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(
+        [
+            "--auth-token",
+            "seed-token",
+            "--hours",
+            "24",
+            "--max-fallback-rate",
+            "0.25",
+            "--max-low-confidence-rate",
+            "0.50",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert json.loads(captured.out) == {
+        "api_base_url": "http://127.0.0.1:8001",
+        "hours": 24,
+        "overall_status": "ready",
+        "pilot_summary": {
+            "confirmations": {"approved": 1, "created": 2, "rejected": 1},
+            "confirmation_rate": 0.4,
+            "fallback_count": 1,
+            "fallback_rate": 0.2,
+            "low_confidence_count": 1,
+            "low_confidence_rate": 0.2,
+            "overall_status": "ready",
+            "provider_failures": {},
+            "reasons": [],
+            "rejection_rate": 0.5,
+            "task_totals": {
+                "photo-stock-in": {"awaiting-confirmation": 1, "completed": 1},
+                "voice-stock-query": {"completed": 2, "failed": 1},
+            },
+            "time_window": {
+                "ended_at": "2026-04-08T00:00:00",
+                "hours": 24,
+                "started_at": "2026-04-07T00:00:00",
+            },
+            "total_task_count": 5,
+            "trial_provider_profile": "pilot-v1",
+        },
+        "readiness": readiness.to_dict(),
+        "thresholds": {
+            "max_fallback_rate": 0.25,
+            "max_low_confidence_rate": 0.5,
+        },
+    }
+    assert captured.err == ""
+    assert calls == [("GET", "/api/v1/system/pilot-summary?hours=24", "seed-token", None)]
+
+
+@pytest.mark.parametrize(
+    ("status_code", "body", "message_fragment"),
+    [
+        (500, {"error": {"code": "boom"}}, "returned HTTP 500"),
+        (200, {"task_totals": {}}, "did not return a data envelope"),
+    ],
+)
+def test_pilot_summary_check_cli_reports_summary_fetch_errors(
+    status_code,
+    body,
+    message_fragment,
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_pilot_summary_check_script_module()
+    readiness = script_module.TrialReadinessSummary(
+        api_base_url="http://127.0.0.1:8001",
+        health_status="ok",
+        runtime_mode="trial",
+        readiness_status="ready",
+        overall_status="ready",
+        object_storage={"status": "ready", "mode": "s3-compatible"},
+        providers={
+            "asr": {"status": "ready", "mode": "real-provider"},
+            "ocr": {"status": "ready", "mode": "real-provider"},
+            "vision": {"status": "ready", "mode": "real-provider"},
+        },
+    )
+
+    def _fake_run_trial_readiness(**_: object):
+        return readiness
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        del method, path, token, payload
+        return status_code, body
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", _fake_run_trial_readiness)
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(["--auth-token", "seed-token"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "Pilot summary check failed" in captured.err
+    assert message_fragment in captured.err
+
+
+def test_pilot_summary_check_cli_returns_non_zero_for_missing_profile_provider_failures_and_threshold_breach(
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_pilot_summary_check_script_module()
+    readiness = script_module.TrialReadinessSummary(
+        api_base_url="http://127.0.0.1:8001",
+        health_status="ok",
+        runtime_mode="trial",
+        readiness_status="ready",
+        overall_status="ready",
+        object_storage={"status": "ready", "mode": "s3-compatible"},
+        providers={
+            "asr": {"status": "ready", "mode": "real-provider"},
+            "ocr": {"status": "ready", "mode": "real-provider"},
+            "vision": {"status": "ready", "mode": "real-provider"},
+        },
+    )
+
+    def _fake_run_trial_readiness(**_: object):
+        return readiness
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        del method, path, token, payload
+        return 200, {
+            "data": {
+                "time_window": {
+                    "hours": 24,
+                    "started_at": "2026-04-07T00:00:00",
+                    "ended_at": "2026-04-08T00:00:00",
+                },
+                "task_totals": {
+                    "voice-stock-query": {"completed": 1, "failed": 2},
+                    "photo-stock-in": {"awaiting-confirmation": 1, "completed": 1},
+                },
+                "confirmations": {"created": 3, "approved": 1, "rejected": 1},
+                "low_confidence_count": 2,
+                "fallback_count": 2,
+                "provider_failures": {"vision_unavailable": 1},
+                "trial_provider_profile": "",
+            }
+        }
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", _fake_run_trial_readiness)
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(
+        [
+            "--auth-token",
+            "seed-token",
+            "--max-fallback-rate",
+            "0.20",
+            "--max-low-confidence-rate",
+            "0.20",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    payload = json.loads(captured.out)
+    assert payload["overall_status"] == "degraded"
+    assert payload["pilot_summary"]["overall_status"] == "degraded"
+    assert payload["pilot_summary"]["trial_provider_profile"] == ""
+    assert payload["pilot_summary"]["fallback_rate"] == 0.4
+    assert payload["pilot_summary"]["low_confidence_rate"] == 0.4
+    assert payload["pilot_summary"]["provider_failures"] == {"vision_unavailable": 1}
+    assert payload["pilot_summary"]["reasons"] == [
+        "trial_provider_profile_missing",
+        "provider_failures_present",
+        "fallback_rate_exceeded",
+        "low_confidence_rate_exceeded",
+    ]
+    assert captured.err == ""

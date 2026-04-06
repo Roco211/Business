@@ -15,6 +15,7 @@ class ReadinessCheckData(BaseModel):
 class SystemReadinessData(BaseModel):
     overall_status: str
     runtime_mode: str
+    trial_provider_profile: str
     checks: dict[str, ReadinessCheckData]
 
 

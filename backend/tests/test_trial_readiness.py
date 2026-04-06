@@ -38,6 +38,7 @@ def test_run_trial_readiness_reports_compact_ready_summary() -> None:
                 "data": {
                     "overall_status": "ready",
                     "runtime_mode": "trial",
+                    "trial_provider_profile": "pilot-v1",
                     "checks": {
                         "object_storage": {
                             "status": "ready",
@@ -45,9 +46,34 @@ def test_run_trial_readiness_reports_compact_ready_summary() -> None:
                             "message": "ok",
                             "details": {},
                         },
-                        "asr": {"status": "ready", "mode": "real-provider", "message": "ok", "details": {}},
-                        "ocr": {"status": "ready", "mode": "real-provider", "message": "ok", "details": {}},
-                        "vision": {"status": "ready", "mode": "real-provider", "message": "ok", "details": {}},
+                        "asr": {
+                            "status": "ready",
+                            "mode": "real-provider",
+                            "message": "ok",
+                            "details": {"provider_label": "asr-primary"},
+                        },
+                        "ocr": {
+                            "status": "ready",
+                            "mode": "real-provider",
+                            "message": "ok",
+                            "details": {"provider_label": "ocr-primary"},
+                        },
+                        "vision": {
+                            "status": "ready",
+                            "mode": "real-provider",
+                            "message": "ok",
+                            "details": {"provider_label": "vision-primary"},
+                        },
+                        "trial_profile": {
+                            "status": "ready",
+                            "mode": "trial",
+                            "message": "ok",
+                            "details": {
+                                "trial_provider_profile": "pilot-v1",
+                                "calibration_dataset_dir_configured": "true",
+                                "calibration_artifacts_dir_configured": "true",
+                            },
+                        },
                     },
                 }
             }
@@ -101,11 +127,21 @@ def test_run_trial_readiness_logs_in_when_bearer_token_is_omitted() -> None:
                 "data": {
                     "overall_status": "degraded",
                     "runtime_mode": "trial",
+                    "trial_provider_profile": "",
                     "checks": {
                         "object_storage": {"status": "ready", "mode": "s3-compatible", "message": "ok", "details": {}},
                         "asr": {"status": "degraded", "mode": "real-provider", "message": "bad", "details": {}},
                         "ocr": {"status": "ready", "mode": "real-provider", "message": "ok", "details": {}},
                         "vision": {"status": "ready", "mode": "real-provider", "message": "ok", "details": {}},
+                        "trial_profile": {
+                            "status": "degraded",
+                            "mode": "trial",
+                            "message": "missing metadata",
+                            "details": {
+                                "reason": "missing_config",
+                                "missing_fields": "trial_provider_profile",
+                            },
+                        },
                     },
                 }
             }

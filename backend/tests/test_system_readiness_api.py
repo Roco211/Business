@@ -120,6 +120,12 @@ def test_readiness_endpoint_reports_degraded_for_trial_when_live_provider_config
 
 def test_readiness_endpoint_reports_ready_for_trial_with_valid_live_config(client, monkeypatch) -> None:
     monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setenv("OCR_PROVIDER_LABEL", "ocr-primary")
+    monkeypatch.setenv("VISION_PROVIDER_LABEL", "vision-primary")
+    monkeypatch.setenv("TRIAL_CALIBRATION_DATASET_DIR", "/tmp/trial/calibration-dataset")
+    monkeypatch.setenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", "/tmp/trial/calibration-artifacts")
     monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "s3-compatible")
     monkeypatch.setenv("OBJECT_STORAGE_BUCKET", "trial-bucket")
     monkeypatch.setenv("OBJECT_STORAGE_REGION", "ap-southeast-1")
@@ -148,14 +154,21 @@ def test_readiness_endpoint_reports_ready_for_trial_with_valid_live_config(clien
     payload = response.json()["data"]
     assert payload["overall_status"] == "ready"
     assert payload["runtime_mode"] == "trial"
+    assert payload["trial_provider_profile"] == "pilot-v1"
     assert payload["checks"]["object_storage"]["status"] == "ready"
     assert payload["checks"]["object_storage"]["mode"] == "s3-compatible"
     assert payload["checks"]["asr"]["status"] == "ready"
     assert payload["checks"]["asr"]["mode"] == "real-provider"
+    assert payload["checks"]["asr"]["details"]["provider_label"] == "asr-primary"
     assert payload["checks"]["ocr"]["status"] == "ready"
     assert payload["checks"]["ocr"]["mode"] == "real-provider"
+    assert payload["checks"]["ocr"]["details"]["provider_label"] == "ocr-primary"
     assert payload["checks"]["vision"]["status"] == "ready"
     assert payload["checks"]["vision"]["mode"] == "real-provider"
+    assert payload["checks"]["vision"]["details"]["provider_label"] == "vision-primary"
+    assert payload["checks"]["trial_profile"]["status"] == "ready"
+    assert payload["checks"]["trial_profile"]["details"]["calibration_dataset_dir_configured"] == "true"
+    assert payload["checks"]["trial_profile"]["details"]["calibration_artifacts_dir_configured"] == "true"
 
 
 def test_readiness_endpoint_reports_degraded_for_trial_when_live_provider_allows_mock_fallback(
@@ -201,3 +214,48 @@ def test_readiness_endpoint_reports_degraded_for_trial_when_live_provider_allows
     assert payload["checks"]["vision"]["status"] == "degraded"
     assert payload["checks"]["vision"]["details"]["allow_mock_fallback"] == "true"
     assert payload["checks"]["vision"]["details"]["reason"] == "trial_guardrail"
+
+
+def test_readiness_endpoint_reports_degraded_for_trial_when_profile_metadata_is_missing(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.delenv("TRIAL_PROVIDER_PROFILE", raising=False)
+    monkeypatch.delenv("ASR_PROVIDER_LABEL", raising=False)
+    monkeypatch.delenv("OCR_PROVIDER_LABEL", raising=False)
+    monkeypatch.delenv("VISION_PROVIDER_LABEL", raising=False)
+    monkeypatch.delenv("TRIAL_CALIBRATION_DATASET_DIR", raising=False)
+    monkeypatch.delenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", raising=False)
+    monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "s3-compatible")
+    monkeypatch.setenv("OBJECT_STORAGE_BUCKET", "trial-bucket")
+    monkeypatch.setenv("OBJECT_STORAGE_REGION", "ap-southeast-1")
+    monkeypatch.setenv("OBJECT_STORAGE_ENDPOINT_URL", "https://s3.example.com")
+    monkeypatch.setenv("OBJECT_STORAGE_ACCESS_KEY", "access")
+    monkeypatch.setenv("OBJECT_STORAGE_SECRET_KEY", "secret")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_API_URL", "https://asr.example.com/v1")
+    monkeypatch.setenv("ASR_PROVIDER_API_KEY", "asr-key")
+    monkeypatch.setenv("ASR_PROVIDER_MODEL", "asr-model")
+    monkeypatch.setenv("ASR_ALLOW_MOCK_FALLBACK", "0")
+    monkeypatch.setenv("OCR_PROVIDER", "real-provider")
+    monkeypatch.setenv("OCR_PROVIDER_API_URL", "https://ocr.example.com/v1")
+    monkeypatch.setenv("OCR_PROVIDER_API_KEY", "ocr-key")
+    monkeypatch.setenv("OCR_PROVIDER_MODEL", "ocr-model")
+    monkeypatch.setenv("OCR_ALLOW_MOCK_FALLBACK", "0")
+    monkeypatch.setenv("VISION_PROVIDER", "real-provider")
+    monkeypatch.setenv("VISION_PROVIDER_API_URL", "https://vision.example.com/v1")
+    monkeypatch.setenv("VISION_PROVIDER_API_KEY", "vision-key")
+    monkeypatch.setenv("VISION_PROVIDER_MODEL", "vision-model")
+    monkeypatch.setenv("VISION_ALLOW_MOCK_FALLBACK", "0")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "degraded"
+    assert payload["runtime_mode"] == "trial"
+    assert payload["trial_provider_profile"] == ""
+    assert payload["checks"]["trial_profile"]["status"] == "degraded"
+    assert payload["checks"]["trial_profile"]["details"]["reason"] == "missing_config"
+    assert payload["checks"]["trial_profile"]["details"]["missing_fields"] == (
+        "trial_provider_profile,asr_provider_label,ocr_provider_label,vision_provider_label,"
+        "trial_calibration_dataset_dir,trial_calibration_artifacts_dir"
+    )

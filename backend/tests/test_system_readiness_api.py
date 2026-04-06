@@ -56,3 +56,61 @@ def test_readiness_endpoint_reports_degraded_for_trial_with_mock_or_unset_depend
     assert payload["checks"]["ocr"]["mode"] == "unset"
     assert payload["checks"]["vision"]["status"] == "degraded"
     assert payload["checks"]["vision"]["mode"] == "unset"
+
+
+def test_readiness_endpoint_reports_degraded_for_trial_with_unsupported_live_providers(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "typo-storage")
+    monkeypatch.setenv("ASR_PROVIDER", "typo-asr")
+    monkeypatch.setenv("OCR_PROVIDER", "typo-ocr")
+    monkeypatch.setenv("VISION_PROVIDER", "typo-vision")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "degraded"
+    assert payload["checks"]["object_storage"]["status"] == "degraded"
+    assert payload["checks"]["object_storage"]["mode"] == "typo-storage"
+    assert payload["checks"]["asr"]["status"] == "degraded"
+    assert payload["checks"]["asr"]["mode"] == "typo-asr"
+    assert payload["checks"]["ocr"]["status"] == "degraded"
+    assert payload["checks"]["ocr"]["mode"] == "typo-ocr"
+    assert payload["checks"]["vision"]["status"] == "degraded"
+    assert payload["checks"]["vision"]["mode"] == "typo-vision"
+
+
+def test_readiness_endpoint_reports_degraded_for_trial_when_live_provider_config_is_missing(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "s3")
+    monkeypatch.delenv("OBJECT_STORAGE_BUCKET", raising=False)
+    monkeypatch.delenv("OBJECT_STORAGE_REGION", raising=False)
+    monkeypatch.delenv("OBJECT_STORAGE_ENDPOINT_URL", raising=False)
+    monkeypatch.delenv("OBJECT_STORAGE_ACCESS_KEY", raising=False)
+    monkeypatch.delenv("OBJECT_STORAGE_SECRET_KEY", raising=False)
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.delenv("ASR_PROVIDER_API_URL", raising=False)
+    monkeypatch.delenv("ASR_PROVIDER_API_KEY", raising=False)
+    monkeypatch.delenv("ASR_PROVIDER_MODEL", raising=False)
+    monkeypatch.setenv("OCR_PROVIDER", "real-provider")
+    monkeypatch.delenv("OCR_PROVIDER_API_URL", raising=False)
+    monkeypatch.delenv("OCR_PROVIDER_API_KEY", raising=False)
+    monkeypatch.delenv("OCR_PROVIDER_MODEL", raising=False)
+    monkeypatch.setenv("VISION_PROVIDER", "real-provider")
+    monkeypatch.delenv("VISION_PROVIDER_API_URL", raising=False)
+    monkeypatch.delenv("VISION_PROVIDER_API_KEY", raising=False)
+    monkeypatch.delenv("VISION_PROVIDER_MODEL", raising=False)
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "degraded"
+    assert payload["checks"]["object_storage"]["status"] == "degraded"
+    assert payload["checks"]["object_storage"]["mode"] == "s3"
+    assert payload["checks"]["asr"]["status"] == "degraded"
+    assert payload["checks"]["asr"]["mode"] == "real-provider"
+    assert payload["checks"]["ocr"]["status"] == "degraded"
+    assert payload["checks"]["ocr"]["mode"] == "real-provider"
+    assert payload["checks"]["vision"]["status"] == "degraded"
+    assert payload["checks"]["vision"]["mode"] == "real-provider"

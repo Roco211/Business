@@ -135,6 +135,15 @@ def test_real_provider_missing_credentials_raises_unavailable() -> None:
     assert excinfo.value.retryable is False
 
 
+def test_unsupported_provider_name_raises_controlled_error() -> None:
+    with pytest.raises(AsrProviderError) as excinfo:
+        build_asr_gateway(_build_settings(asr_provider="typo-provider"))
+
+    assert excinfo.value.code == "asr_unavailable"
+    assert str(excinfo.value) == "unsupported ASR provider: typo-provider"
+    assert excinfo.value.retryable is False
+
+
 def test_real_provider_with_credentials_builds_gateway() -> None:
     gateway = _build_real_gateway(asr_timeout_seconds=21.5)
     real_provider_type = _get_real_provider_type()
@@ -219,6 +228,23 @@ def test_real_provider_uses_mock_fallback_when_enabled(monkeypatch: pytest.Monke
     assert result == AsrTranscription(text="restock apples today", provider="mock")
 
 
+def test_real_provider_permanent_adapter_error_does_not_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        del method, url, kwargs
+        return _HttpxJsonResponse({"confidence": 0.87})
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway(asr_allow_mock_fallback=True)
+
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.transcribe(AsrMediaInput(media_ids=["voice_stock_in_demo"], text_hint=None))
+
+    assert excinfo.value.code == "asr_unavailable"
+    assert str(excinfo.value) == "ASR provider response did not include transcript text"
+    assert excinfo.value.retryable is False
+
+
 def test_get_default_asr_gateway_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ASR_PROVIDER", "mock")
     get_default_asr_gateway.cache_clear()
@@ -234,7 +260,7 @@ def test_gateway_returns_primary_provider_success() -> None:
     assert actual == expected
 
 
-def test_gateway_uses_fallback_when_primary_raises_provider_error() -> None:
+def test_gateway_uses_fallback_when_primary_raises_retryable_provider_error() -> None:
     primary = _StaticProvider(
         error=AsrProviderError("asr_unavailable", "primary down", retryable=True)
     )
@@ -243,6 +269,17 @@ def test_gateway_uses_fallback_when_primary_raises_provider_error() -> None:
 
     actual = gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
     assert actual == AsrTranscription(text="fallback", provider="mock")
+
+
+def test_gateway_does_not_use_fallback_for_non_retryable_provider_error() -> None:
+    expected = AsrProviderError("asr_unavailable", "primary malformed", retryable=False)
+    fallback = _StaticProvider(result=AsrTranscription(text="fallback", provider="mock"))
+    gateway = AsrGateway(primary_provider=_StaticProvider(error=expected), fallback_provider=fallback)
+
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
+
+    assert excinfo.value is expected
 
 
 def test_gateway_reraises_provider_error_when_no_fallback() -> None:

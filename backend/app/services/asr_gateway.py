@@ -6,6 +6,8 @@ from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_real_provider import RealAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProvider, AsrProviderError, AsrTranscription
 
+SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider"}
+
 
 @dataclass(frozen=True)
 class AsrGateway:
@@ -15,8 +17,8 @@ class AsrGateway:
     def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
         try:
             return self.primary_provider.transcribe(media_input)
-        except AsrProviderError:
-            if self.fallback_provider is None:
+        except AsrProviderError as exc:
+            if self.fallback_provider is None or not exc.retryable:
                 raise
         return self.fallback_provider.transcribe(media_input)
 
@@ -25,6 +27,12 @@ def build_asr_gateway(settings: Settings) -> AsrGateway:
     provider_name = settings.asr_provider.strip().lower()
     if provider_name == "mock":
         return AsrGateway(primary_provider=MockAsrProvider())
+    if provider_name not in SUPPORTED_REAL_PROVIDER_NAMES:
+        raise AsrProviderError(
+            "asr_unavailable",
+            f"unsupported ASR provider: {settings.asr_provider}",
+            retryable=False,
+        )
 
     if not settings.asr_provider_api_url or not settings.asr_provider_api_key or not settings.asr_provider_model:
         raise AsrProviderError(

@@ -68,6 +68,8 @@ def build_pilot_summary(
     ).all()
     for audit_log in telemetry_rows:
         metadata = audit_log.metadata_json
+        if str(metadata.get("trial_provider_profile") or "") != trial_provider_profile:
+            continue
         if bool(metadata.get("low_confidence")):
             low_confidence_count += 1
         if bool(metadata.get("used_fallback")):

@@ -9,6 +9,7 @@ from app.models import AuditLog, Confirmation, MediaUpload, Message, OcrDocument
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime import tools as runtime_tools
+from app.runtime.types import RuntimeTurnContext
 from app.runtime.processor import process_task_run
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
@@ -1050,6 +1051,40 @@ def test_process_task_run_appends_provider_telemetry_for_asr_low_confidence_fail
         "error_code": "asr_low_confidence",
         "trial_provider_profile": "pilot-v1",
     }
+
+
+def test_process_task_run_does_not_append_provider_telemetry_for_missing_ready_voice_media_route_block(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_missing_ready_media_no_telemetry",
+    )
+    original_build_context = runtime_processor.build_runtime_turn_context
+
+    def build_context_without_media_refs(db_session, *, task_run_id: str) -> RuntimeTurnContext:
+        context = original_build_context(db_session, task_run_id=task_run_id)
+        return replace(context, media_refs=[])
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setattr(runtime_processor, "build_runtime_turn_context", build_context_without_media_refs)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_logs = db_session.scalars(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    ).all()
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert audit_logs == []
 
 
 def test_process_task_run_appends_ocr_provider_telemetry_for_receipt_confirmation(

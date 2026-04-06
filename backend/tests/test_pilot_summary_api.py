@@ -505,3 +505,55 @@ def test_pilot_summary_counts_ocr_fallback_and_low_confidence_from_real_runtime_
     assert payload["low_confidence_count"] == 1
     assert payload["fallback_count"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"
+
+
+def test_pilot_summary_ignores_telemetry_from_other_trial_provider_profiles(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        now = _now()
+        task_run_id = _insert_task_run(
+            db_session,
+            shop_id=context.shop.shop_id,
+            session_id=context.session.session_id,
+            task_type="voice-stock-query",
+            status="failed",
+            created_at=now - timedelta(minutes=30),
+            completed_at=now - timedelta(minutes=25),
+            error_code="asr_low_confidence",
+        )
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=task_run_id,
+            created_at=now - timedelta(minutes=25),
+            task_type="voice-stock-query",
+            capability="asr",
+            provider_mode="real-provider",
+            provider_label="asr-primary",
+            outcome="failed",
+            used_fallback=True,
+            low_confidence=True,
+            error_code="asr_low_confidence",
+            trial_provider_profile="pilot-v2",
+        )
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    response = client.get(
+        "/api/v1/system/pilot-summary?hours=24",
+        headers=_auth_headers(client, monkeypatch),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["low_confidence_count"] == 0
+    assert payload["fallback_count"] == 0
+    assert payload["provider_failures"] == {}
+    assert payload["trial_provider_profile"] == "pilot-v1"

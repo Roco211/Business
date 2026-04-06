@@ -591,6 +591,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             error_code=None,
         )
     except RuntimeRouteBlocked as exc:
+        telemetry_payload = getattr(exc, "telemetry", None)
         return _build_failed_result(
             db_session,
             shop_id=context.shop_id if context is not None else None,
@@ -599,11 +600,11 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             error_code=exc.error_code,
             error_message=exc.error_message,
             provider_telemetry=_build_provider_telemetry_record(
-                context_input_kind=context.input_kind if context is not None else "text",
+                context_input_kind=context.input_kind,
                 task_type=None,
-                payload=getattr(exc, "telemetry", None),
+                payload=telemetry_payload,
             )
-            if context is not None
+            if context is not None and telemetry_payload is not None
             else None,
         )
     except OcrProviderError as exc:

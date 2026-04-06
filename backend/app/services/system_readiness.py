@@ -39,6 +39,7 @@ def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> Read
     vision_provider_label = settings.vision_provider_label.strip()
     trial_calibration_dataset_dir = settings.trial_calibration_dataset_dir.strip()
     trial_calibration_artifacts_dir = settings.trial_calibration_artifacts_dir.strip()
+    allowed_live_pilot_shop_ids = settings.live_pilot_allowed_shop_ids()
 
     details = {
         "trial_provider_profile": trial_provider_profile,
@@ -47,8 +48,10 @@ def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> Read
         "vision_provider_label": vision_provider_label,
         "trial_calibration_dataset_dir": trial_calibration_dataset_dir,
         "trial_calibration_artifacts_dir": trial_calibration_artifacts_dir,
+        "allowed_live_pilot_shop_ids": ",".join(allowed_live_pilot_shop_ids),
         "calibration_dataset_dir_configured": str(bool(trial_calibration_dataset_dir)).lower(),
         "calibration_artifacts_dir_configured": str(bool(trial_calibration_artifacts_dir)).lower(),
+        "allowed_live_pilot_shops_configured": str(bool(allowed_live_pilot_shop_ids)).lower(),
         "missing_profile_metadata": "false",
     }
 
@@ -68,6 +71,7 @@ def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> Read
             "vision_provider_label": vision_provider_label,
             "trial_calibration_dataset_dir": trial_calibration_dataset_dir,
             "trial_calibration_artifacts_dir": trial_calibration_artifacts_dir,
+            "allowed_live_pilot_shop_ids": ",".join(allowed_live_pilot_shop_ids),
         }
     )
     if missing_fields:

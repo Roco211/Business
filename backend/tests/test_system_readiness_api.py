@@ -126,6 +126,7 @@ def test_readiness_endpoint_reports_ready_for_trial_with_valid_live_config(clien
     monkeypatch.setenv("VISION_PROVIDER_LABEL", "vision-primary")
     monkeypatch.setenv("TRIAL_CALIBRATION_DATASET_DIR", "/tmp/trial/calibration-dataset")
     monkeypatch.setenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", "/tmp/trial/calibration-artifacts")
+    monkeypatch.setenv("LIVE_PILOT_ALLOWED_SHOP_IDS", "shop_default")
     monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "s3-compatible")
     monkeypatch.setenv("OBJECT_STORAGE_BUCKET", "trial-bucket")
     monkeypatch.setenv("OBJECT_STORAGE_REGION", "ap-southeast-1")
@@ -224,6 +225,7 @@ def test_readiness_endpoint_reports_degraded_for_trial_when_profile_metadata_is_
     monkeypatch.delenv("VISION_PROVIDER_LABEL", raising=False)
     monkeypatch.delenv("TRIAL_CALIBRATION_DATASET_DIR", raising=False)
     monkeypatch.delenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", raising=False)
+    monkeypatch.delenv("LIVE_PILOT_ALLOWED_SHOP_IDS", raising=False)
     monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "s3-compatible")
     monkeypatch.setenv("OBJECT_STORAGE_BUCKET", "trial-bucket")
     monkeypatch.setenv("OBJECT_STORAGE_REGION", "ap-southeast-1")
@@ -257,7 +259,7 @@ def test_readiness_endpoint_reports_degraded_for_trial_when_profile_metadata_is_
     assert payload["checks"]["trial_profile"]["details"]["reason"] == "missing_config"
     assert payload["checks"]["trial_profile"]["details"]["missing_fields"] == (
         "trial_provider_profile,asr_provider_label,ocr_provider_label,vision_provider_label,"
-        "trial_calibration_dataset_dir,trial_calibration_artifacts_dir"
+        "trial_calibration_dataset_dir,trial_calibration_artifacts_dir,allowed_live_pilot_shop_ids"
     )
 
 

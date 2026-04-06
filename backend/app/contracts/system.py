@@ -56,6 +56,10 @@ class PilotSummaryData(BaseModel):
     low_confidence_count: int
     fallback_count: int
     provider_failures: dict[str, int]
+    cutover_mode_counts: dict[str, int]
+    guardrail_blocks: dict[str, int]
+    shadow_forced_confirmation_count: int
+    guardrail_degraded_reasons: dict[str, int]
     trial_provider_profile: str
 
 

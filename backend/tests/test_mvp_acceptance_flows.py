@@ -52,11 +52,16 @@ def _post_session_message(
     return response.json()["data"]["task_run_id"]
 
 
-def _process_runtime_task_run(task_run_id: str) -> None:
+def _process_runtime_task_run(
+    task_run_id: str,
+    *,
+    expected_statuses: set[str] | None = None,
+) -> None:
     db_session = get_session_factory()()
     try:
         result = process_task_run(db_session, task_run_id)
-        assert result.status in {"awaiting-confirmation", "completed"}
+        allowed_statuses = expected_statuses or {"awaiting-confirmation", "completed"}
+        assert result.status in allowed_statuses
     finally:
         db_session.close()
 
@@ -255,6 +260,46 @@ def test_acceptance_chat_stock_in_confirmation_flow(client, monkeypatch) -> None
     assert audit_logs[0].action == "inventory.stock_in_confirmed"
     assert any("please confirm the stock-in details" in (message["text"] or "").lower() for message in messages)
     assert any("stock-in committed" in (message["text"] or "").lower() for message in messages)
+
+
+def test_acceptance_chat_stock_in_is_blocked_when_pilot_cutover_is_closed(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+
+    task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_chat_stock_in_cutover_closed",
+        message_type="text",
+        text="restock apples today",
+        media_ids=[],
+    )
+
+    _process_runtime_task_run(task_run_id, expected_statuses={"failed"})
+    failed_task_run = _get_task_run(client, task_run_id=task_run_id)
+
+    db_session = get_session_factory()()
+    try:
+        confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+        telemetry_log = db_session.scalar(
+            select(AuditLog).where(
+                AuditLog.task_run_id == task_run_id,
+                AuditLog.scope == "pilot",
+                AuditLog.action == "runtime.provider_telemetry",
+            )
+        )
+    finally:
+        db_session.close()
+
+    assert failed_task_run["status"] == "failed"
+    assert failed_task_run["error_code"] == "pilot_cutover_closed"
+    assert confirmation is None
+    assert telemetry_log is not None
+    assert telemetry_log.metadata_json["task_type"] == "voice-stock-in"
+    assert telemetry_log.metadata_json["cutover_mode"] == "closed"
+    assert telemetry_log.metadata_json["guardrail_status"] == "blocked"
+    assert telemetry_log.metadata_json["guardrail_reason"] == "cutover_mode_closed"
+    assert telemetry_log.metadata_json["error_code"] == "pilot_cutover_closed"
 
 
 def test_acceptance_receipt_batch_stock_in_flow(client, monkeypatch) -> None:

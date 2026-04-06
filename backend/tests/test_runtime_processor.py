@@ -9,12 +9,14 @@ from app.models import AuditLog, Confirmation, MediaUpload, Message, OcrDocument
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime import tools as runtime_tools
+from app.runtime.policy import PolicyDecision
 from app.runtime.types import RuntimeTurnContext
 from app.runtime.processor import process_task_run
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import create_message
+from app.services.pilot_control import get_or_create_pilot_control
 from app.services.task_runs import (
     TaskRunTransitionError,
     claim_task_run_for_runtime,
@@ -125,6 +127,28 @@ def _insert_confirmation_probe(
     db_session.add(confirmation)
     db_session.commit()
     return confirmation
+
+
+def _set_pilot_cutover_state(
+    db_session,
+    *,
+    cutover_mode: str,
+    runtime_profile: str = "pilot-v1",
+    pilot_profile: str | None = None,
+    approved_calibration_artifact_id: str | None = "artifact_20260407",
+    last_preflight_status: str | None = "ready",
+) -> None:
+    context = ensure_default_context(db_session)
+    pilot_control, _ = get_or_create_pilot_control(
+        db_session,
+        shop_id=context.shop.shop_id,
+        trial_provider_profile=runtime_profile,
+    )
+    pilot_control.cutover_mode = cutover_mode
+    pilot_control.trial_provider_profile = runtime_profile if pilot_profile is None else pilot_profile
+    pilot_control.approved_calibration_artifact_id = approved_calibration_artifact_id
+    pilot_control.last_preflight_status = last_preflight_status
+    db_session.commit()
 
 
 def test_text_owner_message_completes_and_writes_runtime_message(db_session) -> None:
@@ -961,6 +985,188 @@ def test_process_task_run_persists_asr_low_confidence_failures(db_session, monke
     assert "could not process" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_process_task_run_blocks_write_intent_tasks_when_pilot_cutover_is_closed(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(db_session, cutover_mode="closed")
+
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock apples",
+        media_ids=[],
+        client_request_id="runtime_cutover_closed_blocks_write_intent",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "pilot_cutover_closed"
+    assert task_run is not None
+    assert task_run.status == "failed"
+    assert task_run.error_code == "pilot_cutover_closed"
+    assert confirmation is None
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "voice-stock-in"
+    assert audit_log.metadata_json["cutover_mode"] == "closed"
+    assert audit_log.metadata_json["guardrail_status"] == "blocked"
+    assert audit_log.metadata_json["guardrail_reason"] == "cutover_mode_closed"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is False
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
+    assert audit_log.metadata_json["error_code"] == "pilot_cutover_closed"
+    assert audit_log.metadata_json["outcome"] == "failed"
+
+
+def test_process_task_run_shadow_mode_forces_confirmation_for_write_intent(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(db_session, cutover_mode="shadow")
+
+    def always_allow_policy(*, task_type: str) -> PolicyDecision:
+        return PolicyDecision(outcome="allow", confirmation_type=None)
+
+    monkeypatch.setattr(runtime_processor, "evaluate_runtime_policy", always_allow_policy)
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock pears",
+        media_ids=[],
+        client_request_id="runtime_cutover_shadow_forces_confirmation",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_type == "voice-stock-in"
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert confirmation is not None
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "voice-stock-in"
+    assert audit_log.metadata_json["cutover_mode"] == "shadow"
+    assert audit_log.metadata_json["guardrail_status"] == "forced-confirmation"
+    assert audit_log.metadata_json["guardrail_reason"] == "cutover_mode_shadow"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is True
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
+    assert audit_log.metadata_json["error_code"] is None
+    assert audit_log.metadata_json["outcome"] == "awaiting-confirmation"
+
+
+def test_process_task_run_open_mode_allows_normal_policy_for_write_intent(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(db_session, cutover_mode="open")
+
+    def always_allow_policy(*, task_type: str) -> PolicyDecision:
+        return PolicyDecision(outcome="allow", confirmation_type=None)
+
+    monkeypatch.setattr(runtime_processor, "evaluate_runtime_policy", always_allow_policy)
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock kiwi",
+        media_ids=[],
+        client_request_id="runtime_cutover_open_allows_calibrated_write_intent",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+
+    assert result.status == "completed"
+    assert result.task_type == "voice-stock-in"
+    assert task_run is not None
+    assert task_run.status == "completed"
+    assert confirmation is None
+
+
+def test_process_task_run_open_mode_mismatch_fails_safe_to_confirmation(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(
+        db_session,
+        cutover_mode="open",
+        pilot_profile="pilot-v2",
+        approved_calibration_artifact_id=None,
+        last_preflight_status="failed",
+    )
+
+    def always_allow_policy(*, task_type: str) -> PolicyDecision:
+        return PolicyDecision(outcome="allow", confirmation_type=None)
+
+    monkeypatch.setattr(runtime_processor, "evaluate_runtime_policy", always_allow_policy)
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock bananas",
+        media_ids=[],
+        client_request_id="runtime_cutover_open_mismatch_fails_safe",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_type == "voice-stock-in"
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert confirmation is not None
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "voice-stock-in"
+    assert audit_log.metadata_json["cutover_mode"] == "open"
+    assert audit_log.metadata_json["guardrail_status"] == "forced-confirmation"
+    assert audit_log.metadata_json["guardrail_reason"] == "cutover_alignment_invalid"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is False
+    assert audit_log.metadata_json["guardrail_degraded"] is True
+    assert set(audit_log.metadata_json["guardrail_degraded_reasons"]) == {
+        "preflight_not_ready",
+        "trial_provider_profile_mismatch",
+        "approved_calibration_artifact_missing",
+    }
+    assert audit_log.metadata_json["error_code"] is None
+    assert audit_log.metadata_json["outcome"] == "awaiting-confirmation"
 
 
 def test_process_task_run_appends_provider_telemetry_for_voice_completion(db_session, monkeypatch) -> None:

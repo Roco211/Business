@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -13,6 +14,7 @@ ALLOWED_MODE_TRANSITIONS = {
     MODE_SHADOW: {MODE_CLOSED, MODE_OPEN},
     MODE_OPEN: {MODE_CLOSED, MODE_SHADOW},
 }
+PREFLIGHT_READY_STATUS = "ready"
 
 
 class PilotControlValidationError(ValueError):
@@ -21,6 +23,14 @@ class PilotControlValidationError(ValueError):
 
 class PilotControlTransitionError(ValueError):
     pass
+
+
+@dataclass(frozen=True)
+class PilotRuntimeControlState:
+    cutover_mode: str
+    trial_provider_profile: str
+    approved_calibration_artifact_id: str | None
+    last_preflight_status: str | None
 
 
 def _now() -> datetime:
@@ -39,6 +49,13 @@ def _normalize_optional_text(value: str | None) -> str | None:
         return None
     normalized = value.strip()
     return normalized or None
+
+
+def normalize_cutover_mode_or_closed(mode: str | None) -> str:
+    normalized = (mode or "").strip().lower()
+    if normalized not in ALLOWED_CUTOVER_MODES:
+        return MODE_CLOSED
+    return normalized
 
 
 def _assert_valid_mode_transition(current_mode: str, next_mode: str) -> None:
@@ -82,6 +99,51 @@ def get_or_create_pilot_control(
     )
     db_session.add(created)
     return created, True
+
+
+def resolve_pilot_runtime_control_state(
+    db_session: Session,
+    *,
+    shop_id: str,
+    trial_provider_profile: str,
+) -> PilotRuntimeControlState:
+    pilot_control = db_session.get(PilotControl, shop_id)
+    if pilot_control is None:
+        pilot_control, _ = get_or_create_pilot_control(
+            db_session,
+            shop_id=shop_id,
+            trial_provider_profile=trial_provider_profile,
+        )
+    return PilotRuntimeControlState(
+        cutover_mode=normalize_cutover_mode_or_closed(pilot_control.cutover_mode),
+        trial_provider_profile=(pilot_control.trial_provider_profile or "").strip(),
+        approved_calibration_artifact_id=_normalize_optional_text(
+            pilot_control.approved_calibration_artifact_id
+        ),
+        last_preflight_status=_normalize_optional_text(pilot_control.last_preflight_status),
+    )
+
+
+def pilot_alignment_mismatch_reasons(
+    *,
+    runtime_trial_provider_profile: str,
+    control_state: PilotRuntimeControlState,
+) -> tuple[str, ...]:
+    reasons: list[str] = []
+    runtime_profile = runtime_trial_provider_profile.strip()
+    if not runtime_profile:
+        reasons.append("trial_provider_profile_missing")
+    elif control_state.trial_provider_profile != runtime_profile:
+        reasons.append("trial_provider_profile_mismatch")
+
+    if not control_state.approved_calibration_artifact_id:
+        reasons.append("approved_calibration_artifact_missing")
+
+    normalized_preflight_status = (control_state.last_preflight_status or "").strip().lower()
+    if normalized_preflight_status != PREFLIGHT_READY_STATUS:
+        reasons.append("preflight_not_ready")
+
+    return tuple(reasons)
 
 
 def mutate_pilot_control(

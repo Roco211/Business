@@ -6,9 +6,11 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
-from app.runtime.policy import evaluate_runtime_policy
+from app.runtime.guardrails import evaluate_pilot_cutover_guardrail
+from app.runtime.policy import PolicyDecision, evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
+from app.runtime.types import RuntimeRouteDecision
 from app.services.audit_logs import append_pilot_runtime_telemetry_audit_log
 from app.services.confirmations import create_pending_confirmation
 from app.services.ocr_documents import create_ocr_document
@@ -30,6 +32,37 @@ class RuntimeProcessResult:
     task_run_id: str
     task_type: str | None
     error_code: str | None
+
+
+def _default_confirmation_type_for_task(task_type: str) -> str:
+    if task_type == "voice-stock-out":
+        return "stock-out"
+    if task_type == "receipt-ocr":
+        return "receipt-stock-in-batch"
+    return "low-confidence-recognition"
+
+
+def _with_guardrail_telemetry_payload(
+    *,
+    payload: dict[str, object],
+    task_type: str,
+    guardrail_telemetry: dict[str, object],
+) -> dict[str, object]:
+    enriched_payload = dict(payload)
+    if "capability" not in enriched_payload:
+        enriched_payload.update(
+            {
+                "task_type": task_type,
+                "capability": "guardrail",
+                "provider_mode": "guardrail",
+                "provider_label": "pilot-cutover",
+                "used_fallback": False,
+                "recognized_confidence": None,
+                "low_confidence": False,
+            }
+        )
+    enriched_payload.update(guardrail_telemetry)
+    return enriched_payload
 
 
 def _build_ocr_provider_payload(
@@ -103,7 +136,7 @@ def _build_provider_telemetry_record(
         low_confidence = bool(low_confidence_raw)
     if context_input_kind not in {"voice", "image", "receipt-image"} and "capability" not in raw_payload:
         return None
-    return {
+    record: dict[str, object] = {
         "task_type": task_type or raw_payload.get("task_type"),
         "capability": capability,
         "provider_mode": provider_mode,
@@ -112,6 +145,40 @@ def _build_provider_telemetry_record(
         "recognized_confidence": recognized_confidence,
         "low_confidence": low_confidence,
     }
+    if "cutover_mode" in raw_payload:
+        cutover_mode_raw = raw_payload.get("cutover_mode")
+        record["cutover_mode"] = (
+            str(cutover_mode_raw).strip().lower()
+            if cutover_mode_raw is not None and str(cutover_mode_raw).strip()
+            else None
+        )
+    if "guardrail_status" in raw_payload:
+        guardrail_status_raw = raw_payload.get("guardrail_status")
+        record["guardrail_status"] = (
+            str(guardrail_status_raw).strip()
+            if guardrail_status_raw is not None and str(guardrail_status_raw).strip()
+            else None
+        )
+    if "guardrail_reason" in raw_payload:
+        guardrail_reason_raw = raw_payload.get("guardrail_reason")
+        record["guardrail_reason"] = (
+            str(guardrail_reason_raw).strip()
+            if guardrail_reason_raw is not None and str(guardrail_reason_raw).strip()
+            else None
+        )
+    if "shadow_forced_confirmation" in raw_payload:
+        record["shadow_forced_confirmation"] = bool(raw_payload.get("shadow_forced_confirmation"))
+    if "guardrail_degraded" in raw_payload:
+        record["guardrail_degraded"] = bool(raw_payload.get("guardrail_degraded"))
+    if "guardrail_degraded_reasons" in raw_payload:
+        degraded_reasons_raw = raw_payload.get("guardrail_degraded_reasons")
+        degraded_reasons = (
+            [str(reason).strip() for reason in degraded_reasons_raw if str(reason).strip()]
+            if isinstance(degraded_reasons_raw, list)
+            else []
+        )
+        record["guardrail_degraded_reasons"] = degraded_reasons
+    return record
 
 
 def _append_provider_telemetry(
@@ -149,6 +216,40 @@ def _append_provider_telemetry(
         outcome=outcome,
         error_code=error_code,
         trial_provider_profile=settings.trial_provider_profile.strip(),
+        cutover_mode=(
+            str(provider_telemetry.get("cutover_mode"))
+            if provider_telemetry.get("cutover_mode") is not None
+            else None
+        ),
+        guardrail_status=(
+            str(provider_telemetry.get("guardrail_status"))
+            if provider_telemetry.get("guardrail_status") is not None
+            else None
+        ),
+        guardrail_reason=(
+            str(provider_telemetry.get("guardrail_reason"))
+            if provider_telemetry.get("guardrail_reason") is not None
+            else None
+        ),
+        shadow_forced_confirmation=(
+            bool(provider_telemetry.get("shadow_forced_confirmation"))
+            if "shadow_forced_confirmation" in provider_telemetry
+            else None
+        ),
+        guardrail_degraded=(
+            bool(provider_telemetry.get("guardrail_degraded"))
+            if "guardrail_degraded" in provider_telemetry
+            else None
+        ),
+        guardrail_degraded_reasons=(
+            [
+                str(reason)
+                for reason in provider_telemetry.get("guardrail_degraded_reasons", [])
+                if str(reason).strip()
+            ]
+            if "guardrail_degraded_reasons" in provider_telemetry
+            else None
+        ),
     )
 
 
@@ -167,6 +268,8 @@ def _has_provider_telemetry_payload(payload: dict[str, object] | None) -> bool:
             "confidence",
             "low_confidence",
             "low_confidence_fields",
+            "cutover_mode",
+            "guardrail_status",
         )
     )
 
@@ -412,12 +515,59 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
     context = None
     decision = None
     try:
+        settings = get_settings()
         context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
         decision = route_runtime_input(context)
+        guardrail_decision = evaluate_pilot_cutover_guardrail(
+            db_session,
+            settings=settings,
+            shop_id=context.shop_id,
+            task_type=decision.task_type,
+        )
+        if guardrail_decision.should_block:
+            guardrail_payload = _with_guardrail_telemetry_payload(
+                payload=decision.payload,
+                task_type=decision.task_type,
+                guardrail_telemetry=guardrail_decision.telemetry_fields(),
+            )
+            return _build_failed_result(
+                db_session,
+                shop_id=context.shop_id,
+                task_run_id=task_run_id,
+                session_id=claim.task_run.session_id,
+                error_code=guardrail_decision.block_error_code or "pilot_cutover_closed",
+                error_message=(
+                    "Pilot cutover is closed for write-intent runtime tasks. "
+                    "Move to shadow/open mode before retrying."
+                ),
+                provider_telemetry=_build_provider_telemetry_record(
+                    context_input_kind=context.input_kind,
+                    task_type=decision.task_type,
+                    payload=guardrail_payload,
+                ),
+            )
+
         policy = evaluate_runtime_policy(task_type=decision.task_type)
+        provider_payload = dict(decision.payload)
+        if guardrail_decision.should_force_confirmation:
+            provider_payload = _with_guardrail_telemetry_payload(
+                payload=provider_payload,
+                task_type=decision.task_type,
+                guardrail_telemetry=guardrail_decision.telemetry_fields(),
+            )
+            decision = RuntimeRouteDecision(
+                task_type=decision.task_type,
+                assigned_employee_id=decision.assigned_employee_id,
+                transcript=decision.transcript,
+                payload=provider_payload,
+            )
+            policy = PolicyDecision(
+                outcome="require-confirmation",
+                confirmation_type=policy.confirmation_type or _default_confirmation_type_for_task(decision.task_type),
+            )
+
         if policy.outcome == "require-confirmation":
             ocr_document: OcrDocument | None = None
-            provider_payload = dict(decision.payload)
             if decision.task_type == "receipt-ocr" and context.pending_confirmation_id is None:
                 ocr_result = create_ocr_document(
                     db_session,

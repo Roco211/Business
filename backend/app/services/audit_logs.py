@@ -253,7 +253,38 @@ def append_pilot_runtime_telemetry_audit_log(
     outcome: str,
     error_code: str | None,
     trial_provider_profile: str,
+    cutover_mode: str | None = None,
+    guardrail_status: str | None = None,
+    guardrail_reason: str | None = None,
+    shadow_forced_confirmation: bool | None = None,
+    guardrail_degraded: bool | None = None,
+    guardrail_degraded_reasons: list[str] | None = None,
 ) -> AuditLog:
+    metadata_json: dict[str, object] = {
+        "task_type": task_type,
+        "capability": capability,
+        "provider_mode": provider_mode,
+        "provider_label": provider_label,
+        "used_fallback": used_fallback,
+        "recognized_confidence": recognized_confidence,
+        "low_confidence": low_confidence,
+        "outcome": outcome,
+        "error_code": error_code,
+        "trial_provider_profile": trial_provider_profile,
+    }
+    if cutover_mode is not None:
+        metadata_json["cutover_mode"] = cutover_mode
+    if guardrail_status is not None:
+        metadata_json["guardrail_status"] = guardrail_status
+    if guardrail_reason is not None:
+        metadata_json["guardrail_reason"] = guardrail_reason
+    if shadow_forced_confirmation is not None:
+        metadata_json["shadow_forced_confirmation"] = shadow_forced_confirmation
+    if guardrail_degraded is not None:
+        metadata_json["guardrail_degraded"] = guardrail_degraded
+    if guardrail_degraded_reasons is not None:
+        metadata_json["guardrail_degraded_reasons"] = list(guardrail_degraded_reasons)
+
     log = AuditLog(
         audit_log_id=new_prefixed_id("audit"),
         shop_id=shop_id,
@@ -264,18 +295,7 @@ def append_pilot_runtime_telemetry_audit_log(
         task_run_id=task_run_id,
         target_type="task_run",
         target_id=task_run_id,
-        metadata_json={
-            "task_type": task_type,
-            "capability": capability,
-            "provider_mode": provider_mode,
-            "provider_label": provider_label,
-            "used_fallback": used_fallback,
-            "recognized_confidence": recognized_confidence,
-            "low_confidence": low_confidence,
-            "outcome": outcome,
-            "error_code": error_code,
-            "trial_provider_profile": trial_provider_profile,
-        },
+        metadata_json=metadata_json,
         created_at=datetime.now(UTC).replace(tzinfo=None),
     )
     db_session.add(log)

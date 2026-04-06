@@ -56,6 +56,10 @@ def build_pilot_summary(
     fallback_count = 0
     telemetry_task_ids: set[str] = set()
     provider_failures: dict[str, int] = defaultdict(int)
+    cutover_mode_counts: dict[str, int] = defaultdict(int)
+    guardrail_blocks: dict[str, int] = defaultdict(int)
+    shadow_forced_confirmation_count = 0
+    guardrail_degraded_reasons: dict[str, int] = defaultdict(int)
     telemetry_rows = db_session.scalars(
         select(AuditLog)
         .where(
@@ -77,8 +81,35 @@ def build_pilot_summary(
             low_confidence_count += 1
         if bool(metadata.get("used_fallback")):
             fallback_count += 1
+        cutover_mode = str(metadata.get("cutover_mode") or "").strip().lower()
+        if cutover_mode:
+            cutover_mode_counts[cutover_mode] += 1
+        if bool(metadata.get("shadow_forced_confirmation")):
+            shadow_forced_confirmation_count += 1
+        if bool(metadata.get("guardrail_degraded")):
+            degraded_reasons_raw = metadata.get("guardrail_degraded_reasons")
+            if isinstance(degraded_reasons_raw, list):
+                for degraded_reason in degraded_reasons_raw:
+                    normalized_reason = str(degraded_reason or "").strip()
+                    if normalized_reason:
+                        guardrail_degraded_reasons[normalized_reason] += 1
+            else:
+                normalized_reason = str(metadata.get("guardrail_reason") or "").strip()
+                if normalized_reason:
+                    guardrail_degraded_reasons[normalized_reason] += 1
         error_code = metadata.get("error_code")
-        if isinstance(error_code, str) and error_code:
+        guardrail_status = str(metadata.get("guardrail_status") or "").strip().lower()
+        if guardrail_status == "blocked":
+            guardrail_reason = str(metadata.get("guardrail_reason") or "").strip()
+            block_key = (
+                guardrail_reason
+                if guardrail_reason
+                else str(error_code).strip()
+                if isinstance(error_code, str)
+                else "guardrail_blocked"
+            )
+            guardrail_blocks[block_key] += 1
+        elif isinstance(error_code, str) and error_code:
             provider_failures[error_code] += 1
 
     return PilotSummaryData(
@@ -97,5 +128,9 @@ def build_pilot_summary(
         low_confidence_count=low_confidence_count,
         fallback_count=fallback_count,
         provider_failures=dict(provider_failures),
+        cutover_mode_counts=dict(cutover_mode_counts),
+        guardrail_blocks=dict(guardrail_blocks),
+        shadow_forced_confirmation_count=shadow_forced_confirmation_count,
+        guardrail_degraded_reasons=dict(guardrail_degraded_reasons),
         trial_provider_profile=trial_provider_profile,
     )

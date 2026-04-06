@@ -1,47 +1,57 @@
+import { useState } from "react";
+
 import { useCreateMediaUploadMutation } from "./useCreateMediaUploadMutation";
 import { useCompleteMediaUploadMutation } from "./useCompleteMediaUploadMutation";
 import { useSendMessageMutation } from "./useSendMessageMutation";
+import { uploadDemoMedia } from "../utils/demoMediaUpload";
 
 const DEMO_CONFIG = {
   fileName: "receipt-demo.jpg",
   caption: "receipt scan today",
-  checksum: "receipt-demo-checksum",
+  uploadBody: "receipt-demo-bytes-receipt-scan-today",
 } as const;
 
 export function useSendReceiptDemoMutation(sessionId: string | null) {
   const createMediaUpload = useCreateMediaUploadMutation();
   const completeMediaUpload = useCompleteMediaUploadMutation();
   const sendMessage = useSendMessageMutation(sessionId);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function submitReceiptDemo() {
-    const createdUpload = await createMediaUpload.createMediaUpload({
-      media_type: "receipt-image",
-      file_name: DEMO_CONFIG.fileName,
-      content_type: "image/jpeg",
-      size_bytes: 2048,
-    });
-    if (createdUpload === null) {
-      return null;
+    setUploadError(null);
+    setIsUploading(true);
+    let mediaId: string | null = null;
+    try {
+      mediaId = await uploadDemoMedia({
+        mediaType: "receipt-image",
+        fileName: DEMO_CONFIG.fileName,
+        contentType: "image/jpeg",
+        body: DEMO_CONFIG.uploadBody,
+        createMediaUpload: createMediaUpload.createMediaUpload,
+        completeMediaUpload: completeMediaUpload.completeMediaUpload,
+        onUploadError: setUploadError,
+      });
+    } finally {
+      setIsUploading(false);
     }
-
-    const completedUpload = await completeMediaUpload.completeMediaUpload(createdUpload.data.media_id, {
-      checksum_sha256: DEMO_CONFIG.checksum,
-      size_bytes: 2048,
-    });
-    if (completedUpload === null) {
+    if (mediaId === null) {
       return null;
     }
 
     return await sendMessage.submitMessage(DEMO_CONFIG.caption, {
       message_type: "receipt-image",
-      media_ids: [createdUpload.data.media_id],
+      media_ids: [mediaId],
     });
   }
 
   return {
     isSubmitting:
-      createMediaUpload.isSubmitting || completeMediaUpload.isSubmitting || sendMessage.isSubmitting,
-    error: createMediaUpload.error ?? completeMediaUpload.error ?? sendMessage.error,
+      isUploading
+      || createMediaUpload.isSubmitting
+      || completeMediaUpload.isSubmitting
+      || sendMessage.isSubmitting,
+    error: uploadError ?? createMediaUpload.error ?? completeMediaUpload.error ?? sendMessage.error,
     submitReceiptDemo,
   };
 }

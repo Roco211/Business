@@ -1,23 +1,26 @@
+import { useState } from "react";
+
 import { useCreateMediaUploadMutation } from "./useCreateMediaUploadMutation";
 import { useCompleteMediaUploadMutation } from "./useCompleteMediaUploadMutation";
 import { useSendMessageMutation } from "./useSendMessageMutation";
+import { uploadDemoMedia } from "../utils/demoMediaUpload";
 
 
 const DEMO_CONFIG = {
   query: {
     fileName: "voice-query-demo.m4a",
     transcript: "check stock left for cola",
-    checksum: "voice-query-demo-checksum",
+    uploadBody: "voice-query-demo-bytes-check-stock-left-for-cola",
   },
   stock_in: {
     fileName: "voice-stock-in-demo.m4a",
     transcript: "restock apples today",
-    checksum: "voice-stock-in-demo-checksum",
+    uploadBody: "voice-stock-in-demo-bytes-restock-apples-today",
   },
   stock_out: {
     fileName: "voice-stock-out-demo.m4a",
     transcript: "stock out cola for walk in sale",
-    checksum: "voice-stock-out-demo-checksum",
+    uploadBody: "voice-stock-out-demo-bytes-stock-out-cola-for-walk-in-sale",
   },
 } as const;
 
@@ -26,37 +29,44 @@ export function useSendVoiceDemoMutation(sessionId: string | null) {
   const createMediaUpload = useCreateMediaUploadMutation();
   const completeMediaUpload = useCompleteMediaUploadMutation();
   const sendMessage = useSendMessageMutation(sessionId);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function submitVoiceDemo(kind: keyof typeof DEMO_CONFIG) {
     const demo = DEMO_CONFIG[kind];
-    const createdUpload = await createMediaUpload.createMediaUpload({
-      media_type: "audio",
-      file_name: demo.fileName,
-      content_type: "audio/m4a",
-      size_bytes: 1024,
-    });
-    if (createdUpload === null) {
-      return null;
+    setUploadError(null);
+    setIsUploading(true);
+    let mediaId: string | null = null;
+    try {
+      mediaId = await uploadDemoMedia({
+        mediaType: "audio",
+        fileName: demo.fileName,
+        contentType: "audio/m4a",
+        body: demo.uploadBody,
+        createMediaUpload: createMediaUpload.createMediaUpload,
+        completeMediaUpload: completeMediaUpload.completeMediaUpload,
+        onUploadError: setUploadError,
+      });
+    } finally {
+      setIsUploading(false);
     }
-
-    const completedUpload = await completeMediaUpload.completeMediaUpload(createdUpload.data.media_id, {
-      checksum_sha256: demo.checksum,
-      size_bytes: 1024,
-    });
-    if (completedUpload === null) {
+    if (mediaId === null) {
       return null;
     }
 
     return await sendMessage.submitMessage(demo.transcript, {
       message_type: "voice",
-      media_ids: [createdUpload.data.media_id],
+      media_ids: [mediaId],
     });
   }
 
   return {
     isSubmitting:
-      createMediaUpload.isSubmitting || completeMediaUpload.isSubmitting || sendMessage.isSubmitting,
-    error: createMediaUpload.error ?? completeMediaUpload.error ?? sendMessage.error,
+      isUploading
+      || createMediaUpload.isSubmitting
+      || completeMediaUpload.isSubmitting
+      || sendMessage.isSubmitting,
+    error: uploadError ?? createMediaUpload.error ?? completeMediaUpload.error ?? sendMessage.error,
     submitVoiceDemo,
   };
 }

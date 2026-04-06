@@ -19,6 +19,7 @@ let rejectShouldFail = false;
 let messagePostShouldFail = false;
 let mediaUploadCreateShouldFail = false;
 let mediaUploadCompleteShouldFail = false;
+let mediaUploadPutShouldFail = false;
 let includeReceiptConfirmation = false;
 let receiptConfirmationResolved = false;
 let stockOutApprovalShouldFail = false;
@@ -26,6 +27,7 @@ let includeStockOutConfirmation = false;
 let messageRequestCount = 0;
 let confirmationRequestCount = 0;
 let mediaUploadRequestCount = 0;
+let mediaUploadPutCount = 0;
 let mediaUploadCompleteCount = 0;
 let mockChatResetVersion = 0;
 const mockNotifyChatDemoDataReset = jest.fn();
@@ -64,6 +66,7 @@ describe("ChatScreen", () => {
     messagePostShouldFail = false;
     mediaUploadCreateShouldFail = false;
     mediaUploadCompleteShouldFail = false;
+    mediaUploadPutShouldFail = false;
     includeReceiptConfirmation = false;
     receiptConfirmationResolved = false;
     stockOutApprovalShouldFail = false;
@@ -71,6 +74,7 @@ describe("ChatScreen", () => {
     messageRequestCount = 0;
     confirmationRequestCount = 0;
     mediaUploadRequestCount = 0;
+    mediaUploadPutCount = 0;
     mediaUploadCompleteCount = 0;
 
     const messages = [
@@ -235,6 +239,18 @@ describe("ChatScreen", () => {
       const url = String(input);
       const method = init?.method ?? "GET";
       ensureReceiptFixture();
+
+      if (url.startsWith("https://mock.example/uploads/") && method === "PUT") {
+        mediaUploadPutCount += 1;
+        if (mediaUploadPutShouldFail) {
+          return Promise.resolve({
+            ok: false,
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+        });
+      }
 
       if (url.includes("/api/v1/media-uploads/") && url.includes("/complete") && method === "POST") {
         mediaUploadCompleteCount += 1;
@@ -826,6 +842,7 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(1);
       expect(screen.getAllByText("restock apples today").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -848,6 +865,7 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(1);
       expect(screen.getAllByText("stock out cola for walk in sale").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -871,6 +889,23 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(0);
+      expect(mediaUploadCompleteCount).toBe(0);
+    });
+  });
+
+  it("shows a recoverable error when voice upload PUT fails", async () => {
+    mediaUploadPutShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByText("Voice Query Demo"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to upload demo media bytes")).toBeTruthy();
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(0);
     });
   });
@@ -884,6 +919,7 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(1);
       expect(screen.getAllByText("check shelf stock for red bull").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -905,6 +941,7 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
       expect(mediaUploadCompleteCount).toBe(1);
       expect(screen.getAllByText("receipt scan today").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -928,6 +965,7 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
       expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(0);
       expect(mediaUploadCompleteCount).toBe(0);
     });
   });

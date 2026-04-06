@@ -102,3 +102,44 @@ You can also provide explicit login credentials or a pre-issued bearer token:
 python backend/scripts/run_local_demo_smoke.py --login-email owner@example.com --login-password dev-password
 python backend/scripts/run_local_demo_smoke.py --auth-token <access_token>
 ```
+
+## Local ASR Config
+
+The backend ASR gateway is controlled through environment variables:
+
+- `ASR_PROVIDER=mock` keeps local development on the deterministic mock provider.
+- `ASR_PROVIDER=real-provider` enables the configured remote ASR adapter.
+- `ASR_PROVIDER_API_URL` points at the real ASR HTTP endpoint when `ASR_PROVIDER=real-provider`.
+- `ASR_PROVIDER_API_KEY` provides the bearer token for the real ASR endpoint.
+- `ASR_PROVIDER_MODEL` selects the upstream transcription model.
+- `ASR_TIMEOUT_SECONDS` controls request timeout for the real provider.
+- `ASR_ALLOW_MOCK_FALLBACK=1` allows retryable real-provider failures to fall back to mock transcripts.
+- `ASR_ALLOW_MOCK_FALLBACK=0` disables that fallback so operators can see hard real-provider failures directly.
+
+The eval CLI validates the local audio path first, then sends either the explicit `--media-id` value or the filename stem through the current media-ID-based ASR gateway contract.
+
+For a mock-friendly operator check, keep `ASR_PROVIDER=mock` and run the eval CLI against any local audio file plus a fixture media ID:
+
+```powershell
+python backend/scripts/evaluate_real_asr.py C:\path\to\voice-query.m4a --media-id voice_query_demo
+```
+
+That prints compact JSON with:
+
+- `transcript`
+- `confidence`
+- `provider_name`
+- `used_fallback`
+- `latency_ms`
+
+For a real-provider smoke check, export the real ASR settings first and then point the same CLI at a local audio file. Pass `--media-id` as well if your configured gateway expects a specific upstream identifier:
+
+```powershell
+$env:ASR_PROVIDER='real-provider'
+$env:ASR_PROVIDER_API_URL='https://asr.example.com/v1/transcriptions'
+$env:ASR_PROVIDER_API_KEY='replace-me'
+$env:ASR_PROVIDER_MODEL='replace-me'
+python backend/scripts/evaluate_real_asr.py C:\path\to\sample.m4a
+```
+
+If you still want retryable real-provider failures to fall back to the mock layer during local operator checks, leave `ASR_ALLOW_MOCK_FALLBACK=1` and pass a fixture media ID such as `voice_query_demo`, `voice_stock_in_demo`, or `voice_stock_out_demo`.

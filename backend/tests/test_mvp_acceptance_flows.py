@@ -296,6 +296,42 @@ def test_acceptance_receipt_batch_stock_in_flow(client, monkeypatch) -> None:
     assert all(log.action == "inventory.receipt_stock_in_confirmed" for log in audit_logs)
 
 
+def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:
+    media_id = _create_and_complete_media_upload(
+        client,
+        media_type="audio",
+        file_name="voice-query-demo.m4a",
+        content_type="audio/m4a",
+    )
+    task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_upload_backed_voice_query",
+        message_type="voice",
+        text="check stock left for cola",
+        media_ids=[media_id],
+    )
+
+    _process_runtime_task_run(task_run_id)
+    completed_task_run = _get_task_run(client, task_run_id=task_run_id)
+    messages = _get_session_messages(client)
+
+    assert completed_task_run["status"] == "completed"
+    assert completed_task_run["task_type"] == "voice-stock-query"
+    assert completed_task_run["confirmation_id"] is None
+    assert any(
+        message["message_type"] == "voice"
+        and message["task_run_id"] == task_run_id
+        and message["media_ids"] == [media_id]
+        for message in messages
+    )
+    assert any(
+        message["task_run_id"] == task_run_id
+        and "stock query accepted" in (message["text"] or "").lower()
+        for message in messages
+    )
+
+
 def test_acceptance_manual_stock_out_opens_low_stock_alert_and_dashboard_reflects_it(
     client,
     monkeypatch,

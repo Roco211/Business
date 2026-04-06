@@ -6,6 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import InventoryItem
+from app.services.ocr_mock_provider import MockOcrProvider
+from app.services.ocr_types import OcrMediaInput
 
 
 class MockMultimodalValidationError(ValueError):
@@ -54,32 +56,6 @@ _IMAGE_FIXTURES: dict[str, MockImageRecognition] = {
         quantity=2,
         unit="can",
         price=6.5,
-    ),
-}
-
-_RECEIPT_FIXTURES: dict[str, MockReceiptExtraction] = {
-    "receipt_demo": MockReceiptExtraction(
-        document_type="purchase-receipt",
-        provider_name="mock-ocr-provider",
-        raw_text="Red Bull 250ml x 3 @ 41.0; Coca Cola 500ml x 2 @ 12.0",
-        extracted_fields={
-            "items": [
-                {
-                    "name": "Red Bull 250ml",
-                    "quantity": 3,
-                    "unit": "can",
-                    "price": 41.0,
-                },
-                {
-                    "name": "Coca Cola 500ml",
-                    "quantity": 2,
-                    "unit": "bottle",
-                    "price": 12.0,
-                }
-            ],
-            "total_amount": 147.0,
-        },
-        low_confidence_fields=[],
     ),
 }
 
@@ -151,4 +127,18 @@ def extract_receipt(*, media_ids: list[str], text_hint: str | None) -> MockRecei
     if not media_ids:
         raise MockMultimodalValidationError("receipt media is required")
     media_id = media_ids[0]
-    return _RECEIPT_FIXTURES.get(media_id, _RECEIPT_FIXTURES["receipt_demo"])
+    extraction = MockOcrProvider().extract_purchase_receipt(
+        OcrMediaInput(
+            media_id=media_id,
+            public_url=None,
+            content_type=None,
+            file_name=None,
+        )
+    )
+    return MockReceiptExtraction(
+        document_type=extraction.document_type,
+        provider_name=extraction.provider_name,
+        raw_text=extraction.raw_text or "",
+        extracted_fields=dict(extraction.raw_payload),
+        low_confidence_fields=list(extraction.low_confidence_fields),
+    )

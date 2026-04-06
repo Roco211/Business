@@ -23,6 +23,12 @@ class Settings:
     asr_provider_model: str | None = os.getenv("ASR_PROVIDER_MODEL")
     asr_timeout_seconds: float = float(os.getenv("ASR_TIMEOUT_SECONDS", "15"))
     asr_allow_mock_fallback: bool = os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
+    ocr_provider: str = os.getenv("OCR_PROVIDER", "mock")
+    ocr_provider_api_url: str | None = os.getenv("OCR_PROVIDER_API_URL")
+    ocr_provider_api_key: str | None = os.getenv("OCR_PROVIDER_API_KEY")
+    ocr_provider_model: str | None = os.getenv("OCR_PROVIDER_MODEL")
+    ocr_timeout_seconds: float = float(os.getenv("OCR_TIMEOUT_SECONDS", "15"))
+    ocr_allow_mock_fallback: bool = os.getenv("OCR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
 
 
 def _build_default_database_url() -> str:
@@ -58,4 +64,10 @@ def get_settings() -> Settings:
         asr_provider_model=os.getenv("ASR_PROVIDER_MODEL"),
         asr_timeout_seconds=float(os.getenv("ASR_TIMEOUT_SECONDS", "15")),
         asr_allow_mock_fallback=os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
+        ocr_provider=os.getenv("OCR_PROVIDER", "mock"),
+        ocr_provider_api_url=os.getenv("OCR_PROVIDER_API_URL"),
+        ocr_provider_api_key=os.getenv("OCR_PROVIDER_API_KEY"),
+        ocr_provider_model=os.getenv("OCR_PROVIDER_MODEL"),
+        ocr_timeout_seconds=float(os.getenv("OCR_TIMEOUT_SECONDS", "15")),
+        ocr_allow_mock_fallback=os.getenv("OCR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
     )

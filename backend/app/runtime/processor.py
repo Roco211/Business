@@ -152,6 +152,25 @@ def _append_provider_telemetry(
     )
 
 
+def _has_provider_telemetry_payload(payload: dict[str, object] | None) -> bool:
+    if payload is None:
+        return False
+    return any(
+        key in payload
+        for key in (
+            "capability",
+            "provider_name",
+            "provider_label",
+            "provider_mode",
+            "used_fallback",
+            "recognized_confidence",
+            "confidence",
+            "low_confidence",
+            "low_confidence_fields",
+        )
+    )
+
+
 def _build_confirmation_fields(
     *,
     task_type: str,
@@ -639,6 +658,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     payload=decision.payload if decision is not None else None,
                 )
                 if context is not None
+                and decision is not None
+                and _has_provider_telemetry_payload(decision.payload)
                 else None
             ),
         )

@@ -1248,6 +1248,38 @@ def test_process_task_run_fails_unexpected_runtime_errors_with_runtime_message(d
     assert session_record.last_message_at == runtime_messages[0].created_at
 
 
+def test_process_task_run_does_not_append_provider_telemetry_for_unexpected_pre_provider_voice_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_unexpected_pre_provider_failure",
+    )
+
+    def raise_unexpected_error(_context):
+        raise RuntimeError("boom")
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setattr(runtime_processor, "route_runtime_input", raise_unexpected_error)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_logs = db_session.scalars(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    ).all()
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert audit_logs == []
+
+
 def test_process_task_run_fails_post_route_errors_with_runtime_message(db_session, monkeypatch) -> None:
     session_id, task_run_id = _create_owner_message(
         db_session,

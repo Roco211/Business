@@ -7,15 +7,28 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from app.core.config import get_settings
 from app.devtools.asr_provider_eval import evaluate_asr_file
 from app.devtools.ocr_provider_eval import evaluate_ocr_path
 from app.devtools.vision_provider_eval import evaluate_vision_path
+from app.services.asr_types import AsrProviderError
+from app.services.ocr_types import OcrProviderError
+from app.services.vision_types import VisionProviderError
 
 Capability = Literal["asr", "ocr", "vision"]
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ARTIFACTS_DIR = BACKEND_ROOT / "devdata" / "trial_calibration_artifacts"
+EVALUATION_EXCEPTIONS = (
+    AsrProviderError,
+    OcrProviderError,
+    VisionProviderError,
+    FileNotFoundError,
+    OSError,
+    RuntimeError,
+    NotImplementedError,
+)
 
 
 class ManifestValidationError(ValueError):
@@ -25,9 +38,9 @@ class ManifestValidationError(ValueError):
 class _ManifestCaseModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    case_id: str
+    case_id: str = Field(min_length=1)
     capability: Capability
-    media_path: str
+    media_path: str = Field(min_length=1)
     media_id: str | None = None
     text_hint: str | None = None
     expected: dict[str, Any]
@@ -36,7 +49,7 @@ class _ManifestCaseModel(BaseModel):
 class _ManifestModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    trial_id: str
+    trial_id: str = Field(min_length=1)
     cases: list[_ManifestCaseModel] = Field(min_length=1)
 
 
@@ -57,27 +70,52 @@ class PilotCalibrationManifest:
     manifest_path: Path
 
 
-def _normalize_expected(*, capability: Capability, payload: dict[str, Any]) -> dict[str, Any]:
-    transcript_contains = payload.get("transcript_contains")
-    top_candidate_in = payload.get("top_candidate_in")
-    normalized = dict(payload)
+class _AsrExpectedModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
+    transcript_contains: list[str] = Field(default_factory=list)
+    min_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    @field_validator("transcript_contains", mode="before")
+    @classmethod
+    def _validate_transcript_contains(cls, value: Any) -> Any:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise TypeError("transcript_contains must be an array of strings")
+        return value
+
+
+class _OcrExpectedModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    total_amount: float | None = None
+    amount_tolerance: float = Field(default=0.0, ge=0.0)
+
+
+class _VisionExpectedModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    top_candidate_in: list[str] = Field(default_factory=list)
+    min_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    @field_validator("top_candidate_in", mode="before")
+    @classmethod
+    def _validate_top_candidate_in(cls, value: Any) -> Any:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise TypeError("top_candidate_in must be an array of strings")
+        return value
+
+
+def _normalize_expected(*, capability: Capability, payload: dict[str, Any]) -> dict[str, Any]:
     if capability == "asr":
-        normalized["transcript_contains"] = [str(item) for item in (transcript_contains or [])]
-        if "min_confidence" in normalized and normalized["min_confidence"] is not None:
-            normalized["min_confidence"] = float(normalized["min_confidence"])
-        return normalized
+        return _AsrExpectedModel.model_validate(payload).model_dump(exclude_none=True)
 
     if capability == "ocr":
-        if "total_amount" in normalized and normalized["total_amount"] is not None:
-            normalized["total_amount"] = float(normalized["total_amount"])
-        normalized["amount_tolerance"] = float(normalized.get("amount_tolerance", 0.0))
-        return normalized
-
-    normalized["top_candidate_in"] = [str(item) for item in (top_candidate_in or [])]
-    if "min_confidence" in normalized and normalized["min_confidence"] is not None:
-        normalized["min_confidence"] = float(normalized["min_confidence"])
-    return normalized
+        return _OcrExpectedModel.model_validate(payload).model_dump(exclude_none=True)
+    return _VisionExpectedModel.model_validate(payload).model_dump(exclude_none=True)
 
 
 def load_manifest(manifest_path: str | Path) -> PilotCalibrationManifest:
@@ -85,28 +123,70 @@ def load_manifest(manifest_path: str | Path) -> PilotCalibrationManifest:
     try:
         raw_payload = json.loads(resolved_manifest_path.read_text(encoding="utf-8"))
         parsed = _ManifestModel.model_validate(raw_payload)
-    except (ValidationError, json.JSONDecodeError, OSError) as exc:
+        cases: list[PilotCalibrationCase] = []
+        for case in parsed.cases:
+            resolved_media_path = (
+                (resolved_manifest_path.parent / case.media_path).resolve()
+                if not Path(case.media_path).is_absolute()
+                else Path(case.media_path)
+            )
+            cases.append(
+                PilotCalibrationCase(
+                    case_id=case.case_id,
+                    capability=case.capability,
+                    media_path=resolved_media_path,
+                    media_id=case.media_id,
+                    text_hint=case.text_hint,
+                    expected=_normalize_expected(capability=case.capability, payload=case.expected),
+                )
+            )
+    except (ValidationError, json.JSONDecodeError, OSError, TypeError, ValueError) as exc:
         raise ManifestValidationError(f"Invalid manifest: {exc}") from exc
-
-    cases = [
-        PilotCalibrationCase(
-            case_id=case.case_id,
-            capability=case.capability,
-            media_path=(resolved_manifest_path.parent / case.media_path).resolve()
-            if not Path(case.media_path).is_absolute()
-            else Path(case.media_path),
-            media_id=case.media_id,
-            text_hint=case.text_hint,
-            expected=_normalize_expected(capability=case.capability, payload=case.expected),
-        )
-        for case in parsed.cases
-    ]
 
     return PilotCalibrationManifest(
         trial_id=parsed.trial_id,
         cases=cases,
         manifest_path=resolved_manifest_path,
     )
+
+
+def _resolve_default_artifact_dir() -> Path:
+    configured_path = get_settings().trial_calibration_artifacts_dir.strip()
+    if configured_path:
+        return Path(configured_path).resolve()
+    return DEFAULT_ARTIFACTS_DIR
+
+
+def _failed_case_from_exception(*, case: PilotCalibrationCase, error: Exception) -> dict[str, Any]:
+    return {
+        "case_id": case.case_id,
+        "capability": case.capability,
+        "provider_name": None,
+        "used_fallback": False,
+        "low_confidence_signal": False,
+        "outcome": "fail",
+        "reasons": ["evaluation_error"],
+        "latency_ms": 0,
+        "error": str(error),
+    }
+
+
+def _evaluate_case(
+    *,
+    case: PilotCalibrationCase,
+    evaluate_asr: Callable[..., dict[str, Any]],
+    evaluate_ocr: Callable[..., dict[str, Any]],
+    evaluate_vision: Callable[..., dict[str, Any]],
+) -> dict[str, Any]:
+    if case.capability == "asr":
+        return evaluate_asr(
+            audio_path=case.media_path,
+            media_id=case.media_id,
+            text_hint=case.text_hint,
+        )
+    if case.capability == "ocr":
+        return evaluate_ocr(file_path=case.media_path)
+    return evaluate_vision(file_path=case.media_path)
 
 
 def _score_case(*, capability: Capability, actual: dict[str, Any], expected: dict[str, Any]) -> tuple[str, list[str], bool]:
@@ -218,7 +298,7 @@ def run_pilot_calibration(
     evaluate_vision: Callable[..., dict[str, Any]] = evaluate_vision_path,
 ) -> dict[str, Any]:
     manifest = load_manifest(manifest_path)
-    artifact_dir = Path(output_dir) if output_dir is not None else DEFAULT_ARTIFACTS_DIR
+    artifact_dir = Path(output_dir) if output_dir is not None else _resolve_default_artifact_dir()
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
     case_outcomes: list[dict[str, Any]] = []
@@ -231,16 +311,19 @@ def run_pilot_calibration(
     fail_count = 0
 
     for case in manifest.cases:
-        if case.capability == "asr":
-            actual = evaluate_asr(
-                audio_path=case.media_path,
-                media_id=case.media_id,
-                text_hint=case.text_hint,
+        try:
+            actual = _evaluate_case(
+                case=case,
+                evaluate_asr=evaluate_asr,
+                evaluate_ocr=evaluate_ocr,
+                evaluate_vision=evaluate_vision,
             )
-        elif case.capability == "ocr":
-            actual = evaluate_ocr(file_path=case.media_path)
-        else:
-            actual = evaluate_vision(file_path=case.media_path)
+        except EVALUATION_EXCEPTIONS as exc:
+            fail_count += 1
+            failure_buckets.update(["evaluation_error"])
+            latencies_ms.append(0)
+            case_outcomes.append(_failed_case_from_exception(case=case, error=exc))
+            continue
 
         latency_ms = max(0, int(actual.get("latency_ms", 0)))
         latencies_ms.append(latency_ms)

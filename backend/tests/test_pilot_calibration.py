@@ -31,6 +31,33 @@ def test_load_manifest_rejects_unknown_capability(tmp_path: Path) -> None:
         load_manifest(manifest_path)
 
 
+@pytest.mark.parametrize("field_name", ["trial_id", "case_id"])
+def test_load_manifest_rejects_empty_ids(tmp_path: Path, field_name: str) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    payload = {
+        "trial_id": "pilot-2026-04-06",
+        "cases": [
+            {
+                "case_id": "case-1",
+                "capability": "asr",
+                "media_path": "fixtures/voice.m4a",
+                "expected": {},
+            }
+        ],
+    }
+    if field_name == "trial_id":
+        payload["trial_id"] = ""
+    else:
+        payload["cases"][0]["case_id"] = ""
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ManifestValidationError, match=field_name):
+        load_manifest(manifest_path)
+
+
 def test_load_manifest_rejects_missing_expected(tmp_path: Path) -> None:
     from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
 
@@ -52,6 +79,60 @@ def test_load_manifest_rejects_missing_expected(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ManifestValidationError, match="expected"):
+        load_manifest(manifest_path)
+
+
+def test_load_manifest_rejects_invalid_asr_expected_shape(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "cases": [
+                    {
+                        "case_id": "invalid-asr-expected",
+                        "capability": "asr",
+                        "media_path": "fixtures/voice.m4a",
+                        "expected": {
+                            "transcript_contains": "cola",
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ManifestValidationError, match="transcript_contains"):
+        load_manifest(manifest_path)
+
+
+def test_load_manifest_wraps_invalid_numeric_expected_as_manifest_error(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import ManifestValidationError, load_manifest
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04-06",
+                "cases": [
+                    {
+                        "case_id": "invalid-min-confidence",
+                        "capability": "asr",
+                        "media_path": "fixtures/voice.m4a",
+                        "expected": {
+                            "min_confidence": "nope",
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ManifestValidationError, match="min_confidence"):
         load_manifest(manifest_path)
 
 
@@ -209,6 +290,77 @@ def test_run_pilot_calibration_dispatches_and_aggregates(tmp_path: Path) -> None
     assert "| 1 | 1 | 1 |" in markdown
 
 
+def test_run_pilot_calibration_continues_after_case_evaluation_failure(tmp_path: Path) -> None:
+    from app.devtools.pilot_calibration import run_pilot_calibration
+
+    asr_file = tmp_path / "voice.m4a"
+    ocr_file = tmp_path / "receipt.jpg"
+    asr_file.write_bytes(b"asr")
+    ocr_file.write_bytes(b"ocr")
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-continues-on-error",
+                "cases": [
+                    {
+                        "case_id": "asr-fails",
+                        "capability": "asr",
+                        "media_path": str(asr_file),
+                        "expected": {},
+                    },
+                    {
+                        "case_id": "ocr-pass",
+                        "capability": "ocr",
+                        "media_path": str(ocr_file),
+                        "expected": {},
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    calls: list[str] = []
+
+    def _failing_asr(**_: object) -> dict[str, object]:
+        calls.append("asr")
+        raise FileNotFoundError("missing media fixture")
+
+    def _passing_ocr(**_: object) -> dict[str, object]:
+        calls.append("ocr")
+        return {
+            "provider_name": "stub-ocr",
+            "used_fallback": False,
+            "total_amount": 13.0,
+            "line_items": [],
+            "low_confidence_fields": [],
+            "latency_ms": 4,
+        }
+
+    result = run_pilot_calibration(
+        manifest_path=manifest_path,
+        output_dir=tmp_path / "artifacts",
+        evaluate_asr=_failing_asr,
+        evaluate_ocr=_passing_ocr,
+        evaluate_vision=lambda **_: {},
+    )
+
+    assert calls == ["asr", "ocr"]
+    assert result["summary"]["total_cases"] == 2
+    assert result["summary"]["fail"] == 1
+    assert result["summary"]["pass"] == 1
+    assert result["failure_buckets"] == {"evaluation_error": 1}
+    assert Path(result["json_report_path"]).is_file()
+    assert Path(result["markdown_report_path"]).is_file()
+
+    report_payload = json.loads(Path(result["json_report_path"]).read_text(encoding="utf-8"))
+    assert report_payload["cases"][0]["outcome"] == "fail"
+    assert report_payload["cases"][0]["reasons"] == ["evaluation_error"]
+    assert report_payload["cases"][1]["outcome"] == "pass"
+
+
 def test_run_pilot_calibration_defaults_artifacts_to_private_devdata(tmp_path: Path) -> None:
     from app.devtools.pilot_calibration import DEFAULT_ARTIFACTS_DIR, run_pilot_calibration
 
@@ -249,6 +401,52 @@ def test_run_pilot_calibration_defaults_artifacts_to_private_devdata(tmp_path: P
     assert report_path.parent == DEFAULT_ARTIFACTS_DIR
     assert str(report_path).startswith(str(DEFAULT_ARTIFACTS_DIR))
     assert "fixtures/provider_calibration" not in str(report_path).replace("\\", "/")
+
+
+def test_run_pilot_calibration_uses_configured_default_artifact_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.devtools.pilot_calibration import run_pilot_calibration
+
+    configured_dir = tmp_path / "configured-artifacts"
+    monkeypatch.setenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", str(configured_dir))
+
+    media_path = tmp_path / "voice.m4a"
+    media_path.write_bytes(b"asr")
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-configured-default",
+                "cases": [
+                    {
+                        "case_id": "asr-pass",
+                        "capability": "asr",
+                        "media_path": str(media_path),
+                        "expected": {},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_pilot_calibration(
+        manifest_path=manifest_path,
+        evaluate_asr=lambda **_: {
+            "transcript": "ok",
+            "confidence": None,
+            "provider_name": "stub-asr",
+            "used_fallback": False,
+            "latency_ms": 1,
+        },
+        evaluate_ocr=lambda **_: {},
+        evaluate_vision=lambda **_: {},
+    )
+
+    assert Path(result["json_report_path"]).parent == configured_dir
+    assert Path(result["markdown_report_path"]).parent == configured_dir
 
 
 def test_fixture_example_manifest_is_valid() -> None:

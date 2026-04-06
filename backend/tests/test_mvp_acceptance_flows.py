@@ -745,3 +745,80 @@ def test_acceptance_correction_recovery_clears_low_stock_alert(client, monkeypat
     assert correction_audit.action == "inventory.correction_submitted"
     assert alerts_after_correction == []
     assert open_alert_records == []
+
+
+def test_acceptance_low_confidence_threshold_change_alters_voice_runtime_outcome(
+    client,
+    monkeypatch,
+) -> None:
+    file_name = "threshold-demo.m4a"
+    media_id = _create_and_complete_media_upload(
+        client,
+        media_type="audio",
+        file_name=file_name,
+        content_type="audio/m4a",
+    )
+    expected_public_url = _expected_mock_public_url(media_id=media_id, file_name=file_name)
+
+    class _FixedConfidenceGateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == [media_id]
+            assert media_input.media_urls == [expected_public_url]
+            return AsrTranscription(
+                text="check stock left for cola",
+                provider="stub-asr",
+                confidence=0.83,
+            )
+
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _FixedConfidenceGateway())
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        context.shop.low_confidence_threshold = Decimal("0.8000")
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    first_task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_threshold_low_allows",
+        message_type="voice",
+        text=None,
+        media_ids=[media_id],
+    )
+    _process_runtime_task_run(first_task_run_id)
+    first_task_run = _get_task_run(client, task_run_id=first_task_run_id)
+    assert first_task_run["status"] == "completed"
+    assert first_task_run["task_type"] == "voice-stock-query"
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        context.shop.low_confidence_threshold = Decimal("0.9000")
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    second_task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_threshold_high_blocks",
+        message_type="voice",
+        text=None,
+        media_ids=[media_id],
+    )
+    db_session = get_session_factory()()
+    try:
+        second_result = process_task_run(db_session, second_task_run_id)
+    finally:
+        db_session.close()
+    assert second_result.status == "failed"
+    assert second_result.error_code == "asr_low_confidence"
+
+    second_task_run = _get_task_run(client, task_run_id=second_task_run_id)
+
+    assert second_task_run["status"] == "failed"
+    assert second_task_run["error_code"] == "asr_low_confidence"
+    assert "below threshold" in (second_task_run["error_message"] or "").lower()

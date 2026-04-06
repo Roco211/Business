@@ -254,6 +254,19 @@ def _calculate_latency_stats(latencies_ms: list[int]) -> dict[str, int]:
     }
 
 
+def _resolve_trial_provider_profile(*, trial_id: str) -> str:
+    configured_profile = get_settings().trial_provider_profile.strip()
+    return configured_profile or trial_id
+
+
+def _build_recommended_shop_rules() -> dict[str, Any]:
+    return {
+        "low_confidence_threshold": 0.9,
+        "require_price_confirmation": True,
+        "require_new_item_confirmation": True,
+    }
+
+
 def _render_markdown_report(*, report: dict[str, Any]) -> str:
     summary = report["summary"]
     latency = report["latency_ms"]
@@ -362,9 +375,12 @@ def run_pilot_calibration(
         )
 
     report = {
+        "artifact_id": f"{manifest.trial_id}-report",
         "trial_id": manifest.trial_id,
+        "trial_provider_profile": _resolve_trial_provider_profile(trial_id=manifest.trial_id),
         "manifest_path": str(manifest.manifest_path),
         "generated_at": datetime.now(tz=UTC).isoformat(),
+        "recommended_shop_rules": _build_recommended_shop_rules(),
         "summary": {
             "total_cases": len(manifest.cases),
             "pass": pass_count,
@@ -384,7 +400,10 @@ def run_pilot_calibration(
     markdown_report_path.write_text(_render_markdown_report(report=report), encoding="utf-8")
 
     return {
+        "artifact_id": report["artifact_id"],
         "trial_id": manifest.trial_id,
+        "trial_provider_profile": report["trial_provider_profile"],
+        "recommended_shop_rules": report["recommended_shop_rules"],
         "summary": report["summary"],
         "latency_ms": report["latency_ms"],
         "failure_buckets": report["failure_buckets"],

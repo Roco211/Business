@@ -3,11 +3,13 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
+from app.services.audit_logs import append_pilot_runtime_telemetry_audit_log
 from app.services.confirmations import create_pending_confirmation
 from app.services.ocr_documents import create_ocr_document
 from app.services.ocr_types import OcrProviderError
@@ -28,6 +30,104 @@ class RuntimeProcessResult:
     task_run_id: str
     task_type: str | None
     error_code: str | None
+
+
+def _default_provider_telemetry(context_input_kind: str) -> tuple[str, str, str]:
+    settings = get_settings()
+    if context_input_kind == "voice":
+        provider_mode = settings.asr_provider.strip().lower() or "mock"
+        provider_label = settings.asr_provider_label.strip() or provider_mode
+        return "asr", provider_mode, provider_label
+    if context_input_kind == "image":
+        provider_mode = settings.vision_provider.strip().lower() or "mock"
+        provider_label = settings.vision_provider_label.strip() or provider_mode
+        return "vision", provider_mode, provider_label
+    provider_mode = settings.ocr_provider.strip().lower() or "mock"
+    provider_label = settings.ocr_provider_label.strip() or provider_mode
+    return "ocr", provider_mode, provider_label
+
+
+def _build_provider_telemetry_record(
+    *,
+    context_input_kind: str,
+    task_type: str | None,
+    payload: dict[str, object] | None,
+) -> dict[str, object] | None:
+    raw_payload = dict(payload or {})
+    capability, provider_mode, provider_label = _default_provider_telemetry(context_input_kind)
+    capability = str(raw_payload.get("capability") or capability)
+    provider_mode = str(raw_payload.get("provider_mode") or provider_mode)
+    provider_label = str(
+        raw_payload.get("provider_label")
+        or raw_payload.get("provider_name")
+        or provider_label
+    )
+    recognized_confidence_raw = raw_payload.get("recognized_confidence", raw_payload.get("confidence"))
+    recognized_confidence = (
+        float(recognized_confidence_raw)
+        if isinstance(recognized_confidence_raw, (int, float))
+        else None
+    )
+    used_fallback_raw = raw_payload.get("used_fallback")
+    if used_fallback_raw is None and capability == "ocr":
+        provider_name = str(raw_payload.get("provider_name") or "").strip().lower()
+        used_fallback = provider_mode != "mock" and provider_name == "mock"
+    else:
+        used_fallback = bool(used_fallback_raw)
+    low_confidence_raw = raw_payload.get("low_confidence")
+    if low_confidence_raw is None and capability == "ocr":
+        low_confidence = bool(raw_payload.get("low_confidence_fields"))
+    else:
+        low_confidence = bool(low_confidence_raw)
+    if context_input_kind not in {"voice", "image", "receipt-image"} and "capability" not in raw_payload:
+        return None
+    return {
+        "task_type": task_type or raw_payload.get("task_type"),
+        "capability": capability,
+        "provider_mode": provider_mode,
+        "provider_label": provider_label,
+        "used_fallback": used_fallback,
+        "recognized_confidence": recognized_confidence,
+        "low_confidence": low_confidence,
+    }
+
+
+def _append_provider_telemetry(
+    db_session: Session,
+    *,
+    shop_id: str,
+    task_run_id: str,
+    outcome: str,
+    error_code: str | None,
+    provider_telemetry: dict[str, object] | None,
+) -> None:
+    if provider_telemetry is None:
+        return
+
+    settings = get_settings()
+    append_pilot_runtime_telemetry_audit_log(
+        db_session,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        task_type=(
+            str(provider_telemetry.get("task_type"))
+            if provider_telemetry.get("task_type") is not None
+            else None
+        ),
+        capability=str(provider_telemetry["capability"]),
+        provider_mode=str(provider_telemetry["provider_mode"]),
+        provider_label=str(provider_telemetry["provider_label"]),
+        used_fallback=bool(provider_telemetry["used_fallback"]),
+        recognized_confidence=(
+            float(provider_telemetry["recognized_confidence"])
+            if provider_telemetry.get("recognized_confidence") is not None
+            else None
+        ),
+        low_confidence=bool(provider_telemetry["low_confidence"]),
+        outcome=outcome,
+        error_code=error_code,
+        trial_provider_profile=settings.trial_provider_profile.strip(),
+    )
 
 
 def _build_confirmation_fields(
@@ -128,10 +228,12 @@ def _load_pending_confirmation(
 def _build_failed_result(
     db_session: Session,
     *,
+    shop_id: str | None,
     task_run_id: str,
     session_id: str,
     error_code: str,
     error_message: str,
+    provider_telemetry: dict[str, object] | None = None,
 ) -> RuntimeProcessResult:
     result_summary, runtime_text = summarize_failed_task(
         error_code=error_code,
@@ -153,6 +255,15 @@ def _build_failed_result(
         )
     except LookupError:
         pass
+    if shop_id is not None:
+        _append_provider_telemetry(
+            db_session,
+            shop_id=shop_id,
+            task_run_id=task_run_id,
+            outcome="failed",
+            error_code=error_code,
+            provider_telemetry=provider_telemetry,
+        )
     db_session.commit()
     return RuntimeProcessResult(
         status="failed",
@@ -165,9 +276,11 @@ def _build_failed_result(
 def _recover_unexpected_failure(
     db_session: Session,
     *,
+    shop_id: str | None,
     task_run_id: str,
     session_id: str,
     error_message: str,
+    provider_telemetry: dict[str, object] | None = None,
 ) -> RuntimeProcessResult:
     db_session.rollback()
     current_task_run = db_session.get(TaskRun, task_run_id)
@@ -192,20 +305,24 @@ def _recover_unexpected_failure(
 
     return _build_failed_result(
         db_session,
+        shop_id=shop_id,
         task_run_id=task_run_id,
         session_id=session_id,
         error_code="runtime_processing_error",
         error_message=error_message,
+        provider_telemetry=provider_telemetry,
     )
 
 
 def _recover_ocr_provider_failure(
     db_session: Session,
     *,
+    shop_id: str | None,
     task_run_id: str,
     session_id: str,
     error_code: str,
     error_message: str,
+    provider_telemetry: dict[str, object] | None = None,
 ) -> RuntimeProcessResult:
     # Preserve structured provider errors (for example ocr_unavailable) instead of
     # collapsing them into runtime_processing_error.
@@ -232,10 +349,12 @@ def _recover_ocr_provider_failure(
 
     return _build_failed_result(
         db_session,
+        shop_id=shop_id,
         task_run_id=task_run_id,
         session_id=session_id,
         error_code=error_code,
         error_message=error_message,
+        provider_telemetry=provider_telemetry,
     )
 
 
@@ -249,6 +368,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             error_code=claim.task_run.error_code,
         )
 
+    context = None
+    decision = None
     try:
         context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
         decision = route_runtime_input(context)
@@ -304,6 +425,18 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     else "Mock runtime: please confirm the stock-out details before commit."
                     if decision.task_type == "voice-stock-out"
                     else "Mock runtime: please confirm the stock-in details before commit."
+                ),
+            )
+            _append_provider_telemetry(
+                db_session,
+                shop_id=context.shop_id,
+                task_run_id=task_run_id,
+                outcome="awaiting-confirmation",
+                error_code=None,
+                provider_telemetry=_build_provider_telemetry_record(
+                    context_input_kind=context.input_kind,
+                    task_type=decision.task_type,
+                    payload=decision.payload,
                 ),
             )
             db_session.commit()
@@ -365,6 +498,9 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                     "provider_name": ocr_document.provider_name,
                     "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
                     "low_confidence_fields": list(ocr_document.low_confidence_fields),
+                    "capability": "ocr",
+                    "provider_mode": get_settings().ocr_provider.strip().lower() or "mock",
+                    "provider_label": get_settings().ocr_provider_label.strip() or ocr_document.provider_name or "mock",
                 }
             )
 
@@ -392,6 +528,18 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             task_run_id=task_run_id,
             text=runtime_text,
         )
+        _append_provider_telemetry(
+            db_session,
+            shop_id=context.shop_id,
+            task_run_id=task_run_id,
+            outcome="completed",
+            error_code=None,
+            provider_telemetry=_build_provider_telemetry_record(
+                context_input_kind=context.input_kind,
+                task_type=decision.task_type,
+                payload=completed_payload if completed_payload else decision.payload,
+            ),
+        )
         db_session.commit()
         return RuntimeProcessResult(
             status="completed",
@@ -402,23 +550,51 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
     except RuntimeRouteBlocked as exc:
         return _build_failed_result(
             db_session,
+            shop_id=context.shop_id if context is not None else None,
             task_run_id=task_run_id,
             session_id=claim.task_run.session_id,
             error_code=exc.error_code,
             error_message=exc.error_message,
+            provider_telemetry=_build_provider_telemetry_record(
+                context_input_kind=context.input_kind if context is not None else "text",
+                task_type=None,
+                payload=getattr(exc, "telemetry", None),
+            )
+            if context is not None
+            else None,
         )
     except OcrProviderError as exc:
         return _recover_ocr_provider_failure(
             db_session,
+            shop_id=context.shop_id if context is not None else None,
             task_run_id=task_run_id,
             session_id=claim.task_run.session_id,
             error_code=exc.code,
             error_message=exc.message,
+            provider_telemetry=(
+                _build_provider_telemetry_record(
+                    context_input_kind=context.input_kind,
+                    task_type=decision.task_type if decision is not None else "receipt-ocr",
+                    payload={"capability": "ocr"},
+                )
+                if context is not None
+                else None
+            ),
         )
     except Exception as exc:
         return _recover_unexpected_failure(
             db_session,
+            shop_id=context.shop_id if context is not None else None,
             task_run_id=task_run_id,
             session_id=claim.task_run.session_id,
             error_message=f"Runtime processing failed: {exc}",
+            provider_telemetry=(
+                _build_provider_telemetry_record(
+                    context_input_kind=context.input_kind,
+                    task_type=decision.task_type if decision is not None else None,
+                    payload=decision.payload if decision is not None else None,
+                )
+                if context is not None
+                else None
+            ),
         )

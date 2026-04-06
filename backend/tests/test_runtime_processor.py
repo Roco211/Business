@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
+from app.models import AuditLog, Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime import tools as runtime_tools
@@ -960,6 +960,96 @@ def test_process_task_run_persists_asr_low_confidence_failures(db_session, monke
     assert "could not process" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_process_task_run_appends_provider_telemetry_for_voice_completion(db_session, monkeypatch) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_provider_telemetry_completed",
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.91)
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "completed"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "voice-stock-query",
+        "capability": "asr",
+        "provider_mode": "real-provider",
+        "provider_label": "asr-primary",
+        "used_fallback": False,
+        "recognized_confidence": 0.91,
+        "low_confidence": False,
+        "outcome": "completed",
+        "error_code": None,
+        "trial_provider_profile": "pilot-v1",
+    }
+
+
+def test_process_task_run_appends_provider_telemetry_for_asr_low_confidence_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_provider_telemetry_failed",
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.42)
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "asr_low_confidence"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "voice-stock-query",
+        "capability": "asr",
+        "provider_mode": "real-provider",
+        "provider_label": "asr-primary",
+        "used_fallback": False,
+        "recognized_confidence": 0.42,
+        "low_confidence": True,
+        "outcome": "failed",
+        "error_code": "asr_low_confidence",
+        "trial_provider_profile": "pilot-v1",
+    }
 
 
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:

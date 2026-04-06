@@ -168,6 +168,44 @@ def test_voice_input_routes_to_stock_out_task():
     assert decision.transcript == "stock out cola for walk in sale"
 
 
+def test_voice_input_preserves_asr_provider_metadata_in_route_payload(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    ctx = _build_context(
+        input_kind="voice",
+        source_text=None,
+        media_ids=["voice_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="voice_query_demo",
+                media_type="audio",
+                content_type="audio/m4a",
+                file_name="voice.m4a",
+                public_url="https://mock.example/media/voice_query_demo",
+            )
+        ],
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == ["voice_query_demo"]
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.91)
+
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    decision = route_runtime_input(ctx)
+
+    assert decision.task_type == "voice-stock-query"
+    assert decision.payload["capability"] == "asr"
+    assert decision.payload["provider_mode"] == "real-provider"
+    assert decision.payload["provider_label"] == "asr-primary"
+    assert decision.payload["recognized_confidence"] == 0.91
+    assert decision.payload["low_confidence"] is False
+    assert decision.payload["used_fallback"] is False
+
+
 def test_voice_input_transcription_failures_block():
     ctx = _build_context(
         input_kind="voice",
@@ -289,6 +327,48 @@ def test_transcribe_runtime_audio_blocks_low_confidence_transcription(monkeypatc
 
     assert excinfo.value.error_code == "asr_low_confidence"
     assert "confidence" in excinfo.value.error_message.lower()
+
+
+def test_low_confidence_voice_block_preserves_provider_telemetry(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    ctx = _build_context(
+        input_kind="voice",
+        source_text=None,
+        media_ids=["voice_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="voice_query_demo",
+                media_type="audio",
+                content_type="audio/m4a",
+                file_name="voice.m4a",
+                public_url="https://mock.example/media/voice_query_demo",
+            )
+        ],
+        shop_rules={"low_confidence_threshold": 0.85},
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.42)
+
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    with pytest.raises(RuntimeRouteBlocked) as excinfo:
+        route_runtime_input(ctx)
+
+    assert excinfo.value.error_code == "asr_low_confidence"
+    assert getattr(excinfo.value, "telemetry") == {
+        "task_type": "voice-stock-query",
+        "capability": "asr",
+        "provider_mode": "real-provider",
+        "provider_label": "asr-primary",
+        "used_fallback": False,
+        "recognized_confidence": 0.42,
+        "low_confidence": True,
+    }
 
 
 def test_image_input_routes_to_photo_stock_query():

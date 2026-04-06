@@ -30,3 +30,25 @@ class DemoBootstrapSummaryData(BaseModel):
     open_low_stock_item_names: list[str]
     message_count: int
     task_run_count: int
+
+
+class PilotSummaryTimeWindowData(BaseModel):
+    hours: int
+    started_at: str
+    ended_at: str
+
+
+class PilotSummaryConfirmationData(BaseModel):
+    created: int
+    approved: int
+    rejected: int
+
+
+class PilotSummaryData(BaseModel):
+    time_window: PilotSummaryTimeWindowData
+    task_totals: dict[str, dict[str, int]]
+    confirmations: PilotSummaryConfirmationData
+    low_confidence_count: int
+    fallback_count: int
+    provider_failures: dict[str, int]
+    trial_provider_profile: str

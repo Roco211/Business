@@ -65,7 +65,7 @@ The CLI prints compact JSON with:
 - `health_status`
 - `runtime_mode`
 - `readiness_status` (from `/api/v1/system/readiness` `overall_status`)
-- `overall_status` (operator verdict; mirrors readiness status when requests succeed)
+- `overall_status` (operator verdict; `ready` only when `runtime_mode=trial` and `readiness_status=ready`, otherwise `degraded`)
 - `object_storage` (`status`, `mode`)
 - `providers.asr|ocr|vision` (`status`, `mode`)
 
@@ -77,5 +77,5 @@ Example:
 
 ## Exit Code
 
-- Exit `0`: `overall_status == "ready"`
+- Exit `0`: `runtime_mode == "trial"` and `readiness_status == "ready"` (`overall_status == "ready"`)
 - Exit `1`: degraded/not-ready readiness, auth failures, health failures, non-200 responses, or malformed envelopes

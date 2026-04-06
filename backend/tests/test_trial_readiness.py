@@ -128,6 +128,45 @@ def test_run_trial_readiness_logs_in_when_bearer_token_is_omitted() -> None:
     ]
 
 
+def test_run_trial_readiness_marks_local_demo_as_non_ready_operator_verdict() -> None:
+    module = _load_trial_readiness_module()
+
+    def request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        del method, token, payload
+        if path == "/health":
+            return 200, {"status": "ok"}
+        if path == "/api/v1/system/readiness":
+            return 200, {
+                "data": {
+                    "overall_status": "ready",
+                    "runtime_mode": "local-demo",
+                    "checks": {
+                        "object_storage": {"status": "ready", "mode": "mock", "message": "ok", "details": {}},
+                        "asr": {"status": "ready", "mode": "mock", "message": "ok", "details": {}},
+                        "ocr": {"status": "ready", "mode": "mock", "message": "ok", "details": {}},
+                        "vision": {"status": "ready", "mode": "mock", "message": "ok", "details": {}},
+                    },
+                }
+            }
+        raise AssertionError(f"Unexpected request path: {path}")
+
+    result = module.run_trial_readiness(
+        api_base_url="http://127.0.0.1:8001",
+        auth_token="seed-token",
+        request_json=request_json,
+    )
+
+    assert result.runtime_mode == "local-demo"
+    assert result.readiness_status == "ready"
+    assert result.overall_status == "degraded"
+
+
 def test_run_trial_readiness_raises_clear_error_for_invalid_readiness_envelope() -> None:
     module = _load_trial_readiness_module()
 

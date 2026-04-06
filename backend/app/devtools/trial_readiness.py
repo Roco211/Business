@@ -10,6 +10,8 @@ import httpx
 from app.devtools.local_demo_smoke import DEFAULT_LOGIN_EMAIL, DEFAULT_LOGIN_PASSWORD
 
 READY_STATUS = "ready"
+DEGRADED_STATUS = "degraded"
+TRIAL_RUNTIME_MODE = "trial"
 
 
 class RequestJson(Protocol):
@@ -107,6 +109,12 @@ def _extract_check_summary(checks: object, *, key: str) -> dict[str, str]:
     }
 
 
+def _build_operator_verdict(*, runtime_mode: str, readiness_status: str) -> str:
+    if runtime_mode.strip().lower() == TRIAL_RUNTIME_MODE and readiness_status == READY_STATUS:
+        return READY_STATUS
+    return DEGRADED_STATUS
+
+
 def run_trial_readiness(
     *,
     api_base_url: str,
@@ -182,7 +190,7 @@ def run_trial_readiness(
         health_status=health_status,
         runtime_mode=runtime_mode,
         readiness_status=readiness_status,
-        overall_status=readiness_status,
+        overall_status=_build_operator_verdict(runtime_mode=runtime_mode, readiness_status=readiness_status),
         object_storage=object_storage,
         providers=providers,
     )

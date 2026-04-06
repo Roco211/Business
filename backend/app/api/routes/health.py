@@ -36,7 +36,11 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
-@router.get("/api/v1/system/readiness", response_model=DataEnvelope[SystemReadinessData])
+@router.get(
+    "/api/v1/system/readiness",
+    response_model=DataEnvelope[SystemReadinessData],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
 def get_system_readiness(
     _: AuthenticatedContext = Depends(require_authenticated_context),
 ) -> DataEnvelope[SystemReadinessData]:

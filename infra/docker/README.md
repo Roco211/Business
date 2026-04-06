@@ -134,7 +134,7 @@ Behavior notes:
 
 - the CLI calls `GET /health` and authenticated `GET /api/v1/system/readiness`
 - when `--auth-token` is omitted, it logs in with owner credentials first (same auth flow as local demo smoke)
-- it prints compact JSON and exits `0` only when readiness is `ready`
+- it prints compact JSON and exits `0` only when runtime mode is `trial` and readiness is `ready`
 - `degraded`, `not-ready`, auth errors, health failures, and malformed responses all exit non-zero
 
 Full operator checklist lives in `project_docs/trial-readiness-runbook.md`.

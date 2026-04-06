@@ -8,6 +8,7 @@ from app.models.media_upload import MediaUpload
 from app.models.message import Message
 from app.models.ocr_document import OcrDocument
 from app.models.owner_account import OwnerAccount
+from app.models.pilot_control import PilotControl
 from app.models.session_stream_event import SessionStreamEvent
 from app.models.session_record import SessionRecord
 from app.models.shop import Shop
@@ -25,6 +26,7 @@ __all__ = [
     "Message",
     "OcrDocument",
     "OwnerAccount",
+    "PilotControl",
     "SessionStreamEvent",
     "SessionRecord",
     "Shop",

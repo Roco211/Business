@@ -9,6 +9,16 @@ from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProviderError, AsrTranscription
 
 
+class _RecordingProvider:
+    def __init__(self, result: AsrTranscription) -> None:
+        self.calls: list[AsrMediaInput] = []
+        self._result = result
+
+    def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
+        self.calls.append(media_input)
+        return self._result
+
+
 class _RetryableFailureProvider:
     def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
         del media_input
@@ -38,15 +48,26 @@ def test_evaluate_asr_provider_returns_compact_summary_for_mock_gateway(tmp_path
     from app.devtools.asr_provider_eval import evaluate_asr_provider
 
     audio_path = tmp_path / "voice-query.m4a"
-    audio_path.write_bytes(b"demo audio")
+    audio_bytes = b"demo audio"
+    audio_path.write_bytes(audio_bytes)
+    provider = _RecordingProvider(AsrTranscription(text="check stock left for cola", provider="mock"))
 
     result = evaluate_asr_provider(
         audio_path=audio_path,
         media_id="voice_query_demo",
-        gateway=AsrGateway(primary_provider=MockAsrProvider()),
+        gateway=AsrGateway(primary_provider=provider),
         timer=_timer([10.0, 10.125]),
     )
 
+    assert provider.calls == [
+        AsrMediaInput(
+            media_ids=["voice_query_demo"],
+            text_hint=None,
+            file_name="voice-query.m4a",
+            content_type="audio/m4a",
+            audio_bytes=audio_bytes,
+        )
+    ]
     assert result.to_dict() == {
         "transcript": "check stock left for cola",
         "confidence": None,

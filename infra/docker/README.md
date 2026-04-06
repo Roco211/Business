@@ -116,7 +116,7 @@ The backend ASR gateway is controlled through environment variables:
 - `ASR_ALLOW_MOCK_FALLBACK=1` allows retryable real-provider failures to fall back to mock transcripts.
 - `ASR_ALLOW_MOCK_FALLBACK=0` disables that fallback so operators can see hard real-provider failures directly.
 
-The eval CLI validates the local audio path first, then sends either the explicit `--media-id` value or the filename stem through the current media-ID-based ASR gateway contract.
+The eval CLI now reads the supplied local audio file, infers basic file metadata, and forwards that audio payload through the ASR helper. It also sends either the explicit `--media-id` value or the filename stem so mock mode and fallback-driven checks can still target fixture transcripts.
 
 For a mock-friendly operator check, keep `ASR_PROVIDER=mock` and run the eval CLI against any local audio file plus a fixture media ID:
 
@@ -132,7 +132,7 @@ That prints compact JSON with:
 - `used_fallback`
 - `latency_ms`
 
-For a real-provider smoke check, export the real ASR settings first and then point the same CLI at a local audio file. Pass `--media-id` as well if your configured gateway expects a specific upstream identifier:
+For a real-provider smoke check, export the real ASR settings first and then point the same CLI at a local audio file. Pass `--media-id` as well if your configured gateway expects a specific upstream identifier in addition to the uploaded audio payload:
 
 ```powershell
 $env:ASR_PROVIDER='real-provider'

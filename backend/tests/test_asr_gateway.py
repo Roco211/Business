@@ -193,6 +193,54 @@ def test_real_provider_transcribe_normalizes_http_response(monkeypatch: pytest.M
     ]
 
 
+def test_real_provider_transcribe_includes_local_audio_payload_when_present(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[str, str, dict[str, object]]] = []
+
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        calls.append((method, url, dict(kwargs)))
+        return _HttpxJsonResponse({"text": "decoded speech", "confidence": 0.91})
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway()
+
+    result = gateway.primary_provider.transcribe(
+        AsrMediaInput(
+            media_ids=["voice_query_demo"],
+            text_hint=None,
+            file_name="voice-query.m4a",
+            content_type="audio/m4a",
+            audio_bytes=b"\x00\x01demo",
+        )
+    )
+
+    assert result == AsrTranscription(
+        text="decoded speech",
+        provider="real-provider",
+        confidence=0.91,
+    )
+    assert calls == [
+        (
+            "POST",
+            "https://api.example.com/v1/transcriptions",
+            {
+                "headers": {"Authorization": "Bearer key"},
+                "timeout": 15.0,
+                "json": {
+                    "media_ids": ["voice_query_demo"],
+                    "text_hint": None,
+                    "model": "model-a",
+                    "audio": {
+                        "file_name": "voice-query.m4a",
+                        "content_type": "audio/m4a",
+                        "base64_data": "AAFkZW1v",
+                    },
+                },
+            },
+        )
+    ]
+
+
 def test_real_provider_timeout_maps_to_retryable_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
     def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
         del method, url, kwargs

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import mimetypes
 from pathlib import Path
 from time import perf_counter
 from typing import Callable
@@ -8,6 +9,12 @@ from typing import Callable
 from app.services.asr_gateway import AsrGateway, get_default_asr_gateway
 from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_types import AsrMediaInput
+
+CONTENT_TYPE_OVERRIDES = {
+    ".m4a": "audio/m4a",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+}
 
 
 @dataclass(frozen=True)
@@ -30,6 +37,14 @@ def _did_use_fallback(*, gateway: AsrGateway, provider_name: str) -> bool:
     return provider_name == "mock" and not isinstance(gateway.primary_provider, MockAsrProvider)
 
 
+def _infer_content_type(audio_path: Path) -> str:
+    suffix = audio_path.suffix.lower()
+    if suffix in CONTENT_TYPE_OVERRIDES:
+        return CONTENT_TYPE_OVERRIDES[suffix]
+    guessed_content_type, _ = mimetypes.guess_type(audio_path.name)
+    return guessed_content_type or "application/octet-stream"
+
+
 def evaluate_asr_provider(
     *,
     audio_path: str | Path,
@@ -41,6 +56,7 @@ def evaluate_asr_provider(
     resolved_audio_path = Path(audio_path)
     if not resolved_audio_path.is_file():
         raise FileNotFoundError(resolved_audio_path)
+    audio_bytes = resolved_audio_path.read_bytes()
 
     active_gateway = gateway or get_default_asr_gateway()
     started_at = timer()
@@ -48,6 +64,9 @@ def evaluate_asr_provider(
         AsrMediaInput(
             media_ids=[media_id or resolved_audio_path.stem],
             text_hint=text_hint,
+            file_name=resolved_audio_path.name,
+            content_type=_infer_content_type(resolved_audio_path),
+            audio_bytes=audio_bytes,
         )
     )
     finished_at = timer()

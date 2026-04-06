@@ -6,6 +6,8 @@ from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
 from app.models import Alert, AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, OcrDocument, TaskRun
 from app.runtime.processor import process_task_run
+from app.runtime import tools as runtime_tools
+from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
 from conftest import auth_headers, login_and_get_token
 
@@ -303,12 +305,21 @@ def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:
         file_name="voice-query-demo.m4a",
         content_type="audio/m4a",
     )
+
+    class _UploadedVoiceGateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == [media_id]
+            assert media_input.text_hint is None
+            return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.97)
+
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _UploadedVoiceGateway())
+
     task_run_id = _post_session_message(
         client,
         monkeypatch,
         client_request_id="acceptance_upload_backed_voice_query",
         message_type="voice",
-        text="check stock left for cola",
+        text=None,
         media_ids=[media_id],
     )
 

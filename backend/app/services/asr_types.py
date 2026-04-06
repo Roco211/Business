@@ -6,6 +6,9 @@ from typing import Protocol
 class AsrMediaInput:
     media_ids: list[str]
     text_hint: str | None = None
+    file_name: str | None = None
+    content_type: str | None = None
+    audio_bytes: bytes | None = None
 
 
 @dataclass(frozen=True)

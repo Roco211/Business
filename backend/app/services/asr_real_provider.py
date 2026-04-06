@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from base64 import b64encode
 from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Any
@@ -30,11 +31,7 @@ class RealAsrProvider:
                 self.api_url,
                 headers={"Authorization": f"Bearer {self.api_key}"},
                 timeout=self.timeout_seconds,
-                json={
-                    "media_ids": media_input.media_ids,
-                    "text_hint": media_input.text_hint,
-                    "model": self.model,
-                },
+                json=self._build_request_payload(media_input),
             )
             response.raise_for_status()
         except PERMANENT_REQUEST_ERRORS as exc:
@@ -58,6 +55,20 @@ class RealAsrProvider:
             ) from exc
 
         return self._normalize_transcription(payload)
+
+    def _build_request_payload(self, media_input: AsrMediaInput) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "media_ids": media_input.media_ids,
+            "text_hint": media_input.text_hint,
+            "model": self.model,
+        }
+        if media_input.audio_bytes is not None:
+            payload["audio"] = {
+                "file_name": media_input.file_name,
+                "content_type": media_input.content_type,
+                "base64_data": b64encode(media_input.audio_bytes).decode("ascii"),
+            }
+        return payload
 
     def _is_retryable_http_error(self, error: httpx.HTTPError) -> bool:
         if not isinstance(error, httpx.HTTPStatusError):

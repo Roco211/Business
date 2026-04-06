@@ -1,1612 +1,52 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "AI Store Manager Backend",
-    "version": "0.1.0"
-  },
-  "paths": {
-    "/health": {
-      "get": {
-        "tags": [
-          "system"
-        ],
-        "summary": "Health",
-        "operationId": "health_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/system/readiness": {
-      "get": {
-        "tags": [
-          "system"
-        ],
-        "summary": "Get System Readiness",
-        "operationId": "get_system_readiness_api_v1_system_readiness_get",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_SystemReadinessData_"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/system/demo/bootstrap": {
-      "post": {
-        "tags": [
-          "system"
-        ],
-        "summary": "Post Demo Bootstrap",
-        "operationId": "post_demo_bootstrap_api_v1_system_demo_bootstrap_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_DemoBootstrapSummaryData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/audit-logs": {
-      "get": {
-        "tags": [
-          "audit-logs"
-        ],
-        "summary": "Get Audit Logs",
-        "operationId": "get_audit_logs_api_v1_audit_logs_get",
-        "parameters": [
-          {
-            "name": "scope",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "inventory",
-              "title": "Scope"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListAuditLogsResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/alerts": {
-      "get": {
-        "tags": [
-          "alerts"
-        ],
-        "summary": "Get Alerts",
-        "operationId": "get_alerts_api_v1_alerts_get",
-        "parameters": [
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "low-stock",
-              "title": "Type"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListLowStockAlertsResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/auth/login": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Login",
-        "operationId": "login_api_v1_auth_login_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_LoginData_"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/confirmations": {
-      "get": {
-        "tags": [
-          "confirmations"
-        ],
-        "summary": "Get Confirmations",
-        "operationId": "get_confirmations_api_v1_confirmations_get",
-        "parameters": [
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": "pending",
-              "title": "Status"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListConfirmationsResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/confirmations/{confirmation_id}/approve": {
-      "post": {
-        "tags": [
-          "confirmations"
-        ],
-        "summary": "Post Approve Confirmation",
-        "operationId": "post_approve_confirmation_api_v1_confirmations__confirmation_id__approve_post",
-        "parameters": [
-          {
-            "name": "confirmation_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Confirmation Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApproveConfirmationRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_ConfirmationData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/confirmations/{confirmation_id}/reject": {
-      "post": {
-        "tags": [
-          "confirmations"
-        ],
-        "summary": "Post Reject Confirmation",
-        "operationId": "post_reject_confirmation_api_v1_confirmations__confirmation_id__reject_post",
-        "parameters": [
-          {
-            "name": "confirmation_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Confirmation Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_ConfirmationData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/dashboard/summary": {
-      "get": {
-        "tags": [
-          "dashboard"
-        ],
-        "summary": "Get Dashboard Summary Route",
-        "operationId": "get_dashboard_summary_route_api_v1_dashboard_summary_get",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_DashboardSummaryData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory-events/corrections": {
-      "post": {
-        "tags": [
-          "inventory-events"
-        ],
-        "summary": "Post Inventory Correction",
-        "operationId": "post_inventory_correction_api_v1_inventory_events_corrections_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInventoryCorrectionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CreateInventoryCorrectionData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory-events/stock-out": {
-      "post": {
-        "tags": [
-          "inventory-events"
-        ],
-        "summary": "Post Inventory Stock Out",
-        "operationId": "post_inventory_stock_out_api_v1_inventory_events_stock_out_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInventoryStockOutRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CreateInventoryStockOutData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory-items": {
-      "get": {
-        "tags": [
-          "inventory-items"
-        ],
-        "summary": "Get Inventory Items",
-        "operationId": "get_inventory_items_api_v1_inventory_items_get",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Query"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListInventoryItemsResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory-items/recognize-and-query": {
-      "post": {
-        "tags": [
-          "inventory-items"
-        ],
-        "summary": "Post Recognize And Query Inventory Item",
-        "operationId": "post_recognize_and_query_inventory_item_api_v1_inventory_items_recognize_and_query_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecognizeAndQueryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_RecognizeAndQueryData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/inventory-items/{item_id}": {
-      "get": {
-        "tags": [
-          "inventory-items"
-        ],
-        "summary": "Get Inventory Item Detail",
-        "operationId": "get_inventory_item_detail_api_v1_inventory_items__item_id__get",
-        "parameters": [
-          {
-            "name": "item_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Item Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_InventoryItemData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/media-uploads": {
-      "post": {
-        "tags": [
-          "media-uploads"
-        ],
-        "summary": "Post Create Media Upload",
-        "operationId": "post_create_media_upload_api_v1_media_uploads_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateMediaUploadRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CreateMediaUploadData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/media-uploads/mock/{object_key}": {
-      "put": {
-        "tags": [
-          "media-uploads"
-        ],
-        "summary": "Put Mock Media Upload Object",
-        "operationId": "put_mock_media_upload_object_api_v1_media_uploads_mock__object_key__put",
-        "parameters": [
-          {
-            "name": "object_key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Object Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/media-uploads/{media_id}/complete": {
-      "post": {
-        "tags": [
-          "media-uploads"
-        ],
-        "summary": "Post Complete Media Upload",
-        "operationId": "post_complete_media_upload_api_v1_media_uploads__media_id__complete_post",
-        "parameters": [
-          {
-            "name": "media_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Media Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CompleteMediaUploadRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CompleteMediaUploadData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/sessions/{session_id}/messages": {
-      "get": {
-        "tags": [
-          "messages"
-        ],
-        "summary": "Get Session Messages",
-        "operationId": "get_session_messages_api_v1_sessions__session_id__messages_get",
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 50,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SessionMessagesResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "messages"
-        ],
-        "summary": "Post Session Message",
-        "operationId": "post_session_message_api_v1_sessions__session_id__messages_post",
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSessionMessageRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CreateSessionMessageData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/ocr-documents": {
-      "post": {
-        "tags": [
-          "ocr-documents"
-        ],
-        "summary": "Post Create Ocr Document",
-        "operationId": "post_create_ocr_document_api_v1_ocr_documents_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOcrDocumentRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_CreateOcrDocumentData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/ocr-documents/{ocr_document_id}": {
-      "get": {
-        "tags": [
-          "ocr-documents"
-        ],
-        "summary": "Get Ocr Document Detail",
-        "operationId": "get_ocr_document_detail_api_v1_ocr_documents__ocr_document_id__get",
-        "parameters": [
-          {
-            "name": "ocr_document_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Ocr Document Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_OcrDocumentData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/sessions/{session_id}/stream-events": {
-      "get": {
-        "tags": [
-          "session-stream"
-        ],
-        "summary": "List Stream Events",
-        "operationId": "list_stream_events_api_v1_sessions__session_id__stream_events_get",
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "after_seq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0,
-              "title": "After Seq"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 200,
-              "minimum": 1,
-              "default": 50,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_list_SessionStreamEventEnvelope__"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/sessions/bootstrap": {
-      "post": {
-        "tags": [
-          "sessions"
-        ],
-        "summary": "Bootstrap Session",
-        "operationId": "bootstrap_session_api_v1_sessions_bootstrap_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_SessionBootstrapData_"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Session not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/task-runs/{task_run_id}": {
-      "get": {
-        "tags": [
-          "task-runs"
-        ],
-        "summary": "Get Task Run",
-        "operationId": "get_task_run_api_v1_task_runs__task_run_id__get",
-        "parameters": [
-          {
-            "name": "task_run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Task Run Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DataEnvelope_TaskRunData_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "components": {
     "schemas": {
       "ApproveConfirmationRequest": {
         "properties": {
           "fields": {
             "additionalProperties": true,
-            "type": "object",
-            "title": "Fields"
+            "title": "Fields",
+            "type": "object"
           }
         },
-        "type": "object",
-        "title": "ApproveConfirmationRequest"
+        "title": "ApproveConfirmationRequest",
+        "type": "object"
       },
       "AuditLogData": {
         "properties": {
-          "audit_log_id": {
-            "type": "string",
-            "title": "Audit Log Id"
-          },
-          "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
-          },
-          "scope": {
-            "type": "string",
-            "title": "Scope"
-          },
           "action": {
-            "type": "string",
-            "title": "Action"
-          },
-          "actor_type": {
-            "type": "string",
-            "title": "Actor Type"
+            "title": "Action",
+            "type": "string"
           },
           "actor_id": {
-            "type": "string",
-            "title": "Actor Id"
+            "title": "Actor Id",
+            "type": "string"
           },
-          "task_run_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Task Run Id"
+          "actor_type": {
+            "title": "Actor Type",
+            "type": "string"
           },
-          "target_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Type"
+          "audit_log_id": {
+            "title": "Audit Log Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
           },
           "target_id": {
             "anyOf": [
@@ -1619,18 +59,29 @@
             ],
             "title": "Target Id"
           },
-          "metadata": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Metadata"
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+          "task_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Run Id"
           }
         },
-        "type": "object",
         "required": [
           "audit_log_id",
           "shop_id",
@@ -1644,70 +95,75 @@
           "metadata",
           "created_at"
         ],
-        "title": "AuditLogData"
+        "title": "AuditLogData",
+        "type": "object"
       },
       "CompleteMediaUploadData": {
         "properties": {
           "media_id": {
-            "type": "string",
-            "title": "Media Id"
+            "title": "Media Id",
+            "type": "string"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "title": "Status",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "media_id",
           "status"
         ],
-        "title": "CompleteMediaUploadData"
+        "title": "CompleteMediaUploadData",
+        "type": "object"
       },
       "CompleteMediaUploadRequest": {
         "properties": {
           "checksum_sha256": {
-            "type": "string",
-            "title": "Checksum Sha256"
+            "title": "Checksum Sha256",
+            "type": "string"
           },
           "size_bytes": {
-            "type": "integer",
-            "title": "Size Bytes"
+            "title": "Size Bytes",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "checksum_sha256",
           "size_bytes"
         ],
-        "title": "CompleteMediaUploadRequest"
+        "title": "CompleteMediaUploadRequest",
+        "type": "object"
       },
       "ConfirmationData": {
         "properties": {
+          "approved_by_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By Actor Id"
+          },
           "confirmation_id": {
-            "type": "string",
-            "title": "Confirmation Id"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
-          "task_run_id": {
-            "type": "string",
-            "title": "Task Run Id"
+            "title": "Confirmation Id",
+            "type": "string"
           },
           "confirmation_type": {
-            "type": "string",
-            "title": "Confirmation Type"
+            "title": "Confirmation Type",
+            "type": "string"
           },
-          "status": {
-            "type": "string",
-            "title": "Status"
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "fields": {
             "additionalProperties": true,
-            "type": "object",
-            "title": "Fields"
+            "title": "Fields",
+            "type": "object"
           },
           "requested_by_employee_id": {
             "anyOf": [
@@ -1732,36 +188,31 @@
             ],
             "title": "Resolution Payload"
           },
-          "approved_by_actor_id": {
+          "resolved_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Approved By Actor Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "resolved_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "title": "Resolved At"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "confirmation_id",
           "session_id",
@@ -1775,48 +226,34 @@
           "created_at",
           "resolved_at"
         ],
-        "title": "ConfirmationData"
+        "title": "ConfirmationData",
+        "type": "object"
       },
       "CreateInventoryCorrectionData": {
         "properties": {
           "correction_event_id": {
-            "type": "string",
-            "title": "Correction Event Id"
+            "title": "Correction Event Id",
+            "type": "string"
           },
           "item_id": {
-            "type": "string",
-            "title": "Item Id"
+            "title": "Item Id",
+            "type": "string"
           },
           "new_quantity": {
-            "type": "string",
-            "title": "New Quantity"
+            "title": "New Quantity",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "correction_event_id",
           "item_id",
           "new_quantity"
         ],
-        "title": "CreateInventoryCorrectionData"
+        "title": "CreateInventoryCorrectionData",
+        "type": "object"
       },
       "CreateInventoryCorrectionRequest": {
         "properties": {
-          "item_id": {
-            "type": "string",
-            "title": "Item Id"
-          },
-          "expected_quantity": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "title": "Expected Quantity"
-          },
           "corrected_quantity": {
             "anyOf": [
               {
@@ -1828,49 +265,6 @@
             ],
             "title": "Corrected Quantity"
           },
-          "reason": {
-            "type": "string",
-            "title": "Reason"
-          }
-        },
-        "type": "object",
-        "required": [
-          "item_id",
-          "expected_quantity",
-          "corrected_quantity",
-          "reason"
-        ],
-        "title": "CreateInventoryCorrectionRequest"
-      },
-      "CreateInventoryStockOutData": {
-        "properties": {
-          "stock_out_event_id": {
-            "type": "string",
-            "title": "Stock Out Event Id"
-          },
-          "item_id": {
-            "type": "string",
-            "title": "Item Id"
-          },
-          "new_quantity": {
-            "type": "string",
-            "title": "New Quantity"
-          }
-        },
-        "type": "object",
-        "required": [
-          "stock_out_event_id",
-          "item_id",
-          "new_quantity"
-        ],
-        "title": "CreateInventoryStockOutData"
-      },
-      "CreateInventoryStockOutRequest": {
-        "properties": {
-          "item_id": {
-            "type": "string",
-            "title": "Item Id"
-          },
           "expected_quantity": {
             "anyOf": [
               {
@@ -1882,6 +276,68 @@
             ],
             "title": "Expected Quantity"
           },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "expected_quantity",
+          "corrected_quantity",
+          "reason"
+        ],
+        "title": "CreateInventoryCorrectionRequest",
+        "type": "object"
+      },
+      "CreateInventoryStockOutData": {
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "new_quantity": {
+            "title": "New Quantity",
+            "type": "string"
+          },
+          "stock_out_event_id": {
+            "title": "Stock Out Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stock_out_event_id",
+          "item_id",
+          "new_quantity"
+        ],
+        "title": "CreateInventoryStockOutData",
+        "type": "object"
+      },
+      "CreateInventoryStockOutRequest": {
+        "properties": {
+          "expected_quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Expected Quantity"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
           "stock_out_quantity": {
             "anyOf": [
               {
@@ -1892,136 +348,143 @@
               }
             ],
             "title": "Stock Out Quantity"
-          },
-          "reason": {
-            "type": "string",
-            "title": "Reason"
           }
         },
-        "type": "object",
         "required": [
           "item_id",
           "expected_quantity",
           "stock_out_quantity",
           "reason"
         ],
-        "title": "CreateInventoryStockOutRequest"
+        "title": "CreateInventoryStockOutRequest",
+        "type": "object"
       },
       "CreateMediaUploadData": {
         "properties": {
           "media_id": {
-            "type": "string",
-            "title": "Media Id"
-          },
-          "upload_url": {
-            "type": "string",
-            "title": "Upload Url"
+            "title": "Media Id",
+            "type": "string"
           },
           "public_url": {
-            "type": "string",
-            "title": "Public Url"
+            "title": "Public Url",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "media_id",
           "upload_url",
           "public_url"
         ],
-        "title": "CreateMediaUploadData"
+        "title": "CreateMediaUploadData",
+        "type": "object"
       },
       "CreateMediaUploadRequest": {
         "properties": {
-          "media_type": {
-            "type": "string",
-            "title": "Media Type"
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
           },
           "file_name": {
-            "type": "string",
-            "title": "File Name"
+            "title": "File Name",
+            "type": "string"
           },
-          "content_type": {
-            "type": "string",
-            "title": "Content Type"
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
           },
           "size_bytes": {
-            "type": "integer",
-            "title": "Size Bytes"
+            "title": "Size Bytes",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "media_type",
           "file_name",
           "content_type",
           "size_bytes"
         ],
-        "title": "CreateMediaUploadRequest"
+        "title": "CreateMediaUploadRequest",
+        "type": "object"
       },
       "CreateOcrDocumentData": {
         "properties": {
           "ocr_document_id": {
-            "type": "string",
-            "title": "Ocr Document Id"
+            "title": "Ocr Document Id",
+            "type": "string"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "title": "Status",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "ocr_document_id",
           "status"
         ],
-        "title": "CreateOcrDocumentData"
+        "title": "CreateOcrDocumentData",
+        "type": "object"
       },
       "CreateOcrDocumentRequest": {
         "properties": {
-          "media_id": {
-            "type": "string",
-            "title": "Media Id"
-          },
           "document_type": {
-            "type": "string",
-            "title": "Document Type"
+            "title": "Document Type",
+            "type": "string"
+          },
+          "media_id": {
+            "title": "Media Id",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "media_id",
           "document_type"
         ],
-        "title": "CreateOcrDocumentRequest"
+        "title": "CreateOcrDocumentRequest",
+        "type": "object"
       },
       "CreateSessionMessageData": {
         "properties": {
           "message_id": {
-            "type": "string",
-            "title": "Message Id"
-          },
-          "task_run_id": {
-            "type": "string",
-            "title": "Task Run Id"
+            "title": "Message Id",
+            "type": "string"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "message_id",
           "task_run_id",
           "status"
         ],
-        "title": "CreateSessionMessageData"
+        "title": "CreateSessionMessageData",
+        "type": "object"
       },
       "CreateSessionMessageRequest": {
         "properties": {
+          "client_request_id": {
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "media_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Media Ids",
+            "type": "array"
+          },
           "message_type": {
-            "type": "string",
-            "title": "Message Type"
+            "title": "Message Type",
+            "type": "string"
           },
           "text": {
             "anyOf": [
@@ -2033,62 +496,50 @@
               }
             ],
             "title": "Text"
-          },
-          "media_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Media Ids"
-          },
-          "client_request_id": {
-            "type": "string",
-            "title": "Client Request Id"
           }
         },
-        "type": "object",
         "required": [
           "message_type",
           "client_request_id"
         ],
-        "title": "CreateSessionMessageRequest"
+        "title": "CreateSessionMessageRequest",
+        "type": "object"
       },
       "DashboardSummaryData": {
         "properties": {
-          "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
-          },
-          "today_stock_in_count": {
-            "type": "integer",
-            "title": "Today Stock In Count"
-          },
-          "today_task_completed_count": {
-            "type": "integer",
-            "title": "Today Task Completed Count"
-          },
-          "pending_confirmations_count": {
-            "type": "integer",
-            "title": "Pending Confirmations Count"
-          },
-          "open_low_stock_alert_count": {
-            "type": "integer",
-            "title": "Open Low Stock Alert Count"
-          },
           "last_inventory_event_at": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
             "title": "Last Inventory Event At"
+          },
+          "open_low_stock_alert_count": {
+            "title": "Open Low Stock Alert Count",
+            "type": "integer"
+          },
+          "pending_confirmations_count": {
+            "title": "Pending Confirmations Count",
+            "type": "integer"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "today_stock_in_count": {
+            "title": "Today Stock In Count",
+            "type": "integer"
+          },
+          "today_task_completed_count": {
+            "title": "Today Task Completed Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "shop_id",
           "today_stock_in_count",
@@ -2097,7 +548,8 @@
           "open_low_stock_alert_count",
           "last_inventory_event_at"
         ],
-        "title": "DashboardSummaryData"
+        "title": "DashboardSummaryData",
+        "type": "object"
       },
       "DataEnvelope_CompleteMediaUploadData_": {
         "properties": {
@@ -2105,11 +557,11 @@
             "$ref": "#/components/schemas/CompleteMediaUploadData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CompleteMediaUploadData]"
+        "title": "DataEnvelope[CompleteMediaUploadData]",
+        "type": "object"
       },
       "DataEnvelope_ConfirmationData_": {
         "properties": {
@@ -2117,11 +569,11 @@
             "$ref": "#/components/schemas/ConfirmationData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[ConfirmationData]"
+        "title": "DataEnvelope[ConfirmationData]",
+        "type": "object"
       },
       "DataEnvelope_CreateInventoryCorrectionData_": {
         "properties": {
@@ -2129,11 +581,11 @@
             "$ref": "#/components/schemas/CreateInventoryCorrectionData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CreateInventoryCorrectionData]"
+        "title": "DataEnvelope[CreateInventoryCorrectionData]",
+        "type": "object"
       },
       "DataEnvelope_CreateInventoryStockOutData_": {
         "properties": {
@@ -2141,11 +593,11 @@
             "$ref": "#/components/schemas/CreateInventoryStockOutData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CreateInventoryStockOutData]"
+        "title": "DataEnvelope[CreateInventoryStockOutData]",
+        "type": "object"
       },
       "DataEnvelope_CreateMediaUploadData_": {
         "properties": {
@@ -2153,11 +605,11 @@
             "$ref": "#/components/schemas/CreateMediaUploadData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CreateMediaUploadData]"
+        "title": "DataEnvelope[CreateMediaUploadData]",
+        "type": "object"
       },
       "DataEnvelope_CreateOcrDocumentData_": {
         "properties": {
@@ -2165,11 +617,11 @@
             "$ref": "#/components/schemas/CreateOcrDocumentData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CreateOcrDocumentData]"
+        "title": "DataEnvelope[CreateOcrDocumentData]",
+        "type": "object"
       },
       "DataEnvelope_CreateSessionMessageData_": {
         "properties": {
@@ -2177,11 +629,11 @@
             "$ref": "#/components/schemas/CreateSessionMessageData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[CreateSessionMessageData]"
+        "title": "DataEnvelope[CreateSessionMessageData]",
+        "type": "object"
       },
       "DataEnvelope_DashboardSummaryData_": {
         "properties": {
@@ -2189,11 +641,11 @@
             "$ref": "#/components/schemas/DashboardSummaryData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[DashboardSummaryData]"
+        "title": "DataEnvelope[DashboardSummaryData]",
+        "type": "object"
       },
       "DataEnvelope_DemoBootstrapSummaryData_": {
         "properties": {
@@ -2201,11 +653,11 @@
             "$ref": "#/components/schemas/DemoBootstrapSummaryData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[DemoBootstrapSummaryData]"
+        "title": "DataEnvelope[DemoBootstrapSummaryData]",
+        "type": "object"
       },
       "DataEnvelope_InventoryItemData_": {
         "properties": {
@@ -2213,11 +665,11 @@
             "$ref": "#/components/schemas/InventoryItemData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[InventoryItemData]"
+        "title": "DataEnvelope[InventoryItemData]",
+        "type": "object"
       },
       "DataEnvelope_LoginData_": {
         "properties": {
@@ -2225,11 +677,11 @@
             "$ref": "#/components/schemas/LoginData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[LoginData]"
+        "title": "DataEnvelope[LoginData]",
+        "type": "object"
       },
       "DataEnvelope_OcrDocumentData_": {
         "properties": {
@@ -2237,11 +689,23 @@
             "$ref": "#/components/schemas/OcrDocumentData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[OcrDocumentData]"
+        "title": "DataEnvelope[OcrDocumentData]",
+        "type": "object"
+      },
+      "DataEnvelope_PilotSummaryData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PilotSummaryData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[PilotSummaryData]",
+        "type": "object"
       },
       "DataEnvelope_RecognizeAndQueryData_": {
         "properties": {
@@ -2249,11 +713,11 @@
             "$ref": "#/components/schemas/RecognizeAndQueryData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[RecognizeAndQueryData]"
+        "title": "DataEnvelope[RecognizeAndQueryData]",
+        "type": "object"
       },
       "DataEnvelope_SessionBootstrapData_": {
         "properties": {
@@ -2261,11 +725,11 @@
             "$ref": "#/components/schemas/SessionBootstrapData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[SessionBootstrapData]"
+        "title": "DataEnvelope[SessionBootstrapData]",
+        "type": "object"
       },
       "DataEnvelope_SystemReadinessData_": {
         "properties": {
@@ -2273,11 +737,11 @@
             "$ref": "#/components/schemas/SystemReadinessData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[SystemReadinessData]"
+        "title": "DataEnvelope[SystemReadinessData]",
+        "type": "object"
       },
       "DataEnvelope_TaskRunData_": {
         "properties": {
@@ -2285,11 +749,11 @@
             "$ref": "#/components/schemas/TaskRunData"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[TaskRunData]"
+        "title": "DataEnvelope[TaskRunData]",
+        "type": "object"
       },
       "DataEnvelope_list_SessionStreamEventEnvelope__": {
         "properties": {
@@ -2297,69 +761,68 @@
             "items": {
               "$ref": "#/components/schemas/SessionStreamEventEnvelope"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           }
         },
-        "type": "object",
         "required": [
           "data"
         ],
-        "title": "DataEnvelope[list[SessionStreamEventEnvelope]]"
+        "title": "DataEnvelope[list[SessionStreamEventEnvelope]]",
+        "type": "object"
       },
       "DemoBootstrapSummaryData": {
         "properties": {
-          "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
           "inventory_item_count": {
-            "type": "integer",
-            "title": "Inventory Item Count"
+            "title": "Inventory Item Count",
+            "type": "integer"
           },
           "inventory_item_names": {
             "items": {
               "type": "string"
             },
-            "type": "array",
-            "title": "Inventory Item Names"
+            "title": "Inventory Item Names",
+            "type": "array"
           },
-          "pending_confirmation_count": {
-            "type": "integer",
-            "title": "Pending Confirmation Count"
-          },
-          "pending_confirmation_types": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Pending Confirmation Types"
+          "message_count": {
+            "title": "Message Count",
+            "type": "integer"
           },
           "open_low_stock_alert_count": {
-            "type": "integer",
-            "title": "Open Low Stock Alert Count"
+            "title": "Open Low Stock Alert Count",
+            "type": "integer"
           },
           "open_low_stock_item_names": {
             "items": {
               "type": "string"
             },
-            "type": "array",
-            "title": "Open Low Stock Item Names"
+            "title": "Open Low Stock Item Names",
+            "type": "array"
           },
-          "message_count": {
-            "type": "integer",
-            "title": "Message Count"
+          "pending_confirmation_count": {
+            "title": "Pending Confirmation Count",
+            "type": "integer"
+          },
+          "pending_confirmation_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Pending Confirmation Types",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
           },
           "task_run_count": {
-            "type": "integer",
-            "title": "Task Run Count"
+            "title": "Task Run Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "shop_id",
           "session_id",
@@ -2372,33 +835,34 @@
           "message_count",
           "task_run_count"
         ],
-        "title": "DemoBootstrapSummaryData"
+        "title": "DemoBootstrapSummaryData",
+        "type": "object"
       },
       "ErrorBody": {
         "properties": {
           "code": {
-            "type": "string",
-            "title": "Code"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
+            "title": "Code",
+            "type": "string"
           },
           "details": {
             "items": {
               "$ref": "#/components/schemas/ErrorDetail"
             },
-            "type": "array",
-            "title": "Details"
+            "title": "Details",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "code",
           "message",
           "details"
         ],
-        "title": "ErrorBody"
+        "title": "ErrorBody",
+        "type": "object"
       },
       "ErrorDetail": {
         "properties": {
@@ -2414,15 +878,15 @@
             "title": "Field"
           },
           "message": {
-            "type": "string",
-            "title": "Message"
+            "title": "Message",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "message"
         ],
-        "title": "ErrorDetail"
+        "title": "ErrorDetail",
+        "type": "object"
       },
       "ErrorEnvelope": {
         "properties": {
@@ -2430,11 +894,11 @@
             "$ref": "#/components/schemas/ErrorBody"
           }
         },
-        "type": "object",
         "required": [
           "error"
         ],
-        "title": "ErrorEnvelope"
+        "title": "ErrorEnvelope",
+        "type": "object"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2442,37 +906,29 @@
             "items": {
               "$ref": "#/components/schemas/ValidationError"
             },
-            "type": "array",
-            "title": "Detail"
+            "title": "Detail",
+            "type": "array"
           }
         },
-        "type": "object",
-        "title": "HTTPValidationError"
+        "title": "HTTPValidationError",
+        "type": "object"
       },
       "HealthResponse": {
         "properties": {
           "status": {
-            "type": "string",
-            "title": "Status"
+            "title": "Status",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "status"
         ],
-        "title": "HealthResponse"
+        "title": "HealthResponse",
+        "type": "object"
       },
       "InventoryItemData": {
         "properties": {
-          "item_id": {
-            "type": "string",
-            "title": "Item Id"
-          },
-          "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
-          },
-          "sku": {
+          "barcode": {
             "anyOf": [
               {
                 "type": "string"
@@ -2481,11 +937,7 @@
                 "type": "null"
               }
             ],
-            "title": "Sku"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
+            "title": "Barcode"
           },
           "category": {
             "anyOf": [
@@ -2498,24 +950,10 @@
             ],
             "title": "Category"
           },
-          "barcode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Barcode"
-          },
-          "default_unit": {
-            "type": "string",
-            "title": "Default Unit"
-          },
-          "current_stock": {
-            "type": "string",
-            "title": "Current Stock"
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "current_price": {
             "anyOf": [
@@ -2528,16 +966,13 @@
             ],
             "title": "Current Price"
           },
-          "low_stock_threshold": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Low Stock Threshold"
+          "current_stock": {
+            "title": "Current Stock",
+            "type": "string"
+          },
+          "default_unit": {
+            "title": "Default Unit",
+            "type": "string"
           },
           "image_media_id": {
             "anyOf": [
@@ -2551,21 +986,49 @@
             "title": "Image Media Id"
           },
           "is_active": {
-            "type": "boolean",
-            "title": "Is Active"
+            "title": "Is Active",
+            "type": "boolean"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "low_stock_threshold": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low Stock Threshold"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sku"
           },
           "updated_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Updated At"
+            "title": "Updated At",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "item_id",
           "shop_id",
@@ -2582,33 +1045,34 @@
           "created_at",
           "updated_at"
         ],
-        "title": "InventoryItemData"
+        "title": "InventoryItemData",
+        "type": "object"
       },
       "ListAlertsMeta": {
         "properties": {
           "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "count"
         ],
-        "title": "ListAlertsMeta"
+        "title": "ListAlertsMeta",
+        "type": "object"
       },
       "ListAuditLogsMeta": {
         "properties": {
           "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "count"
         ],
-        "title": "ListAuditLogsMeta"
+        "title": "ListAuditLogsMeta",
+        "type": "object"
       },
       "ListAuditLogsResponse": {
         "properties": {
@@ -2616,32 +1080,32 @@
             "items": {
               "$ref": "#/components/schemas/AuditLogData"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           },
           "meta": {
             "$ref": "#/components/schemas/ListAuditLogsMeta"
           }
         },
-        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "ListAuditLogsResponse"
+        "title": "ListAuditLogsResponse",
+        "type": "object"
       },
       "ListConfirmationsMeta": {
         "properties": {
           "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "count"
         ],
-        "title": "ListConfirmationsMeta"
+        "title": "ListConfirmationsMeta",
+        "type": "object"
       },
       "ListConfirmationsResponse": {
         "properties": {
@@ -2649,32 +1113,32 @@
             "items": {
               "$ref": "#/components/schemas/ConfirmationData"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           },
           "meta": {
             "$ref": "#/components/schemas/ListConfirmationsMeta"
           }
         },
-        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "ListConfirmationsResponse"
+        "title": "ListConfirmationsResponse",
+        "type": "object"
       },
       "ListInventoryItemsMeta": {
         "properties": {
           "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Count",
+            "type": "integer"
           }
         },
-        "type": "object",
         "required": [
           "count"
         ],
-        "title": "ListInventoryItemsMeta"
+        "title": "ListInventoryItemsMeta",
+        "type": "object"
       },
       "ListInventoryItemsResponse": {
         "properties": {
@@ -2682,19 +1146,19 @@
             "items": {
               "$ref": "#/components/schemas/InventoryItemData"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           },
           "meta": {
             "$ref": "#/components/schemas/ListInventoryItemsMeta"
           }
         },
-        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "ListInventoryItemsResponse"
+        "title": "ListInventoryItemsResponse",
+        "type": "object"
       },
       "ListLowStockAlertsResponse": {
         "properties": {
@@ -2702,44 +1166,43 @@
             "items": {
               "$ref": "#/components/schemas/LowStockAlertData"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           },
           "meta": {
             "$ref": "#/components/schemas/ListAlertsMeta"
           }
         },
-        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "ListLowStockAlertsResponse"
+        "title": "ListLowStockAlertsResponse",
+        "type": "object"
       },
       "LoginData": {
         "properties": {
           "access_token": {
-            "type": "string",
-            "title": "Access Token"
-          },
-          "token_type": {
-            "type": "string",
-            "title": "Token Type"
+            "title": "Access Token",
+            "type": "string"
           },
           "owner_actor_id": {
-            "type": "string",
-            "title": "Owner Actor Id"
+            "title": "Owner Actor Id",
+            "type": "string"
           },
           "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
+            "title": "Shop Id",
+            "type": "string"
           },
           "shop_name": {
-            "type": "string",
-            "title": "Shop Name"
+            "title": "Shop Name",
+            "type": "string"
+          },
+          "token_type": {
+            "title": "Token Type",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "access_token",
           "token_type",
@@ -2747,71 +1210,71 @@
           "shop_id",
           "shop_name"
         ],
-        "title": "LoginData"
+        "title": "LoginData",
+        "type": "object"
       },
       "LoginRequest": {
         "properties": {
           "email": {
-            "type": "string",
-            "title": "Email"
+            "title": "Email",
+            "type": "string"
           },
           "password": {
-            "type": "string",
-            "title": "Password"
+            "title": "Password",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "email",
           "password"
         ],
-        "title": "LoginRequest"
+        "title": "LoginRequest",
+        "type": "object"
       },
       "LowStockAlertData": {
         "properties": {
           "alert_id": {
-            "type": "string",
-            "title": "Alert Id"
-          },
-          "shop_id": {
-            "type": "string",
-            "title": "Shop Id"
+            "title": "Alert Id",
+            "type": "string"
           },
           "alert_type": {
-            "type": "string",
-            "title": "Alert Type"
-          },
-          "item_id": {
-            "type": "string",
-            "title": "Item Id"
-          },
-          "item_name": {
-            "type": "string",
-            "title": "Item Name"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "stock": {
-            "type": "string",
-            "title": "Stock"
-          },
-          "threshold": {
-            "type": "string",
-            "title": "Threshold"
-          },
-          "unit": {
-            "type": "string",
-            "title": "Unit"
+            "title": "Alert Type",
+            "type": "string"
           },
           "created_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Created At",
+            "type": "string"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_name": {
+            "title": "Item Name",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "stock": {
+            "title": "Stock",
+            "type": "string"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "alert_id",
           "shop_id",
@@ -2824,25 +1287,19 @@
           "unit",
           "created_at"
         ],
-        "title": "LowStockAlertData"
+        "title": "LowStockAlertData",
+        "type": "object"
       },
       "OcrDocumentData": {
         "properties": {
-          "ocr_document_id": {
-            "type": "string",
-            "title": "Ocr Document Id"
-          },
-          "media_id": {
-            "type": "string",
-            "title": "Media Id"
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "document_type": {
-            "type": "string",
-            "title": "Document Type"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status"
+            "title": "Document Type",
+            "type": "string"
           },
           "fields": {
             "anyOf": [
@@ -2860,21 +1317,27 @@
             "items": {
               "type": "string"
             },
-            "type": "array",
-            "title": "Low Confidence Fields"
+            "title": "Low Confidence Fields",
+            "type": "array"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+          "media_id": {
+            "title": "Media Id",
+            "type": "string"
+          },
+          "ocr_document_id": {
+            "title": "Ocr Document Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
           },
           "updated_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Updated At"
+            "title": "Updated At",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "ocr_document_id",
           "media_id",
@@ -2885,57 +1348,165 @@
           "created_at",
           "updated_at"
         ],
-        "title": "OcrDocumentData"
+        "title": "OcrDocumentData",
+        "type": "object"
+      },
+      "PilotSummaryConfirmationData": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "approved",
+          "rejected"
+        ],
+        "title": "PilotSummaryConfirmationData",
+        "type": "object"
+      },
+      "PilotSummaryData": {
+        "properties": {
+          "confirmations": {
+            "$ref": "#/components/schemas/PilotSummaryConfirmationData"
+          },
+          "fallback_count": {
+            "title": "Fallback Count",
+            "type": "integer"
+          },
+          "low_confidence_count": {
+            "title": "Low Confidence Count",
+            "type": "integer"
+          },
+          "provider_failures": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Provider Failures",
+            "type": "object"
+          },
+          "task_totals": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "title": "Task Totals",
+            "type": "object"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/PilotSummaryTimeWindowData"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_window",
+          "task_totals",
+          "confirmations",
+          "low_confidence_count",
+          "fallback_count",
+          "provider_failures",
+          "trial_provider_profile"
+        ],
+        "title": "PilotSummaryData",
+        "type": "object"
+      },
+      "PilotSummaryTimeWindowData": {
+        "properties": {
+          "ended_at": {
+            "title": "Ended At",
+            "type": "string"
+          },
+          "hours": {
+            "title": "Hours",
+            "type": "integer"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hours",
+          "started_at",
+          "ended_at"
+        ],
+        "title": "PilotSummaryTimeWindowData",
+        "type": "object"
       },
       "ReadinessCheckData": {
         "properties": {
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "mode": {
-            "type": "string",
-            "title": "Mode"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
-          },
           "details": {
             "additionalProperties": {
               "type": "string"
             },
-            "type": "object",
-            "title": "Details"
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "status",
           "mode",
           "message",
           "details"
         ],
-        "title": "ReadinessCheckData"
+        "title": "ReadinessCheckData",
+        "type": "object"
       },
       "RecognizeAndQueryData": {
         "properties": {
-          "recognized_item": {
-            "$ref": "#/components/schemas/RecognizedItemData"
-          },
           "inventory": {
             "$ref": "#/components/schemas/RecognizeAndQueryInventoryData"
+          },
+          "recognized_item": {
+            "$ref": "#/components/schemas/RecognizedItemData"
           }
         },
-        "type": "object",
         "required": [
           "recognized_item",
           "inventory"
         ],
-        "title": "RecognizeAndQueryData"
+        "title": "RecognizeAndQueryData",
+        "type": "object"
       },
       "RecognizeAndQueryInventoryData": {
         "properties": {
+          "is_low_stock": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Low Stock"
+          },
           "stock": {
             "anyOf": [
               {
@@ -2957,42 +1528,35 @@
               }
             ],
             "title": "Unit"
-          },
-          "is_low_stock": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Low Stock"
           }
         },
-        "type": "object",
         "required": [
           "stock",
           "unit",
           "is_low_stock"
         ],
-        "title": "RecognizeAndQueryInventoryData"
+        "title": "RecognizeAndQueryInventoryData",
+        "type": "object"
       },
       "RecognizeAndQueryRequest": {
         "properties": {
           "media_id": {
-            "type": "string",
-            "title": "Media Id"
+            "title": "Media Id",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "media_id"
         ],
-        "title": "RecognizeAndQueryRequest"
+        "title": "RecognizeAndQueryRequest",
+        "type": "object"
       },
       "RecognizedItemData": {
         "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
           "item_id": {
             "anyOf": [
               {
@@ -3005,92 +1569,82 @@
             "title": "Item Id"
           },
           "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "confidence": {
-            "type": "number",
-            "title": "Confidence"
+            "title": "Name",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "item_id",
           "name",
           "confidence"
         ],
-        "title": "RecognizedItemData"
+        "title": "RecognizedItemData",
+        "type": "object"
       },
       "SessionBootstrapData": {
         "properties": {
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
-          "session_type": {
-            "type": "string",
-            "title": "Session Type"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
           "participants": {
             "items": {
               "type": "string"
             },
-            "type": "array",
-            "title": "Participants"
+            "title": "Participants",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "session_type": {
+            "title": "Session Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "session_id",
           "session_type",
           "title",
           "participants"
         ],
-        "title": "SessionBootstrapData"
+        "title": "SessionBootstrapData",
+        "type": "object"
       },
       "SessionMessageItem": {
         "properties": {
-          "message_id": {
-            "type": "string",
-            "title": "Message Id"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
           },
           "actor_type": {
-            "type": "string",
-            "title": "Actor Type"
+            "title": "Actor Type",
+            "type": "string"
           },
-          "actor_id": {
-            "type": "string",
-            "title": "Actor Id"
-          },
-          "message_type": {
-            "type": "string",
-            "title": "Message Type"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "media_ids": {
             "items": {
               "type": "string"
             },
-            "type": "array",
-            "title": "Media Ids"
+            "title": "Media Ids",
+            "type": "array"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "message_type": {
+            "title": "Message Type",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
           },
           "task_run_id": {
             "anyOf": [
@@ -3103,13 +1657,18 @@
             ],
             "title": "Task Run Id"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
           }
         },
-        "type": "object",
         "required": [
           "message_id",
           "session_id",
@@ -3121,7 +1680,8 @@
           "task_run_id",
           "created_at"
         ],
-        "title": "SessionMessageItem"
+        "title": "SessionMessageItem",
+        "type": "object"
       },
       "SessionMessagesMeta": {
         "properties": {
@@ -3137,8 +1697,8 @@
             "title": "Next Cursor"
           }
         },
-        "type": "object",
-        "title": "SessionMessagesMeta"
+        "title": "SessionMessagesMeta",
+        "type": "object"
       },
       "SessionMessagesResponse": {
         "properties": {
@@ -3146,48 +1706,34 @@
             "items": {
               "$ref": "#/components/schemas/SessionMessageItem"
             },
-            "type": "array",
-            "title": "Data"
+            "title": "Data",
+            "type": "array"
           },
           "meta": {
             "$ref": "#/components/schemas/SessionMessagesMeta"
           }
         },
-        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "SessionMessagesResponse"
+        "title": "SessionMessagesResponse",
+        "type": "object"
       },
       "SessionStreamEventEnvelope": {
         "properties": {
-          "event_id": {
-            "type": "string",
-            "title": "Event Id"
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
           },
-          "seq": {
-            "type": "integer",
-            "title": "Seq"
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
           },
           "event_type": {
-            "type": "string",
-            "title": "Event Type"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
-          "task_run_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Task Run Id"
+            "title": "Event Type",
+            "type": "string"
           },
           "message_id": {
             "anyOf": [
@@ -3201,17 +1747,30 @@
             "title": "Message Id"
           },
           "occurred_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Occurred At"
+            "title": "Occurred At",
+            "type": "string"
           },
-          "data": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Data"
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "task_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Run Id"
           }
         },
-        "type": "object",
         "required": [
           "event_id",
           "seq",
@@ -3219,61 +1778,42 @@
           "session_id",
           "occurred_at"
         ],
-        "title": "SessionStreamEventEnvelope"
+        "title": "SessionStreamEventEnvelope",
+        "type": "object"
       },
       "SystemReadinessData": {
         "properties": {
-          "overall_status": {
-            "type": "string",
-            "title": "Overall Status"
-          },
-          "runtime_mode": {
-            "type": "string",
-            "title": "Runtime Mode"
-          },
-          "trial_provider_profile": {
-            "type": "string",
-            "title": "Trial Provider Profile"
-          },
           "checks": {
             "additionalProperties": {
               "$ref": "#/components/schemas/ReadinessCheckData"
             },
-            "type": "object",
-            "title": "Checks"
+            "title": "Checks",
+            "type": "object"
+          },
+          "overall_status": {
+            "title": "Overall Status",
+            "type": "string"
+          },
+          "runtime_mode": {
+            "title": "Runtime Mode",
+            "type": "string"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "overall_status",
           "runtime_mode",
           "trial_provider_profile",
           "checks"
         ],
-        "title": "SystemReadinessData"
+        "title": "SystemReadinessData",
+        "type": "object"
       },
       "TaskRunData": {
         "properties": {
-          "task_run_id": {
-            "type": "string",
-            "title": "Task Run Id"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
-          "source_message_id": {
-            "type": "string",
-            "title": "Source Message Id"
-          },
-          "task_type": {
-            "type": "string",
-            "title": "Task Type"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
           "assigned_employee_id": {
             "anyOf": [
               {
@@ -3285,7 +1825,19 @@
             ],
             "title": "Assigned Employee Id"
           },
-          "result_summary": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "confirmation_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -3294,7 +1846,12 @@
                 "type": "null"
               }
             ],
-            "title": "Result Summary"
+            "title": "Confirmation Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
           "error_code": {
             "anyOf": [
@@ -3318,7 +1875,7 @@
             ],
             "title": "Error Message"
           },
-          "confirmation_id": {
+          "result_summary": {
             "anyOf": [
               {
                 "type": "string"
@@ -3327,32 +1884,34 @@
                 "type": "null"
               }
             ],
-            "title": "Confirmation Id"
+            "title": "Result Summary"
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_message_id": {
+            "title": "Source Message Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "task_type": {
+            "title": "Task Type",
+            "type": "string"
           },
           "updated_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Updated At"
-          },
-          "completed_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completed At"
+            "title": "Updated At",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "task_run_id",
           "session_id",
@@ -3367,7 +1926,8 @@
           "updated_at",
           "completed_at"
         ],
-        "title": "TaskRunData"
+        "title": "TaskRunData",
+        "type": "object"
       },
       "ValidationError": {
         "properties": {
@@ -3382,25 +1942,1644 @@
                 }
               ]
             },
-            "type": "array",
-            "title": "Location"
+            "title": "Location",
+            "type": "array"
           },
           "msg": {
-            "type": "string",
-            "title": "Message"
+            "title": "Message",
+            "type": "string"
           },
           "type": {
-            "type": "string",
-            "title": "Error Type"
+            "title": "Error Type",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "loc",
           "msg",
           "type"
         ],
-        "title": "ValidationError"
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "AI Store Manager Backend",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/alerts": {
+      "get": {
+        "operationId": "get_alerts_api_v1_alerts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "default": "low-stock",
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListLowStockAlertsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Alerts",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/audit-logs": {
+      "get": {
+        "operationId": "get_audit_logs_api_v1_audit_logs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "default": "inventory",
+              "title": "Scope",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAuditLogsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Audit Logs",
+        "tags": [
+          "audit-logs"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_LoginData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/confirmations": {
+      "get": {
+        "operationId": "get_confirmations_api_v1_confirmations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListConfirmationsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Confirmations",
+        "tags": [
+          "confirmations"
+        ]
+      }
+    },
+    "/api/v1/confirmations/{confirmation_id}/approve": {
+      "post": {
+        "operationId": "post_approve_confirmation_api_v1_confirmations__confirmation_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "confirmation_id",
+            "required": true,
+            "schema": {
+              "title": "Confirmation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveConfirmationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_ConfirmationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Approve Confirmation",
+        "tags": [
+          "confirmations"
+        ]
+      }
+    },
+    "/api/v1/confirmations/{confirmation_id}/reject": {
+      "post": {
+        "operationId": "post_reject_confirmation_api_v1_confirmations__confirmation_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "confirmation_id",
+            "required": true,
+            "schema": {
+              "title": "Confirmation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_ConfirmationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Reject Confirmation",
+        "tags": [
+          "confirmations"
+        ]
+      }
+    },
+    "/api/v1/dashboard/summary": {
+      "get": {
+        "operationId": "get_dashboard_summary_route_api_v1_dashboard_summary_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_DashboardSummaryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Dashboard Summary Route",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/inventory-events/corrections": {
+      "post": {
+        "operationId": "post_inventory_correction_api_v1_inventory_events_corrections_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInventoryCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CreateInventoryCorrectionData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Inventory Correction",
+        "tags": [
+          "inventory-events"
+        ]
+      }
+    },
+    "/api/v1/inventory-events/stock-out": {
+      "post": {
+        "operationId": "post_inventory_stock_out_api_v1_inventory_events_stock_out_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInventoryStockOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CreateInventoryStockOutData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Inventory Stock Out",
+        "tags": [
+          "inventory-events"
+        ]
+      }
+    },
+    "/api/v1/inventory-items": {
+      "get": {
+        "operationId": "get_inventory_items_api_v1_inventory_items_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListInventoryItemsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Inventory Items",
+        "tags": [
+          "inventory-items"
+        ]
+      }
+    },
+    "/api/v1/inventory-items/recognize-and-query": {
+      "post": {
+        "operationId": "post_recognize_and_query_inventory_item_api_v1_inventory_items_recognize_and_query_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecognizeAndQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_RecognizeAndQueryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Recognize And Query Inventory Item",
+        "tags": [
+          "inventory-items"
+        ]
+      }
+    },
+    "/api/v1/inventory-items/{item_id}": {
+      "get": {
+        "operationId": "get_inventory_item_detail_api_v1_inventory_items__item_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_InventoryItemData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Inventory Item Detail",
+        "tags": [
+          "inventory-items"
+        ]
+      }
+    },
+    "/api/v1/media-uploads": {
+      "post": {
+        "operationId": "post_create_media_upload_api_v1_media_uploads_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMediaUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CreateMediaUploadData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Create Media Upload",
+        "tags": [
+          "media-uploads"
+        ]
+      }
+    },
+    "/api/v1/media-uploads/mock/{object_key}": {
+      "put": {
+        "operationId": "put_mock_media_upload_object_api_v1_media_uploads_mock__object_key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "object_key",
+            "required": true,
+            "schema": {
+              "title": "Object Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Mock Media Upload Object",
+        "tags": [
+          "media-uploads"
+        ]
+      }
+    },
+    "/api/v1/media-uploads/{media_id}/complete": {
+      "post": {
+        "operationId": "post_complete_media_upload_api_v1_media_uploads__media_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_id",
+            "required": true,
+            "schema": {
+              "title": "Media Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteMediaUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CompleteMediaUploadData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Complete Media Upload",
+        "tags": [
+          "media-uploads"
+        ]
+      }
+    },
+    "/api/v1/ocr-documents": {
+      "post": {
+        "operationId": "post_create_ocr_document_api_v1_ocr_documents_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOcrDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CreateOcrDocumentData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Create Ocr Document",
+        "tags": [
+          "ocr-documents"
+        ]
+      }
+    },
+    "/api/v1/ocr-documents/{ocr_document_id}": {
+      "get": {
+        "operationId": "get_ocr_document_detail_api_v1_ocr_documents__ocr_document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ocr_document_id",
+            "required": true,
+            "schema": {
+              "title": "Ocr Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_OcrDocumentData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ocr Document Detail",
+        "tags": [
+          "ocr-documents"
+        ]
+      }
+    },
+    "/api/v1/sessions/bootstrap": {
+      "post": {
+        "operationId": "bootstrap_session_api_v1_sessions_bootstrap_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_SessionBootstrapData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Session not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bootstrap Session",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/messages": {
+      "get": {
+        "operationId": "get_session_messages_api_v1_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionMessagesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session Messages",
+        "tags": [
+          "messages"
+        ]
+      },
+      "post": {
+        "operationId": "post_session_message_api_v1_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_CreateSessionMessageData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Session Message",
+        "tags": [
+          "messages"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/stream-events": {
+      "get": {
+        "operationId": "list_stream_events_api_v1_sessions__session_id__stream_events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after_seq",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After Seq",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_list_SessionStreamEventEnvelope__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Stream Events",
+        "tags": [
+          "session-stream"
+        ]
+      }
+    },
+    "/api/v1/system/demo/bootstrap": {
+      "post": {
+        "operationId": "post_demo_bootstrap_api_v1_system_demo_bootstrap_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_DemoBootstrapSummaryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Demo Bootstrap",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/pilot-summary": {
+      "get": {
+        "operationId": "get_pilot_summary_api_v1_system_pilot_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Hours",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_PilotSummaryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pilot Summary",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/readiness": {
+      "get": {
+        "operationId": "get_system_readiness_api_v1_system_readiness_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_SystemReadinessData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get System Readiness",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/task-runs/{task_run_id}": {
+      "get": {
+        "operationId": "get_task_run_api_v1_task_runs__task_run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_run_id",
+            "required": true,
+            "schema": {
+              "title": "Task Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_TaskRunData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Task Run",
+        "tags": [
+          "task-runs"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
       }
     }
   }

@@ -1,7 +1,8 @@
+import httpx
+from importlib import import_module
 import pytest
 
 from app.core.config import Settings
-from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
 from app.services.asr_gateway import AsrGateway, build_asr_gateway, get_default_asr_gateway
 from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProviderError, AsrTranscription
@@ -44,6 +45,49 @@ class _StaticProvider:
             raise self._error
         assert self._result is not None
         return self._result
+
+
+class _HttpxJsonResponse:
+    def __init__(self, payload: object, *, status_code: int = 200) -> None:
+        self._payload = payload
+        self._status_code = status_code
+        self._request = httpx.Request("POST", "https://api.example.com/v1/transcriptions")
+
+    def raise_for_status(self) -> None:
+        if self._status_code >= 400:
+            raise httpx.HTTPStatusError(
+                "request failed",
+                request=self._request,
+                response=httpx.Response(self._status_code, request=self._request),
+            )
+
+    def json(self) -> object:
+        return self._payload
+
+
+def _build_real_gateway(**overrides: object) -> AsrGateway:
+    settings_overrides = {
+        "asr_provider": "real-provider",
+        "asr_provider_api_url": "https://api.example.com/v1/transcriptions",
+        "asr_provider_api_key": "key",
+        "asr_provider_model": "model-a",
+        "asr_allow_mock_fallback": False,
+    }
+    settings_overrides.update(overrides)
+    try:
+        return build_asr_gateway(
+            _build_settings(**settings_overrides)
+        )
+    except NotImplementedError as exc:  # pragma: no cover - red phase guard for Task 4
+        pytest.fail(f"configured real providers should not raise NotImplementedError: {exc}")
+
+
+def _get_real_provider_type() -> type[object]:
+    try:
+        module = import_module("app.services.asr_real_provider")
+    except ModuleNotFoundError as exc:  # pragma: no cover - red phase guard for Task 4
+        pytest.fail(f"expected app.services.asr_real_provider to exist: {exc}")
+    return module.RealAsrProvider
 
 
 def test_mock_provider_prefers_text_hint() -> None:
@@ -91,16 +135,88 @@ def test_real_provider_missing_credentials_raises_unavailable() -> None:
     assert excinfo.value.retryable is False
 
 
-def test_real_provider_with_credentials_raises_not_implemented() -> None:
-    with pytest.raises(NotImplementedError, match="real provider is added in Task 4"):
-        build_asr_gateway(
-            _build_settings(
-                asr_provider="real-provider",
-                asr_provider_api_url="https://api.example.com",
-                asr_provider_api_key="key",
-                asr_provider_model="model-a",
-            )
+def test_real_provider_with_credentials_builds_gateway() -> None:
+    gateway = _build_real_gateway(asr_timeout_seconds=21.5)
+    real_provider_type = _get_real_provider_type()
+
+    assert isinstance(gateway.primary_provider, real_provider_type)
+    assert gateway.primary_provider.api_url == "https://api.example.com/v1/transcriptions"
+    assert gateway.primary_provider.api_key == "key"
+    assert gateway.primary_provider.model == "model-a"
+    assert gateway.primary_provider.timeout_seconds == 21.5
+    assert gateway.fallback_provider is None
+
+
+def test_real_provider_transcribe_normalizes_http_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[str, str, dict[str, object]]] = []
+
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        calls.append((method, url, dict(kwargs)))
+        return _HttpxJsonResponse({"text": "decoded speech", "confidence": 0.87})
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway(asr_timeout_seconds=9.25)
+
+    result = gateway.primary_provider.transcribe(
+        AsrMediaInput(media_ids=["voice_query_demo"], text_hint="spoken question")
+    )
+
+    assert result == AsrTranscription(
+        text="decoded speech",
+        provider="real-provider",
+        confidence=0.87,
+    )
+    assert calls == [
+        (
+            "POST",
+            "https://api.example.com/v1/transcriptions",
+            {
+                "headers": {"Authorization": "Bearer key"},
+                "timeout": 9.25,
+                "json": {
+                    "media_ids": ["voice_query_demo"],
+                    "text_hint": "spoken question",
+                    "model": "model-a",
+                },
+            },
         )
+    ]
+
+
+def test_real_provider_timeout_maps_to_retryable_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        del method, url, kwargs
+        raise httpx.TimeoutException("request timed out")
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway()
+
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.primary_provider.transcribe(AsrMediaInput(media_ids=["voice_query_demo"], text_hint=None))
+
+    assert excinfo.value.code == "asr_timeout"
+    assert str(excinfo.value) == "request timed out"
+    assert excinfo.value.retryable is True
+
+
+def test_real_provider_uses_mock_fallback_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        del method, url, kwargs
+        raise httpx.TimeoutException("request timed out")
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway(asr_allow_mock_fallback=True)
+    real_provider_type = _get_real_provider_type()
+
+    assert isinstance(gateway.primary_provider, real_provider_type)
+    assert isinstance(gateway.fallback_provider, MockAsrProvider)
+
+    result = gateway.transcribe(AsrMediaInput(media_ids=["voice_stock_in_demo"], text_hint=None))
+
+    assert result == AsrTranscription(text="restock apples today", provider="mock")
 
 
 def test_get_default_asr_gateway_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -136,14 +252,3 @@ def test_gateway_reraises_provider_error_when_no_fallback() -> None:
     with pytest.raises(AsrProviderError) as excinfo:
         gateway.transcribe(AsrMediaInput(media_ids=["a"], text_hint=None))
     assert excinfo.value is expected
-
-
-def test_runtime_transcribe_audio_maps_unimplemented_gateway_to_runtime_error(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def _raise_not_implemented() -> AsrGateway:
-        raise NotImplementedError("real provider is added in Task 4")
-
-    monkeypatch.setattr("app.runtime.tools.get_default_asr_gateway", _raise_not_implemented)
-    with pytest.raises(MockTranscriptionUnavailable, match="real provider is added in Task 4"):
-        transcribe_audio(media_ids=["voice_query_demo"], text_hint=None)

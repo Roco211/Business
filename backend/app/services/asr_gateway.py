@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.services.asr_mock_provider import MockAsrProvider
+from app.services.asr_real_provider import RealAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProvider, AsrProviderError, AsrTranscription
 
 
@@ -31,10 +32,19 @@ def build_asr_gateway(settings: Settings) -> AsrGateway:
             "missing ASR provider configuration",
             retryable=False,
         )
-    raise NotImplementedError("real provider is added in Task 4")
+
+    fallback_provider = MockAsrProvider() if settings.asr_allow_mock_fallback else None
+    return AsrGateway(
+        primary_provider=RealAsrProvider(
+            api_url=settings.asr_provider_api_url,
+            api_key=settings.asr_provider_api_key,
+            model=settings.asr_provider_model,
+            timeout_seconds=settings.asr_timeout_seconds,
+        ),
+        fallback_provider=fallback_provider,
+    )
 
 
 @lru_cache(maxsize=1)
 def get_default_asr_gateway() -> AsrGateway:
     return build_asr_gateway(get_settings())
-

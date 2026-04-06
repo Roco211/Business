@@ -529,10 +529,12 @@ def test_image_stock_in_message_pauses_for_confirmation_and_writes_runtime_messa
     assert confirmation.status == "pending"
     assert confirmation.confirmation_type == "low-confidence-recognition"
     assert confirmation.fields["draft_fields"]["item_name"] == "Red Bull 250ml"
-    assert confirmation.fields["draft_fields"]["quantity"] == 2
+    assert confirmation.fields["draft_fields"]["quantity"] is None
     assert confirmation.fields["draft_fields"]["unit"] == "can"
-    assert confirmation.fields["draft_fields"]["price"] == 6.5
+    assert confirmation.fields["draft_fields"]["price"] is None
     assert confirmation.fields["image_media_id"] == "image_stock_in_demo"
+    assert confirmation.fields["provider_name"] == "mock-vision-provider"
+    assert confirmation.fields["recognized_confidence"] == pytest.approx(0.61)
     assert "red bull" in str(confirmation.fields["summary"]).lower()
     assert len(runtime_messages) == 1
     assert "confirm" in (runtime_messages[0].text or "").lower()

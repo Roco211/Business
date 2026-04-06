@@ -6,9 +6,11 @@ from app.api.routes import messages as message_routes
 from app.db.session import get_session_factory
 from app.models import Alert, AuditLog, Confirmation, InventoryEvent, InventoryItem, Message, OcrDocument, TaskRun
 from app.runtime.processor import process_task_run
+from app.runtime import router as runtime_router
 from app.runtime import tools as runtime_tools
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
+from app.services.vision_types import VisionCandidate, VisionRecognition
 from conftest import auth_headers, login_and_get_token
 
 DEFAULT_SESSION_ID = "sess_default"
@@ -340,6 +342,115 @@ def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:
     assert any(
         message["task_run_id"] == task_run_id
         and "stock query accepted" in (message["text"] or "").lower()
+        for message in messages
+    )
+
+
+def test_acceptance_upload_backed_photo_query_flow_uses_vision_gateway_source_of_truth(
+    client,
+    monkeypatch,
+) -> None:
+    media_id = _create_and_complete_media_upload(
+        client,
+        media_type="image",
+        file_name="shelf-demo.jpg",
+        content_type="image/jpeg",
+    )
+
+    class _UploadedVisionGateway:
+        def recognize_product(self, media_input):
+            assert media_input.media_id == media_id
+            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[VisionCandidate(item_name="Fanta 330ml", confidence=0.91, packaging_hint="can")],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(runtime_router, "get_default_vision_gateway", lambda: _UploadedVisionGateway())
+
+    task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_upload_backed_photo_query",
+        message_type="image",
+        text="check shelf stock for fanta",
+        media_ids=[media_id],
+    )
+
+    _process_runtime_task_run(task_run_id)
+    completed_task_run = _get_task_run(client, task_run_id=task_run_id)
+    messages = _get_session_messages(client)
+
+    assert completed_task_run["status"] == "completed"
+    assert completed_task_run["task_type"] == "photo-stock-query"
+    assert completed_task_run["confirmation_id"] is None
+    assert "fanta 330ml" in (completed_task_run["result_summary"] or "").lower()
+    assert any(
+        message["message_type"] == "image"
+        and message["task_run_id"] == task_run_id
+        and message["media_ids"] == [media_id]
+        for message in messages
+    )
+    assert any(
+        message["task_run_id"] == task_run_id
+        and "photo query recognized fanta 330ml" in (message["text"] or "").lower()
+        for message in messages
+    )
+
+
+def test_acceptance_upload_backed_photo_stock_in_remains_confirmation_first(
+    client,
+    monkeypatch,
+) -> None:
+    media_id = _create_and_complete_media_upload(
+        client,
+        media_type="image",
+        file_name="stock-in-demo.jpg",
+        content_type="image/jpeg",
+    )
+
+    class _UploadedVisionGateway:
+        def recognize_product(self, media_input):
+            assert media_input.media_id == media_id
+            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[VisionCandidate(item_name="Sprite 500ml", confidence=0.62, packaging_hint="bottle")],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(runtime_router, "get_default_vision_gateway", lambda: _UploadedVisionGateway())
+
+    task_run_id = _post_session_message(
+        client,
+        monkeypatch,
+        client_request_id="acceptance_upload_backed_photo_stock_in",
+        message_type="image",
+        text="restock sprite bottles",
+        media_ids=[media_id],
+    )
+
+    _process_runtime_task_run(task_run_id)
+    awaiting_task_run = _get_task_run(client, task_run_id=task_run_id)
+    confirmation = _load_confirmation_for_task_run(task_run_id)
+    messages = _get_session_messages(client)
+
+    assert awaiting_task_run["status"] == "awaiting-confirmation"
+    assert awaiting_task_run["task_type"] == "photo-stock-in"
+    assert awaiting_task_run["confirmation_id"] == confirmation.confirmation_id
+    assert confirmation.fields["draft_fields"]["item_name"] == "Sprite 500ml"
+    assert confirmation.fields["draft_fields"]["unit"] == "bottle"
+    assert confirmation.fields["draft_fields"]["quantity"] is None
+    assert confirmation.fields["draft_fields"]["price"] is None
+    assert confirmation.fields["image_media_id"] == media_id
+    assert confirmation.fields["provider_name"] == "stub-vision"
+    assert confirmation.fields["recognized_confidence"] == 0.62
+    assert any(
+        message["task_run_id"] == task_run_id
+        and "please confirm the stock-in details" in (message["text"] or "").lower()
         for message in messages
     )
 

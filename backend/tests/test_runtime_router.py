@@ -196,6 +196,35 @@ def test_transcribe_runtime_audio_preserves_all_ready_audio_media_refs():
     assert transcribe_runtime_audio(ctx) == "check stock left for cola"
 
 
+def test_transcribe_runtime_audio_passes_resolved_media_urls_to_asr_gateway(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    ctx = _build_context(
+        input_kind="voice",
+        source_text=None,
+        media_ids=["voice_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="voice_query_demo",
+                media_type="audio",
+                content_type="audio/m4a",
+                file_name="voice.m4a",
+                public_url="https://mock.example/media/voice_query_demo",
+            )
+        ],
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            assert media_input.media_ids == ["voice_query_demo"]
+            assert media_input.media_urls == ["https://mock.example/media/voice_query_demo"]
+            return AsrTranscription(text="check stock left for cola", provider="mock")
+
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    assert transcribe_runtime_audio(ctx) == "check stock left for cola"
+
+
 def test_transcribe_runtime_audio_blocks_when_no_audio_media_ref_exists():
     ctx = _build_context(
         input_kind="voice",

@@ -241,6 +241,48 @@ def test_real_provider_transcribe_includes_local_audio_payload_when_present(monk
     ]
 
 
+def test_real_provider_transcribe_includes_media_urls_when_present(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[str, str, dict[str, object]]] = []
+
+    def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
+        calls.append((method, url, dict(kwargs)))
+        return _HttpxJsonResponse({"text": "decoded speech", "confidence": 0.88})
+
+    monkeypatch.setattr(httpx, "request", _fake_request)
+
+    gateway = _build_real_gateway()
+
+    result = gateway.primary_provider.transcribe(
+        AsrMediaInput(
+            media_ids=["voice_query_demo"],
+            text_hint=None,
+            media_urls=["https://mock.example/media/voice_query_demo"],
+        )
+    )
+
+    assert result == AsrTranscription(
+        text="decoded speech",
+        provider="real-provider",
+        confidence=0.88,
+    )
+    assert calls == [
+        (
+            "POST",
+            "https://api.example.com/v1/transcriptions",
+            {
+                "headers": {"Authorization": "Bearer key"},
+                "timeout": 15.0,
+                "json": {
+                    "media_ids": ["voice_query_demo"],
+                    "media_urls": ["https://mock.example/media/voice_query_demo"],
+                    "text_hint": None,
+                    "model": "model-a",
+                },
+            },
+        )
+    ]
+
+
 def test_real_provider_timeout_maps_to_retryable_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
     def _fake_request(method: str, url: str, **kwargs: object) -> _HttpxJsonResponse:
         del method, url, kwargs

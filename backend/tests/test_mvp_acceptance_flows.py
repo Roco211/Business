@@ -309,6 +309,7 @@ def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:
     class _UploadedVoiceGateway:
         def transcribe(self, media_input):
             assert media_input.media_ids == [media_id]
+            assert media_input.media_urls == [f"https://mock.example/media/{media_id}"]
             assert media_input.text_hint is None
             return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.97)
 

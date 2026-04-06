@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 
 @dataclass(frozen=True)
 class AsrMediaInput:
     media_ids: list[str]
+    media_urls: list[str] = field(default_factory=list)
     text_hint: str | None = None
     file_name: str | None = None
     content_type: str | None = None

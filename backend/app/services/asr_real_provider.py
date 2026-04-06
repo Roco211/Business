@@ -62,6 +62,8 @@ class RealAsrProvider:
             "text_hint": media_input.text_hint,
             "model": self.model,
         }
+        if media_input.media_urls:
+            payload["media_urls"] = list(media_input.media_urls)
         if media_input.audio_bytes is not None:
             payload["audio"] = {
                 "file_name": media_input.file_name,

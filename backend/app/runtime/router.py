@@ -59,6 +59,7 @@ def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
     try:
         transcription = transcribe_audio_input(
             media_ids=[media_ref.media_id for media_ref in audio_media_refs],
+            media_urls=[media_ref.public_url for media_ref in audio_media_refs],
             text_hint=ctx.source_text,
         )
     except MockTranscriptionUnavailable as exc:

@@ -9,6 +9,7 @@ from app.models import MediaUpload
 from app.services.object_storage import (
     ObjectStorageObjectNotFoundError,
     ObjectStorageProvider,
+    ObjectStorageUnavailableError,
     ObjectStorageVerificationError,
     derive_media_object_key,
     get_default_object_storage,
@@ -18,6 +19,9 @@ PENDING_STATUS = "pending"
 UPLOADED_STATUS = "uploaded"
 FAILED_STATUS = "failed"
 SUPPORTED_MEDIA_TYPES = {"audio", "image", "receipt-image"}
+MAX_MEDIA_URL_LENGTH = 255
+STORAGE_UPLOAD_REFERENCE_PREFIX = "storage-ref://"
+STORAGE_PUBLIC_REFERENCE_PREFIX = "storage-public://"
 
 
 class MediaUploadConflictError(ValueError):
@@ -29,6 +33,10 @@ class MediaUploadNotReadyError(ValueError):
 
 
 class MediaUploadValidationError(ValueError):
+    pass
+
+
+class MediaUploadStorageUnavailableError(ValueError):
     pass
 
 
@@ -77,11 +85,17 @@ def create_media_upload(
         media_id=media_id,
         file_name=file_name,
     )
-    upload_target = _resolve_object_storage(object_storage).create_upload_target(
-        object_key=object_key,
-        content_type=content_type.strip(),
-        size_bytes=size_bytes,
-    )
+    try:
+        upload_target = _resolve_object_storage(object_storage).create_upload_target(
+            object_key=object_key,
+            content_type=content_type.strip(),
+            size_bytes=size_bytes,
+        )
+    except ObjectStorageUnavailableError as exc:
+        raise MediaUploadStorageUnavailableError("Object storage is unavailable") from exc
+
+    persisted_upload_url = _build_bounded_upload_reference(object_key)
+    persisted_public_url = _build_bounded_public_url(upload_target.public_url, object_key=object_key)
     upload = MediaUpload(
         media_id=media_id,
         shop_id=shop_id,
@@ -92,8 +106,8 @@ def create_media_upload(
         content_type=content_type.strip(),
         size_bytes=size_bytes,
         status=PENDING_STATUS,
-        upload_url=upload_target.upload_url,
-        public_url=upload_target.public_url,
+        upload_url=persisted_upload_url,
+        public_url=persisted_public_url,
         checksum_sha256=None,
         uploaded_at=None,
         created_at=now,
@@ -103,8 +117,8 @@ def create_media_upload(
     db_session.commit()
     return MediaUploadCreateResult(
         media_id=upload.media_id,
-        upload_url=upload.upload_url,
-        public_url=upload.public_url,
+        upload_url=upload_target.upload_url,
+        public_url=upload_target.public_url,
     )
 
 
@@ -138,6 +152,8 @@ def mark_media_upload_complete(
         )
     except ObjectStorageObjectNotFoundError as exc:
         raise MediaUploadNotReadyError(media_id) from exc
+    except ObjectStorageUnavailableError as exc:
+        raise MediaUploadStorageUnavailableError("Object storage is unavailable") from exc
     except ObjectStorageVerificationError as exc:
         raise MediaUploadConflictError(media_id) from exc
 
@@ -182,6 +198,23 @@ def _resolve_object_storage(
     if object_storage is not None:
         return object_storage
     return get_default_object_storage()
+
+
+def _build_bounded_upload_reference(object_key: str) -> str:
+    reference = f"{STORAGE_UPLOAD_REFERENCE_PREFIX}{object_key}"
+    if len(reference) > MAX_MEDIA_URL_LENGTH:
+        raise MediaUploadStorageUnavailableError("Object storage key is too long to persist")
+    return reference
+
+
+def _build_bounded_public_url(public_url: str, *, object_key: str) -> str:
+    if len(public_url) <= MAX_MEDIA_URL_LENGTH:
+        return public_url
+
+    reference = f"{STORAGE_PUBLIC_REFERENCE_PREFIX}{object_key}"
+    if len(reference) > MAX_MEDIA_URL_LENGTH:
+        raise MediaUploadStorageUnavailableError("Object storage key is too long to persist")
+    return reference
 
 
 def get_ready_media_upload(

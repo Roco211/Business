@@ -15,6 +15,7 @@ from app.models import MediaUpload
 from app.services.media_uploads import (
     MediaUploadConflictError,
     MediaUploadNotReadyError,
+    MediaUploadStorageUnavailableError,
     MediaUploadValidationError,
     create_media_upload,
     mark_media_upload_complete,
@@ -60,6 +61,12 @@ def post_create_media_upload(
         )
     except MediaUploadValidationError as exc:
         return _error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, "validation_error", str(exc))
+    except MediaUploadStorageUnavailableError:
+        return _error_response(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "storage_unavailable",
+            "Object storage is unavailable",
+        )
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
@@ -104,6 +111,12 @@ def post_complete_media_upload(
             status.HTTP_409_CONFLICT,
             "media_upload_conflict",
             "Media upload is not ready for completion",
+        )
+    except MediaUploadStorageUnavailableError:
+        return _error_response(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "storage_unavailable",
+            "Object storage is unavailable",
         )
     except MediaUploadValidationError as exc:
         return _error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, "validation_error", str(exc))

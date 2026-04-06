@@ -2,6 +2,7 @@ import pytest
 
 from app.core.config import Settings
 from app.services.object_storage import (
+    MAX_OBJECT_KEY_LENGTH,
     MockObjectStorageProvider,
     ObjectStorageConfigurationError,
     ObjectStorageObjectNotFoundError,
@@ -182,10 +183,42 @@ def test_s3_provider_verify_uploaded_object_raises_for_size_mismatch() -> None:
 
 
 def test_derive_media_object_key_is_deterministic() -> None:
-    object_key = derive_media_object_key(
+    first = derive_media_object_key(
+        shop_id="shop_default",
+        media_id="media_001",
+        file_name=" receipt\\voice.m4a ",
+    )
+    second = derive_media_object_key(
         shop_id="shop_default",
         media_id="media_001",
         file_name=" receipt\\voice.m4a ",
     )
 
-    assert object_key == "shops/shop_default/media/media_001/receipt_voice.m4a"
+    assert first == second
+    assert first.startswith("shops/shop_default/media/media_001/")
+    assert first.endswith(".m4a")
+
+
+def test_derive_media_object_key_is_url_safe_and_bounded_for_tricky_filenames() -> None:
+    tricky_name = "  #Sales?Report%2026 / final?.very-long-extension-name !!!.jpg  "
+    very_long_name = tricky_name * 30
+
+    object_key = derive_media_object_key(
+        shop_id="shop_default",
+        media_id="media_001",
+        file_name=very_long_name,
+    )
+    target = MockObjectStorageProvider(
+        upload_base_url="https://mock.example/uploads",
+        public_base_url="https://mock.example/media",
+    ).create_upload_target(
+        object_key=object_key,
+        content_type="image/jpeg",
+        size_bytes=1024,
+    )
+
+    assert len(object_key) <= MAX_OBJECT_KEY_LENGTH
+    assert "#" not in object_key
+    assert "?" not in object_key
+    assert " " not in object_key
+    assert len(target.public_url) <= 255

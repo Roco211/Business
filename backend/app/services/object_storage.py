@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from functools import lru_cache
+import hashlib
+import re
 from typing import Any, Protocol
 
 from app.core.config import Settings, get_settings
@@ -8,13 +10,26 @@ MOCK_PROVIDER = "mock"
 S3_COMPATIBLE_PROVIDER = "s3-compatible"
 DEFAULT_MOCK_UPLOAD_BASE_URL = "https://mock.example/uploads"
 DEFAULT_MOCK_PUBLIC_BASE_URL = "https://mock.example/media"
+MAX_OBJECT_KEY_LENGTH = 180
+MAX_FILENAME_SEGMENT_LENGTH = 96
+MAX_ID_SEGMENT_LENGTH = 40
+_SAFE_SEGMENT_PATTERN = re.compile(r"[^a-zA-Z0-9._-]+")
+_SAFE_FILENAME_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
-class ObjectStorageConfigurationError(ValueError):
+class ObjectStorageError(ValueError):
     pass
 
 
-class ObjectStorageVerificationError(ValueError):
+class ObjectStorageUnavailableError(ObjectStorageError):
+    pass
+
+
+class ObjectStorageConfigurationError(ObjectStorageUnavailableError):
+    pass
+
+
+class ObjectStorageVerificationError(ObjectStorageError):
     pass
 
 
@@ -61,15 +76,51 @@ def _join_url(base_url: str, object_key: str) -> str:
     return f"{base_url.rstrip('/')}/{object_key}"
 
 
-def _normalize_file_name(file_name: str) -> str:
-    normalized = file_name.strip().replace("\\", "_").replace("/", "_").replace(" ", "_")
-    while "__" in normalized:
-        normalized = normalized.replace("__", "_")
-    return normalized or "file"
+def _sanitize_path_segment(value: str, *, fallback: str, max_length: int = MAX_ID_SEGMENT_LENGTH) -> str:
+    cleaned = _SAFE_SEGMENT_PATTERN.sub("-", value.strip())
+    cleaned = cleaned.strip("-.")
+    cleaned = cleaned[:max_length].strip("-.")
+    return cleaned or fallback
+
+
+def _safe_extension(raw_extension: str) -> str:
+    extension = raw_extension.lower()
+    safe_extension = "".join(character for character in extension if character.isalnum())
+    if not safe_extension:
+        return ""
+    return f".{safe_extension[:8]}"
+
+
+def _normalize_file_name(file_name: str, *, max_length: int) -> str:
+    normalized_name = file_name.strip().replace("\\", "/")
+    leaf_name = normalized_name.rsplit("/", maxsplit=1)[-1].strip() or "file"
+    stem, has_extension, raw_extension = leaf_name.rpartition(".")
+    extension = _safe_extension(raw_extension) if has_extension else ""
+    stem = stem if has_extension else leaf_name
+    stem = stem or "file"
+    stem_slug = _SAFE_FILENAME_PATTERN.sub("-", stem.lower()).strip("-") or "file"
+    digest = hashlib.sha256(leaf_name.encode("utf-8")).hexdigest()[:12]
+
+    reserved_char_count = len(extension) + len(digest) + 1
+    stem_budget = max(1, min(MAX_FILENAME_SEGMENT_LENGTH, max_length - reserved_char_count))
+    stem_prefix = stem_slug[:stem_budget].rstrip("-") or "file"
+    candidate = f"{stem_prefix}-{digest}{extension}"
+
+    if len(candidate) <= max_length:
+        return candidate
+
+    safe_extension = extension[: max(0, max_length - 1)]
+    fallback_budget = max(1, max_length - len(safe_extension))
+    return f"{digest[:fallback_budget]}{safe_extension}"[:max_length]
 
 
 def derive_media_object_key(*, shop_id: str, media_id: str, file_name: str) -> str:
-    return f"shops/{shop_id}/media/{media_id}/{_normalize_file_name(file_name)}"
+    safe_shop_id = _sanitize_path_segment(shop_id, fallback="shop")
+    safe_media_id = _sanitize_path_segment(media_id, fallback="media")
+    prefix = f"shops/{safe_shop_id}/media/{safe_media_id}/"
+    max_filename_length = max(24, MAX_OBJECT_KEY_LENGTH - len(prefix))
+    safe_file_name = _normalize_file_name(file_name, max_length=max_filename_length)
+    return f"{prefix}{safe_file_name}"
 
 
 class MockObjectStorageProvider:
@@ -139,13 +190,16 @@ class S3CompatibleObjectStorageProvider:
             raise ObjectStorageConfigurationError(
                 "boto3 is required for s3-compatible object storage"
             ) from exc
-        self._s3_client = boto3.client(
-            "s3",
-            region_name=self.region,
-            endpoint_url=self.endpoint_url,
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-        )
+        try:
+            self._s3_client = boto3.client(
+                "s3",
+                region_name=self.region,
+                endpoint_url=self.endpoint_url,
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+            )
+        except Exception as exc:  # pragma: no cover - boto3 transport setup failure
+            raise ObjectStorageUnavailableError("failed to initialize s3 object storage client") from exc
         return self._s3_client
 
     def _public_url_for(self, object_key: str) -> str:
@@ -162,16 +216,19 @@ class S3CompatibleObjectStorageProvider:
         size_bytes: int,
     ) -> ObjectStorageUploadTarget:
         del size_bytes
-        upload_url = self._get_client().generate_presigned_url(
-            "put_object",
-            Params={
-                "Bucket": self.bucket,
-                "Key": object_key,
-                "ContentType": content_type,
-            },
-            ExpiresIn=self.presign_ttl_seconds,
-            HttpMethod="PUT",
-        )
+        try:
+            upload_url = self._get_client().generate_presigned_url(
+                "put_object",
+                Params={
+                    "Bucket": self.bucket,
+                    "Key": object_key,
+                    "ContentType": content_type,
+                },
+                ExpiresIn=self.presign_ttl_seconds,
+                HttpMethod="PUT",
+            )
+        except Exception as exc:
+            raise ObjectStorageUnavailableError("failed to generate upload target") from exc
         return ObjectStorageUploadTarget(
             object_key=object_key,
             upload_url=upload_url,
@@ -190,7 +247,7 @@ class S3CompatibleObjectStorageProvider:
             error_code = _extract_s3_error_code(exc)
             if error_code in {"404", "NoSuchKey", "NotFound"}:
                 raise ObjectStorageObjectNotFoundError(object_key) from exc
-            raise ObjectStorageVerificationError(f"failed to verify uploaded object: {object_key}") from exc
+            raise ObjectStorageUnavailableError(f"failed to verify uploaded object: {object_key}") from exc
 
         size_bytes = int(head.get("ContentLength", 0))
         if expected_size_bytes is not None and size_bytes != expected_size_bytes:

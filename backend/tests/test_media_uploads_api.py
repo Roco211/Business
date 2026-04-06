@@ -108,6 +108,31 @@ class _UnavailableVerifyStorage:
         raise ObjectStorageUnavailableError("storage backend unavailable")
 
 
+class _TooLongPublicUrlCreateStorage:
+    def create_upload_target(
+        self,
+        *,
+        object_key: str,
+        content_type: str,
+        size_bytes: int,
+    ) -> ObjectStorageUploadTarget:
+        del object_key, content_type, size_bytes
+        return ObjectStorageUploadTarget(
+            object_key="ignored",
+            upload_url="https://upload.example/signed",
+            public_url=f"https://cdn.example.com/public/{'z' * 500}",
+        )
+
+    def verify_uploaded_object(
+        self,
+        *,
+        object_key: str,
+        expected_size_bytes: int | None = None,
+    ) -> dict[str, object]:
+        del object_key, expected_size_bytes
+        raise AssertionError("verify_uploaded_object should not be called during create")
+
+
 def test_create_media_upload_requires_authorization(client) -> None:
     response = client.post(
         "/api/v1/media-uploads",
@@ -297,6 +322,28 @@ def test_create_media_upload_returns_503_when_storage_is_misconfigured(client, m
         media_uploads_service,
         "get_default_object_storage",
         _raise_misconfigured,
+    )
+
+    response = client.post(
+        "/api/v1/media-uploads",
+        headers=_auth_headers(client),
+        json={
+            "media_type": "audio",
+            "file_name": "voice.m4a",
+            "content_type": "audio/m4a",
+            "size_bytes": 1024,
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "storage_unavailable"
+
+
+def test_create_media_upload_returns_503_when_public_url_is_too_long(client, monkeypatch) -> None:
+    monkeypatch.setattr(
+        media_uploads_service,
+        "get_default_object_storage",
+        lambda: _TooLongPublicUrlCreateStorage(),
     )
 
     response = client.post(

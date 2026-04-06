@@ -80,6 +80,30 @@ class _LongUploadUrlStorage:
         return {"object_key": object_key, "size_bytes": expected_size_bytes}
 
 
+class _TooLongPublicUrlStorage:
+    def create_upload_target(
+        self,
+        *,
+        object_key: str,
+        content_type: str,
+        size_bytes: int,
+    ) -> ObjectStorageUploadTarget:
+        del content_type, size_bytes
+        return ObjectStorageUploadTarget(
+            object_key=object_key,
+            upload_url=f"https://upload.example/{object_key}",
+            public_url=f"https://cdn.example.com/public/{'y' * 500}",
+        )
+
+    def verify_uploaded_object(
+        self,
+        *,
+        object_key: str,
+        expected_size_bytes: int | None = None,
+    ) -> dict[str, object]:
+        return {"object_key": object_key, "size_bytes": expected_size_bytes}
+
+
 class _UnavailableObjectStorage:
     def create_upload_target(
         self,
@@ -162,6 +186,23 @@ def test_create_media_upload_returns_real_upload_url_but_persists_bounded_storag
     assert len(media_upload.upload_url) <= 255
     assert media_upload.public_url == result.public_url
     assert len(media_upload.public_url) <= 255
+
+
+def test_create_media_upload_rejects_when_public_url_is_too_long(db_session) -> None:
+    context = ensure_default_context(db_session)
+
+    with pytest.raises(MediaUploadStorageUnavailableError):
+        create_media_upload(
+            db_session,
+            shop_id=context.shop.shop_id,
+            uploader_actor_type="owner",
+            uploader_actor_id="owner_default",
+            media_type="audio",
+            file_name="voice.m4a",
+            content_type="audio/m4a",
+            size_bytes=1024,
+            object_storage=_TooLongPublicUrlStorage(),
+        )
 
 
 def test_create_media_upload_rejects_when_storage_is_unavailable(db_session) -> None:

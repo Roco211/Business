@@ -21,7 +21,6 @@ FAILED_STATUS = "failed"
 SUPPORTED_MEDIA_TYPES = {"audio", "image", "receipt-image"}
 MAX_MEDIA_URL_LENGTH = 255
 STORAGE_UPLOAD_REFERENCE_PREFIX = "storage-ref://"
-STORAGE_PUBLIC_REFERENCE_PREFIX = "storage-public://"
 
 
 class MediaUploadConflictError(ValueError):
@@ -211,10 +210,8 @@ def _build_bounded_public_url(public_url: str, *, object_key: str) -> str:
     if len(public_url) <= MAX_MEDIA_URL_LENGTH:
         return public_url
 
-    reference = f"{STORAGE_PUBLIC_REFERENCE_PREFIX}{object_key}"
-    if len(reference) > MAX_MEDIA_URL_LENGTH:
-        raise MediaUploadStorageUnavailableError("Object storage key is too long to persist")
-    return reference
+    del object_key
+    raise MediaUploadStorageUnavailableError("Object storage public URL is too long to persist")
 
 
 def get_ready_media_upload(

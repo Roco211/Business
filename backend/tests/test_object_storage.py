@@ -1,7 +1,10 @@
+import hashlib
+
 import pytest
 
 from app.core.config import Settings
 from app.services.object_storage import (
+    DEFAULT_MOCK_PUBLIC_BASE_URL,
     MAX_OBJECT_KEY_LENGTH,
     MockObjectStorageProvider,
     ObjectStorageConfigurationError,
@@ -54,10 +57,7 @@ def test_build_object_storage_rejects_missing_s3_config_in_trial_mode() -> None:
 
 
 def test_mock_provider_generates_deterministic_upload_and_public_urls() -> None:
-    provider = MockObjectStorageProvider(
-        upload_base_url="https://mock.example/uploads",
-        public_base_url="https://mock.example/media",
-    )
+    provider = MockObjectStorageProvider()
     object_key = "shops/shop_default/media/media_001/voice.m4a"
 
     target = provider.create_upload_target(
@@ -68,9 +68,41 @@ def test_mock_provider_generates_deterministic_upload_and_public_urls() -> None:
 
     assert target == ObjectStorageUploadTarget(
         object_key=object_key,
-        upload_url="https://mock.example/uploads/shops/shop_default/media/media_001/voice.m4a",
-        public_url="https://mock.example/media/shops/shop_default/media/media_001/voice.m4a",
+        upload_url="mock-upload://shops/shop_default/media/media_001/voice.m4a",
+        public_url=f"{DEFAULT_MOCK_PUBLIC_BASE_URL}/shops/shop_default/media/media_001/voice.m4a",
     )
+
+
+def test_mock_provider_requires_stored_bytes_for_verification_and_validates_checksum() -> None:
+    provider = MockObjectStorageProvider()
+    object_key = "shops/shop_default/media/media_001/voice.m4a"
+    payload = b"voice media bytes"
+    checksum_sha256 = hashlib.sha256(payload).hexdigest()
+
+    with pytest.raises(ObjectStorageObjectNotFoundError):
+        provider.verify_uploaded_object(
+            object_key=object_key,
+            expected_size_bytes=len(payload),
+            expected_checksum_sha256=checksum_sha256,
+        )
+
+    provider.store_uploaded_object(object_key=object_key, payload=payload)
+    metadata = provider.verify_uploaded_object(
+        object_key=object_key,
+        expected_size_bytes=len(payload),
+        expected_checksum_sha256=checksum_sha256,
+    )
+
+    assert metadata.object_key == object_key
+    assert metadata.size_bytes == len(payload)
+    assert metadata.checksum_sha256 == checksum_sha256
+
+    with pytest.raises(ObjectStorageVerificationError):
+        provider.verify_uploaded_object(
+            object_key=object_key,
+            expected_size_bytes=len(payload),
+            expected_checksum_sha256=hashlib.sha256(b"other bytes").hexdigest(),
+        )
 
 
 def test_s3_provider_generates_upload_target_using_client() -> None:
@@ -182,6 +214,41 @@ def test_s3_provider_verify_uploaded_object_raises_for_size_mismatch() -> None:
     )
 
 
+def test_s3_provider_verify_uploaded_object_raises_for_checksum_mismatch() -> None:
+    class _FakeBody:
+        def read(self) -> bytes:
+            return b"uploaded payload"
+
+    class _FakeS3Client:
+        def head_object(self, *, Bucket: str, Key: str) -> dict[str, object]:
+            del Bucket, Key
+            return {"ContentLength": 16}
+
+        def get_object(self, *, Bucket: str, Key: str) -> dict[str, object]:
+            del Bucket, Key
+            return {"Body": _FakeBody()}
+
+    provider = S3CompatibleObjectStorageProvider(
+        bucket="trial-bucket",
+        region="ap-southeast-1",
+        endpoint_url="https://s3.example.com",
+        access_key="access",
+        secret_key="secret",
+        public_base_url="https://cdn.example.com",
+        presign_ttl_seconds=1200,
+        s3_client=_FakeS3Client(),
+    )
+
+    with pytest.raises(ObjectStorageVerificationError) as excinfo:
+        provider.verify_uploaded_object(
+            object_key="shops/shop_default/media/media_001/voice.m4a",
+            expected_size_bytes=16,
+            expected_checksum_sha256="bad-checksum",
+        )
+
+    assert str(excinfo.value) == "object checksum mismatch for shops/shop_default/media/media_001/voice.m4a"
+
+
 def test_derive_media_object_key_is_deterministic() -> None:
     first = derive_media_object_key(
         shop_id="shop_default",
@@ -209,7 +276,6 @@ def test_derive_media_object_key_is_url_safe_and_bounded_for_tricky_filenames() 
         file_name=very_long_name,
     )
     target = MockObjectStorageProvider(
-        upload_base_url="https://mock.example/uploads",
         public_base_url="https://mock.example/media",
     ).create_upload_target(
         object_key=object_key,

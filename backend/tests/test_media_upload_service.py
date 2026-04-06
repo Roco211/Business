@@ -24,9 +24,10 @@ from app.services.object_storage import (
 class _StubObjectStorage:
     def __init__(self) -> None:
         self.create_calls: list[tuple[str, str, int]] = []
-        self.verify_calls: list[tuple[str, int | None]] = []
+        self.verify_calls: list[tuple[str, int | None, str | None]] = []
         self.fail_verification = False
         self.object_size_bytes = 1024
+        self.object_checksum_sha256 = "abc123"
 
     def create_upload_target(
         self,
@@ -47,13 +48,16 @@ class _StubObjectStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        self.verify_calls.append((object_key, expected_size_bytes))
+        self.verify_calls.append((object_key, expected_size_bytes, expected_checksum_sha256))
         if self.fail_verification:
             raise ObjectStorageObjectNotFoundError(object_key)
         if expected_size_bytes is not None and expected_size_bytes != self.object_size_bytes:
             raise ObjectStorageVerificationError("object size mismatch")
-        return {"object_key": object_key, "size_bytes": expected_size_bytes}
+        if expected_checksum_sha256 is not None and expected_checksum_sha256 != self.object_checksum_sha256:
+            raise ObjectStorageVerificationError("object checksum mismatch")
+        return {"object_key": object_key, "size_bytes": expected_size_bytes, "checksum_sha256": expected_checksum_sha256}
 
 
 class _LongUploadUrlStorage:
@@ -76,8 +80,13 @@ class _LongUploadUrlStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        return {"object_key": object_key, "size_bytes": expected_size_bytes}
+        return {
+            "object_key": object_key,
+            "size_bytes": expected_size_bytes,
+            "checksum_sha256": expected_checksum_sha256,
+        }
 
 
 class _TooLongPublicUrlStorage:
@@ -100,8 +109,13 @@ class _TooLongPublicUrlStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        return {"object_key": object_key, "size_bytes": expected_size_bytes}
+        return {
+            "object_key": object_key,
+            "size_bytes": expected_size_bytes,
+            "checksum_sha256": expected_checksum_sha256,
+        }
 
 
 class _UnavailableObjectStorage:
@@ -120,8 +134,9 @@ class _UnavailableObjectStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del object_key, expected_size_bytes
+        del object_key, expected_size_bytes, expected_checksum_sha256
         raise ObjectStorageUnavailableError("storage backend unavailable")
 
 
@@ -240,8 +255,9 @@ def test_create_media_upload_rejects_when_storage_is_misconfigured(db_session) -
             *,
             object_key: str,
             expected_size_bytes: int | None = None,
+            expected_checksum_sha256: str | None = None,
         ) -> dict[str, object]:
-            del object_key, expected_size_bytes
+            del object_key, expected_size_bytes, expected_checksum_sha256
             raise ObjectStorageConfigurationError("missing required object storage configuration: bucket")
 
     with pytest.raises(MediaUploadStorageUnavailableError):
@@ -293,7 +309,7 @@ def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
     assert media_upload.status == "uploaded"
     assert media_upload.checksum_sha256 == "abc123"
     assert media_upload.uploaded_at is not None
-    assert storage.verify_calls == [(expected_key, 1024)]
+    assert storage.verify_calls == [(expected_key, 1024, "abc123")]
 
 
 def test_mark_media_upload_complete_rejects_when_uploaded_object_is_missing(db_session) -> None:
@@ -342,6 +358,37 @@ def test_mark_media_upload_complete_rejects_when_uploaded_object_size_mismatches
         object_storage=storage,
     )
     storage.object_size_bytes = 4096
+
+    with pytest.raises(MediaUploadConflictError):
+        mark_media_upload_complete(
+            db_session,
+            media_id=created.media_id,
+            checksum_sha256="abc123",
+            size_bytes=1024,
+            object_storage=storage,
+        )
+
+    media_upload = db_session.get(MediaUpload, created.media_id)
+    assert media_upload is not None
+    assert media_upload.status == "pending"
+    assert media_upload.uploaded_at is None
+
+
+def test_mark_media_upload_complete_rejects_when_uploaded_object_checksum_mismatches(db_session) -> None:
+    context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
+    created = create_media_upload(
+        db_session,
+        shop_id=context.shop.shop_id,
+        uploader_actor_type="owner",
+        uploader_actor_id="owner_default",
+        media_type="audio",
+        file_name="voice.m4a",
+        content_type="audio/m4a",
+        size_bytes=1024,
+        object_storage=storage,
+    )
+    storage.object_checksum_sha256 = "different-checksum"
 
     with pytest.raises(MediaUploadConflictError):
         mark_media_upload_complete(

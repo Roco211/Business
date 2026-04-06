@@ -136,7 +136,8 @@ def mark_media_upload_complete(
         raise MediaUploadConflictError(media_id)
     if size_bytes <= 0:
         raise MediaUploadValidationError("size_bytes must be greater than 0")
-    if not checksum_sha256.strip():
+    normalized_checksum_sha256 = checksum_sha256.strip().lower()
+    if not normalized_checksum_sha256:
         raise MediaUploadValidationError("checksum_sha256 is required")
 
     object_key = derive_media_object_key(
@@ -148,6 +149,7 @@ def mark_media_upload_complete(
         _resolve_object_storage(object_storage).verify_uploaded_object(
             object_key=object_key,
             expected_size_bytes=size_bytes,
+            expected_checksum_sha256=normalized_checksum_sha256,
         )
     except ObjectStorageObjectNotFoundError as exc:
         raise MediaUploadNotReadyError(media_id) from exc
@@ -159,7 +161,7 @@ def mark_media_upload_complete(
     now = _now()
     media_upload.status = UPLOADED_STATUS
     media_upload.size_bytes = size_bytes
-    media_upload.checksum_sha256 = checksum_sha256.strip()
+    media_upload.checksum_sha256 = normalized_checksum_sha256
     media_upload.uploaded_at = now
     media_upload.updated_at = now
     db_session.commit()

@@ -8,7 +8,7 @@ from app.core.config import Settings, get_settings
 
 MOCK_PROVIDER = "mock"
 S3_COMPATIBLE_PROVIDER = "s3-compatible"
-DEFAULT_MOCK_UPLOAD_BASE_URL = "https://mock.example/uploads"
+MOCK_UPLOAD_URL_PREFIX = "mock-upload://"
 DEFAULT_MOCK_PUBLIC_BASE_URL = "https://mock.example/media"
 MAX_OBJECT_KEY_LENGTH = 180
 MAX_FILENAME_SEGMENT_LENGTH = 96
@@ -51,6 +51,7 @@ class ObjectStorageObjectMetadata:
     object_key: str
     size_bytes: int | None
     etag: str | None = None
+    checksum_sha256: str | None = None
 
 
 class ObjectStorageProvider(Protocol):
@@ -68,6 +69,7 @@ class ObjectStorageProvider(Protocol):
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
         ...
 
@@ -127,11 +129,10 @@ class MockObjectStorageProvider:
     def __init__(
         self,
         *,
-        upload_base_url: str = DEFAULT_MOCK_UPLOAD_BASE_URL,
         public_base_url: str = DEFAULT_MOCK_PUBLIC_BASE_URL,
     ) -> None:
-        self.upload_base_url = upload_base_url
         self.public_base_url = public_base_url
+        self._objects: dict[str, bytes] = {}
 
     def create_upload_target(
         self,
@@ -143,19 +144,38 @@ class MockObjectStorageProvider:
         del content_type, size_bytes
         return ObjectStorageUploadTarget(
             object_key=object_key,
-            upload_url=_join_url(self.upload_base_url, object_key),
+            upload_url=f"{MOCK_UPLOAD_URL_PREFIX}{object_key}",
             public_url=_join_url(self.public_base_url, object_key),
         )
+
+    def store_uploaded_object(self, *, object_key: str, payload: bytes) -> None:
+        self._objects[object_key] = payload
 
     def verify_uploaded_object(
         self,
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
+        uploaded_bytes = self._objects.get(object_key)
+        if uploaded_bytes is None:
+            raise ObjectStorageObjectNotFoundError(object_key)
+
+        size_bytes = len(uploaded_bytes)
+        if expected_size_bytes is not None and size_bytes != expected_size_bytes:
+            raise ObjectStorageVerificationError(
+                f"object size mismatch for {object_key}: expected {expected_size_bytes}, got {size_bytes}"
+            )
+
+        checksum_sha256 = hashlib.sha256(uploaded_bytes).hexdigest()
+        if expected_checksum_sha256 is not None and checksum_sha256 != expected_checksum_sha256.strip().lower():
+            raise ObjectStorageVerificationError(f"object checksum mismatch for {object_key}")
+
         return ObjectStorageObjectMetadata(
             object_key=object_key,
-            size_bytes=expected_size_bytes,
+            size_bytes=size_bytes,
+            checksum_sha256=checksum_sha256,
         )
 
 
@@ -240,6 +260,7 @@ class S3CompatibleObjectStorageProvider:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
         try:
             head = self._get_client().head_object(Bucket=self.bucket, Key=object_key)
@@ -259,11 +280,41 @@ class S3CompatibleObjectStorageProvider:
         if isinstance(etag, str):
             etag = etag.strip('"')
 
+        checksum_sha256: str | None = None
+        if expected_checksum_sha256 is not None:
+            checksum_sha256 = self._sha256_for_object(object_key)
+            if checksum_sha256 != expected_checksum_sha256.strip().lower():
+                raise ObjectStorageVerificationError(f"object checksum mismatch for {object_key}")
+
         return ObjectStorageObjectMetadata(
             object_key=object_key,
             size_bytes=size_bytes,
             etag=etag if isinstance(etag, str) else None,
+            checksum_sha256=checksum_sha256,
         )
+
+    def _sha256_for_object(self, object_key: str) -> str:
+        try:
+            get_object_response = self._get_client().get_object(Bucket=self.bucket, Key=object_key)
+        except Exception as exc:
+            error_code = _extract_s3_error_code(exc)
+            if error_code in {"404", "NoSuchKey", "NotFound"}:
+                raise ObjectStorageObjectNotFoundError(object_key) from exc
+            raise ObjectStorageUnavailableError(f"failed to fetch uploaded object: {object_key}") from exc
+
+        body_reader = get_object_response.get("Body")
+        if not hasattr(body_reader, "read"):
+            raise ObjectStorageUnavailableError(f"failed to fetch uploaded object bytes: {object_key}")
+
+        try:
+            payload = body_reader.read()
+        except Exception as exc:
+            raise ObjectStorageUnavailableError(f"failed to read uploaded object bytes: {object_key}") from exc
+
+        if not isinstance(payload, (bytes, bytearray)):
+            raise ObjectStorageUnavailableError(f"uploaded object payload was not bytes: {object_key}")
+
+        return hashlib.sha256(bytes(payload)).hexdigest()
 
 
 def _missing_required_s3_config(settings: Settings) -> list[str]:

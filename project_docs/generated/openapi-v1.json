@@ -2674,6 +2674,46 @@
         ]
       }
     },
+    "/api/v1/media-uploads/mock/{object_key}": {
+      "put": {
+        "operationId": "put_mock_media_upload_object_api_v1_media_uploads_mock__object_key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "object_key",
+            "required": true,
+            "schema": {
+              "title": "Object Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Mock Media Upload Object",
+        "tags": [
+          "media-uploads"
+        ]
+      }
+    },
     "/api/v1/media-uploads/{media_id}/complete": {
       "post": {
         "operationId": "post_complete_media_upload_api_v1_media_uploads__media_id__complete_post",

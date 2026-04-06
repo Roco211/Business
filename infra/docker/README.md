@@ -89,6 +89,7 @@ npx expo start
 
 The smoke script talks to the running API at `http://127.0.0.1:8001` by default, calls the demo bootstrap API, and validates the expected owner-facing dashboard/chat/ledger state over HTTP.
 When `--auth-token` is omitted, it first logs in at `POST /api/v1/auth/login` using the CLI login credentials and then uses that issued bearer token for protected calls.
+In local-demo mock object-storage mode, `POST /api/v1/media-uploads` now returns an API-served writable `upload_url` under `/api/v1/media-uploads/mock/...` so mobile/demo clients can perform a real `PUT` before calling `complete`.
 
 You can override the API target if needed:
 

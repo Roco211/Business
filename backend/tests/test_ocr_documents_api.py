@@ -1,3 +1,5 @@
+import hashlib
+
 import pytest
 
 from conftest import auth_headers, login_and_get_token
@@ -14,6 +16,10 @@ def seeded_shop(db_session):
 def uploaded_receipt_media(db_session, seeded_shop):
     from app.models import MediaUpload
     from app.services.media_uploads import create_media_upload, mark_media_upload_complete
+    from app.services.object_storage import MOCK_UPLOAD_URL_PREFIX, MockObjectStorageProvider, get_default_object_storage
+
+    upload_bytes = b"receipt-bytes-for-tests"
+    checksum_sha256 = hashlib.sha256(upload_bytes).hexdigest()
 
     create_result = create_media_upload(
         db_session,
@@ -23,13 +29,20 @@ def uploaded_receipt_media(db_session, seeded_shop):
         media_type="receipt-image",
         file_name="receipt-demo.jpg",
         content_type="image/jpeg",
-        size_bytes=2048,
+        size_bytes=len(upload_bytes),
     )
+    object_storage = get_default_object_storage()
+    if isinstance(object_storage, MockObjectStorageProvider) and create_result.upload_url.startswith(MOCK_UPLOAD_URL_PREFIX):
+        object_storage.store_uploaded_object(
+            object_key=create_result.upload_url[len(MOCK_UPLOAD_URL_PREFIX) :],
+            payload=upload_bytes,
+        )
+
     mark_media_upload_complete(
         db_session,
         media_id=create_result.media_id,
-        checksum_sha256="receipt_demo_checksum",
-        size_bytes=2048,
+        checksum_sha256=checksum_sha256,
+        size_bytes=len(upload_bytes),
     )
     record = db_session.get(MediaUpload, create_result.media_id)
     assert record is not None
@@ -41,6 +54,8 @@ def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
 
 
 def _create_uploaded_receipt_media(client) -> str:
+    upload_bytes = b"receipt-bytes-for-tests"
+    checksum_sha256 = hashlib.sha256(upload_bytes).hexdigest()
     create_response = client.post(
         "/api/v1/media-uploads",
         headers=_auth_headers(client),
@@ -48,18 +63,25 @@ def _create_uploaded_receipt_media(client) -> str:
             "media_type": "receipt-image",
             "file_name": "receipt-demo.jpg",
             "content_type": "image/jpeg",
-            "size_bytes": 2048,
+            "size_bytes": len(upload_bytes),
         },
     )
     assert create_response.status_code == 201
+    upload_url = create_response.json()["data"]["upload_url"]
     media_id = create_response.json()["data"]["media_id"]
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": "image/jpeg"},
+    )
+    assert upload_response.status_code == 200
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
         headers=_auth_headers(client),
         json={
-            "checksum_sha256": "receipt_demo_checksum",
-            "size_bytes": 2048,
+            "checksum_sha256": checksum_sha256,
+            "size_bytes": len(upload_bytes),
         },
     )
     assert complete_response.status_code == 200

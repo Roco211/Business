@@ -770,3 +770,15 @@ Notes:
 - this call now requires that object storage already contains the uploaded bytes for the requested media object
 - issuing `complete` before the file bytes are uploaded returns `409 media_upload_conflict`
 - checksum and size validation happen against the uploaded object before the record can transition to `uploaded`
+
+### 17.4 Local Demo Mock Upload URL Clarification
+
+`POST /api/v1/media-uploads`
+
+Notes:
+
+- in local-demo mock object-storage mode, `upload_url` is backend-served and writable through:
+  - `PUT /api/v1/media-uploads/mock/{object_key}`
+- clients should still follow the standard flow:
+  - `create` -> `PUT upload_url` with real bytes -> `complete`
+- this keeps local-demo behavior aligned with trial object-storage flow, where bytes must exist before `complete`

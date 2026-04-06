@@ -1,3 +1,5 @@
+import hashlib
+
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -75,8 +77,9 @@ def _create_and_complete_media_upload(
     media_type: str,
     file_name: str,
     content_type: str,
-    size_bytes: int = 1024,
 ) -> str:
+    upload_bytes = f"uploaded bytes for {file_name}".encode("utf-8")
+    size_bytes = len(upload_bytes)
     create_response = client.post(
         "/api/v1/media-uploads",
         headers=_auth_headers(client),
@@ -88,13 +91,20 @@ def _create_and_complete_media_upload(
         },
     )
     assert create_response.status_code == 201
+    upload_url = create_response.json()["data"]["upload_url"]
     media_id = create_response.json()["data"]["media_id"]
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": content_type},
+    )
+    assert upload_response.status_code == 200
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
         headers=_auth_headers(client),
         json={
-            "checksum_sha256": f"{media_id}-checksum",
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
             "size_bytes": size_bytes,
         },
     )

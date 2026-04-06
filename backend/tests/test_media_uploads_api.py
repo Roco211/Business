@@ -1,3 +1,5 @@
+import hashlib
+
 from conftest import auth_headers, login_and_get_token
 from app.services import media_uploads as media_uploads_service
 from app.services.object_storage import (
@@ -32,8 +34,9 @@ class _FailingVerificationStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del expected_size_bytes
+        del expected_size_bytes, expected_checksum_sha256
         raise ObjectStorageObjectNotFoundError(object_key)
 
 
@@ -57,8 +60,9 @@ class _SizeMismatchVerificationStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del object_key, expected_size_bytes
+        del object_key, expected_size_bytes, expected_checksum_sha256
         raise ObjectStorageVerificationError("object size mismatch")
 
 
@@ -78,8 +82,9 @@ class _UnavailableCreateStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del object_key, expected_size_bytes
+        del object_key, expected_size_bytes, expected_checksum_sha256
         raise ObjectStorageUnavailableError("storage backend unavailable")
 
 
@@ -103,8 +108,9 @@ class _UnavailableVerifyStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del object_key, expected_size_bytes
+        del object_key, expected_size_bytes, expected_checksum_sha256
         raise ObjectStorageUnavailableError("storage backend unavailable")
 
 
@@ -128,8 +134,9 @@ class _TooLongPublicUrlCreateStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del object_key, expected_size_bytes
+        del object_key, expected_size_bytes, expected_checksum_sha256
         raise AssertionError("verify_uploaded_object should not be called during create")
 
 
@@ -163,11 +170,12 @@ def test_create_media_upload_returns_pending_upload_contract(client) -> None:
     assert response.status_code == 201
     payload = response.json()["data"]
     assert payload["media_id"].startswith("media_")
-    assert payload["media_id"] in payload["upload_url"]
+    assert payload["upload_url"].startswith("http://testserver/api/v1/media-uploads/mock/")
     assert payload["media_id"] in payload["public_url"]
 
 
 def test_complete_media_upload_marks_record_uploaded(client) -> None:
+    upload_bytes = b"voice-bytes-for-upload"
     create_response = client.post(
         "/api/v1/media-uploads",
         headers=_auth_headers(client),
@@ -175,17 +183,24 @@ def test_complete_media_upload_marks_record_uploaded(client) -> None:
             "media_type": "audio",
             "file_name": "voice.m4a",
             "content_type": "audio/m4a",
-            "size_bytes": 1024,
+            "size_bytes": len(upload_bytes),
         },
     )
+    upload_url = create_response.json()["data"]["upload_url"]
     media_id = create_response.json()["data"]["media_id"]
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": "audio/m4a"},
+    )
+    assert upload_response.status_code == 200
 
     complete_response = client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
         headers=_auth_headers(client),
         json={
-            "checksum_sha256": "abc123",
-            "size_bytes": 1024,
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
+            "size_bytes": len(upload_bytes),
         },
     )
 
@@ -197,6 +212,7 @@ def test_complete_media_upload_marks_record_uploaded(client) -> None:
 
 
 def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
+    upload_bytes = b"voice-bytes-for-upload"
     create_response = client.post(
         "/api/v1/media-uploads",
         headers=_auth_headers(client),
@@ -204,16 +220,23 @@ def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
             "media_type": "audio",
             "file_name": "voice.m4a",
             "content_type": "audio/m4a",
-            "size_bytes": 1024,
+            "size_bytes": len(upload_bytes),
         },
     )
+    upload_url = create_response.json()["data"]["upload_url"]
     media_id = create_response.json()["data"]["media_id"]
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": "audio/m4a"},
+    )
+    assert upload_response.status_code == 200
     client.post(
         f"/api/v1/media-uploads/{media_id}/complete",
         headers=_auth_headers(client),
         json={
-            "checksum_sha256": "abc123",
-            "size_bytes": 1024,
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
+            "size_bytes": len(upload_bytes),
         },
     )
 
@@ -221,8 +244,8 @@ def test_complete_media_upload_rejects_already_uploaded_record(client) -> None:
         f"/api/v1/media-uploads/{media_id}/complete",
         headers=_auth_headers(client),
         json={
-            "checksum_sha256": "abc123",
-            "size_bytes": 1024,
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
+            "size_bytes": len(upload_bytes),
         },
     )
 
@@ -290,6 +313,85 @@ def test_complete_media_upload_returns_conflict_when_object_size_mismatches(clie
 
     assert complete_response.status_code == 409
     assert complete_response.json()["error"]["code"] == "media_upload_conflict"
+
+
+def test_complete_media_upload_returns_conflict_when_object_checksum_mismatches(client) -> None:
+    upload_bytes = b"same-size-bytes"
+    create_response = client.post(
+        "/api/v1/media-uploads",
+        headers=_auth_headers(client),
+        json={
+            "media_type": "audio",
+            "file_name": "voice.m4a",
+            "content_type": "audio/m4a",
+            "size_bytes": len(upload_bytes),
+        },
+    )
+    upload_url = create_response.json()["data"]["upload_url"]
+    media_id = create_response.json()["data"]["media_id"]
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": "audio/m4a"},
+    )
+    assert upload_response.status_code == 200
+
+    complete_response = client.post(
+        f"/api/v1/media-uploads/{media_id}/complete",
+        headers=_auth_headers(client),
+        json={
+            "checksum_sha256": hashlib.sha256(b"different-bytez").hexdigest(),
+            "size_bytes": len(upload_bytes),
+        },
+    )
+
+    assert complete_response.status_code == 409
+    assert complete_response.json()["error"]["code"] == "media_upload_conflict"
+
+
+def test_complete_media_upload_requires_put_before_complete_for_mock_upload_url(client) -> None:
+    upload_bytes = b"bytes-before-complete"
+    create_response = client.post(
+        "/api/v1/media-uploads",
+        headers=_auth_headers(client),
+        json={
+            "media_type": "audio",
+            "file_name": "voice.m4a",
+            "content_type": "audio/m4a",
+            "size_bytes": len(upload_bytes),
+        },
+    )
+    upload_url = create_response.json()["data"]["upload_url"]
+    media_id = create_response.json()["data"]["media_id"]
+
+    first_complete = client.post(
+        f"/api/v1/media-uploads/{media_id}/complete",
+        headers=_auth_headers(client),
+        json={
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
+            "size_bytes": len(upload_bytes),
+        },
+    )
+    assert first_complete.status_code == 409
+    assert first_complete.json()["error"]["code"] == "media_upload_conflict"
+
+    upload_response = client.put(
+        upload_url,
+        content=upload_bytes,
+        headers={"Content-Type": "audio/m4a"},
+    )
+    assert upload_response.status_code == 200
+
+    second_complete = client.post(
+        f"/api/v1/media-uploads/{media_id}/complete",
+        headers=_auth_headers(client),
+        json={
+            "checksum_sha256": hashlib.sha256(upload_bytes).hexdigest(),
+            "size_bytes": len(upload_bytes),
+        },
+    )
+    assert second_complete.status_code == 200
+    assert second_complete.json()["data"]["status"] == "uploaded"
 
 
 def test_create_media_upload_returns_503_when_storage_is_unavailable(client, monkeypatch) -> None:

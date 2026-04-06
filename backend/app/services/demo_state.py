@@ -1,6 +1,7 @@
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+import hashlib
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -25,6 +26,7 @@ from app.services.bootstrap import BootstrapContext, ensure_default_context
 from app.services.confirmations import get_pending_confirmation_for_task_run
 from app.services.inventory_stock_outs import submit_inventory_stock_out
 from app.services.media_uploads import create_media_upload, mark_media_upload_complete
+from app.services.object_storage import MOCK_UPLOAD_URL_PREFIX, MockObjectStorageProvider, get_default_object_storage
 from app.services.messages import create_message
 
 DEMO_LOW_STOCK_THRESHOLD = Decimal("5")
@@ -114,6 +116,9 @@ def _create_completed_media_upload(
     content_type: str,
     size_bytes: int,
 ) -> str:
+    seed_bytes = f"demo upload payload for {file_name}".encode("utf-8") or b"x"
+    repeat_count = (size_bytes // len(seed_bytes)) + 1
+    upload_bytes = (seed_bytes * repeat_count)[:size_bytes]
     create_result = create_media_upload(
         db_session,
         shop_id=shop_id,
@@ -122,13 +127,20 @@ def _create_completed_media_upload(
         media_type=media_type,
         file_name=file_name,
         content_type=content_type,
-        size_bytes=size_bytes,
+        size_bytes=len(upload_bytes),
     )
+    object_storage = get_default_object_storage()
+    if isinstance(object_storage, MockObjectStorageProvider) and create_result.upload_url.startswith(MOCK_UPLOAD_URL_PREFIX):
+        object_storage.store_uploaded_object(
+            object_key=create_result.upload_url[len(MOCK_UPLOAD_URL_PREFIX) :],
+            payload=upload_bytes,
+        )
+
     mark_media_upload_complete(
         db_session,
         media_id=create_result.media_id,
-        checksum_sha256=f"{create_result.media_id}-checksum",
-        size_bytes=size_bytes,
+        checksum_sha256=hashlib.sha256(upload_bytes).hexdigest(),
+        size_bytes=len(upload_bytes),
     )
     return create_result.media_id
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -20,6 +20,7 @@ from app.services.media_uploads import (
     create_media_upload,
     mark_media_upload_complete,
 )
+from app.services.object_storage import MOCK_UPLOAD_URL_PREFIX, MockObjectStorageProvider, get_default_object_storage
 
 router = APIRouter(prefix="/api/v1/media-uploads", tags=["media-uploads"])
 
@@ -42,8 +43,20 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
     )
 
 
+def _resolve_upload_url_for_response(*, request: Request, upload_url: str) -> str:
+    if not upload_url.startswith(MOCK_UPLOAD_URL_PREFIX):
+        return upload_url
+
+    object_key = upload_url[len(MOCK_UPLOAD_URL_PREFIX) :]
+    if not object_key:
+        return upload_url
+
+    return f"{str(request.base_url).rstrip('/')}/api/v1/media-uploads/mock/{object_key}"
+
+
 @router.post("", response_model=DataEnvelope[CreateMediaUploadData])
 def post_create_media_upload(
+    request: Request,
     payload: CreateMediaUploadRequest,
     auth: AuthenticatedContext = Depends(require_authenticated_context),
     db_session: Session = Depends(get_db_session),
@@ -73,11 +86,25 @@ def post_create_media_upload(
         content=DataEnvelope(
             data=CreateMediaUploadData(
                 media_id=result.media_id,
-                upload_url=result.upload_url,
+                upload_url=_resolve_upload_url_for_response(request=request, upload_url=result.upload_url),
                 public_url=result.public_url,
             )
         ).model_dump(mode="json"),
     )
+
+
+@router.put("/mock/{object_key:path}")
+async def put_mock_media_upload_object(
+    object_key: str,
+    request: Request,
+) -> Response:
+    object_storage = get_default_object_storage()
+    if not isinstance(object_storage, MockObjectStorageProvider):
+        return _error_response(status.HTTP_404_NOT_FOUND, "media_upload_not_found", "Media upload not found")
+
+    payload = await request.body()
+    object_storage.store_uploaded_object(object_key=object_key, payload=payload)
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post("/{media_id}/complete", response_model=DataEnvelope[CompleteMediaUploadData])

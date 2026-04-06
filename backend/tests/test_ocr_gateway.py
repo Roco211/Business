@@ -87,6 +87,39 @@ def test_build_ocr_gateway_defaults_to_mock_when_fallback_allowed() -> None:
     assert gateway.fallback_provider is None
 
 
+def test_trial_mode_rejects_unset_ocr_provider() -> None:
+    with pytest.raises(OcrProviderError) as excinfo:
+        build_ocr_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                ocr_provider="",
+                ocr_allow_mock_fallback=True,
+            )
+        )
+
+    assert excinfo.value.code == "ocr_unavailable"
+    assert "trial" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
+def test_trial_mode_rejects_real_ocr_provider_when_mock_fallback_enabled() -> None:
+    with pytest.raises(OcrProviderError) as excinfo:
+        build_ocr_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                ocr_provider="real-provider",
+                ocr_provider_api_url="https://api.example.com/v1/ocr",
+                ocr_provider_api_key="key",
+                ocr_provider_model="ocr-1",
+                ocr_allow_mock_fallback=True,
+            )
+        )
+
+    assert excinfo.value.code == "ocr_unavailable"
+    assert "fallback" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
 def test_real_ocr_provider_missing_configuration_raises_unavailable() -> None:
     with pytest.raises(OcrProviderError) as excinfo:
         build_ocr_gateway(

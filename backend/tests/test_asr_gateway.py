@@ -120,6 +120,38 @@ def test_build_asr_gateway_returns_mock_gateway_for_mock_provider() -> None:
     assert gateway.fallback_provider is None
 
 
+def test_trial_mode_rejects_mock_asr_provider() -> None:
+    with pytest.raises(AsrProviderError) as excinfo:
+        build_asr_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                asr_provider="mock",
+            )
+        )
+
+    assert excinfo.value.code == "asr_unavailable"
+    assert "trial" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
+def test_trial_mode_rejects_real_asr_provider_when_mock_fallback_enabled() -> None:
+    with pytest.raises(AsrProviderError) as excinfo:
+        build_asr_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                asr_provider="real-provider",
+                asr_provider_api_url="https://api.example.com/v1/transcriptions",
+                asr_provider_api_key="key",
+                asr_provider_model="model-a",
+                asr_allow_mock_fallback=True,
+            )
+        )
+
+    assert excinfo.value.code == "asr_unavailable"
+    assert "fallback" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
 def test_real_provider_missing_credentials_raises_unavailable() -> None:
     with pytest.raises(AsrProviderError) as excinfo:
         build_asr_gateway(

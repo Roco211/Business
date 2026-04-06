@@ -2,6 +2,7 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from app.core.config import Settings, get_settings
+from app.runtime.guardrails import provider_trial_violation
 from app.services.vision_mock_provider import MockVisionProvider
 from app.services.vision_real_provider import RealVisionProvider
 from app.services.vision_types import (
@@ -34,6 +35,18 @@ class VisionGateway:
 def build_vision_gateway(settings: Settings) -> VisionGateway:
     provider_name = settings.vision_provider.strip().lower()
     allow_mock = settings.vision_allow_mock_fallback
+    trial_violation = provider_trial_violation(
+        settings=settings,
+        provider_name=provider_name,
+        allow_mock_fallback=allow_mock,
+        capability_label="Vision",
+    )
+    if trial_violation is not None:
+        raise VisionProviderError(
+            "vision_unavailable",
+            trial_violation,
+            retryable=False,
+        )
 
     if not provider_name:
         if not allow_mock:

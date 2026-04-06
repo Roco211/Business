@@ -87,6 +87,39 @@ def test_build_vision_gateway_defaults_to_mock_when_fallback_allowed() -> None:
     assert gateway.fallback_provider is None
 
 
+def test_trial_mode_rejects_mock_vision_provider() -> None:
+    with pytest.raises(VisionProviderError) as excinfo:
+        build_vision_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                vision_provider="mock",
+                vision_allow_mock_fallback=True,
+            )
+        )
+
+    assert excinfo.value.code == "vision_unavailable"
+    assert "trial" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
+def test_trial_mode_rejects_real_vision_provider_when_mock_fallback_enabled() -> None:
+    with pytest.raises(VisionProviderError) as excinfo:
+        build_vision_gateway(
+            _build_settings(
+                app_runtime_mode="trial",
+                vision_provider="real-provider",
+                vision_provider_api_url="https://api.example.com/v1/vision",
+                vision_provider_api_key="key",
+                vision_provider_model="vision-1",
+                vision_allow_mock_fallback=True,
+            )
+        )
+
+    assert excinfo.value.code == "vision_unavailable"
+    assert "fallback" in str(excinfo.value).lower()
+    assert excinfo.value.retryable is False
+
+
 def test_real_vision_provider_missing_configuration_raises_unavailable() -> None:
     with pytest.raises(VisionProviderError) as excinfo:
         build_vision_gateway(

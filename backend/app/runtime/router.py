@@ -1,5 +1,7 @@
 import string
 
+from app.core.config import get_settings
+from app.runtime.guardrails import image_route_trial_violation
 from app.services.vision_gateway import get_default_vision_gateway
 from app.services.vision_types import VisionMediaInput, VisionProviderError
 from .tools import MockTranscriptionUnavailable, transcribe_audio_input
@@ -134,6 +136,18 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             )
 
         top_candidate = max(recognition.candidates, key=lambda candidate: candidate.confidence)
+        trial_violation = image_route_trial_violation(
+            settings=get_settings(),
+            used_fallback=recognition.used_fallback,
+            confidence=top_candidate.confidence,
+            low_confidence_threshold=ctx.shop_rules.get("low_confidence_threshold"),
+        )
+        if trial_violation is not None:
+            raise RuntimeRouteBlocked(
+                "runtime_processing_error",
+                f"Image recognition blocked: {trial_violation}",
+            )
+
         transcript = (ctx.source_text or top_candidate.item_name).strip()
         transcript_intent = _classify_transcript(transcript) if transcript else "voice-stock-in"
         task_type = "photo-stock-query" if transcript_intent == "voice-stock-query" else "photo-stock-in"
@@ -146,6 +160,7 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
                 "confidence": top_candidate.confidence,
                 "packaging_hint": top_candidate.packaging_hint,
                 "provider_name": recognition.provider_name,
+                "used_fallback": recognition.used_fallback,
                 "image_media_id": media_ref.media_id,
             },
         )

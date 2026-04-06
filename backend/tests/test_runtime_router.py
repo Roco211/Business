@@ -449,6 +449,119 @@ def test_image_input_maps_vision_provider_error_to_route_block(monkeypatch: pyte
     assert "blew up" in excinfo.value.error_message.lower()
 
 
+def test_trial_mode_blocks_photo_query_when_recognition_used_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            return VisionRecognition(
+                provider_name="mock-vision-provider",
+                candidates=[VisionCandidate(item_name="Red Bull 250ml", confidence=0.92, packaging_hint="can")],
+                used_fallback=True,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="check shelf stock for red bull",
+        media_ids=["uploaded_image_trial_fallback"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_trial_fallback",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="shelf.jpg",
+                public_url="https://mock.example/media/uploaded_image_trial_fallback",
+            )
+        ],
+    )
+
+    with pytest.raises(RuntimeRouteBlocked) as excinfo:
+        router.route_runtime_input(ctx)
+
+    assert excinfo.value.error_code == "runtime_processing_error"
+    assert "fallback" in excinfo.value.error_message.lower()
+
+
+def test_trial_mode_blocks_photo_stock_in_for_low_confidence_recognition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[VisionCandidate(item_name="Sprite 500ml", confidence=0.42, packaging_hint="bottle")],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="restock sprite bottles",
+        media_ids=["uploaded_image_trial_low_confidence"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_trial_low_confidence",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="stock-in.jpg",
+                public_url="https://mock.example/media/uploaded_image_trial_low_confidence",
+            )
+        ],
+        shop_rules={"low_confidence_threshold": 0.85},
+    )
+
+    with pytest.raises(RuntimeRouteBlocked) as excinfo:
+        router.route_runtime_input(ctx)
+
+    assert excinfo.value.error_code == "runtime_processing_error"
+    assert "confidence" in excinfo.value.error_message.lower()
+
+
+def test_local_demo_mode_keeps_photo_route_behavior_for_fallback_and_low_confidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.runtime import router
+
+    class _Gateway:
+        def recognize_product(self, media_input):
+            return VisionRecognition(
+                provider_name="mock-vision-provider",
+                candidates=[VisionCandidate(item_name="Sprite 500ml", confidence=0.31, packaging_hint="bottle")],
+                used_fallback=True,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "local-demo")
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: _Gateway())
+    ctx = _build_context(
+        input_kind="image",
+        source_text="restock sprite bottles",
+        media_ids=["uploaded_image_local_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="uploaded_image_local_demo",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="stock-in.jpg",
+                public_url="https://mock.example/media/uploaded_image_local_demo",
+            )
+        ],
+        shop_rules={"low_confidence_threshold": 0.85},
+    )
+
+    decision = router.route_runtime_input(ctx)
+    assert decision.task_type == "photo-stock-in"
+    assert decision.payload["provider_name"] == "mock-vision-provider"
+    assert decision.payload["confidence"] == 0.31
+
+
 def test_receipt_image_routes_to_receipt_ocr():
     ctx = _build_context(
         input_kind="receipt-image",

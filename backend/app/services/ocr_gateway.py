@@ -2,6 +2,7 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from app.core.config import Settings, get_settings
+from app.runtime.guardrails import provider_trial_violation
 from app.services.ocr_mock_provider import MockOcrProvider
 from app.services.ocr_real_provider import RealOcrProvider
 from app.services.ocr_types import (
@@ -32,6 +33,19 @@ class OcrGateway:
 
 def build_ocr_gateway(settings: Settings) -> OcrGateway:
     provider_name = settings.ocr_provider.strip().lower()
+    trial_violation = provider_trial_violation(
+        settings=settings,
+        provider_name=provider_name,
+        allow_mock_fallback=settings.ocr_allow_mock_fallback,
+        capability_label="OCR",
+    )
+    if trial_violation is not None:
+        raise OcrProviderError(
+            "ocr_unavailable",
+            trial_violation,
+            retryable=False,
+        )
+
     if not provider_name:
         if settings.ocr_allow_mock_fallback:
             return OcrGateway(primary_provider=MockOcrProvider())

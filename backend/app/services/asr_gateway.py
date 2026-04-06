@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from app.core.config import Settings, get_settings
+from app.runtime.guardrails import provider_trial_violation
 from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_real_provider import RealAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProvider, AsrProviderError, AsrTranscription
@@ -25,6 +26,19 @@ class AsrGateway:
 
 def build_asr_gateway(settings: Settings) -> AsrGateway:
     provider_name = settings.asr_provider.strip().lower()
+    trial_violation = provider_trial_violation(
+        settings=settings,
+        provider_name=provider_name,
+        allow_mock_fallback=settings.asr_allow_mock_fallback,
+        capability_label="ASR",
+    )
+    if trial_violation is not None:
+        raise AsrProviderError(
+            "asr_unavailable",
+            trial_violation,
+            retryable=False,
+        )
+
     if provider_name == "mock":
         return AsrGateway(primary_provider=MockAsrProvider())
     if provider_name not in SUPPORTED_REAL_PROVIDER_NAMES:

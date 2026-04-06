@@ -7,6 +7,7 @@ from app.models import AuditLog, Confirmation, MediaUpload, Message, SessionReco
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
+from app.services.pilot_control import get_or_create_pilot_control
 from conftest import auth_headers, login_and_get_token
 
 
@@ -217,6 +218,41 @@ def _create_receipt_runtime_task(db_session, *, media_id: str, client_request_id
         actor_type="owner",
         actor_id="owner_default",
         message_type="receipt-image",
+        text=None,
+        media_ids=[media_id],
+        client_request_id=client_request_id,
+    )
+    return result.task_run_id
+
+
+def _create_voice_runtime_task(db_session, *, media_id: str, client_request_id: str) -> str:
+    context = ensure_default_context(db_session)
+    db_session.add(
+        MediaUpload(
+            media_id=media_id,
+            shop_id=context.shop.shop_id,
+            uploader_actor_type="owner",
+            uploader_actor_id="owner_default",
+            media_type="audio",
+            file_name=f"{media_id}.bin",
+            content_type="application/octet-stream",
+            size_bytes=1024,
+            status="uploaded",
+            upload_url=f"https://mock.example/uploads/{media_id}",
+            public_url=f"https://mock.example/media/{media_id}",
+            checksum_sha256="abc123",
+            uploaded_at=context.session.created_at,
+            created_at=context.session.created_at,
+            updated_at=context.session.created_at,
+        )
+    )
+    db_session.commit()
+    result = create_message(
+        db_session,
+        session_id=context.session.session_id,
+        actor_type="owner",
+        actor_id="owner_default",
+        message_type="voice",
         text=None,
         media_ids=[media_id],
         client_request_id=client_request_id,
@@ -540,6 +576,57 @@ def test_pilot_summary_counts_ocr_fallback_and_low_confidence_from_real_runtime_
     assert payload["fallback_count"] == 1
     assert payload["telemetry_task_count"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"
+
+
+def test_pilot_summary_counts_cutover_mode_from_real_open_allowed_runtime_telemetry(
+    client,
+    monkeypatch,
+) -> None:
+    from app.runtime import tools as runtime_tools
+    from app.services.asr_types import AsrTranscription
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+
+    class _Gateway:
+        def transcribe(self, _media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.97)
+
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        pilot_control, _ = get_or_create_pilot_control(
+            db_session,
+            shop_id=context.shop.shop_id,
+            trial_provider_profile="pilot-v1",
+        )
+        pilot_control.cutover_mode = "open"
+        pilot_control.approved_calibration_artifact_id = "artifact_20260407"
+        pilot_control.last_preflight_status = "ready"
+        db_session.commit()
+
+        task_run_id = _create_voice_runtime_task(
+            db_session,
+            media_id="voice_summary_open_allowed",
+            client_request_id="pilot_summary_open_allowed_cutover",
+        )
+        result = process_task_run(db_session, task_run_id)
+        assert result.status == "completed"
+    finally:
+        db_session.close()
+
+    response = client.get(
+        "/api/v1/system/pilot-summary?hours=24",
+        headers=_auth_headers(client, monkeypatch),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["task_totals"]["voice-stock-query"]["completed"] == 1
+    assert payload["telemetry_task_count"] == 1
+    assert payload["cutover_mode_counts"]["open"] == 1
 
 
 def test_pilot_summary_distinguishes_cutover_guardrail_outcomes_from_provider_failures(

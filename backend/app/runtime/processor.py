@@ -524,11 +524,12 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             shop_id=context.shop_id,
             task_type=decision.task_type,
         )
+        guardrail_telemetry = guardrail_decision.telemetry_fields()
         if guardrail_decision.should_block:
             guardrail_payload = _with_guardrail_telemetry_payload(
                 payload=decision.payload,
                 task_type=decision.task_type,
-                guardrail_telemetry=guardrail_decision.telemetry_fields(),
+                guardrail_telemetry=guardrail_telemetry,
             )
             return _build_failed_result(
                 db_session,
@@ -547,13 +548,22 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 ),
             )
 
+        decision = RuntimeRouteDecision(
+            task_type=decision.task_type,
+            assigned_employee_id=decision.assigned_employee_id,
+            transcript=decision.transcript,
+            payload={
+                **dict(decision.payload),
+                **guardrail_telemetry,
+            },
+        )
         policy = evaluate_runtime_policy(task_type=decision.task_type)
         provider_payload = dict(decision.payload)
         if guardrail_decision.should_force_confirmation:
             provider_payload = _with_guardrail_telemetry_payload(
                 payload=provider_payload,
                 task_type=decision.task_type,
-                guardrail_telemetry=guardrail_decision.telemetry_fields(),
+                guardrail_telemetry=guardrail_telemetry,
             )
             decision = RuntimeRouteDecision(
                 task_type=decision.task_type,
@@ -788,7 +798,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 _build_provider_telemetry_record(
                     context_input_kind=context.input_kind,
                     task_type=decision.task_type if decision is not None else "receipt-ocr",
-                    payload={"capability": "ocr"},
+                    payload=decision.payload if decision is not None else {"capability": "ocr"},
                 )
                 if context is not None
                 else None

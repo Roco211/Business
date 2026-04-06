@@ -1111,6 +1111,43 @@ def test_process_task_run_open_mode_allows_normal_policy_for_write_intent(
     assert confirmation is None
 
 
+def test_process_task_run_appends_cutover_guardrail_telemetry_for_open_allowed_voice_completion(
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(db_session, cutover_mode="open")
+
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_cutover_open_allowed_voice_telemetry",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "completed"
+    assert result.task_type == "voice-stock-query"
+    assert audit_log is not None
+    assert audit_log.metadata_json["cutover_mode"] == "open"
+    assert audit_log.metadata_json["guardrail_status"] == "allowed"
+    assert audit_log.metadata_json.get("guardrail_reason") is None
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is False
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
+    assert audit_log.metadata_json["outcome"] == "completed"
+
+
 def test_process_task_run_open_mode_mismatch_fails_safe_to_confirmation(
     db_session,
     monkeypatch,
@@ -1169,6 +1206,56 @@ def test_process_task_run_open_mode_mismatch_fails_safe_to_confirmation(
     assert audit_log.metadata_json["outcome"] == "awaiting-confirmation"
 
 
+def test_process_task_run_preserves_guardrail_telemetry_for_receipt_ocr_provider_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    from app.services import ocr_documents as ocr_documents_service
+    from app.services.ocr_types import OcrProviderError
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(db_session, cutover_mode="shadow")
+
+    class _FailingGateway:
+        def extract_purchase_receipt(self, _media_input):
+            raise OcrProviderError(
+                "ocr_unavailable",
+                "OCR provider is not configured",
+                retryable=False,
+            )
+
+    monkeypatch.setattr(ocr_documents_service, "get_default_ocr_gateway", lambda: _FailingGateway())
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_cutover_shadow_ocr_failure",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "ocr_unavailable"
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "receipt-ocr"
+    assert audit_log.metadata_json["cutover_mode"] == "shadow"
+    assert audit_log.metadata_json["guardrail_status"] == "forced-confirmation"
+    assert audit_log.metadata_json["guardrail_reason"] == "cutover_mode_shadow"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is True
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
+    assert audit_log.metadata_json["error_code"] == "ocr_unavailable"
+
+
 def test_process_task_run_appends_provider_telemetry_for_voice_completion(db_session, monkeypatch) -> None:
     _, task_run_id = _create_owner_message(
         db_session,
@@ -1209,6 +1296,11 @@ def test_process_task_run_appends_provider_telemetry_for_voice_completion(db_ses
         "outcome": "completed",
         "error_code": None,
         "trial_provider_profile": "pilot-v1",
+        "cutover_mode": "local-demo",
+        "guardrail_status": "allowed",
+        "shadow_forced_confirmation": False,
+        "guardrail_degraded": False,
+        "guardrail_degraded_reasons": [],
     }
 
 
@@ -1361,6 +1453,11 @@ def test_process_task_run_appends_ocr_provider_telemetry_for_receipt_confirmatio
         "outcome": "awaiting-confirmation",
         "error_code": None,
         "trial_provider_profile": "pilot-v1",
+        "cutover_mode": "local-demo",
+        "guardrail_status": "allowed",
+        "shadow_forced_confirmation": False,
+        "guardrail_degraded": False,
+        "guardrail_degraded_reasons": [],
     }
 
 
@@ -1495,7 +1592,7 @@ def test_process_task_run_fails_post_route_errors_with_runtime_message(db_sessio
         client_request_id="runtime_post_route_error",
     )
 
-    def raise_post_route_error(*, task_type: str, transcript: str | None):
+    def raise_post_route_error(*, task_type: str, transcript: str | None, payload: dict[str, object] | None = None):
         raise RuntimeError(f"post-route failure for {task_type}")
 
     monkeypatch.setattr(runtime_processor, "summarize_completed_task", raise_post_route_error)

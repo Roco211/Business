@@ -1,5 +1,6 @@
 from app.contracts.system import ReadinessCheckData, SystemReadinessData
 from app.core.config import Settings
+from app.runtime.guardrails import provider_trial_violation
 from app.services.asr_gateway import SUPPORTED_REAL_PROVIDER_NAMES as SUPPORTED_ASR_PROVIDER_NAMES
 from app.services.ocr_gateway import SUPPORTED_REAL_PROVIDER_NAMES as SUPPORTED_OCR_PROVIDER_NAMES
 from app.services.vision_gateway import SUPPORTED_REAL_PROVIDER_NAMES as SUPPORTED_VISION_PROVIDER_NAMES
@@ -38,6 +39,7 @@ def _build_dependency_check(
     supported_live_modes: set[str],
     required_live_fields: dict[str, str],
     details: dict[str, str],
+    trial_violation_message: str | None = None,
 ) -> ReadinessCheckData:
     if mode == UNSET_MODE:
         status = READY_STATUS if runtime_mode == LOCAL_DEMO_RUNTIME_MODE else DEGRADED_STATUS
@@ -79,6 +81,17 @@ def _build_dependency_check(
                 **details,
                 "reason": "missing_config",
                 "missing_fields": ",".join(missing_fields),
+            },
+        )
+
+    if trial_violation_message is not None:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=mode,
+            message=trial_violation_message,
+            details={
+                **details,
+                "reason": "trial_guardrail",
             },
         )
 
@@ -134,6 +147,12 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
                 "provider": asr_mode,
                 "allow_mock_fallback": str(settings.asr_allow_mock_fallback).lower(),
             },
+            trial_violation_message=provider_trial_violation(
+                settings=settings,
+                provider_name=settings.asr_provider,
+                allow_mock_fallback=settings.asr_allow_mock_fallback,
+                capability_label="ASR",
+            ),
         ),
         "ocr": _build_dependency_check(
             check_name="ocr",
@@ -149,6 +168,12 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
                 "provider": ocr_mode,
                 "allow_mock_fallback": str(settings.ocr_allow_mock_fallback).lower(),
             },
+            trial_violation_message=provider_trial_violation(
+                settings=settings,
+                provider_name=settings.ocr_provider,
+                allow_mock_fallback=settings.ocr_allow_mock_fallback,
+                capability_label="OCR",
+            ),
         ),
         "vision": _build_dependency_check(
             check_name="vision",
@@ -164,6 +189,12 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
                 "provider": vision_mode,
                 "allow_mock_fallback": str(settings.vision_allow_mock_fallback).lower(),
             },
+            trial_violation_message=provider_trial_violation(
+                settings=settings,
+                provider_name=settings.vision_provider,
+                allow_mock_fallback=settings.vision_allow_mock_fallback,
+                capability_label="Vision",
+            ),
         ),
     }
 

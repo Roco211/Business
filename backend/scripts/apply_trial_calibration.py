@@ -4,6 +4,7 @@ import argparse
 from datetime import UTC, datetime
 from decimal import Decimal
 import json
+import math
 from pathlib import Path
 import sys
 from typing import Any
@@ -76,6 +77,8 @@ def _load_calibration_artifact(report_path: str | Path) -> dict[str, Any]:
         )
 
     normalized_threshold = float(low_confidence_threshold)
+    if not math.isfinite(normalized_threshold):
+        raise TrialCalibrationApplyError("Invalid calibration artifact: low_confidence_threshold must be finite")
     if normalized_threshold < 0.0 or normalized_threshold > 1.0:
         raise TrialCalibrationApplyError("Invalid calibration artifact: low_confidence_threshold must be in [0, 1]")
 

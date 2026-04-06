@@ -198,3 +198,95 @@ def test_apply_trial_calibration_rejects_unknown_shop_id(
             actor_id="owner_default",
             db_session=db_session,
         )
+
+
+@pytest.mark.parametrize("non_finite", [float("nan"), float("inf"), float("-inf")])
+def test_apply_trial_calibration_rejects_non_finite_thresholds(
+    db_session,
+    tmp_path: Path,
+    non_finite: float,
+) -> None:
+    module = _load_apply_script_module()
+    context = ensure_default_context(db_session)
+    report_path = tmp_path / "report_non_finite.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "artifact_id": "artifact-non-finite",
+                "trial_provider_profile": "pilot-2026-04",
+                "recommended_shop_rules": {
+                    "low_confidence_threshold": non_finite,
+                    "require_price_confirmation": True,
+                    "require_new_item_confirmation": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(module.TrialCalibrationApplyError, match="finite"):
+        module.apply_trial_calibration(
+            report_path=report_path,
+            shop_id=context.shop.shop_id,
+            actor_id="owner_default",
+            db_session=db_session,
+        )
+
+
+def test_run_pilot_calibration_repeated_trial_id_uses_unique_artifact_identity_and_paths(
+    tmp_path: Path,
+) -> None:
+    from app.devtools.pilot_calibration import run_pilot_calibration
+
+    media_path = tmp_path / "voice.m4a"
+    media_path.write_bytes(b"asr")
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "trial_id": "pilot-2026-04",
+                "cases": [
+                    {
+                        "case_id": "asr-pass",
+                        "capability": "asr",
+                        "media_path": str(media_path),
+                        "expected": {"transcript_contains": ["cola"]},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    first = run_pilot_calibration(
+        manifest_path=manifest_path,
+        output_dir=tmp_path / "artifacts",
+        evaluate_asr=lambda **_: {
+            "transcript": "cola in stock",
+            "confidence": 0.91,
+            "provider_name": "stub-asr",
+            "used_fallback": False,
+            "latency_ms": 1,
+        },
+        evaluate_ocr=lambda **_: {},
+        evaluate_vision=lambda **_: {},
+    )
+    second = run_pilot_calibration(
+        manifest_path=manifest_path,
+        output_dir=tmp_path / "artifacts",
+        evaluate_asr=lambda **_: {
+            "transcript": "cola in stock",
+            "confidence": 0.91,
+            "provider_name": "stub-asr",
+            "used_fallback": False,
+            "latency_ms": 1,
+        },
+        evaluate_ocr=lambda **_: {},
+        evaluate_vision=lambda **_: {},
+    )
+
+    assert first["artifact_id"] != second["artifact_id"]
+    assert first["json_report_path"] != second["json_report_path"]
+    assert first["markdown_report_path"] != second["markdown_report_path"]
+    assert Path(first["json_report_path"]).is_file()
+    assert Path(second["json_report_path"]).is_file()

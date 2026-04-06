@@ -267,6 +267,12 @@ def _build_recommended_shop_rules() -> dict[str, Any]:
     }
 
 
+def _build_artifact_identity(*, trial_id: str, generated_at: datetime) -> tuple[str, str]:
+    run_token = generated_at.strftime("%Y%m%dT%H%M%S%fZ")
+    artifact_id = f"{trial_id}-report-{run_token}"
+    return artifact_id, run_token
+
+
 def _render_markdown_report(*, report: dict[str, Any]) -> str:
     summary = report["summary"]
     latency = report["latency_ms"]
@@ -374,12 +380,19 @@ def run_pilot_calibration(
             }
         )
 
+    generated_at = datetime.now(tz=UTC)
+    generated_at_iso = generated_at.isoformat()
+    artifact_id, run_token = _build_artifact_identity(
+        trial_id=manifest.trial_id,
+        generated_at=generated_at,
+    )
+
     report = {
-        "artifact_id": f"{manifest.trial_id}-report",
+        "artifact_id": artifact_id,
         "trial_id": manifest.trial_id,
         "trial_provider_profile": _resolve_trial_provider_profile(trial_id=manifest.trial_id),
         "manifest_path": str(manifest.manifest_path),
-        "generated_at": datetime.now(tz=UTC).isoformat(),
+        "generated_at": generated_at_iso,
         "recommended_shop_rules": _build_recommended_shop_rules(),
         "summary": {
             "total_cases": len(manifest.cases),
@@ -394,8 +407,8 @@ def run_pilot_calibration(
         "cases": case_outcomes,
     }
 
-    json_report_path = artifact_dir / f"{manifest.trial_id}_report.json"
-    markdown_report_path = artifact_dir / f"{manifest.trial_id}_report.md"
+    json_report_path = artifact_dir / f"{manifest.trial_id}_report_{run_token}.json"
+    markdown_report_path = artifact_dir / f"{manifest.trial_id}_report_{run_token}.md"
     json_report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     markdown_report_path.write_text(_render_markdown_report(report=report), encoding="utf-8")
 

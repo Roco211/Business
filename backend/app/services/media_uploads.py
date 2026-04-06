@@ -135,7 +135,6 @@ def mark_media_upload_complete(
         _resolve_object_storage(object_storage).verify_uploaded_object(
             object_key=object_key,
             expected_size_bytes=size_bytes,
-            expected_checksum_sha256=checksum_sha256.strip(),
         )
     except ObjectStorageObjectNotFoundError as exc:
         raise MediaUploadNotReadyError(media_id) from exc

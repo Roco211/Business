@@ -35,7 +35,6 @@ class ObjectStorageUploadTarget:
 class ObjectStorageObjectMetadata:
     object_key: str
     size_bytes: int | None
-    checksum_sha256: str | None = None
     etag: str | None = None
 
 
@@ -54,7 +53,6 @@ class ObjectStorageProvider(Protocol):
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
-        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
         ...
 
@@ -103,12 +101,10 @@ class MockObjectStorageProvider:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
-        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
         return ObjectStorageObjectMetadata(
             object_key=object_key,
             size_bytes=expected_size_bytes,
-            checksum_sha256=expected_checksum_sha256,
         )
 
 
@@ -187,7 +183,6 @@ class S3CompatibleObjectStorageProvider:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
-        expected_checksum_sha256: str | None = None,
     ) -> ObjectStorageObjectMetadata:
         try:
             head = self._get_client().head_object(Bucket=self.bucket, Key=object_key)
@@ -203,9 +198,6 @@ class S3CompatibleObjectStorageProvider:
                 f"object size mismatch for {object_key}: expected {expected_size_bytes}, got {size_bytes}"
             )
 
-        checksum_sha256 = head.get("ChecksumSHA256")
-        del expected_checksum_sha256
-
         etag = head.get("ETag")
         if isinstance(etag, str):
             etag = etag.strip('"')
@@ -213,7 +205,6 @@ class S3CompatibleObjectStorageProvider:
         return ObjectStorageObjectMetadata(
             object_key=object_key,
             size_bytes=size_bytes,
-            checksum_sha256=checksum_sha256,
             etag=etag if isinstance(etag, str) else None,
         )
 

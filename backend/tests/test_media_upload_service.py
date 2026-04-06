@@ -13,6 +13,7 @@ from app.services.media_uploads import (
 from app.services.object_storage import (
     ObjectStorageObjectNotFoundError,
     ObjectStorageUploadTarget,
+    ObjectStorageVerificationError,
     derive_media_object_key,
 )
 
@@ -20,8 +21,9 @@ from app.services.object_storage import (
 class _StubObjectStorage:
     def __init__(self) -> None:
         self.create_calls: list[tuple[str, str, int]] = []
-        self.verify_calls: list[tuple[str, int | None, str | None]] = []
+        self.verify_calls: list[tuple[str, int | None]] = []
         self.fail_verification = False
+        self.object_size_bytes = 1024
 
     def create_upload_target(
         self,
@@ -42,11 +44,12 @@ class _StubObjectStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
-        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        self.verify_calls.append((object_key, expected_size_bytes, expected_checksum_sha256))
+        self.verify_calls.append((object_key, expected_size_bytes))
         if self.fail_verification:
             raise ObjectStorageObjectNotFoundError(object_key)
+        if expected_size_bytes is not None and expected_size_bytes != self.object_size_bytes:
+            raise ObjectStorageVerificationError("object size mismatch")
         return {"object_key": object_key, "size_bytes": expected_size_bytes}
 
 
@@ -121,7 +124,7 @@ def test_mark_media_upload_complete_sets_uploaded_fields(db_session) -> None:
     assert media_upload.status == "uploaded"
     assert media_upload.checksum_sha256 == "abc123"
     assert media_upload.uploaded_at is not None
-    assert storage.verify_calls == [(expected_key, 1024, "abc123")]
+    assert storage.verify_calls == [(expected_key, 1024)]
 
 
 def test_mark_media_upload_complete_rejects_when_uploaded_object_is_missing(db_session) -> None:
@@ -141,6 +144,37 @@ def test_mark_media_upload_complete_rejects_when_uploaded_object_is_missing(db_s
     storage.fail_verification = True
 
     with pytest.raises(MediaUploadNotReadyError):
+        mark_media_upload_complete(
+            db_session,
+            media_id=created.media_id,
+            checksum_sha256="abc123",
+            size_bytes=1024,
+            object_storage=storage,
+        )
+
+    media_upload = db_session.get(MediaUpload, created.media_id)
+    assert media_upload is not None
+    assert media_upload.status == "pending"
+    assert media_upload.uploaded_at is None
+
+
+def test_mark_media_upload_complete_rejects_when_uploaded_object_size_mismatches(db_session) -> None:
+    context = ensure_default_context(db_session)
+    storage = _StubObjectStorage()
+    created = create_media_upload(
+        db_session,
+        shop_id=context.shop.shop_id,
+        uploader_actor_type="owner",
+        uploader_actor_id="owner_default",
+        media_type="audio",
+        file_name="voice.m4a",
+        content_type="audio/m4a",
+        size_bytes=1024,
+        object_storage=storage,
+    )
+    storage.object_size_bytes = 4096
+
+    with pytest.raises(MediaUploadConflictError):
         mark_media_upload_complete(
             db_session,
             media_id=created.media_id,

@@ -3,6 +3,7 @@ from app.services import media_uploads as media_uploads_service
 from app.services.object_storage import (
     ObjectStorageObjectNotFoundError,
     ObjectStorageUploadTarget,
+    ObjectStorageVerificationError,
 )
 
 def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
@@ -29,10 +30,34 @@ class _FailingVerificationStorage:
         *,
         object_key: str,
         expected_size_bytes: int | None = None,
-        expected_checksum_sha256: str | None = None,
     ) -> dict[str, object]:
-        del expected_size_bytes, expected_checksum_sha256
+        del expected_size_bytes
         raise ObjectStorageObjectNotFoundError(object_key)
+
+
+class _SizeMismatchVerificationStorage:
+    def create_upload_target(
+        self,
+        *,
+        object_key: str,
+        content_type: str,
+        size_bytes: int,
+    ) -> ObjectStorageUploadTarget:
+        del content_type, size_bytes
+        return ObjectStorageUploadTarget(
+            object_key=object_key,
+            upload_url=f"https://upload.example/{object_key}",
+            public_url=f"https://public.example/{object_key}",
+        )
+
+    def verify_uploaded_object(
+        self,
+        *,
+        object_key: str,
+        expected_size_bytes: int | None = None,
+    ) -> dict[str, object]:
+        del object_key, expected_size_bytes
+        raise ObjectStorageVerificationError("object size mismatch")
 
 
 def test_create_media_upload_requires_authorization(client) -> None:
@@ -137,6 +162,37 @@ def test_complete_media_upload_returns_conflict_when_object_is_missing(client, m
         media_uploads_service,
         "get_default_object_storage",
         lambda: _FailingVerificationStorage(),
+    )
+    create_response = client.post(
+        "/api/v1/media-uploads",
+        headers=_auth_headers(client),
+        json={
+            "media_type": "audio",
+            "file_name": "voice.m4a",
+            "content_type": "audio/m4a",
+            "size_bytes": 1024,
+        },
+    )
+    media_id = create_response.json()["data"]["media_id"]
+
+    complete_response = client.post(
+        f"/api/v1/media-uploads/{media_id}/complete",
+        headers=_auth_headers(client),
+        json={
+            "checksum_sha256": "abc123",
+            "size_bytes": 1024,
+        },
+    )
+
+    assert complete_response.status_code == 409
+    assert complete_response.json()["error"]["code"] == "media_upload_conflict"
+
+
+def test_complete_media_upload_returns_conflict_when_object_size_mismatches(client, monkeypatch) -> None:
+    monkeypatch.setattr(
+        media_uploads_service,
+        "get_default_object_storage",
+        lambda: _SizeMismatchVerificationStorage(),
     )
     create_response = client.post(
         "/api/v1/media-uploads",

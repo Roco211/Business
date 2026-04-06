@@ -6,6 +6,7 @@ from app.services.object_storage import (
     ObjectStorageConfigurationError,
     ObjectStorageObjectNotFoundError,
     ObjectStorageUploadTarget,
+    ObjectStorageVerificationError,
     S3CompatibleObjectStorageProvider,
     build_object_storage,
     derive_media_object_key,
@@ -150,6 +151,34 @@ def test_s3_provider_verify_uploaded_object_raises_for_missing_object() -> None:
         )
 
     assert str(excinfo.value) == "object not found: shops/shop_default/media/media_001/voice.m4a"
+
+
+def test_s3_provider_verify_uploaded_object_raises_for_size_mismatch() -> None:
+    class _FakeS3Client:
+        def head_object(self, *, Bucket: str, Key: str) -> dict[str, object]:
+            del Bucket, Key
+            return {"ContentLength": 2048}
+
+    provider = S3CompatibleObjectStorageProvider(
+        bucket="trial-bucket",
+        region="ap-southeast-1",
+        endpoint_url="https://s3.example.com",
+        access_key="access",
+        secret_key="secret",
+        public_base_url="https://cdn.example.com",
+        presign_ttl_seconds=1200,
+        s3_client=_FakeS3Client(),
+    )
+
+    with pytest.raises(ObjectStorageVerificationError) as excinfo:
+        provider.verify_uploaded_object(
+            object_key="shops/shop_default/media/media_001/voice.m4a",
+            expected_size_bytes=1024,
+        )
+
+    assert str(excinfo.value) == (
+        "object size mismatch for shops/shop_default/media/media_001/voice.m4a: expected 1024, got 2048"
+    )
 
 
 def test_derive_media_object_key_is_deterministic() -> None:

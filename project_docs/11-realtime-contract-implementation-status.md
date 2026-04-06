@@ -9,7 +9,7 @@ This addendum records what is actually implemented in the repository today relat
 - Durable `session_stream_events` with strict per-session `seq`
 - `GET /api/v1/sessions/{session_id}/stream-events`
 - Durable `media_uploads` with explicit `pending -> uploaded` transition
-- `WS /api/v1/ws/sessions/{session_id}?token=mock_owner_token`
+- `WS /api/v1/ws/sessions/{session_id}?token=<opaque bearer token>`
 - `POST /api/v1/media-uploads`
 - `POST /api/v1/media-uploads/{media_id}/complete`
 - `POST /api/v1/ocr-documents`

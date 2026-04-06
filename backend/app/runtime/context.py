@@ -4,7 +4,8 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, aliased
 
 from app.models import Confirmation, Message, SessionRecord, Shop, TaskRun
-from app.runtime.types import RuntimeTurnContext
+from app.runtime.types import RuntimeMediaRef, RuntimeTurnContext
+from app.services.media_uploads import get_ready_media_upload
 
 
 def _require_record(record, record_id: str):
@@ -17,6 +18,31 @@ def _decimal_to_float(value: Decimal | None) -> float | None:
     if value is None:
         return None
     return float(value)
+
+
+def _resolve_runtime_media_refs(
+    db_session: Session,
+    *,
+    shop_id: str,
+    media_ids: list[str],
+) -> list[RuntimeMediaRef]:
+    media_refs: list[RuntimeMediaRef] = []
+    for media_id in media_ids:
+        media_upload = get_ready_media_upload(
+            db_session,
+            shop_id=shop_id,
+            media_id=media_id,
+        )
+        media_refs.append(
+            RuntimeMediaRef(
+                media_id=media_upload.media_id,
+                media_type=media_upload.media_type,
+                content_type=media_upload.content_type,
+                file_name=media_upload.file_name,
+                public_url=media_upload.public_url,
+            )
+        )
+    return media_refs
 
 
 def build_runtime_turn_context(
@@ -80,6 +106,11 @@ def build_runtime_turn_context(
         input_kind=source_message.message_type,
         source_text=source_message.text,
         media_ids=list(source_message.media_ids),
+        media_refs=_resolve_runtime_media_refs(
+            db_session,
+            shop_id=shop.shop_id,
+            media_ids=list(source_message.media_ids),
+        ),
         locale=shop.locale,
         timezone=shop.timezone,
         shop_rules={

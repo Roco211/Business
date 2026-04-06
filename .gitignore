@@ -8,4 +8,6 @@ apps/mobile/.expo/
 apps/mobile/dist/
 backend/.pytest_cache/
 backend/.venv/
+backend/devdata/trial_calibration/
+backend/devdata/trial_calibration_artifacts/
 pytest-cache-files-*/

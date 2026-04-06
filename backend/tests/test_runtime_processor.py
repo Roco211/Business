@@ -5,10 +5,11 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
+from app.models import AuditLog, Confirmation, MediaUpload, Message, OcrDocument, SessionRecord, SessionStreamEvent, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime import processor as runtime_processor
 from app.runtime import tools as runtime_tools
+from app.runtime.types import RuntimeTurnContext
 from app.runtime.processor import process_task_run
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
@@ -962,6 +963,201 @@ def test_process_task_run_persists_asr_low_confidence_failures(db_session, monke
     assert session_record.last_message_at == runtime_messages[0].created_at
 
 
+def test_process_task_run_appends_provider_telemetry_for_voice_completion(db_session, monkeypatch) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_provider_telemetry_completed",
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.91)
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "completed"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "voice-stock-query",
+        "capability": "asr",
+        "provider_mode": "real-provider",
+        "provider_label": "asr-primary",
+        "used_fallback": False,
+        "recognized_confidence": 0.91,
+        "low_confidence": False,
+        "outcome": "completed",
+        "error_code": None,
+        "trial_provider_profile": "pilot-v1",
+    }
+
+
+def test_process_task_run_appends_provider_telemetry_for_asr_low_confidence_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_provider_telemetry_failed",
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.42)
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "asr_low_confidence"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "voice-stock-query",
+        "capability": "asr",
+        "provider_mode": "real-provider",
+        "provider_label": "asr-primary",
+        "used_fallback": False,
+        "recognized_confidence": 0.42,
+        "low_confidence": True,
+        "outcome": "failed",
+        "error_code": "asr_low_confidence",
+        "trial_provider_profile": "pilot-v1",
+    }
+
+
+def test_process_task_run_does_not_append_provider_telemetry_for_missing_ready_voice_media_route_block(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_missing_ready_media_no_telemetry",
+    )
+    original_build_context = runtime_processor.build_runtime_turn_context
+
+    def build_context_without_media_refs(db_session, *, task_run_id: str) -> RuntimeTurnContext:
+        context = original_build_context(db_session, task_run_id=task_run_id)
+        return replace(context, media_refs=[])
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setattr(runtime_processor, "build_runtime_turn_context", build_context_without_media_refs)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_logs = db_session.scalars(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    ).all()
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert audit_logs == []
+
+
+def test_process_task_run_appends_ocr_provider_telemetry_for_receipt_confirmation(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_provider_telemetry_awaiting_confirmation",
+    )
+    persisted_document = OcrDocument(
+        ocr_document_id="ocr_receipt_provider_telemetry",
+        shop_id="shop_default",
+        task_run_id=task_run_id,
+        media_id="receipt_demo",
+        document_type="purchase-receipt",
+        status="completed",
+        provider_name="stub-ocr",
+        raw_text="receipt text",
+        extracted_fields={
+            "items": [{"name": "Red Bull 250ml", "quantity": 3, "unit": "can", "price": 41.0}],
+            "total_amount": 123.0,
+        },
+        low_confidence_fields=["items[0].price"],
+        created_at=datetime(2026, 4, 4, 12, 0, 0),
+        updated_at=datetime(2026, 4, 4, 12, 0, 0),
+    )
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("OCR_PROVIDER", "real-provider")
+    monkeypatch.setenv("OCR_PROVIDER_LABEL", "ocr-primary")
+
+    class StubCreateResult:
+        def __init__(self):
+            self.ocr_document = persisted_document
+            self.response_status = "processing"
+            self.provider_name = "stub-ocr"
+            self.used_fallback = True
+            self.low_confidence_fields = ["items[0].price"]
+
+    def stub_create_ocr_document(*args, **kwargs):
+        return StubCreateResult()
+
+    monkeypatch.setattr(runtime_processor, "create_ocr_document", stub_create_ocr_document)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "awaiting-confirmation"
+    assert audit_log is not None
+    assert audit_log.metadata_json == {
+        "task_type": "receipt-ocr",
+        "capability": "ocr",
+        "provider_mode": "real-provider",
+        "provider_label": "ocr-primary",
+        "used_fallback": True,
+        "recognized_confidence": None,
+        "low_confidence": True,
+        "outcome": "awaiting-confirmation",
+        "error_code": None,
+        "trial_provider_profile": "pilot-v1",
+    }
+
+
 def test_process_task_run_skips_already_advanced_tasks_without_runtime_message(db_session) -> None:
     _, processing_task_run_id = _create_owner_message(
         db_session,
@@ -1050,6 +1246,38 @@ def test_process_task_run_fails_unexpected_runtime_errors_with_runtime_message(d
     assert "boom" in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
+
+
+def test_process_task_run_does_not_append_provider_telemetry_for_unexpected_pre_provider_voice_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_unexpected_pre_provider_failure",
+    )
+
+    def raise_unexpected_error(_context):
+        raise RuntimeError("boom")
+
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setattr(runtime_processor, "route_runtime_input", raise_unexpected_error)
+
+    result = process_task_run(db_session, task_run_id)
+    audit_logs = db_session.scalars(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    ).all()
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert audit_logs == []
 
 
 def test_process_task_run_fails_post_route_errors_with_runtime_message(db_session, monkeypatch) -> None:

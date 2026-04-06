@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.ids import new_prefixed_id
-from app.models import AuditLog, InventoryEvent, InventoryItem
+from app.models import AuditLog, InventoryEvent, InventoryItem, Shop
 
 
 class UnsupportedAuditScopeError(ValueError):
@@ -198,6 +198,84 @@ def append_inventory_stock_out_audit_log(
         target_type="inventory_item",
         target_id=item.item_id,
         metadata_json=metadata_json,
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log
+
+
+def append_shop_rules_trial_calibration_audit_log(
+    db_session: Session,
+    *,
+    shop: Shop,
+    actor_id: str,
+    artifact_id: str,
+    trial_provider_profile: str,
+    before: dict[str, object],
+    after: dict[str, object],
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop.shop_id,
+        scope="shop-rules",
+        action="shop_rules.trial_calibration_applied",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=None,
+        target_type="shop",
+        target_id=shop.shop_id,
+        metadata_json={
+            "trial_provider_profile": trial_provider_profile,
+            "artifact_id": artifact_id,
+            "before": before,
+            "after": after,
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log
+
+
+def append_pilot_runtime_telemetry_audit_log(
+    db_session: Session,
+    *,
+    shop_id: str,
+    task_run_id: str,
+    task_type: str | None,
+    capability: str,
+    provider_mode: str,
+    provider_label: str,
+    used_fallback: bool,
+    recognized_confidence: float | None,
+    low_confidence: bool,
+    outcome: str,
+    error_code: str | None,
+    trial_provider_profile: str,
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop_id,
+        scope="pilot",
+        action="runtime.provider_telemetry",
+        actor_type="system",
+        actor_id="runtime_system",
+        task_run_id=task_run_id,
+        target_type="task_run",
+        target_id=task_run_id,
+        metadata_json={
+            "task_type": task_type,
+            "capability": capability,
+            "provider_mode": provider_mode,
+            "provider_label": provider_label,
+            "used_fallback": used_fallback,
+            "recognized_confidence": recognized_confidence,
+            "low_confidence": low_confidence,
+            "outcome": outcome,
+            "error_code": error_code,
+            "trial_provider_profile": trial_provider_profile,
+        },
         created_at=datetime.now(UTC).replace(tzinfo=None),
     )
     db_session.add(log)

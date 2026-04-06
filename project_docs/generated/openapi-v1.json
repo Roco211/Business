@@ -695,6 +695,18 @@
         "title": "DataEnvelope[OcrDocumentData]",
         "type": "object"
       },
+      "DataEnvelope_PilotSummaryData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PilotSummaryData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[PilotSummaryData]",
+        "type": "object"
+      },
       "DataEnvelope_RecognizeAndQueryData_": {
         "properties": {
           "data": {
@@ -1339,6 +1351,107 @@
         "title": "OcrDocumentData",
         "type": "object"
       },
+      "PilotSummaryConfirmationData": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "approved",
+          "rejected"
+        ],
+        "title": "PilotSummaryConfirmationData",
+        "type": "object"
+      },
+      "PilotSummaryData": {
+        "properties": {
+          "confirmations": {
+            "$ref": "#/components/schemas/PilotSummaryConfirmationData"
+          },
+          "fallback_count": {
+            "title": "Fallback Count",
+            "type": "integer"
+          },
+          "low_confidence_count": {
+            "title": "Low Confidence Count",
+            "type": "integer"
+          },
+          "provider_failures": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Provider Failures",
+            "type": "object"
+          },
+          "task_totals": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "title": "Task Totals",
+            "type": "object"
+          },
+          "telemetry_task_count": {
+            "title": "Telemetry Task Count",
+            "type": "integer"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/PilotSummaryTimeWindowData"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_window",
+          "task_totals",
+          "confirmations",
+          "telemetry_task_count",
+          "low_confidence_count",
+          "fallback_count",
+          "provider_failures",
+          "trial_provider_profile"
+        ],
+        "title": "PilotSummaryData",
+        "type": "object"
+      },
+      "PilotSummaryTimeWindowData": {
+        "properties": {
+          "ended_at": {
+            "title": "Ended At",
+            "type": "string"
+          },
+          "hours": {
+            "title": "Hours",
+            "type": "integer"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hours",
+          "started_at",
+          "ended_at"
+        ],
+        "title": "PilotSummaryTimeWindowData",
+        "type": "object"
+      },
       "ReadinessCheckData": {
         "properties": {
           "details": {
@@ -1689,11 +1802,16 @@
           "runtime_mode": {
             "title": "Runtime Mode",
             "type": "string"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
           }
         },
         "required": [
           "overall_status",
           "runtime_mode",
+          "trial_provider_profile",
           "checks"
         ],
         "title": "SystemReadinessData",
@@ -3255,6 +3373,77 @@
           }
         },
         "summary": "Post Demo Bootstrap",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/pilot-summary": {
+      "get": {
+        "operationId": "get_pilot_summary_api_v1_system_pilot_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Hours",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_PilotSummaryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pilot Summary",
         "tags": [
           "system"
         ]

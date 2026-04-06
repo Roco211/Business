@@ -782,3 +782,63 @@ Notes:
 - clients should still follow the standard flow:
   - `create` -> `PUT upload_url` with real bytes -> `complete`
 - this keeps local-demo behavior aligned with trial object-storage flow, where bytes must exist before `complete`
+
+## 17.5 Pilot Summary Addendum
+
+`GET /api/v1/system/pilot-summary?hours=24`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Query:
+
+- `hours`: optional integer, min `1`, max `168`, default `24`
+
+Response:
+
+```json
+{
+  "data": {
+    "time_window": {
+      "hours": 24,
+      "started_at": "2026-04-07T00:00:00",
+      "ended_at": "2026-04-08T00:00:00"
+    },
+    "task_totals": {
+      "voice-stock-query": {
+        "completed": 2,
+        "failed": 1
+      },
+      "photo-stock-in": {
+        "awaiting-confirmation": 1,
+        "completed": 1
+      }
+    },
+    "confirmations": {
+      "created": 3,
+      "approved": 1,
+      "rejected": 1
+    },
+    "telemetry_task_count": 4,
+    "low_confidence_count": 1,
+    "fallback_count": 1,
+    "provider_failures": {
+      "vision_unavailable": 1
+    },
+    "trial_provider_profile": "pilot-v1"
+  }
+}
+```
+
+Notes:
+
+- the route is protected with the same owner auth model as `/api/v1/system/readiness`
+- `task_totals` is grouped by `task_type` and then by task `status`
+- counts are scoped to the authenticated shop and the requested rolling time window
+- `confirmations.created` is counted by `confirmations.created_at`
+- `confirmations.approved` and `confirmations.rejected` are counted by `confirmations.resolved_at`
+- `telemetry_task_count` counts distinct `task_run_id` values from matching pilot telemetry rows in the requested window
+- `low_confidence_count`, `fallback_count`, and `provider_failures` are derived from `audit_logs(scope = pilot, action = runtime.provider_telemetry)`
+- telemetry rows from a different `trial_provider_profile` are ignored
+- an empty `trial_provider_profile` should be treated by operator tooling as a degraded pilot summary signal

@@ -71,6 +71,7 @@ def test_evaluate_ocr_file_returns_compact_summary(tmp_path) -> None:
         content_type="image/jpeg",
         image_bytes=image_bytes,
         gateway=OcrGateway(primary_provider=provider),
+        timer=lambda: 10.0,
     )
 
     assert provider.calls == [
@@ -95,6 +96,7 @@ def test_evaluate_ocr_file_returns_compact_summary(tmp_path) -> None:
             }
         ],
         "low_confidence_fields": ["items[0].price"],
+        "latency_ms": 0,
     }
 
 
@@ -113,6 +115,37 @@ def test_evaluate_ocr_file_marks_mock_fallback_usage() -> None:
 
     assert result["provider_name"] == "mock-ocr-provider"
     assert result["used_fallback"] is True
+    assert "latency_ms" in result
+
+
+def test_evaluate_ocr_path_reads_file_for_batch_runner(tmp_path) -> None:
+    from app.devtools.ocr_provider_eval import evaluate_ocr_path
+
+    image_path = tmp_path / "receipt.jpg"
+    image_bytes = b"demo image"
+    image_path.write_bytes(image_bytes)
+    provider = _RecordingProvider(
+        OcrExtraction(
+            document_type="purchase-receipt",
+            provider_name="stub-ocr",
+            raw_text="Red Bull x 2",
+            line_items=[],
+            total_amount=13.0,
+            low_confidence_fields=[],
+            used_fallback=False,
+            raw_payload={"provider": "stub-ocr"},
+        )
+    )
+    timer_values = iter([1.0, 1.035])
+
+    result = evaluate_ocr_path(
+        file_path=image_path,
+        gateway=OcrGateway(primary_provider=provider),
+        timer=lambda: next(timer_values),
+    )
+
+    assert provider.calls[0].image_bytes == image_bytes
+    assert result["latency_ms"] == 35
 
 
 def test_cli_prints_compact_json_summary(tmp_path, capsys, monkeypatch: pytest.MonkeyPatch) -> None:

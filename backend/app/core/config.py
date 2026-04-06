@@ -44,6 +44,12 @@ class Settings:
     vision_provider_model: str | None = os.getenv("VISION_PROVIDER_MODEL")
     vision_timeout_seconds: float = float(os.getenv("VISION_TIMEOUT_SECONDS", "15"))
     vision_allow_mock_fallback: bool = True
+    trial_provider_profile: str = os.getenv("TRIAL_PROVIDER_PROFILE", "")
+    asr_provider_label: str = os.getenv("ASR_PROVIDER_LABEL", "")
+    ocr_provider_label: str = os.getenv("OCR_PROVIDER_LABEL", "")
+    vision_provider_label: str = os.getenv("VISION_PROVIDER_LABEL", "")
+    trial_calibration_dataset_dir: str = os.getenv("TRIAL_CALIBRATION_DATASET_DIR", "")
+    trial_calibration_artifacts_dir: str = os.getenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", "")
 
     def normalized_runtime_mode(self) -> str:
         normalized = self.app_runtime_mode.strip().lower()
@@ -133,4 +139,10 @@ def get_settings() -> Settings:
             vision_allow_env,
             app_env.lower() != "production",
         ),
+        trial_provider_profile=os.getenv("TRIAL_PROVIDER_PROFILE", ""),
+        asr_provider_label=os.getenv("ASR_PROVIDER_LABEL", ""),
+        ocr_provider_label=os.getenv("OCR_PROVIDER_LABEL", ""),
+        vision_provider_label=os.getenv("VISION_PROVIDER_LABEL", ""),
+        trial_calibration_dataset_dir=os.getenv("TRIAL_CALIBRATION_DATASET_DIR", ""),
+        trial_calibration_artifacts_dir=os.getenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", ""),
     )

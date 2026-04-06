@@ -102,6 +102,31 @@ def test_evaluate_asr_provider_marks_mock_fallback_usage(tmp_path) -> None:
     }
 
 
+def test_evaluate_asr_file_returns_dict_payload_for_batch_runners(tmp_path) -> None:
+    from app.devtools.asr_provider_eval import evaluate_asr_file
+
+    audio_path = tmp_path / "voice-query.m4a"
+    audio_path.write_bytes(b"demo audio")
+    provider = _RecordingProvider(
+        AsrTranscription(text="check stock left for cola", confidence=0.97, provider="stub-asr")
+    )
+
+    result = evaluate_asr_file(
+        audio_path=audio_path,
+        media_id="voice_query_demo",
+        gateway=AsrGateway(primary_provider=provider),
+        timer=_timer([3.0, 3.021]),
+    )
+
+    assert result == {
+        "transcript": "check stock left for cola",
+        "confidence": 0.97,
+        "provider_name": "stub-asr",
+        "used_fallback": False,
+        "latency_ms": 21,
+    }
+
+
 def test_evaluate_asr_provider_requires_existing_audio_file(tmp_path) -> None:
     from app.devtools.asr_provider_eval import evaluate_asr_provider
 

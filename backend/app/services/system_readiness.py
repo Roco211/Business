@@ -8,6 +8,7 @@ from app.services.vision_gateway import SUPPORTED_REAL_PROVIDER_NAMES as SUPPORT
 READY_STATUS = "ready"
 DEGRADED_STATUS = "degraded"
 LOCAL_DEMO_RUNTIME_MODE = "local-demo"
+TRIAL_RUNTIME_MODE = "trial"
 MOCK_MODE = "mock"
 UNSET_MODE = "unset"
 SUPPORTED_OBJECT_STORAGE_PROVIDER_NAMES = {"s3-compatible"}
@@ -29,6 +30,65 @@ def _missing_required_fields(required_live_fields: dict[str, str]) -> list[str]:
         for field_name, field_value in required_live_fields.items()
         if not field_value.strip()
     ]
+
+
+def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> ReadinessCheckData:
+    trial_provider_profile = settings.trial_provider_profile.strip()
+    asr_provider_label = settings.asr_provider_label.strip()
+    ocr_provider_label = settings.ocr_provider_label.strip()
+    vision_provider_label = settings.vision_provider_label.strip()
+    trial_calibration_dataset_dir = settings.trial_calibration_dataset_dir.strip()
+    trial_calibration_artifacts_dir = settings.trial_calibration_artifacts_dir.strip()
+
+    details = {
+        "trial_provider_profile": trial_provider_profile,
+        "asr_provider_label": asr_provider_label,
+        "ocr_provider_label": ocr_provider_label,
+        "vision_provider_label": vision_provider_label,
+        "trial_calibration_dataset_dir": trial_calibration_dataset_dir,
+        "trial_calibration_artifacts_dir": trial_calibration_artifacts_dir,
+        "calibration_dataset_dir_configured": str(bool(trial_calibration_dataset_dir)).lower(),
+        "calibration_artifacts_dir_configured": str(bool(trial_calibration_artifacts_dir)).lower(),
+        "missing_profile_metadata": "false",
+    }
+
+    if runtime_mode != TRIAL_RUNTIME_MODE:
+        return ReadinessCheckData(
+            status=READY_STATUS,
+            mode=runtime_mode,
+            message="Trial profile metadata is optional outside trial runtime mode.",
+            details=details,
+        )
+
+    missing_fields = _missing_required_fields(
+        {
+            "trial_provider_profile": trial_provider_profile,
+            "asr_provider_label": asr_provider_label,
+            "ocr_provider_label": ocr_provider_label,
+            "vision_provider_label": vision_provider_label,
+            "trial_calibration_dataset_dir": trial_calibration_dataset_dir,
+            "trial_calibration_artifacts_dir": trial_calibration_artifacts_dir,
+        }
+    )
+    if missing_fields:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=runtime_mode,
+            message="Trial profile metadata is missing required configuration.",
+            details={
+                **details,
+                "reason": "missing_config",
+                "missing_fields": ",".join(missing_fields),
+                "missing_profile_metadata": "true",
+            },
+        )
+
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode=runtime_mode,
+        message="Trial profile metadata is configured.",
+        details=details,
+    )
 
 
 def _build_dependency_check(
@@ -105,6 +165,7 @@ def _build_dependency_check(
 
 def build_system_readiness(settings: Settings) -> SystemReadinessData:
     runtime_mode = _normalize_runtime_mode(settings.app_runtime_mode)
+    trial_provider_profile = settings.trial_provider_profile.strip()
 
     object_storage_mode = _normalize_provider_mode(settings.object_storage_provider)
     asr_mode = _normalize_provider_mode(settings.asr_provider)
@@ -145,6 +206,7 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
             },
             details={
                 "provider": asr_mode,
+                "provider_label": settings.asr_provider_label.strip(),
                 "allow_mock_fallback": str(settings.asr_allow_mock_fallback).lower(),
             },
             trial_violation_message=provider_trial_violation(
@@ -166,6 +228,7 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
             },
             details={
                 "provider": ocr_mode,
+                "provider_label": settings.ocr_provider_label.strip(),
                 "allow_mock_fallback": str(settings.ocr_allow_mock_fallback).lower(),
             },
             trial_violation_message=provider_trial_violation(
@@ -187,6 +250,7 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
             },
             details={
                 "provider": vision_mode,
+                "provider_label": settings.vision_provider_label.strip(),
                 "allow_mock_fallback": str(settings.vision_allow_mock_fallback).lower(),
             },
             trial_violation_message=provider_trial_violation(
@@ -196,6 +260,7 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
                 capability_label="Vision",
             ),
         ),
+        "trial_profile": _build_trial_profile_check(settings=settings, runtime_mode=runtime_mode),
     }
 
     overall_status = READY_STATUS
@@ -205,5 +270,6 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
     return SystemReadinessData(
         overall_status=overall_status,
         runtime_mode=runtime_mode,
+        trial_provider_profile=trial_provider_profile,
         checks=checks,
     )

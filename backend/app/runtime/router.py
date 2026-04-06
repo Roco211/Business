@@ -2,6 +2,7 @@ import string
 
 from app.core.config import get_settings
 from app.runtime.guardrails import image_route_trial_violation
+from app.services.asr_types import AsrTranscription
 from app.services.vision_gateway import get_default_vision_gateway
 from app.services.vision_types import VisionMediaInput, VisionProviderError
 from .tools import MockTranscriptionUnavailable, transcribe_audio_input
@@ -13,6 +14,12 @@ STOCK_OUT_PHRASES = ("stock out",)
 STOCK_OUT_WORDS = ("sold", "remove")
 QUERY_WORDS = ("check", "left", "remaining")
 QUERY_PHRASES = ("how many",)
+
+
+class RuntimeProviderTelemetryBlocked(RuntimeRouteBlocked):
+    def __init__(self, error_code: str, error_message: str, *, telemetry: dict[str, object]):
+        super().__init__(error_code, error_message)
+        self.telemetry = telemetry
 
 
 def _normalize_transcript(transcript: str) -> str:
@@ -47,6 +54,11 @@ def _text_or_none(value: str | None) -> str:
     return value or ""
 
 
+def _normalized_provider_mode(provider_name: str | None) -> str:
+    normalized = (provider_name or "").strip().lower()
+    return normalized or "mock"
+
+
 def _select_audio_media_refs(ctx: RuntimeTurnContext) -> list[RuntimeMediaRef]:
     return [media_ref for media_ref in ctx.media_refs if media_ref.media_type == "audio"]
 
@@ -61,7 +73,69 @@ def _select_image_media_ref(ctx: RuntimeTurnContext) -> RuntimeMediaRef:
     return image_media_refs[0]
 
 
-def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
+def _build_voice_provider_telemetry(
+    ctx: RuntimeTurnContext,
+    transcription: AsrTranscription,
+    *,
+    task_type: str | None,
+) -> dict[str, object]:
+    settings = get_settings()
+    provider_mode = _normalized_provider_mode(settings.asr_provider)
+    provider_label = settings.asr_provider_label.strip() or transcription.provider
+    confidence = transcription.confidence
+    low_confidence_threshold = ctx.shop_rules.get("low_confidence_threshold")
+    low_confidence = (
+        confidence is not None
+        and isinstance(low_confidence_threshold, (int, float))
+        and confidence < float(low_confidence_threshold)
+    )
+    return {
+        "task_type": task_type,
+        "capability": "asr",
+        "provider_mode": provider_mode,
+        "provider_label": provider_label,
+        "used_fallback": provider_mode != "mock" and transcription.provider.strip().lower() == "mock",
+        "recognized_confidence": confidence,
+        "low_confidence": low_confidence,
+    }
+
+
+def _classify_photo_task_type(source_text: str | None) -> tuple[str, str]:
+    transcript = (source_text or "").strip()
+    transcript_intent = _classify_transcript(transcript) if transcript else "voice-stock-in"
+    task_type = "photo-stock-query" if transcript_intent == "voice-stock-query" else "photo-stock-in"
+    return transcript, task_type
+
+
+def _build_image_provider_telemetry(
+    ctx: RuntimeTurnContext,
+    *,
+    provider_name: str,
+    used_fallback: bool,
+    recognized_confidence: float | None,
+    task_type: str,
+) -> dict[str, object]:
+    settings = get_settings()
+    provider_mode = _normalized_provider_mode(settings.vision_provider)
+    provider_label = settings.vision_provider_label.strip() or provider_name
+    low_confidence_threshold = ctx.shop_rules.get("low_confidence_threshold")
+    low_confidence = (
+        recognized_confidence is not None
+        and isinstance(low_confidence_threshold, (int, float))
+        and recognized_confidence < float(low_confidence_threshold)
+    )
+    return {
+        "task_type": task_type,
+        "capability": "vision",
+        "provider_mode": provider_mode,
+        "provider_label": provider_label,
+        "used_fallback": used_fallback,
+        "recognized_confidence": recognized_confidence,
+        "low_confidence": low_confidence,
+    }
+
+
+def _transcribe_runtime_audio_result(ctx: RuntimeTurnContext) -> AsrTranscription:
     audio_media_refs = _select_audio_media_refs(ctx)
     if not audio_media_refs:
         raise RuntimeRouteBlocked(
@@ -76,24 +150,41 @@ def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
             text_hint=ctx.source_text,
         )
     except MockTranscriptionUnavailable as exc:
-        raise RuntimeRouteBlocked(
+        settings = get_settings()
+        raise RuntimeProviderTelemetryBlocked(
             "runtime_processing_error",
             f"Transcription failed: {exc}",
+            telemetry={
+                "task_type": None,
+                "capability": "asr",
+                "provider_mode": _normalized_provider_mode(settings.asr_provider),
+                "provider_label": settings.asr_provider_label.strip()
+                or _normalized_provider_mode(settings.asr_provider),
+                "used_fallback": False,
+                "recognized_confidence": None,
+                "low_confidence": False,
+            },
         ) from exc
 
-    confidence = transcription.confidence
-    low_confidence_threshold = ctx.shop_rules.get("low_confidence_threshold")
-    if (
-        confidence is not None
-        and isinstance(low_confidence_threshold, (int, float))
-        and confidence < float(low_confidence_threshold)
-    ):
-        raise RuntimeRouteBlocked(
+    telemetry = _build_voice_provider_telemetry(
+        ctx,
+        transcription,
+        task_type=_classify_transcript(transcription.text),
+    )
+    if bool(telemetry["low_confidence"]):
+        raise RuntimeProviderTelemetryBlocked(
             "asr_low_confidence",
-            f"ASR confidence {confidence:.2f} is below threshold {float(low_confidence_threshold):.2f}",
+            "ASR confidence "
+            f"{float(telemetry['recognized_confidence']):.2f} is below threshold "
+            f"{float(ctx.shop_rules.get('low_confidence_threshold')):.2f}",
+            telemetry=telemetry,
         )
 
-    return transcription.text
+    return transcription
+
+
+def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
+    return _transcribe_runtime_audio_result(ctx).text
 
 
 def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
@@ -107,14 +198,22 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             transcript=text,
         )
     if ctx.input_kind == "voice":
-        transcript = transcribe_runtime_audio(ctx)
+        transcription = _transcribe_runtime_audio_result(ctx)
+        transcript = transcription.text
+        task_type = _classify_transcript(transcript)
         return RuntimeRouteDecision(
-            task_type=_classify_transcript(transcript),
+            task_type=task_type,
             assigned_employee_id="xiaoya",
             transcript=transcript,
+            payload=_build_voice_provider_telemetry(
+                ctx,
+                transcription,
+                task_type=task_type,
+            ),
         )
     if ctx.input_kind == "image":
         media_ref = _select_image_media_ref(ctx)
+        transcript, task_type = _classify_photo_task_type(ctx.source_text)
         try:
             recognition = get_default_vision_gateway().recognize_product(
                 VisionMediaInput(
@@ -125,17 +224,38 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
                 )
             )
         except VisionProviderError as exc:
-            raise RuntimeRouteBlocked(
+            raise RuntimeProviderTelemetryBlocked(
                 exc.code,
                 f"Image recognition failed: {exc.message}",
+                telemetry=_build_image_provider_telemetry(
+                    ctx,
+                    provider_name=_normalized_provider_mode(get_settings().vision_provider),
+                    used_fallback=False,
+                    recognized_confidence=None,
+                    task_type=task_type,
+                ),
             ) from exc
         if not recognition.candidates:
-            raise RuntimeRouteBlocked(
+            raise RuntimeProviderTelemetryBlocked(
                 "runtime_processing_error",
                 "Image recognition failed: no candidates returned",
+                telemetry=_build_image_provider_telemetry(
+                    ctx,
+                    provider_name=recognition.provider_name,
+                    used_fallback=recognition.used_fallback,
+                    recognized_confidence=None,
+                    task_type=task_type,
+                ),
             )
 
         top_candidate = max(recognition.candidates, key=lambda candidate: candidate.confidence)
+        telemetry = _build_image_provider_telemetry(
+            ctx,
+            provider_name=recognition.provider_name,
+            used_fallback=recognition.used_fallback,
+            recognized_confidence=top_candidate.confidence,
+            task_type=task_type,
+        )
         trial_violation = image_route_trial_violation(
             settings=get_settings(),
             used_fallback=recognition.used_fallback,
@@ -143,9 +263,10 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             low_confidence_threshold=ctx.shop_rules.get("low_confidence_threshold"),
         )
         if trial_violation is not None:
-            raise RuntimeRouteBlocked(
+            raise RuntimeProviderTelemetryBlocked(
                 "runtime_processing_error",
                 f"Image recognition blocked: {trial_violation}",
+                telemetry=telemetry,
             )
 
         transcript = (ctx.source_text or top_candidate.item_name).strip()
@@ -162,6 +283,7 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
                 "provider_name": recognition.provider_name,
                 "used_fallback": recognition.used_fallback,
                 "image_media_id": media_ref.media_id,
+                **telemetry,
             },
         )
     if ctx.input_kind == "receipt-image":

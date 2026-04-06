@@ -81,3 +81,20 @@ def evaluate_asr_provider(
         ),
         latency_ms=max(0, round((finished_at - started_at) * 1000)),
     )
+
+
+def evaluate_asr_file(
+    *,
+    audio_path: str | Path,
+    media_id: str | None = None,
+    text_hint: str | None = None,
+    gateway: AsrGateway | None = None,
+    timer: Callable[[], float] = perf_counter,
+) -> dict[str, object]:
+    return evaluate_asr_provider(
+        audio_path=audio_path,
+        media_id=media_id,
+        text_hint=text_hint,
+        gateway=gateway,
+        timer=timer,
+    ).to_dict()

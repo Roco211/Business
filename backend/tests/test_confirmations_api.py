@@ -426,10 +426,33 @@ def test_approve_receipt_confirmation_commits_all_lines_and_projects_confirmatio
     assert [item.name for item in inventory_items] == ["Coca Cola 500ml", "Red Bull 250ml"]
     assert len(inventory_events) == 2
     assert all(event.event_type == "stock-in" for event in inventory_events)
-    assert len(audit_logs) == 2
-    assert all(log.action == "inventory.receipt_stock_in_confirmed" for log in audit_logs)
-    assert all(log.metadata_json["confirmation_id"] == confirmation_id for log in audit_logs)
-    assert all(log.metadata_json["ocr_document_id"] == ocr_document_id for log in audit_logs)
+    relevant_audit_logs = [log for log in audit_logs if log.task_run_id == task_run_id]
+    receipt_audit_logs = [
+        log
+        for log in relevant_audit_logs
+        if log.action == "inventory.receipt_stock_in_confirmed"
+    ]
+    assert len(receipt_audit_logs) == 2
+    assert all(log.metadata_json["confirmation_id"] == confirmation_id for log in receipt_audit_logs)
+    assert all(log.metadata_json["ocr_document_id"] == ocr_document_id for log in receipt_audit_logs)
+
+    # Phase 16A: runtime records pilot telemetry for provider calls during receipt OCR processing.
+    telemetry_log = next(
+        (
+            log
+            for log in relevant_audit_logs
+            if log.scope == "pilot" and log.action == "runtime.provider_telemetry"
+        ),
+        None,
+    )
+    assert telemetry_log is not None
+    assert telemetry_log.actor_type == "system"
+    assert telemetry_log.actor_id == "runtime_system"
+    assert telemetry_log.metadata_json["task_type"] == "receipt-ocr"
+    assert telemetry_log.metadata_json["capability"] == "ocr"
+    assert telemetry_log.metadata_json["outcome"] == "awaiting-confirmation"
+    assert telemetry_log.metadata_json["error_code"] is None
+    assert "trial_provider_profile" in telemetry_log.metadata_json
     assert len(runtime_messages) == 2
     assert runtime_messages[-1].actor_id == "runtime_system"
     assert "2 line" in (runtime_messages[-1].text or "").lower()

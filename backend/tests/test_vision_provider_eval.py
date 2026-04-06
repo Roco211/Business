@@ -62,6 +62,7 @@ def test_evaluate_vision_file_returns_compact_summary(tmp_path) -> None:
         content_type="image/jpeg",
         image_bytes=image_bytes,
         gateway=VisionGateway(primary_provider=provider),
+        timer=lambda: 20.0,
     )
 
     assert provider.calls == [
@@ -83,6 +84,7 @@ def test_evaluate_vision_file_returns_compact_summary(tmp_path) -> None:
                 "packaging_hint": "can",
             }
         ],
+        "latency_ms": 0,
     }
 
 
@@ -101,6 +103,33 @@ def test_evaluate_vision_file_marks_mock_fallback_usage() -> None:
 
     assert result["provider_name"] == "mock-vision-provider"
     assert result["used_fallback"] is True
+    assert "latency_ms" in result
+
+
+def test_evaluate_vision_path_reads_file_for_batch_runner(tmp_path) -> None:
+    from app.devtools.vision_provider_eval import evaluate_vision_path
+
+    image_path = tmp_path / "product.jpg"
+    image_bytes = b"demo image"
+    image_path.write_bytes(image_bytes)
+    provider = _RecordingProvider(
+        VisionRecognition(
+            provider_name="stub-vision",
+            candidates=[VisionCandidate(item_name="Red Bull 250ml", confidence=0.93, packaging_hint="can")],
+            used_fallback=False,
+            raw_payload={"provider": "stub-vision"},
+        )
+    )
+    timer_values = iter([5.0, 5.044])
+
+    result = evaluate_vision_path(
+        file_path=image_path,
+        gateway=VisionGateway(primary_provider=provider),
+        timer=lambda: next(timer_values),
+    )
+
+    assert provider.calls[0].image_bytes == image_bytes
+    assert result["latency_ms"] == 44
 
 
 def test_cli_prints_compact_json_summary(tmp_path, capsys, monkeypatch: pytest.MonkeyPatch) -> None:

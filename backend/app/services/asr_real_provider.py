@@ -9,6 +9,11 @@ import httpx
 from app.services.asr_types import AsrMediaInput, AsrProviderError, AsrTranscription
 
 RETRYABLE_HTTP_STATUS_CODES = {408, 429}
+PERMANENT_REQUEST_ERRORS = (
+    httpx.InvalidURL,
+    httpx.UnsupportedProtocol,
+    httpx.LocalProtocolError,
+)
 
 
 @dataclass(frozen=True)
@@ -32,6 +37,8 @@ class RealAsrProvider:
                 },
             )
             response.raise_for_status()
+        except PERMANENT_REQUEST_ERRORS as exc:
+            raise AsrProviderError("asr_unavailable", str(exc), retryable=False) from exc
         except httpx.TimeoutException as exc:
             raise AsrProviderError("asr_timeout", str(exc), retryable=True) from exc
         except httpx.HTTPError as exc:

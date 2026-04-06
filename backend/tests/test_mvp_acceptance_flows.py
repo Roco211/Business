@@ -11,6 +11,7 @@ from app.runtime import tools as runtime_tools
 from app.services.asr_types import AsrTranscription
 from app.services.bootstrap import ensure_default_context
 from app.services.ocr_types import OcrExtractedLineItem, OcrExtraction
+from app.services.object_storage import DEFAULT_MOCK_PUBLIC_BASE_URL, derive_media_object_key
 from app.services.vision_types import VisionCandidate, VisionRecognition
 from conftest import auth_headers, login_and_get_token
 
@@ -99,6 +100,15 @@ def _create_and_complete_media_upload(
     )
     assert complete_response.status_code == 200
     return media_id
+
+
+def _expected_mock_public_url(*, media_id: str, file_name: str) -> str:
+    object_key = derive_media_object_key(
+        shop_id="shop_default",
+        media_id=media_id,
+        file_name=file_name,
+    )
+    return f"{DEFAULT_MOCK_PUBLIC_BASE_URL}/{object_key}"
 
 
 def _approve_confirmation(client, *, confirmation_id: str, fields: dict[str, object]) -> dict[str, object]:
@@ -307,17 +317,19 @@ def test_acceptance_upload_backed_receipt_flow_uses_ocr_gateway_source_of_truth(
 ) -> None:
     from app.services import ocr_documents
 
+    file_name = "receipt-gateway-demo.jpg"
     media_id = _create_and_complete_media_upload(
         client,
         media_type="receipt-image",
-        file_name="receipt-gateway-demo.jpg",
+        file_name=file_name,
         content_type="image/jpeg",
     )
+    expected_public_url = _expected_mock_public_url(media_id=media_id, file_name=file_name)
 
     class _UploadedOcrGateway:
         def extract_purchase_receipt(self, media_input):
             assert media_input.media_id == media_id
-            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            assert media_input.public_url == expected_public_url
             return OcrExtraction(
                 document_type="purchase-receipt",
                 provider_name="stub-ocr",
@@ -378,17 +390,19 @@ def test_acceptance_upload_backed_receipt_flow_uses_ocr_gateway_source_of_truth(
 
 
 def test_acceptance_upload_backed_voice_query_flow(client, monkeypatch) -> None:
+    file_name = "voice-query-demo.m4a"
     media_id = _create_and_complete_media_upload(
         client,
         media_type="audio",
-        file_name="voice-query-demo.m4a",
+        file_name=file_name,
         content_type="audio/m4a",
     )
+    expected_public_url = _expected_mock_public_url(media_id=media_id, file_name=file_name)
 
     class _UploadedVoiceGateway:
         def transcribe(self, media_input):
             assert media_input.media_ids == [media_id]
-            assert media_input.media_urls == [f"https://mock.example/media/{media_id}"]
+            assert media_input.media_urls == [expected_public_url]
             assert media_input.text_hint is None
             return AsrTranscription(text="check stock left for cola", provider="mock", confidence=0.97)
 
@@ -429,12 +443,14 @@ def test_acceptance_upload_backed_photo_query_flow_uses_vision_gateway_source_of
 ) -> None:
     from app.runtime import processor as runtime_processor
 
+    file_name = "shelf-demo.jpg"
     media_id = _create_and_complete_media_upload(
         client,
         media_type="image",
-        file_name="shelf-demo.jpg",
+        file_name=file_name,
         content_type="image/jpeg",
     )
+    expected_public_url = _expected_mock_public_url(media_id=media_id, file_name=file_name)
 
     def _legacy_bomb(*_args, **_kwargs):
         raise AssertionError("legacy photo recognition path should not be used for photo queries")
@@ -446,7 +462,7 @@ def test_acceptance_upload_backed_photo_query_flow_uses_vision_gateway_source_of
     class _UploadedVisionGateway:
         def recognize_product(self, media_input):
             assert media_input.media_id == media_id
-            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            assert media_input.public_url == expected_public_url
             return VisionRecognition(
                 provider_name="stub-vision",
                 candidates=[VisionCandidate(item_name="Fanta 330ml", confidence=0.91, packaging_hint="can")],
@@ -490,17 +506,19 @@ def test_acceptance_upload_backed_photo_stock_in_remains_confirmation_first(
     client,
     monkeypatch,
 ) -> None:
+    file_name = "stock-in-demo.jpg"
     media_id = _create_and_complete_media_upload(
         client,
         media_type="image",
-        file_name="stock-in-demo.jpg",
+        file_name=file_name,
         content_type="image/jpeg",
     )
+    expected_public_url = _expected_mock_public_url(media_id=media_id, file_name=file_name)
 
     class _UploadedVisionGateway:
         def recognize_product(self, media_input):
             assert media_input.media_id == media_id
-            assert media_input.public_url == f"https://mock.example/media/{media_id}"
+            assert media_input.public_url == expected_public_url
             return VisionRecognition(
                 provider_name="stub-vision",
                 candidates=[VisionCandidate(item_name="Sprite 500ml", confidence=0.62, packaging_hint="bottle")],

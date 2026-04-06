@@ -13,6 +13,7 @@ from app.db.session import get_db_session
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.mock_multimodal import MockMultimodalValidationError
 from app.services.ocr_documents import create_mock_ocr_document, get_ocr_document
+from app.services.ocr_types import OcrProviderError
 
 router = APIRouter(prefix="/api/v1/ocr-documents", tags=["ocr-documents"])
 
@@ -66,6 +67,9 @@ def post_create_ocr_document(
     except MediaUploadNotReadyError:
         db_session.rollback()
         return _error_response(status.HTTP_404_NOT_FOUND, "media_upload_not_found", "Media upload not found")
+    except OcrProviderError as exc:
+        db_session.rollback()
+        return _error_response(status.HTTP_503_SERVICE_UNAVAILABLE, exc.code, exc.message)
     except MockMultimodalValidationError as exc:
         db_session.rollback()
         return _error_response(status.HTTP_422_UNPROCESSABLE_ENTITY, "validation_error", str(exc))

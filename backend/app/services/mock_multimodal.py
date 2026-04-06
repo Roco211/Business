@@ -6,6 +6,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import InventoryItem
+from app.services.ocr_mock_provider import MockOcrProvider
+from app.services.ocr_types import OcrMediaInput
+from app.services.vision_mock_provider import (
+    MockVisionProvider,
+    contains_query_intent,
+    select_fixture_media_id,
+)
+from app.services.vision_types import VisionMediaInput
 
 
 class MockMultimodalValidationError(ValueError):
@@ -40,71 +48,33 @@ class MockReceiptExtraction:
     low_confidence_fields: list[str]
 
 
-_IMAGE_FIXTURES: dict[str, MockImageRecognition] = {
-    "image_query_demo": MockImageRecognition(
-        item_name="Red Bull 250ml",
-        confidence=0.93,
-        quantity=2,
-        unit="can",
-        price=6.5,
-    ),
-    "image_stock_in_demo": MockImageRecognition(
-        item_name="Red Bull 250ml",
-        confidence=0.61,
-        quantity=2,
-        unit="can",
-        price=6.5,
-    ),
-}
-
-_RECEIPT_FIXTURES: dict[str, MockReceiptExtraction] = {
-    "receipt_demo": MockReceiptExtraction(
-        document_type="purchase-receipt",
-        provider_name="mock-ocr-provider",
-        raw_text="Red Bull 250ml x 3 @ 41.0; Coca Cola 500ml x 2 @ 12.0",
-        extracted_fields={
-            "items": [
-                {
-                    "name": "Red Bull 250ml",
-                    "quantity": 3,
-                    "unit": "can",
-                    "price": 41.0,
-                },
-                {
-                    "name": "Coca Cola 500ml",
-                    "quantity": 2,
-                    "unit": "bottle",
-                    "price": 12.0,
-                }
-            ],
-            "total_amount": 147.0,
-        },
-        low_confidence_fields=[],
-    ),
-}
-
-
-def _contains_query_intent(text_hint: str | None, media_id: str) -> bool:
-    normalized = (text_hint or "").strip().lower()
-    if "query" in media_id or "check" in media_id:
-        return True
-    return any(phrase in normalized for phrase in ("check", "left", "remaining", "how many", "query"))
-
-
 def classify_image_task(*, media_ids: list[str], text_hint: str | None) -> str:
     media_id = media_ids[0] if media_ids else ""
-    return "photo-stock-query" if _contains_query_intent(text_hint, media_id) else "photo-stock-in"
+    return "photo-stock-query" if contains_query_intent(text_hint, media_id) else "photo-stock-in"
 
 
 def recognize_image(*, media_ids: list[str], text_hint: str | None) -> MockImageRecognition:
     if not media_ids:
         raise MockMultimodalValidationError("image media is required")
     media_id = media_ids[0]
-    if media_id in _IMAGE_FIXTURES:
-        return _IMAGE_FIXTURES[media_id]
-    if _contains_query_intent(text_hint, media_id):
-        return _IMAGE_FIXTURES["image_query_demo"]
-    return _IMAGE_FIXTURES["image_stock_in_demo"]
+    fixture_media_id = select_fixture_media_id(media_id, text_hint)
+    recognition = MockVisionProvider().recognize_product(
+        VisionMediaInput(
+            media_id=fixture_media_id,
+            public_url=None,
+            content_type=None,
+            file_name=None,
+        )
+    )
+    candidate = recognition.candidates[0]
+    payload = recognition.raw_payload
+    return MockImageRecognition(
+        item_name=candidate.item_name,
+        confidence=candidate.confidence,
+        quantity=int(payload.get("quantity", 1)),
+        unit=payload.get("unit") or candidate.packaging_hint or "",
+        price=float(payload.get("price", 0.0)),
+    )
 
 
 def recognize_and_query_inventory(
@@ -151,4 +121,18 @@ def extract_receipt(*, media_ids: list[str], text_hint: str | None) -> MockRecei
     if not media_ids:
         raise MockMultimodalValidationError("receipt media is required")
     media_id = media_ids[0]
-    return _RECEIPT_FIXTURES.get(media_id, _RECEIPT_FIXTURES["receipt_demo"])
+    extraction = MockOcrProvider().extract_purchase_receipt(
+        OcrMediaInput(
+            media_id=media_id,
+            public_url=None,
+            content_type=None,
+            file_name=None,
+        )
+    )
+    return MockReceiptExtraction(
+        document_type=extraction.document_type,
+        provider_name=extraction.provider_name,
+        raw_text=extraction.raw_text or "",
+        extracted_fields=dict(extraction.raw_payload),
+        low_confidence_fields=list(extraction.low_confidence_fields),
+    )

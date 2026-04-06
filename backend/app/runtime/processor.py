@@ -3,14 +3,14 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Confirmation, OcrDocument, TaskRun
+from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
 from app.services.confirmations import create_pending_confirmation
-from app.services.mock_multimodal import recognize_and_query_inventory
-from app.services.ocr_documents import create_mock_ocr_document
+from app.services.ocr_documents import create_ocr_document
+from app.services.ocr_types import OcrProviderError
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
@@ -43,13 +43,14 @@ def _build_confirmation_fields(
             "transcript": (transcript or "").strip(),
             "draft_fields": {
                 "item_name": payload.get("item_name"),
-                "quantity": payload.get("quantity"),
-                "unit": payload.get("unit"),
-                "price": payload.get("price"),
+                "quantity": None,
+                "unit": payload.get("packaging_hint"),
+                "price": None,
             },
             "required_fields": ["item_name", "quantity", "unit", "price"],
             "image_media_id": payload.get("image_media_id"),
             "recognized_confidence": payload.get("confidence"),
+            "provider_name": payload.get("provider_name"),
         }
     if task_type == "voice-stock-out":
         return {
@@ -87,7 +88,7 @@ def _build_confirmation_fields(
             "transcript": (transcript or "").strip(),
             "ocr_document_id": ocr_document.ocr_document_id if ocr_document is not None else None,
             "document_type": ocr_document.document_type if ocr_document is not None else payload.get("document_type"),
-            "provider_name": payload.get("provider_name"),
+            "provider_name": ocr_document.provider_name if ocr_document is not None else payload.get("provider_name"),
             "total_amount": extracted_fields.get("total_amount") if isinstance(extracted_fields, dict) else None,
             "low_confidence_fields": list(ocr_document.low_confidence_fields) if ocr_document is not None else [],
             "draft_items": draft_items,
@@ -198,6 +199,46 @@ def _recover_unexpected_failure(
     )
 
 
+def _recover_ocr_provider_failure(
+    db_session: Session,
+    *,
+    task_run_id: str,
+    session_id: str,
+    error_code: str,
+    error_message: str,
+) -> RuntimeProcessResult:
+    # Preserve structured provider errors (for example ocr_unavailable) instead of
+    # collapsing them into runtime_processing_error.
+    db_session.rollback()
+    current_task_run = db_session.get(TaskRun, task_run_id)
+    if current_task_run is None:
+        raise LookupError(task_run_id)
+    if current_task_run.status != CREATED_STATUS or current_task_run.task_type != PENDING_CLASSIFICATION_TASK_TYPE:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=current_task_run.task_run_id,
+            task_type=current_task_run.task_type,
+            error_code=current_task_run.error_code,
+        )
+
+    recovery_claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
+    if not recovery_claim.changed:
+        return RuntimeProcessResult(
+            status="skipped",
+            task_run_id=recovery_claim.task_run.task_run_id,
+            task_type=recovery_claim.task_run.task_type,
+            error_code=recovery_claim.task_run.error_code,
+        )
+
+    return _build_failed_result(
+        db_session,
+        task_run_id=task_run_id,
+        session_id=session_id,
+        error_code=error_code,
+        error_message=error_message,
+    )
+
+
 def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessResult:
     claim = claim_task_run_for_runtime(db_session, task_run_id=task_run_id)
     if not claim.changed:
@@ -215,7 +256,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         if policy.outcome == "require-confirmation":
             ocr_document: OcrDocument | None = None
             if decision.task_type == "receipt-ocr" and context.pending_confirmation_id is None:
-                ocr_document = create_mock_ocr_document(
+                ocr_document = create_ocr_document(
                     db_session,
                     shop_id=context.shop_id,
                     media_id=context.media_ids[0],
@@ -275,24 +316,42 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
 
         completed_payload = dict(decision.payload)
         if decision.task_type == "photo-stock-query":
-            query_result = recognize_and_query_inventory(
-                db_session,
-                shop_id=context.shop_id,
-                media_ids=context.media_ids,
-                text_hint=decision.transcript,
+            item_name = str(completed_payload.get("item_name") or "").strip()
+            item = (
+                db_session.scalar(
+                    select(InventoryItem).where(
+                        InventoryItem.shop_id == context.shop_id,
+                        InventoryItem.name == item_name,
+                        InventoryItem.is_active.is_(True),
+                    )
+                )
+                if item_name
+                else None
             )
-            completed_payload.update(
-                {
-                    "item_id": query_result.item_id,
-                    "item_name": query_result.item_name,
-                    "confidence": query_result.confidence,
-                    "stock": query_result.stock,
-                    "unit": query_result.unit,
-                    "is_low_stock": query_result.is_low_stock,
-                }
-            )
+            if item is None:
+                completed_payload.update(
+                    {
+                        "item_id": None,
+                        "stock": None,
+                        "unit": None,
+                        "is_low_stock": None,
+                    }
+                )
+            else:
+                is_low_stock = (
+                    item.low_stock_threshold is not None
+                    and item.current_stock <= item.low_stock_threshold
+                )
+                completed_payload.update(
+                    {
+                        "item_id": item.item_id,
+                        "stock": item.current_stock,
+                        "unit": item.default_unit,
+                        "is_low_stock": is_low_stock,
+                    }
+                )
         if decision.task_type == "receipt-ocr":
-            ocr_document = create_mock_ocr_document(
+            ocr_document = create_ocr_document(
                 db_session,
                 shop_id=context.shop_id,
                 media_id=context.media_ids[0],
@@ -302,6 +361,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             completed_payload.update(
                 {
                     "ocr_document_id": ocr_document.ocr_document_id,
+                    "document_type": ocr_document.document_type,
+                    "provider_name": ocr_document.provider_name,
                     "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
                     "low_confidence_fields": list(ocr_document.low_confidence_fields),
                 }
@@ -345,6 +406,14 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             session_id=claim.task_run.session_id,
             error_code=exc.error_code,
             error_message=exc.error_message,
+        )
+    except OcrProviderError as exc:
+        return _recover_ocr_provider_failure(
+            db_session,
+            task_run_id=task_run_id,
+            session_id=claim.task_run.session_id,
+            error_code=exc.code,
+            error_message=exc.message,
         )
     except Exception as exc:
         return _recover_unexpected_failure(

@@ -1,6 +1,7 @@
 import string
 
-from app.services.mock_multimodal import classify_image_task, extract_receipt, recognize_image
+from app.services.vision_gateway import get_default_vision_gateway
+from app.services.vision_types import VisionMediaInput, VisionProviderError
 from .tools import MockTranscriptionUnavailable, transcribe_audio_input
 from .types import RuntimeMediaRef, RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
@@ -46,6 +47,16 @@ def _text_or_none(value: str | None) -> str:
 
 def _select_audio_media_refs(ctx: RuntimeTurnContext) -> list[RuntimeMediaRef]:
     return [media_ref for media_ref in ctx.media_refs if media_ref.media_type == "audio"]
+
+
+def _select_image_media_ref(ctx: RuntimeTurnContext) -> RuntimeMediaRef:
+    image_media_refs = [media_ref for media_ref in ctx.media_refs if media_ref.media_type == "image"]
+    if not image_media_refs:
+        raise RuntimeRouteBlocked(
+            "runtime_processing_error",
+            "Image recognition failed: no ready image media available",
+        )
+    return image_media_refs[0]
 
 
 def transcribe_runtime_audio(ctx: RuntimeTurnContext) -> str:
@@ -101,32 +112,51 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             transcript=transcript,
         )
     if ctx.input_kind == "image":
-        recognition = recognize_image(media_ids=ctx.media_ids, text_hint=ctx.source_text)
-        task_type = classify_image_task(media_ids=ctx.media_ids, text_hint=ctx.source_text)
+        media_ref = _select_image_media_ref(ctx)
+        try:
+            recognition = get_default_vision_gateway().recognize_product(
+                VisionMediaInput(
+                    media_id=media_ref.media_id,
+                    public_url=media_ref.public_url,
+                    content_type=media_ref.content_type,
+                    file_name=media_ref.file_name,
+                )
+            )
+        except VisionProviderError as exc:
+            raise RuntimeRouteBlocked(
+                exc.code,
+                f"Image recognition failed: {exc.message}",
+            ) from exc
+        if not recognition.candidates:
+            raise RuntimeRouteBlocked(
+                "runtime_processing_error",
+                "Image recognition failed: no candidates returned",
+            )
+
+        top_candidate = max(recognition.candidates, key=lambda candidate: candidate.confidence)
+        transcript = (ctx.source_text or top_candidate.item_name).strip()
+        transcript_intent = _classify_transcript(transcript) if transcript else "voice-stock-in"
+        task_type = "photo-stock-query" if transcript_intent == "voice-stock-query" else "photo-stock-in"
         return RuntimeRouteDecision(
             task_type=task_type,
             assigned_employee_id="xiaoya",
-            transcript=(ctx.source_text or recognition.item_name).strip(),
+            transcript=transcript,
             payload={
-                "item_name": recognition.item_name,
-                "confidence": recognition.confidence,
-                "quantity": recognition.quantity,
-                "unit": recognition.unit,
-                "price": recognition.price,
-                "image_media_id": ctx.media_ids[0] if ctx.media_ids else None,
+                "item_name": top_candidate.item_name,
+                "confidence": top_candidate.confidence,
+                "packaging_hint": top_candidate.packaging_hint,
+                "provider_name": recognition.provider_name,
+                "image_media_id": media_ref.media_id,
             },
         )
     if ctx.input_kind == "receipt-image":
-        receipt = extract_receipt(media_ids=ctx.media_ids, text_hint=ctx.source_text)
         return RuntimeRouteDecision(
             task_type="receipt-ocr",
             assigned_employee_id="xiaoya",
             transcript=ctx.source_text,
             payload={
-                "document_type": receipt.document_type,
-                "provider_name": receipt.provider_name,
-                "fields": receipt.extracted_fields,
-                "low_confidence_fields": list(receipt.low_confidence_fields),
+                # Receipt OCR is persisted as an OcrDocument by the runtime processor.
+                "document_type": "purchase-receipt",
             },
         )
     raise RuntimeRouteBlocked("runtime_processing_error", "Unsupported input kind")

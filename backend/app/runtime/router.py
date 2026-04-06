@@ -1,6 +1,6 @@
 import string
 
-from app.services.mock_multimodal import classify_image_task, extract_receipt, recognize_image
+from app.services.mock_multimodal import classify_image_task, recognize_image
 from .tools import MockTranscriptionUnavailable, transcribe_audio_input
 from .types import RuntimeMediaRef, RuntimeRouteBlocked, RuntimeRouteDecision, RuntimeTurnContext
 
@@ -117,16 +117,13 @@ def route_runtime_input(ctx: RuntimeTurnContext) -> RuntimeRouteDecision:
             },
         )
     if ctx.input_kind == "receipt-image":
-        receipt = extract_receipt(media_ids=ctx.media_ids, text_hint=ctx.source_text)
         return RuntimeRouteDecision(
             task_type="receipt-ocr",
             assigned_employee_id="xiaoya",
             transcript=ctx.source_text,
             payload={
-                "document_type": receipt.document_type,
-                "provider_name": receipt.provider_name,
-                "fields": receipt.extracted_fields,
-                "low_confidence_fields": list(receipt.low_confidence_fields),
+                # Receipt OCR is persisted as an OcrDocument by the runtime processor.
+                "document_type": "purchase-receipt",
             },
         )
     raise RuntimeRouteBlocked("runtime_processing_error", "Unsupported input kind")

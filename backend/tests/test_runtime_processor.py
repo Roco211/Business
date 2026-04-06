@@ -586,6 +586,58 @@ def test_receipt_image_message_pauses_for_receipt_confirmation_and_persists_ocr_
     assert session_record.last_message_at == runtime_messages[0].created_at
 
 
+def test_receipt_image_message_uses_gateway_backed_ocr_document(db_session, monkeypatch) -> None:
+    from app.services import ocr_documents as ocr_documents_service
+    from app.services.ocr_types import OcrExtractedLineItem, OcrExtraction
+
+    class StubGateway:
+        def extract_purchase_receipt(self, media_input):
+            assert media_input.media_id == "receipt_demo"
+            return OcrExtraction(
+                document_type="purchase-receipt",
+                provider_name="stub-ocr",
+                raw_text="demo receipt",
+                line_items=[OcrExtractedLineItem("Red Bull 250ml", 3, "can", 41.0)],
+                total_amount=123.0,
+                low_confidence_fields=["items[0].price"],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(ocr_documents_service, "get_default_ocr_gateway", lambda: StubGateway())
+
+    def bomb(*_args, **_kwargs):
+        raise AssertionError("create_mock_ocr_document should not be used for receipt runtime flow")
+
+    monkeypatch.setattr(runtime_processor, "create_mock_ocr_document", bomb, raising=False)
+
+    session_id, task_run_id = _create_owner_message(
+        db_session,
+        message_type="receipt-image",
+        text=None,
+        media_ids=["receipt_demo"],
+        client_request_id="runtime_receipt_gateway_001",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    persisted_document = db_session.scalar(select(OcrDocument).where(OcrDocument.task_run_id == task_run_id))
+    session_record = db_session.get(SessionRecord, session_id)
+
+    assert result.status == "awaiting-confirmation"
+    assert result.task_type == "receipt-ocr"
+    assert result.error_code is None
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert confirmation is not None
+    assert confirmation.status == "pending"
+    assert persisted_document is not None
+    assert persisted_document.provider_name == "stub-ocr"
+    assert persisted_document.low_confidence_fields == ["items[0].price"]
+    assert session_record is not None
+
+
 def test_build_runtime_turn_context_scopes_recent_messages_to_source_turn(db_session) -> None:
     _, first_task_run_id = _create_owner_message(
         db_session,

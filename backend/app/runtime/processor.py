@@ -10,7 +10,7 @@ from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
 from app.services.confirmations import create_pending_confirmation
 from app.services.mock_multimodal import recognize_and_query_inventory
-from app.services.ocr_documents import create_mock_ocr_document
+from app.services.ocr_documents import create_ocr_document
 from app.services.runtime_messages import write_runtime_message
 from app.services.task_runs import (
     CREATED_STATUS,
@@ -87,7 +87,7 @@ def _build_confirmation_fields(
             "transcript": (transcript or "").strip(),
             "ocr_document_id": ocr_document.ocr_document_id if ocr_document is not None else None,
             "document_type": ocr_document.document_type if ocr_document is not None else payload.get("document_type"),
-            "provider_name": payload.get("provider_name"),
+            "provider_name": ocr_document.provider_name if ocr_document is not None else payload.get("provider_name"),
             "total_amount": extracted_fields.get("total_amount") if isinstance(extracted_fields, dict) else None,
             "low_confidence_fields": list(ocr_document.low_confidence_fields) if ocr_document is not None else [],
             "draft_items": draft_items,
@@ -215,7 +215,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         if policy.outcome == "require-confirmation":
             ocr_document: OcrDocument | None = None
             if decision.task_type == "receipt-ocr" and context.pending_confirmation_id is None:
-                ocr_document = create_mock_ocr_document(
+                ocr_document = create_ocr_document(
                     db_session,
                     shop_id=context.shop_id,
                     media_id=context.media_ids[0],
@@ -292,7 +292,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 }
             )
         if decision.task_type == "receipt-ocr":
-            ocr_document = create_mock_ocr_document(
+            ocr_document = create_ocr_document(
                 db_session,
                 shop_id=context.shop_id,
                 media_id=context.media_ids[0],
@@ -302,6 +302,8 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
             completed_payload.update(
                 {
                     "ocr_document_id": ocr_document.ocr_document_id,
+                    "document_type": ocr_document.document_type,
+                    "provider_name": ocr_document.provider_name,
                     "total_amount": (ocr_document.extracted_fields or {}).get("total_amount"),
                     "low_confidence_fields": list(ocr_document.low_confidence_fields),
                 }

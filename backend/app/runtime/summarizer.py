@@ -15,7 +15,7 @@ def summarize_completed_task(
     if task_type == "photo-stock-query":
         item_name = str(normalized_payload.get("item_name") or "recognized item")
         stock = normalized_payload.get("stock")
-        unit = str(normalized_payload.get("unit") or "unit")
+        unit = str(normalized_payload.get("unit") or normalized_payload.get("packaging_hint") or "unit")
         return (
             f"Mock runtime photo query processed: {item_name}",
             f"Mock runtime: photo query recognized {item_name}. Current stock: {stock} {unit}.",

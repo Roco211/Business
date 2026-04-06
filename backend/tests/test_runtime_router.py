@@ -5,6 +5,7 @@ from app.runtime.router import RuntimeRouteBlocked, route_runtime_input, transcr
 from app.runtime.tools import MockTranscriptionUnavailable, transcribe_audio
 from app.runtime.types import RuntimeMediaRef, RuntimeTurnContext
 from app.services.asr_types import AsrTranscription
+from app.services.vision_types import VisionCandidate, VisionRecognition
 
 
 def _build_context(
@@ -29,6 +30,24 @@ def _build_context(
         shop_rules=shop_rules or {},
         recent_messages=[],
         pending_confirmation_id=None,
+    )
+
+
+@pytest.fixture
+def runtime_context() -> RuntimeTurnContext:
+    return _build_context(
+        input_kind="image",
+        source_text="check shelf stock for red bull",
+        media_ids=["image_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="image_query_demo",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="query.jpg",
+                public_url="https://mock.example/media/image_query_demo",
+            )
+        ],
     )
 
 
@@ -277,6 +296,15 @@ def test_image_input_routes_to_photo_stock_query():
         input_kind="image",
         source_text="check shelf stock for red bull",
         media_ids=["image_query_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="image_query_demo",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="query.jpg",
+                public_url="https://mock.example/media/image_query_demo",
+            )
+        ],
     )
     decision = route_runtime_input(ctx)
     assert decision.task_type == "photo-stock-query"
@@ -288,10 +316,40 @@ def test_image_input_routes_to_photo_stock_in():
         input_kind="image",
         source_text="restock red bull cans",
         media_ids=["image_stock_in_demo"],
+        media_refs=[
+            RuntimeMediaRef(
+                media_id="image_stock_in_demo",
+                media_type="image",
+                content_type="image/jpeg",
+                file_name="stock_in.jpg",
+                public_url="https://mock.example/media/image_stock_in_demo",
+            )
+        ],
     )
     decision = route_runtime_input(ctx)
     assert decision.task_type == "photo-stock-in"
     assert decision.assigned_employee_id == "xiaoya"
+
+
+def test_photo_query_uses_vision_gateway_for_inventory_lookup(runtime_context, monkeypatch) -> None:
+    from app.runtime import router
+
+    class StubGateway:
+        def recognize_product(self, media_input):
+            return VisionRecognition(
+                provider_name="stub-vision",
+                candidates=[VisionCandidate(item_name="Red Bull 250ml", confidence=0.95, packaging_hint="can")],
+                used_fallback=False,
+                raw_payload={"provider": "stub"},
+            )
+
+    monkeypatch.setattr(router, "get_default_vision_gateway", lambda: StubGateway())
+    decision = router.route_runtime_input(runtime_context)
+    assert decision.task_type == "photo-stock-query"
+    assert decision.payload["item_name"] == "Red Bull 250ml"
+    assert decision.payload["confidence"] == 0.95
+    assert decision.payload["packaging_hint"] == "can"
+    assert decision.payload["provider_name"] == "stub-vision"
 
 
 def test_receipt_image_routes_to_receipt_ocr():

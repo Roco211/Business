@@ -3,13 +3,12 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Confirmation, OcrDocument, TaskRun
+from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
 from app.runtime.policy import evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
 from app.services.confirmations import create_pending_confirmation
-from app.services.mock_multimodal import recognize_and_query_inventory
 from app.services.ocr_documents import create_ocr_document
 from app.services.ocr_types import OcrProviderError
 from app.services.runtime_messages import write_runtime_message
@@ -44,13 +43,14 @@ def _build_confirmation_fields(
             "transcript": (transcript or "").strip(),
             "draft_fields": {
                 "item_name": payload.get("item_name"),
-                "quantity": payload.get("quantity"),
-                "unit": payload.get("unit"),
-                "price": payload.get("price"),
+                "quantity": None,
+                "unit": payload.get("packaging_hint"),
+                "price": None,
             },
             "required_fields": ["item_name", "quantity", "unit", "price"],
             "image_media_id": payload.get("image_media_id"),
             "recognized_confidence": payload.get("confidence"),
+            "provider_name": payload.get("provider_name"),
         }
     if task_type == "voice-stock-out":
         return {
@@ -316,22 +316,40 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
 
         completed_payload = dict(decision.payload)
         if decision.task_type == "photo-stock-query":
-            query_result = recognize_and_query_inventory(
-                db_session,
-                shop_id=context.shop_id,
-                media_ids=context.media_ids,
-                text_hint=decision.transcript,
+            item_name = str(completed_payload.get("item_name") or "").strip()
+            item = (
+                db_session.scalar(
+                    select(InventoryItem).where(
+                        InventoryItem.shop_id == context.shop_id,
+                        InventoryItem.name == item_name,
+                        InventoryItem.is_active.is_(True),
+                    )
+                )
+                if item_name
+                else None
             )
-            completed_payload.update(
-                {
-                    "item_id": query_result.item_id,
-                    "item_name": query_result.item_name,
-                    "confidence": query_result.confidence,
-                    "stock": query_result.stock,
-                    "unit": query_result.unit,
-                    "is_low_stock": query_result.is_low_stock,
-                }
-            )
+            if item is None:
+                completed_payload.update(
+                    {
+                        "item_id": None,
+                        "stock": None,
+                        "unit": None,
+                        "is_low_stock": None,
+                    }
+                )
+            else:
+                is_low_stock = (
+                    item.low_stock_threshold is not None
+                    and item.current_stock <= item.low_stock_threshold
+                )
+                completed_payload.update(
+                    {
+                        "item_id": item.item_id,
+                        "stock": item.current_stock,
+                        "unit": item.default_unit,
+                        "is_low_stock": is_low_stock,
+                    }
+                )
         if decision.task_type == "receipt-ocr":
             ocr_document = create_ocr_document(
                 db_session,

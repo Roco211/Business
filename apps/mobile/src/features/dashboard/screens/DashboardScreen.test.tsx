@@ -164,7 +164,7 @@ describe("DashboardScreen layout", () => {
 
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByText("正在同步今日门店总览")).toBeTruthy();
+    expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
     expect(screen.getByText("请稍候，我们正在整理最新库存与待处理事项。")).toBeTruthy();
   });
 

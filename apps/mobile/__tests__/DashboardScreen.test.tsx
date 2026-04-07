@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent } from "@testing-library/react-native";
 
 import DashboardScreen from "../src/features/dashboard/screens/DashboardScreen";
 
@@ -138,13 +139,13 @@ describe("DashboardScreen", () => {
     jest.resetAllMocks();
   });
 
-  it("renders 今日门店总览 with summary, quick actions, and exception lists", async () => {
+  it("renders 今日门店概览 with summary, quick actions, and exception lists", async () => {
     render(<DashboardScreen />);
 
-    expect(screen.getByText("正在同步今日门店总览")).toBeTruthy();
+    expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店总览")).toBeTruthy();
+      expect(screen.getByText("今日门店概览")).toBeTruthy();
       expect(screen.getByText("聚焦门店库存与待处理事项，先看风险，再安排动作。")).toBeTruthy();
       expect(screen.getByText("今日入库")).toBeTruthy();
       expect(screen.getByText("已完成任务")).toBeTruthy();
@@ -163,7 +164,7 @@ describe("DashboardScreen", () => {
     const { rerender } = render(<DashboardScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店总览")).toBeTruthy();
+      expect(screen.getByText("今日门店概览")).toBeTruthy();
       expect(summaryRequests).toBe(1);
       expect(alertRequests).toBe(1);
       expect(confirmationRequests).toBe(1);

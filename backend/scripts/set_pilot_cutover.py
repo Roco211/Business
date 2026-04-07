@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from json import JSONDecodeError
 import os
 from pathlib import Path
 import sys
@@ -118,12 +119,36 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _build_mutation_payload(*, args: argparse.Namespace, preflight_ready: bool) -> dict[str, object]:
+    approved_calibration_artifact_id = _resolve_approved_calibration_artifact_id(args.artifact_path)
     return {
         "cutover_mode": args.mode,
+        "approved_calibration_artifact_id": approved_calibration_artifact_id,
         "approved_calibration_report_path": args.artifact_path,
         "last_preflight_status": READY_STATUS if (args.mode == MODE_OPEN and preflight_ready) else None,
         "notes": args.note,
     }
+
+
+def _resolve_approved_calibration_artifact_id(artifact_path: str | None) -> str | None:
+    normalized_path = (artifact_path or "").strip()
+    if not normalized_path:
+        return None
+
+    artifact_file = Path(normalized_path)
+    try:
+        payload = json.loads(artifact_file.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise PilotCutoverError(f"Unable to read artifact JSON at '{normalized_path}': {exc}") from exc
+    except JSONDecodeError as exc:
+        raise PilotCutoverError(f"Artifact JSON at '{normalized_path}' is invalid: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise PilotCutoverError(f"Artifact JSON at '{normalized_path}' must be an object")
+
+    artifact_id = payload.get("artifact_id")
+    if not isinstance(artifact_id, str) or not artifact_id.strip():
+        raise PilotCutoverError(f"Artifact JSON at '{normalized_path}' is missing non-empty artifact_id")
+    return artifact_id.strip()
 
 
 def _run_optional_open_preflight(args: argparse.Namespace) -> bool:

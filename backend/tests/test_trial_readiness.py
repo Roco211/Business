@@ -409,6 +409,7 @@ def test_set_pilot_cutover_cli_prints_compact_json_and_exits_zero_on_success(cap
             assert token == "issued-token"
             assert payload == {
                 "cutover_mode": "shadow",
+                "approved_calibration_artifact_id": None,
                 "approved_calibration_report_path": None,
                 "last_preflight_status": None,
                 "notes": "provider observation window",
@@ -451,6 +452,7 @@ def test_set_pilot_cutover_cli_prints_compact_json_and_exits_zero_on_success(cap
             "issued-token",
             {
                 "cutover_mode": "shadow",
+                "approved_calibration_artifact_id": None,
                 "approved_calibration_report_path": None,
                 "last_preflight_status": None,
                 "notes": "provider observation window",
@@ -492,6 +494,103 @@ def test_set_pilot_cutover_cli_returns_non_zero_when_server_rejects_transition(
     assert exit_code == 1
     assert captured.out == ""
     assert "invalid_cutover_mode_transition" in captured.err
+
+
+def test_set_pilot_cutover_cli_derives_artifact_id_from_artifact_path_for_open_mode(
+    tmp_path,
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_set_pilot_cutover_script_module()
+    artifact_file = tmp_path / "approved.json"
+    artifact_file.write_text(
+        json.dumps(
+            {
+                "artifact_id": "artifact_approved_20260407",
+                "trial_provider_profile": "pilot-v1",
+                "recommended_shop_rules": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class _Summary:
+        overall_status = "ready"
+
+        @staticmethod
+        def to_dict() -> dict[str, object]:
+            return {"overall_status": "ready", "reasons": []}
+
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary())
+
+    calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        calls.append((method, path, token, payload))
+        if path == "/api/v1/auth/login":
+            return 200, {"data": {"access_token": "issued-token"}}
+        if path == "/api/v1/system/pilot-control":
+            assert token == "issued-token"
+            assert payload == {
+                "cutover_mode": "open",
+                "approved_calibration_artifact_id": "artifact_approved_20260407",
+                "approved_calibration_report_path": str(artifact_file),
+                "last_preflight_status": "ready",
+                "notes": "morning shift",
+            }
+            return 200, {
+                "data": {
+                    "shop_id": "shop_default",
+                    "previous_cutover_mode": "shadow",
+                    "cutover_mode": "open",
+                    "transition_audit_log_id": "audit_transition_open",
+                }
+            }
+        raise AssertionError(f"Unexpected request path: {path}")
+
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(
+        [
+            "--mode",
+            "open",
+            "--artifact-path",
+            str(artifact_file),
+            "--note",
+            "morning shift",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert json.loads(captured.out) == {
+        "cutover_mode": "open",
+        "previous_cutover_mode": "shadow",
+        "shop_id": "shop_default",
+        "transition_audit_log_id": "audit_transition_open",
+    }
+    assert captured.err == ""
+    assert calls == [
+        ("POST", "/api/v1/auth/login", None, {"email": "owner@example.com", "password": "dev-password"}),
+        (
+            "POST",
+            "/api/v1/system/pilot-control",
+            "issued-token",
+            {
+                "cutover_mode": "open",
+                "approved_calibration_artifact_id": "artifact_approved_20260407",
+                "approved_calibration_report_path": str(artifact_file),
+                "last_preflight_status": "ready",
+                "notes": "morning shift",
+            },
+        ),
+    ]
 
 
 def test_pilot_summary_check_cli_prints_compact_json_and_exits_zero_when_summary_is_ready(

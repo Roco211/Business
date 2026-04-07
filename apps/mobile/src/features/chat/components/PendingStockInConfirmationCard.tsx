@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
 
+import { AppTextField } from "../../../shared/ui";
+import { ConfirmationCardShell } from "./ConfirmationCardShell";
 import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationMutation";
 import { ChatPendingConfirmationRecord } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
@@ -26,6 +27,7 @@ export function PendingStockInConfirmationCard({
   const [quantity, setQuantity] = useState(toInputValue(draftFields.quantity));
   const [unit, setUnit] = useState(toInputValue(draftFields.unit));
   const [price, setPrice] = useState(toInputValue(draftFields.price));
+  const [isResolved, setIsResolved] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
@@ -41,6 +43,7 @@ export function PendingStockInConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
@@ -49,41 +52,56 @@ export function PendingStockInConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
-  return (
-    <View>
-      <Text>Pending confirmation</Text>
-      {confirmation.fields.summary ? <Text>{confirmation.fields.summary}</Text> : null}
-      {confirmation.fields.transcript ? <Text>{confirmation.fields.transcript}</Text> : null}
+  if (isResolved) {
+    return null;
+  }
 
-      <TextInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
-      <TextInput
+  return (
+    <ConfirmationCardShell
+      confirmationId={confirmation.confirmation_id}
+      title="Pending confirmation"
+      summary={confirmation.fields.summary}
+      transcript={confirmation.fields.transcript}
+      error={error}
+      approveLabel="Approve"
+      rejectLabel="Reject"
+      approveLoadingLabel="Approving..."
+      rejectLoadingLabel="Rejecting..."
+      isApproveSubmitting={approveMutation.isSubmitting}
+      isRejectSubmitting={rejectMutation.isSubmitting}
+      isSubmitting={isSubmitting}
+      onApprove={() => {
+        void handleApprove();
+      }}
+      onReject={() => {
+        void handleReject();
+      }}
+    >
+      <AppTextField
+        label="Item name"
+        placeholder="Item name"
+        value={itemName}
+        onChangeText={setItemName}
+      />
+      <AppTextField
+        label="Quantity"
         placeholder="Quantity"
         keyboardType="numeric"
         value={quantity}
         onChangeText={setQuantity}
       />
-      <TextInput placeholder="Unit" value={unit} onChangeText={setUnit} />
-      <TextInput placeholder="Price" keyboardType="numeric" value={price} onChangeText={setPrice} />
-
-      {error ? <Text>{error}</Text> : null}
-
-      <Button
-        title={approveMutation.isSubmitting ? "Approving..." : "Approve"}
-        onPress={() => {
-          void handleApprove();
-        }}
-        disabled={isSubmitting}
+      <AppTextField label="Unit" placeholder="Unit" value={unit} onChangeText={setUnit} />
+      <AppTextField
+        label="Price"
+        placeholder="Price"
+        keyboardType="numeric"
+        value={price}
+        onChangeText={setPrice}
       />
-      <Button
-        title={rejectMutation.isSubmitting ? "Rejecting..." : "Reject"}
-        onPress={() => {
-          void handleReject();
-        }}
-        disabled={isSubmitting}
-      />
-    </View>
+    </ConfirmationCardShell>
   );
 }

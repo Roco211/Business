@@ -49,12 +49,21 @@ describe("ChatScreen", () => {
   async function waitForChatReady() {
     await waitFor(
       () => {
+        expect(screen.getByText("Chat Workbench")).toBeTruthy();
+        expect(screen.getByText("Guided entry")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
         expect(screen.getByText("connected")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
       },
       { timeout: 3000 },
     );
+  }
+
+  async function openDebugTools() {
+    fireEvent.press(screen.getByLabelText("Debug tools"));
+    await waitFor(() => {
+      expect(screen.getByText("Voice Query Demo")).toBeTruthy();
+    });
   }
 
   beforeEach(() => {
@@ -618,9 +627,10 @@ describe("ChatScreen", () => {
   it("renders durable session messages instead of only recent session events", async () => {
     render(<ChatScreen />);
 
-    expect(screen.getByText("Loading chat...")).toBeTruthy();
+    expect(screen.getByText("Loading workbench...")).toBeTruthy();
 
     await waitForChatReady();
+    expect(screen.queryByText("Voice Query Demo")).toBeNull();
     expect(
       screen.getByText("Mock runtime: please confirm the stock-in details before commit."),
     ).toBeTruthy();
@@ -631,8 +641,8 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "Count chips too");
-    fireEvent.press(screen.getByText("Send"));
+    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "Count chips too");
+    fireEvent.press(screen.getByText("Send update"));
 
     await waitFor(() => {
       expect(screen.getByText("Count chips too")).toBeTruthy();
@@ -654,10 +664,9 @@ describe("ChatScreen", () => {
       expect(screen.getAllByDisplayValue("3").length).toBeGreaterThan(0);
     });
 
-    fireEvent.press(screen.getByText("Approve"));
+    fireEvent.press(screen.getByTestId("confirm-approve-conf_1"));
 
     await waitFor(() => {
-      expect(screen.queryByText("Approve")).toBeNull();
       expect(screen.getByText("Mock runtime: approved stock-in committed to inventory.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_1/approve"),
@@ -678,8 +687,7 @@ describe("ChatScreen", () => {
       expect(screen.getAllByDisplayValue("2").length).toBeGreaterThan(0);
     });
 
-    const approveButtons = screen.getAllByText("Approve");
-    fireEvent.press(approveButtons[1]);
+    fireEvent.press(screen.getByTestId("confirm-approve-conf_stock_out_1"));
 
     await waitFor(() => {
       expect(screen.getByText("Mock runtime: approved stock-out committed to inventory.")).toBeTruthy();
@@ -700,12 +708,12 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Pending confirmation")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Reject"));
+    fireEvent.press(screen.getByTestId("confirm-reject-conf_1"));
 
     await waitFor(() => {
       expect(screen.getByText("Confirmation is not pending")).toBeTruthy();
-      expect(screen.getByText("Approve")).toBeTruthy();
-      expect(screen.getByText("Reject")).toBeTruthy();
+      expect(screen.getByTestId("confirm-approve-conf_1")).toBeTruthy();
+      expect(screen.getByTestId("confirm-reject-conf_1")).toBeTruthy();
     });
   });
 
@@ -718,13 +726,12 @@ describe("ChatScreen", () => {
       expect(screen.getByText("Pending stock-out confirmation")).toBeTruthy();
     });
 
-    const approveButtons = screen.getAllByText("Approve");
-    fireEvent.press(approveButtons[1]);
+    fireEvent.press(screen.getByTestId("confirm-approve-conf_stock_out_1"));
 
     await waitFor(() => {
       expect(screen.getByText("Not enough stock to remove")).toBeTruthy();
-      expect(screen.getAllByText("Approve").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("Reject").length).toBeGreaterThan(0);
+      expect(screen.getByTestId("confirm-approve-conf_stock_out_1")).toBeTruthy();
+      expect(screen.getByTestId("confirm-reject-conf_stock_out_1")).toBeTruthy();
     });
   });
 
@@ -740,10 +747,9 @@ describe("ChatScreen", () => {
 
     fireEvent.changeText(screen.getByPlaceholderText("Quantity 1"), "4");
     fireEvent.changeText(screen.getByPlaceholderText("Price 2"), "13");
-    fireEvent.press(screen.getByText("Approve Receipt"));
+    fireEvent.press(screen.getByTestId("confirm-approve-conf_receipt_1"));
 
     await waitFor(() => {
-      expect(screen.queryByText("Approve Receipt")).toBeNull();
       expect(screen.getByText("Mock runtime: receipt stock-in committed for 2 line items.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_receipt_1/approve"),
@@ -775,11 +781,11 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "   ");
-    fireEvent.press(screen.getByText("Send"));
+    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "   ");
+    fireEvent.press(screen.getByText("Send update"));
 
-    fireEvent.changeText(screen.getByPlaceholderText("Type a message"), "cola restock");
-    fireEvent.press(screen.getByText("Send"));
+    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "cola restock");
+    fireEvent.press(screen.getByText("Send update"));
 
     await waitFor(() => {
       expect(screen.getByText("Message text is required")).toBeTruthy();
@@ -837,6 +843,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Voice Stock-In Demo"));
 
@@ -860,6 +867,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Voice Stock-Out Demo"));
 
@@ -883,6 +891,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Voice Query Demo"));
 
@@ -899,6 +908,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Voice Query Demo"));
 
@@ -914,6 +924,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Photo Query Demo"));
 
@@ -936,6 +947,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Receipt OCR Demo"));
 
@@ -959,6 +971,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitForChatReady();
+    await openDebugTools();
 
     fireEvent.press(screen.getByText("Photo Query Demo"));
 

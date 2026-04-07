@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
 
+import { AppTextField } from "../../../shared/ui";
+import { ConfirmationCardShell } from "./ConfirmationCardShell";
 import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationMutation";
 import { ChatPendingConfirmationRecord } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
@@ -27,6 +28,7 @@ export function PendingStockOutConfirmationCard({
   const [reason, setReason] = useState(
     toInputValue(draftFields.reason ?? confirmation.fields.reason ?? "stock out via chat"),
   );
+  const [isResolved, setIsResolved] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
@@ -46,6 +48,7 @@ export function PendingStockOutConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
@@ -54,40 +57,49 @@ export function PendingStockOutConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
-  return (
-    <View>
-      <Text>Pending stock-out confirmation</Text>
-      {confirmation.fields.summary ? <Text>{confirmation.fields.summary}</Text> : null}
-      {confirmation.fields.transcript ? <Text>{confirmation.fields.transcript}</Text> : null}
+  if (isResolved) {
+    return null;
+  }
 
-      <TextInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
-      <TextInput
+  return (
+    <ConfirmationCardShell
+      confirmationId={confirmation.confirmation_id}
+      title="Pending stock-out confirmation"
+      summary={confirmation.fields.summary}
+      transcript={confirmation.fields.transcript}
+      error={error}
+      approveLabel="Approve"
+      rejectLabel="Reject"
+      approveLoadingLabel="Approving..."
+      rejectLoadingLabel="Rejecting..."
+      isApproveSubmitting={approveMutation.isSubmitting}
+      isRejectSubmitting={rejectMutation.isSubmitting}
+      isSubmitting={isSubmitting}
+      onApprove={() => {
+        void handleApprove();
+      }}
+      onReject={() => {
+        void handleReject();
+      }}
+    >
+      <AppTextField
+        label="Item name"
+        placeholder="Item name"
+        value={itemName}
+        onChangeText={setItemName}
+      />
+      <AppTextField
+        label="Stock-out quantity"
         placeholder="Stock-out quantity"
         keyboardType="numeric"
         value={quantity}
         onChangeText={setQuantity}
       />
-      <TextInput placeholder="Reason" value={reason} onChangeText={setReason} />
-
-      {error ? <Text>{error}</Text> : null}
-
-      <Button
-        title={approveMutation.isSubmitting ? "Approving..." : "Approve"}
-        onPress={() => {
-          void handleApprove();
-        }}
-        disabled={isSubmitting}
-      />
-      <Button
-        title={rejectMutation.isSubmitting ? "Rejecting..." : "Reject"}
-        onPress={() => {
-          void handleReject();
-        }}
-        disabled={isSubmitting}
-      />
-    </View>
+      <AppTextField label="Reason" placeholder="Reason" value={reason} onChangeText={setReason} />
+    </ConfirmationCardShell>
   );
 }

@@ -1,5 +1,6 @@
-import { Button, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { InlineNotice, PrimaryButton, SectionHeader, space } from "../../../shared/ui";
 import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
 import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
@@ -43,46 +44,46 @@ export function MockMediaEntryPanel({
   }
 
   return (
-    <View>
-      <Text>Media demos</Text>
-      {error ? <Text>{error}</Text> : null}
-      <Button
-        title={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Query Demo"}
+    <View style={styles.container}>
+      <SectionHeader title="Media demos" subtitle="Legacy debug entry points for demo uploads." />
+      {error ? <InlineNotice tone="error" title="Demo failed" message={error} /> : null}
+      <PrimaryButton
+        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Query Demo"}
         onPress={() => {
           void handleVoiceSubmit("query");
         }}
         disabled={isSubmitting}
       />
-      <Button
-        title={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-In Demo"}
+      <PrimaryButton
+        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-In Demo"}
         onPress={() => {
           void handleVoiceSubmit("stock_in");
         }}
         disabled={isSubmitting}
       />
-      <Button
-        title={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-Out Demo"}
+      <PrimaryButton
+        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-Out Demo"}
         onPress={() => {
           void handleVoiceSubmit("stock_out");
         }}
         disabled={isSubmitting}
       />
-      <Button
-        title={imageDemo.isSubmitting ? "Sending photo..." : "Photo Query Demo"}
+      <PrimaryButton
+        label={imageDemo.isSubmitting ? "Sending photo..." : "Photo Query Demo"}
         onPress={() => {
           void handleImageSubmit("query");
         }}
         disabled={isSubmitting}
       />
-      <Button
-        title={imageDemo.isSubmitting ? "Sending photo..." : "Photo Stock-In Demo"}
+      <PrimaryButton
+        label={imageDemo.isSubmitting ? "Sending photo..." : "Photo Stock-In Demo"}
         onPress={() => {
           void handleImageSubmit("stock_in");
         }}
         disabled={isSubmitting}
       />
-      <Button
-        title={receiptDemo.isSubmitting ? "Sending receipt..." : "Receipt OCR Demo"}
+      <PrimaryButton
+        label={receiptDemo.isSubmitting ? "Sending receipt..." : "Receipt OCR Demo"}
         onPress={() => {
           void handleReceiptSubmit();
         }}
@@ -91,3 +92,9 @@ export function MockMediaEntryPanel({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: space.s8,
+  },
+});

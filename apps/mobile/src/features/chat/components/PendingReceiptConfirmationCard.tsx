@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { AppTextField, color, space } from "../../../shared/ui";
+import { ConfirmationCardShell } from "./ConfirmationCardShell";
 import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationMutation";
 import { ChatPendingConfirmationRecord, ReceiptDraftItem } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
@@ -47,6 +49,7 @@ export function PendingReceiptConfirmationCard({
   const [items, setItems] = useState<EditableReceiptLine[]>(
     draftItems.map((item, index) => toEditableLine(item, index)),
   );
+  const [isResolved, setIsResolved] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
@@ -72,6 +75,7 @@ export function PendingReceiptConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
@@ -80,36 +84,66 @@ export function PendingReceiptConfirmationCard({
     if (result === null) {
       return;
     }
+    setIsResolved(true);
     onResolved();
   }
 
-  return (
-    <View>
-      <Text>Receipt confirmation</Text>
-      {confirmation.fields.summary ? <Text>{confirmation.fields.summary}</Text> : null}
-      {confirmation.fields.ocr_document_id ? <Text>OCR: {confirmation.fields.ocr_document_id}</Text> : null}
-      {confirmation.fields.total_amount !== undefined ? <Text>Total: {confirmation.fields.total_amount}</Text> : null}
+  if (isResolved) {
+    return null;
+  }
 
+  return (
+    <ConfirmationCardShell
+      confirmationId={confirmation.confirmation_id}
+      title="Receipt confirmation"
+      summary={confirmation.fields.summary}
+      transcript={
+        confirmation.fields.ocr_document_id
+          ? `OCR: ${confirmation.fields.ocr_document_id}`
+          : undefined
+      }
+      error={error}
+      approveLabel="Approve Receipt"
+      rejectLabel="Reject Receipt"
+      approveLoadingLabel="Approving receipt..."
+      rejectLoadingLabel="Rejecting..."
+      isApproveSubmitting={approveMutation.isSubmitting}
+      isRejectSubmitting={rejectMutation.isSubmitting}
+      isSubmitting={isSubmitting}
+      onApprove={() => {
+        void handleApprove();
+      }}
+      onReject={() => {
+        void handleReject();
+      }}
+    >
+      {confirmation.fields.total_amount !== undefined ? (
+        <Text style={styles.totalAmount}>Total: {confirmation.fields.total_amount}</Text>
+      ) : null}
       {items.map((item, index) => (
-        <View key={item.lineId}>
-          <Text>Line {index + 1}</Text>
-          <TextInput
+        <View key={item.lineId} style={styles.lineEditor}>
+          <Text style={styles.lineTitle}>Line {index + 1}</Text>
+          <AppTextField
+            label={`Item name ${index + 1}`}
             placeholder={`Item name ${index + 1}`}
             value={item.itemName}
             onChangeText={(value) => updateItem(index, { itemName: value })}
           />
-          <TextInput
+          <AppTextField
+            label={`Quantity ${index + 1}`}
             placeholder={`Quantity ${index + 1}`}
             keyboardType="numeric"
             value={item.quantity}
             onChangeText={(value) => updateItem(index, { quantity: value })}
           />
-          <TextInput
+          <AppTextField
+            label={`Unit ${index + 1}`}
             placeholder={`Unit ${index + 1}`}
             value={item.unit}
             onChangeText={(value) => updateItem(index, { unit: value })}
           />
-          <TextInput
+          <AppTextField
+            label={`Price ${index + 1}`}
             placeholder={`Price ${index + 1}`}
             keyboardType="numeric"
             value={item.price}
@@ -117,23 +151,25 @@ export function PendingReceiptConfirmationCard({
           />
         </View>
       ))}
-
-      {error ? <Text>{error}</Text> : null}
-
-      <Button
-        title={approveMutation.isSubmitting ? "Approving receipt..." : "Approve Receipt"}
-        onPress={() => {
-          void handleApprove();
-        }}
-        disabled={isSubmitting}
-      />
-      <Button
-        title={rejectMutation.isSubmitting ? "Rejecting..." : "Reject Receipt"}
-        onPress={() => {
-          void handleReject();
-        }}
-        disabled={isSubmitting}
-      />
-    </View>
+    </ConfirmationCardShell>
   );
 }
+
+const styles = StyleSheet.create({
+  totalAmount: {
+    color: color.fgSecondary,
+    fontSize: 14,
+  },
+  lineEditor: {
+    borderColor: color.borderSubtle,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: space.s8,
+    padding: space.s12,
+  },
+  lineTitle: {
+    color: color.fgPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

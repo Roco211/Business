@@ -275,7 +275,10 @@ def test_readiness_endpoint_surfaces_current_pilot_control_contract_fields(clien
     assert payload["cutover_mode"] == "closed"
 
 
-def test_readiness_and_pilot_control_stay_consistent_when_trial_profile_env_changes(client, monkeypatch) -> None:
+def test_readiness_and_pilot_control_preserve_stored_profile_when_trial_profile_env_changes(
+    client,
+    monkeypatch,
+) -> None:
     monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
     headers = _auth_headers(client, monkeypatch)
 
@@ -288,9 +291,9 @@ def test_readiness_and_pilot_control_stay_consistent_when_trial_profile_env_chan
     readiness_response = client.get("/api/v1/system/readiness", headers=headers)
     assert readiness_response.status_code == 200
     readiness_payload = readiness_response.json()["data"]
-    assert readiness_payload["trial_provider_profile"] == "pilot-v2"
+    assert readiness_payload["trial_provider_profile"] == "pilot-v1"
     assert readiness_payload["checks"]["trial_profile"]["details"]["trial_provider_profile"] == "pilot-v2"
 
     second_pilot_control = client.get("/api/v1/system/pilot-control", headers=headers)
     assert second_pilot_control.status_code == 200
-    assert second_pilot_control.json()["data"]["trial_provider_profile"] == "pilot-v2"
+    assert second_pilot_control.json()["data"]["trial_provider_profile"] == "pilot-v1"

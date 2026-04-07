@@ -514,6 +514,7 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
 
     context = None
     decision = None
+    settings = None
     try:
         settings = get_settings()
         context = build_runtime_turn_context(db_session, task_run_id=task_run_id)
@@ -782,6 +783,24 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
         )
     except RuntimeRouteBlocked as exc:
         telemetry_payload = getattr(exc, "telemetry", None)
+        if context is not None and isinstance(telemetry_payload, dict):
+            blocked_task_type_raw = telemetry_payload.get("task_type")
+            blocked_task_type = (
+                str(blocked_task_type_raw).strip()
+                if blocked_task_type_raw is not None and str(blocked_task_type_raw).strip()
+                else None
+            )
+            if blocked_task_type is not None:
+                route_guardrail = evaluate_pilot_cutover_guardrail(
+                    db_session,
+                    settings=settings or get_settings(),
+                    shop_id=context.shop_id,
+                    task_type=blocked_task_type,
+                )
+                telemetry_payload = {
+                    **telemetry_payload,
+                    **route_guardrail.telemetry_fields(),
+                }
         return _build_failed_result(
             db_session,
             shop_id=context.shop_id if context is not None else None,

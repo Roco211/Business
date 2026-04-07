@@ -136,6 +136,7 @@ def _set_pilot_cutover_state(
     runtime_profile: str = "pilot-v1",
     pilot_profile: str | None = None,
     approved_calibration_artifact_id: str | None = "artifact_20260407",
+    approved_calibration_report_path: str | None = None,
     last_preflight_status: str | None = "ready",
 ) -> None:
     context = ensure_default_context(db_session)
@@ -147,6 +148,7 @@ def _set_pilot_cutover_state(
     pilot_control.cutover_mode = cutover_mode
     pilot_control.trial_provider_profile = runtime_profile if pilot_profile is None else pilot_profile
     pilot_control.approved_calibration_artifact_id = approved_calibration_artifact_id
+    pilot_control.approved_calibration_report_path = approved_calibration_report_path
     pilot_control.last_preflight_status = last_preflight_status
     db_session.commit()
 
@@ -1222,6 +1224,64 @@ def test_process_task_run_open_mode_mismatch_fails_safe_to_confirmation(
     assert audit_log.metadata_json["outcome"] == "awaiting-confirmation"
 
 
+def test_process_task_run_open_mode_artifact_report_mismatch_fails_safe_to_confirmation(
+    db_session,
+    monkeypatch,
+    tmp_path,
+) -> None:
+    artifact_report = tmp_path / "artifact_report.json"
+    artifact_report.write_text(
+        '{"artifact_id":"artifact_20260408","trial_provider_profile":"pilot-v2","recommended_shop_rules":{}}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    _set_pilot_cutover_state(
+        db_session,
+        cutover_mode="open",
+        approved_calibration_artifact_id="artifact_20260407",
+        approved_calibration_report_path=str(artifact_report),
+        last_preflight_status="ready",
+    )
+
+    def always_allow_policy(*, task_type: str) -> PolicyDecision:
+        return PolicyDecision(outcome="allow", confirmation_type=None)
+
+    monkeypatch.setattr(runtime_processor, "evaluate_runtime_policy", always_allow_policy)
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="text",
+        text="restock kiwi",
+        media_ids=[],
+        client_request_id="runtime_cutover_open_artifact_mismatch_fails_safe",
+    )
+
+    result = process_task_run(db_session, task_run_id)
+    task_run = db_session.get(TaskRun, task_run_id)
+    confirmation = db_session.scalar(select(Confirmation).where(Confirmation.task_run_id == task_run_id))
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "awaiting-confirmation"
+    assert task_run is not None
+    assert task_run.status == "awaiting-confirmation"
+    assert confirmation is not None
+    assert audit_log is not None
+    assert audit_log.metadata_json["guardrail_status"] == "forced-confirmation"
+    assert audit_log.metadata_json["guardrail_reason"] == "cutover_alignment_invalid"
+    assert audit_log.metadata_json["guardrail_degraded"] is True
+    assert set(audit_log.metadata_json["guardrail_degraded_reasons"]) >= {
+        "artifact_profile_mismatch",
+        "artifact_id_mismatch",
+    }
+
+
 def test_process_task_run_preserves_guardrail_telemetry_for_receipt_ocr_provider_failure(
     db_session,
     monkeypatch,
@@ -1364,7 +1424,55 @@ def test_process_task_run_appends_provider_telemetry_for_asr_low_confidence_fail
         "outcome": "failed",
         "error_code": "asr_low_confidence",
         "trial_provider_profile": "pilot-v1",
+        "cutover_mode": "local-demo",
+        "guardrail_status": "allowed",
+        "shadow_forced_confirmation": False,
+        "guardrail_degraded": False,
+        "guardrail_degraded_reasons": [],
     }
+
+
+def test_process_task_run_appends_cutover_metadata_for_route_time_provider_failure(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_route_failure_cutover_metadata",
+    )
+
+    class _Gateway:
+        def transcribe(self, media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.42)
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+    _set_pilot_cutover_state(db_session, cutover_mode="open")
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "asr_low_confidence"
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] == "voice-stock-query"
+    assert audit_log.metadata_json["cutover_mode"] == "open"
+    assert audit_log.metadata_json["guardrail_status"] == "allowed"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is False
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
 
 
 def test_process_task_run_does_not_append_provider_telemetry_for_missing_ready_voice_media_route_block(

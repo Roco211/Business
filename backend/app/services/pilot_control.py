@@ -1,5 +1,7 @@
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
@@ -30,6 +32,7 @@ class PilotRuntimeControlState:
     cutover_mode: str
     trial_provider_profile: str
     approved_calibration_artifact_id: str | None
+    approved_calibration_report_path: str | None
     last_preflight_status: str | None
 
 
@@ -77,11 +80,7 @@ def get_or_create_pilot_control(
     normalized_profile = trial_provider_profile.strip()
     existing = db_session.get(PilotControl, shop_id)
     if existing is not None:
-        changed = False
-        if existing.trial_provider_profile != normalized_profile:
-            existing.trial_provider_profile = normalized_profile
-            changed = True
-        return existing, changed
+        return existing, False
 
     created = PilotControl(
         shop_id=shop_id,
@@ -120,8 +119,29 @@ def resolve_pilot_runtime_control_state(
         approved_calibration_artifact_id=_normalize_optional_text(
             pilot_control.approved_calibration_artifact_id
         ),
+        approved_calibration_report_path=_normalize_optional_text(
+            pilot_control.approved_calibration_report_path
+        ),
         last_preflight_status=_normalize_optional_text(pilot_control.last_preflight_status),
     )
+
+
+def _load_artifact_identity(*, report_path: str) -> tuple[str | None, str | None]:
+    try:
+        payload = json.loads(Path(report_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None, None
+    if not isinstance(payload, dict):
+        return None, None
+    artifact_id = _normalize_optional_text(
+        payload.get("artifact_id") if isinstance(payload.get("artifact_id"), str) else None
+    )
+    artifact_profile = _normalize_optional_text(
+        payload.get("trial_provider_profile")
+        if isinstance(payload.get("trial_provider_profile"), str)
+        else None
+    )
+    return artifact_id, artifact_profile
 
 
 def pilot_alignment_mismatch_reasons(
@@ -138,6 +158,21 @@ def pilot_alignment_mismatch_reasons(
 
     if not control_state.approved_calibration_artifact_id:
         reasons.append("approved_calibration_artifact_missing")
+    elif control_state.approved_calibration_report_path:
+        artifact_id, artifact_profile = _load_artifact_identity(
+            report_path=control_state.approved_calibration_report_path
+        )
+        if (
+            artifact_profile is not None
+            and runtime_profile
+            and artifact_profile != runtime_profile
+        ):
+            reasons.append("artifact_profile_mismatch")
+        if (
+            artifact_id is not None
+            and artifact_id != control_state.approved_calibration_artifact_id
+        ):
+            reasons.append("artifact_id_mismatch")
 
     normalized_preflight_status = (control_state.last_preflight_status or "").strip().lower()
     if normalized_preflight_status != PREFLIGHT_READY_STATUS:

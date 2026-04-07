@@ -4,6 +4,17 @@ type ResolveApiBaseUrlInput = {
   scriptURL: string | null | undefined;
 };
 
+function isLoopbackHost(host: string): boolean {
+  const normalizedHost = host.toLowerCase();
+  return (
+    normalizedHost === "localhost"
+    || normalizedHost === "127.0.0.1"
+    || normalizedHost.startsWith("127.")
+    || normalizedHost === "::1"
+    || normalizedHost === "[::1]"
+  );
+}
+
 export function inferDevServerHost(scriptURL: string | null | undefined): string | null {
   if (!scriptURL) {
     return null;
@@ -23,7 +34,7 @@ export function resolveApiBaseUrl(input: ResolveApiBaseUrlInput): string {
   }
 
   const inferredDevServerHost = inferDevServerHost(input.scriptURL);
-  if (inferredDevServerHost) {
+  if (inferredDevServerHost && !(input.platform === "android" && isLoopbackHost(inferredDevServerHost))) {
     return `http://${inferredDevServerHost}:8001`;
   }
 

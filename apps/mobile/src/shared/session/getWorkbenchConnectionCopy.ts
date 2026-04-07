@@ -11,13 +11,19 @@ type WorkbenchConnectionCopy = {
   hint: string;
 };
 
+const NETWORK_BOOTSTRAP_ERROR_PATTERN =
+  /(network request failed|failed to fetch|fetch failed|cannot reach api|econnrefused|timeout|timed out)/i;
+
 export function getWorkbenchConnectionCopy(
   input: GetWorkbenchConnectionCopyInput,
 ): WorkbenchConnectionCopy {
   if (input.bootstrapError) {
+    const isNetworkBootstrapError = NETWORK_BOOTSTRAP_ERROR_PATTERN.test(input.bootstrapError);
     return {
       title: "\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528",
-      hint: FRONTLINE_STATUS_COPY.networkUnavailable,
+      hint: isNetworkBootstrapError
+        ? FRONTLINE_STATUS_COPY.networkUnavailable
+        : FRONTLINE_STATUS_COPY.workbenchUnavailable,
     };
   }
 

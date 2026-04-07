@@ -184,6 +184,27 @@ describe("ChatScreen (workbench shell)", () => {
     expect(screen.getAllByText("当前无法连接门店服务，请检查网络后重试。").length).toBeGreaterThan(0);
   });
 
+  it("shows general workbench-unavailable hint for non-network bootstrap failures", async () => {
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: "sess_1",
+      sessionTitle: "Store shift session",
+      connectionState: "error",
+      bootstrapError: "Failed to bootstrap session",
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    expect(await screen.findByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528")).toBeTruthy();
+    expect(
+      screen.getAllByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002").length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText("\u5f53\u524d\u65e0\u6cd5\u8fde\u63a5\u95e8\u5e97\u670d\u52a1\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002")).toBeNull();
+  });
+
   it("shows friendly unavailable titles for shared chat states", async () => {
     mockedUseSessionStream.mockReturnValue({
       sessionId: "sess_1",

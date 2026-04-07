@@ -31,6 +31,24 @@ describe("resolveApiBaseUrl", () => {
     ).toBe("http://10.0.2.2:8001");
   });
 
+  it("uses Android emulator fallback when the inferred host is loopback", () => {
+    expect(
+      resolveApiBaseUrl({
+        configuredBaseUrl: "",
+        platform: "android",
+        scriptURL: "http://127.0.0.1:8081/index.bundle?platform=android",
+      }),
+    ).toBe("http://10.0.2.2:8001");
+
+    expect(
+      resolveApiBaseUrl({
+        configuredBaseUrl: "",
+        platform: "android",
+        scriptURL: "http://localhost:8081/index.bundle?platform=android",
+      }),
+    ).toBe("http://10.0.2.2:8001");
+  });
+
   it("extracts the Metro host from scriptURL", () => {
     expect(inferDevServerHost("http://192.168.1.4:8081/index.bundle?platform=android")).toBe(
       "192.168.1.4",

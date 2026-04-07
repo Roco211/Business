@@ -49,8 +49,8 @@ describe("ChatScreen", () => {
   async function waitForChatReady() {
     await waitFor(
       () => {
-        expect(screen.getByText("Chat Workbench")).toBeTruthy();
-        expect(screen.getByText("Guided entry")).toBeTruthy();
+        expect(screen.getByText("聊天工作台")).toBeTruthy();
+        expect(screen.getByText("引导入口")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
         expect(screen.getByText("connected")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
@@ -627,7 +627,7 @@ describe("ChatScreen", () => {
   it("renders durable session messages instead of only recent session events", async () => {
     render(<ChatScreen />);
 
-    expect(screen.getByText("Loading workbench...")).toBeTruthy();
+    expect(screen.getByText("工作台加载中...")).toBeTruthy();
 
     await waitForChatReady();
     expect(screen.queryByText("Voice Query Demo")).toBeNull();
@@ -641,8 +641,8 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "Count chips too");
-    fireEvent.press(screen.getByText("Send update"));
+    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "Count chips too");
+    fireEvent.press(screen.getByText("发送更新"));
 
     await waitFor(() => {
       expect(screen.getByText("Count chips too")).toBeTruthy();
@@ -781,11 +781,11 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "   ");
-    fireEvent.press(screen.getByText("Send update"));
+    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "   ");
+    fireEvent.press(screen.getByText("发送更新"));
 
-    fireEvent.changeText(screen.getByPlaceholderText("Describe your request"), "cola restock");
-    fireEvent.press(screen.getByText("Send update"));
+    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "cola restock");
+    fireEvent.press(screen.getByText("发送更新"));
 
     await waitFor(() => {
       expect(screen.getByText("Message text is required")).toBeTruthy();

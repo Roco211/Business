@@ -45,12 +45,12 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
   return (
     <SurfaceCard tone="muted" emphasis="outlined">
       <View style={styles.container}>
-        <SectionHeader title="Guided entry" subtitle="Use voice, photo, or receipt to kick off work." />
+        <SectionHeader title="引导入口" subtitle="先用语音、拍照或票据发起任务。" />
         {error ? <InlineNotice tone="error" title="Submission failed" message={error} /> : null}
         <View style={styles.pillRow}>
           <PillActionButton
             testID="guided-pill-voice"
-            label="Voice"
+            label="语音"
             onPress={() => {
               void handleVoiceEntry();
             }}
@@ -58,7 +58,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           />
           <PillActionButton
             testID="guided-pill-photo"
-            label="Photo"
+            label="拍照"
             onPress={() => {
               void handlePhotoEntry();
             }}
@@ -66,7 +66,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           />
           <PillActionButton
             testID="guided-pill-receipt"
-            label="Receipt"
+            label="票据"
             onPress={() => {
               void handleReceiptEntry();
             }}

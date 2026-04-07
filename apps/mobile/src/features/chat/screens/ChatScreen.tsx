@@ -43,15 +43,15 @@ function getMessageText(messageType: string, text: string | null) {
 
 function getConnectionHint(connectionState: string) {
   if (connectionState === "connected") {
-    return "Realtime session stream is active.";
+    return "会话实时流已连接。";
   }
   if (connectionState === "connecting" || connectionState === "bootstrapping") {
-    return "Attempting to reconnect to session stream.";
+    return "正在尝试重连会话流。";
   }
   if (connectionState === "error" || connectionState === "disconnected") {
-    return "Live updates are degraded. Manual refresh still applies after actions.";
+    return "实时更新受限，执行操作后仍会触发手动刷新。";
   }
-  return "Waiting for session stream.";
+  return "等待会话流启动。";
 }
 
 export default function ChatScreen() {
@@ -101,8 +101,8 @@ export default function ChatScreen() {
     return (
       <AppScreen safeArea={false}>
         <EmptyState
-          title="Loading workbench..."
-          description="Syncing session messages and confirmations."
+          title="工作台加载中..."
+          description="正在同步会话消息与确认任务。"
         />
       </AppScreen>
     );
@@ -114,7 +114,7 @@ export default function ChatScreen() {
     <AppScreen safeArea={false}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <WorkbenchHeader
-          title="Chat Workbench"
+          title="聊天工作台"
           sessionTitle={sessionTitle}
           connectionState={sessionStream.connectionState}
           hint={getConnectionHint(sessionStream.connectionState)}
@@ -139,13 +139,13 @@ export default function ChatScreen() {
         ) : null}
 
         <SectionHeader
-          title="Results"
-          subtitle="Message timeline and stronger confirmation checkpoints."
+          title="处理结果"
+          subtitle="消息时间线与强化确认卡。"
         />
         {messages.data.length === 0 ? (
           <EmptyState
-            title="No workbench messages yet."
-            description="Start with guided entry or send a text update."
+            title="暂无工作台消息"
+            description="可先使用引导入口，或直接发送文字。"
           />
         ) : null}
 
@@ -205,13 +205,13 @@ export default function ChatScreen() {
         <SurfaceCard emphasis="elevated">
           <View style={styles.composer}>
             <SectionHeader
-              title="Compose update"
-              subtitle="Use guided entry or type details for the agent."
+              title="发送输入"
+              subtitle="可用引导入口，或直接输入详细请求。"
             />
             <GuidedEntryDock sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
             <AppTextField
-              label="Message"
-              placeholder="Describe your request"
+              label="消息"
+              placeholder="描述你的请求"
               value={draftText}
               onChangeText={setDraftText}
             />
@@ -219,9 +219,9 @@ export default function ChatScreen() {
               <InlineNotice tone="error" title="Message failed" message={sendMessage.error} />
             ) : null}
             <PrimaryButton
-              label="Send update"
+              label="发送更新"
               loading={sendMessage.isSubmitting}
-              loadingLabel="Sending..."
+              loadingLabel="发送中..."
               onPress={() => {
                 void handleSend();
               }}

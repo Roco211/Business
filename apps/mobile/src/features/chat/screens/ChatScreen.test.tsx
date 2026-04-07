@@ -73,14 +73,14 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Chat Workbench")).toBeTruthy();
+      expect(screen.getByText("聊天工作台")).toBeTruthy();
       expect(screen.getByText("Store shift session")).toBeTruthy();
-      expect(screen.getByText("Guided entry")).toBeTruthy();
-      expect(screen.getByText("Voice")).toBeTruthy();
-      expect(screen.getByText("Photo")).toBeTruthy();
-      expect(screen.getByText("Receipt")).toBeTruthy();
-      expect(screen.getByPlaceholderText("Describe your request")).toBeTruthy();
-      expect(screen.getByText("Send update")).toBeTruthy();
+      expect(screen.getByText("引导入口")).toBeTruthy();
+      expect(screen.getByText("语音")).toBeTruthy();
+      expect(screen.getByText("拍照")).toBeTruthy();
+      expect(screen.getByText("票据")).toBeTruthy();
+      expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
+      expect(screen.getByText("发送更新")).toBeTruthy();
     });
   });
 

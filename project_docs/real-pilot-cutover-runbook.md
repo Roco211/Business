@@ -43,16 +43,9 @@ python backend/scripts/set_pilot_cutover.py --mode open --artifact-path C:\secur
 Inspect current control state:
 
 ```powershell
-python - <<'PY'
-import json
-import urllib.request
-request = urllib.request.Request(
-    "http://127.0.0.1:8001/api/v1/system/pilot-control",
-    headers={"Authorization": "Bearer <access_token>"},
-)
-with urllib.request.urlopen(request, timeout=10) as response:
-    print(json.dumps(json.loads(response.read().decode("utf-8"))["data"], sort_keys=True))
-PY
+$headers = @{ Authorization = "Bearer <access_token>" }
+$response = Invoke-RestMethod -Method Get -Uri "http://127.0.0.1:8001/api/v1/system/pilot-control" -Headers $headers -TimeoutSec 10
+$response.data | ConvertTo-Json -Compress
 ```
 
 ## Required Shift Bundle Export
@@ -100,4 +93,3 @@ python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: pilo
 
 3. Export a fresh shift bundle and attach it to the incident record.
 4. Re-run readiness, preflight, and pilot summary before re-opening.
-

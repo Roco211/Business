@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -49,6 +50,65 @@ def _build_request_json(*, pilot_control_payload: dict[str, object]):
 
 def _fixed_now() -> datetime:
     return datetime(2026, 4, 7, 9, 0, 0, tzinfo=UTC)
+
+
+def _ready_readiness_payload() -> dict[str, object]:
+    return {
+        "api_base_url": "http://127.0.0.1:8001",
+        "health_status": "ok",
+        "runtime_mode": "trial",
+        "readiness_status": "ready",
+        "overall_status": "ready",
+        "object_storage": {"status": "ready", "mode": "s3-compatible"},
+        "providers": {
+            "asr": {"status": "ready", "mode": "real-provider"},
+            "ocr": {"status": "ready", "mode": "real-provider"},
+            "vision": {"status": "ready", "mode": "real-provider"},
+        },
+    }
+
+
+def _ready_preflight_payload() -> dict[str, object]:
+    return {
+        "overall_status": "ready",
+        "runtime_mode": "trial",
+        "trial_provider_profile": "pilot-v1",
+        "cutover_mode": "shadow",
+        "approved_calibration_artifact_id": "artifact_20260407",
+        "reasons": [],
+    }
+
+
+def _ready_pilot_control_payload() -> dict[str, object]:
+    return {
+        "shop_id": "shop_default",
+        "trial_provider_profile": "pilot-v1",
+        "approved_calibration_artifact_id": "artifact_20260407",
+        "approved_calibration_report_path": "C:/secure/pilot/artifacts/report.json",
+        "cutover_mode": "shadow",
+        "opened_at": None,
+        "opened_by_actor_id": None,
+        "closed_at": None,
+        "closed_by_actor_id": None,
+        "last_preflight_at": "2026-04-07T08:55:00Z",
+        "last_preflight_status": "ready",
+        "notes": "incident review",
+    }
+
+
+def _ready_pilot_summary_payload(readiness_payload: dict[str, object]) -> dict[str, object]:
+    return {
+        "api_base_url": "http://127.0.0.1:8001",
+        "hours": 24,
+        "overall_status": "ready",
+        "pilot_summary": {
+            "overall_status": "ready",
+            "reasons": [],
+            "trial_provider_profile": "pilot-v1",
+        },
+        "readiness": readiness_payload,
+        "thresholds": {"max_fallback_rate": 0.05, "max_low_confidence_rate": 0.2},
+    }
 
 
 def test_export_shift_bundle_collects_outputs_and_writes_compact_manifest(tmp_path, monkeypatch) -> None:
@@ -455,3 +515,226 @@ def test_export_shift_bundle_adds_fallback_reason_when_pilot_summary_is_degraded
 
     assert result["overall_status"] == "degraded"
     assert result["degraded_reasons"] == ["pilot_summary_not_ready"]
+
+
+@pytest.mark.parametrize("invalid_reasons", [None, "provider_failures_present", {"reason": "bad"}])
+def test_export_shift_bundle_handles_invalid_preflight_reasons_as_fallback(
+    tmp_path,
+    monkeypatch,
+    invalid_reasons,
+) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    readiness_payload = _ready_readiness_payload()
+    preflight_payload = _ready_preflight_payload()
+    preflight_payload["overall_status"] = "degraded"
+    preflight_payload["reasons"] = invalid_reasons
+    pilot_control_payload = _ready_pilot_control_payload()
+    pilot_summary_payload = _ready_pilot_summary_payload(readiness_payload)
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", lambda **_: _Summary(readiness_payload))
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary(preflight_payload))
+    monkeypatch.setattr(script_module, "run_pilot_summary_check", lambda **_: dict(pilot_summary_payload))
+    monkeypatch.setattr(
+        script_module,
+        "_build_live_request",
+        lambda _api_base_url: _build_request_json(pilot_control_payload=pilot_control_payload),
+    )
+
+    result = script_module.export_pilot_shift_bundle(
+        api_base_url="http://127.0.0.1:8001",
+        output_dir=str(repo_root / "secure-bundles" / "incident-review"),
+        auth_token=None,
+        login_email="owner@example.com",
+        login_password="dev-password",
+        hours=24,
+        now_fn=_fixed_now,
+    )
+
+    assert result["overall_status"] == "degraded"
+    assert result["degraded_reasons"] == ["preflight_not_ready"]
+
+
+@pytest.mark.parametrize("invalid_reasons", [None, "fallback_rate_exceeded", {"reason": "bad"}])
+def test_export_shift_bundle_handles_invalid_pilot_summary_reasons_as_fallback(
+    tmp_path,
+    monkeypatch,
+    invalid_reasons,
+) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    readiness_payload = _ready_readiness_payload()
+    preflight_payload = _ready_preflight_payload()
+    pilot_control_payload = _ready_pilot_control_payload()
+    pilot_summary_payload = _ready_pilot_summary_payload(readiness_payload)
+    pilot_summary_payload["overall_status"] = "degraded"
+    pilot_summary_payload["pilot_summary"]["overall_status"] = "degraded"
+    pilot_summary_payload["pilot_summary"]["reasons"] = invalid_reasons
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", lambda **_: _Summary(readiness_payload))
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary(preflight_payload))
+    monkeypatch.setattr(script_module, "run_pilot_summary_check", lambda **_: dict(pilot_summary_payload))
+    monkeypatch.setattr(
+        script_module,
+        "_build_live_request",
+        lambda _api_base_url: _build_request_json(pilot_control_payload=pilot_control_payload),
+    )
+
+    result = script_module.export_pilot_shift_bundle(
+        api_base_url="http://127.0.0.1:8001",
+        output_dir=str(repo_root / "secure-bundles" / "incident-review"),
+        auth_token=None,
+        login_email="owner@example.com",
+        login_password="dev-password",
+        hours=24,
+        now_fn=_fixed_now,
+    )
+
+    assert result["overall_status"] == "degraded"
+    assert result["degraded_reasons"] == ["pilot_summary_not_ready"]
+
+
+def test_export_shift_bundle_wraps_output_directory_creation_failures(tmp_path, monkeypatch) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    output_dir = (repo_root / "secure-bundles" / "shift-handoff").resolve()
+    original_mkdir = Path.mkdir
+
+    def _failing_mkdir(self: Path, *args, **kwargs):
+        if self.resolve() == output_dir:
+            raise OSError("permission denied")
+        return original_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", _failing_mkdir)
+
+    with pytest.raises(script_module.ShiftBundleExportError, match="Unable to create output directory"):
+        script_module.export_pilot_shift_bundle(
+            api_base_url="http://127.0.0.1:8001",
+            output_dir=str(output_dir),
+            auth_token="seed-token",
+            hours=24,
+            now_fn=_fixed_now,
+        )
+
+
+def test_export_shift_bundle_removes_partial_bundle_when_write_fails(tmp_path, monkeypatch) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    readiness_payload = _ready_readiness_payload()
+    preflight_payload = _ready_preflight_payload()
+    pilot_control_payload = _ready_pilot_control_payload()
+    pilot_summary_payload = _ready_pilot_summary_payload(readiness_payload)
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", lambda **_: _Summary(readiness_payload))
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary(preflight_payload))
+    monkeypatch.setattr(script_module, "run_pilot_summary_check", lambda **_: dict(pilot_summary_payload))
+    monkeypatch.setattr(
+        script_module,
+        "_build_live_request",
+        lambda _api_base_url: _build_request_json(pilot_control_payload=pilot_control_payload),
+    )
+
+    original_write_json = script_module._write_json
+    write_calls = {"count": 0}
+
+    def _flaky_write_json(path: Path, payload: object) -> None:
+        write_calls["count"] += 1
+        if write_calls["count"] == 2:
+            raise OSError("disk full")
+        original_write_json(path, payload)
+
+    monkeypatch.setattr(script_module, "_write_json", _flaky_write_json)
+
+    output_dir = repo_root / "secure-bundles" / "shift-handoff"
+    expected_bundle_dir = output_dir / "shift_bundle_20260407T090000000000Z"
+
+    with pytest.raises(script_module.ShiftBundleExportError, match="Unable to write bundle artifact"):
+        script_module.export_pilot_shift_bundle(
+            api_base_url="http://127.0.0.1:8001",
+            output_dir=str(output_dir),
+            auth_token=None,
+            login_email="owner@example.com",
+            login_password="dev-password",
+            hours=24,
+            now_fn=_fixed_now,
+        )
+
+    assert not expected_bundle_dir.exists()
+
+
+def test_export_shift_bundle_rejects_bundle_directory_collisions(tmp_path, monkeypatch) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    readiness_payload = _ready_readiness_payload()
+    preflight_payload = _ready_preflight_payload()
+    pilot_control_payload = _ready_pilot_control_payload()
+    pilot_summary_payload = _ready_pilot_summary_payload(readiness_payload)
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", lambda **_: _Summary(readiness_payload))
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary(preflight_payload))
+    monkeypatch.setattr(script_module, "run_pilot_summary_check", lambda **_: dict(pilot_summary_payload))
+    monkeypatch.setattr(
+        script_module,
+        "_build_live_request",
+        lambda _api_base_url: _build_request_json(pilot_control_payload=pilot_control_payload),
+    )
+
+    output_dir = repo_root / "secure-bundles" / "shift-handoff"
+
+    script_module.export_pilot_shift_bundle(
+        api_base_url="http://127.0.0.1:8001",
+        output_dir=str(output_dir),
+        auth_token=None,
+        login_email="owner@example.com",
+        login_password="dev-password",
+        hours=24,
+        now_fn=_fixed_now,
+    )
+
+    with pytest.raises(script_module.ShiftBundleExportError, match="already exists"):
+        script_module.export_pilot_shift_bundle(
+            api_base_url="http://127.0.0.1:8001",
+            output_dir=str(output_dir),
+            auth_token=None,
+            login_email="owner@example.com",
+            login_password="dev-password",
+            hours=24,
+            now_fn=_fixed_now,
+        )
+
+
+def test_validate_output_dir_prefers_git_check_ignore_when_available(tmp_path, monkeypatch) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+    monkeypatch.setattr(
+        script_module,
+        "subprocess",
+        SimpleNamespace(run=lambda *args, **kwargs: SimpleNamespace(returncode=1)),
+        raising=False,
+    )
+
+    with pytest.raises(script_module.ShiftBundleExportError, match="gitignored"):
+        script_module._validate_output_dir(str(repo_root / "secure-bundles" / "shift-handoff"))

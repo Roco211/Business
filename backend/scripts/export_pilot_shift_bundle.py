@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
+import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -125,7 +127,43 @@ def _load_gitignored_directories() -> list[Path]:
     return ignored_directories
 
 
+def _run_git_check_ignore(path: Path) -> bool | None:
+    if not _is_path_within_directory(target_path=path, parent_dir=REPO_ROOT):
+        return None
+
+    try:
+        relative_path = path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return None
+
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(REPO_ROOT),
+                "check-ignore",
+                "-q",
+                "--",
+                relative_path,
+            ],
+            check=False,
+        )
+    except OSError:
+        return None
+
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    return None
+
+
 def _is_gitignored_destination(path: Path) -> bool:
+    git_result = _run_git_check_ignore(path)
+    if git_result is not None:
+        return git_result
+
     for ignored_directory in _load_gitignored_directories():
         if path == ignored_directory or _is_path_within_directory(target_path=path, parent_dir=ignored_directory):
             return True
@@ -210,6 +248,20 @@ def _append_reason(reasons: list[str], reason: object) -> None:
         reasons.append(cleaned)
 
 
+def _append_reasons_with_fallback(
+    *,
+    reasons: list[str],
+    raw_reasons: object,
+    fallback_reason: str,
+) -> None:
+    reason_count_before = len(reasons)
+    if isinstance(raw_reasons, list):
+        for reason in raw_reasons:
+            _append_reason(reasons, reason)
+    if len(reasons) == reason_count_before:
+        _append_reason(reasons, fallback_reason)
+
+
 def _collect_degraded_reasons(
     *,
     readiness_payload: dict[str, object],
@@ -223,20 +275,20 @@ def _collect_degraded_reasons(
         _append_reason(reasons, "readiness_not_ready")
 
     if preflight_payload.get("overall_status") != READY_STATUS:
-        preflight_reason_count_before = len(reasons)
-        for reason in preflight_payload.get("reasons", []):
-            _append_reason(reasons, reason)
-        if len(reasons) == preflight_reason_count_before:
-            _append_reason(reasons, "preflight_not_ready")
+        _append_reasons_with_fallback(
+            reasons=reasons,
+            raw_reasons=preflight_payload.get("reasons"),
+            fallback_reason="preflight_not_ready",
+        )
 
     if pilot_summary_payload.get("overall_status") != READY_STATUS:
         pilot_summary_block = pilot_summary_payload.get("pilot_summary")
         if isinstance(pilot_summary_block, dict):
-            pilot_summary_reason_count_before = len(reasons)
-            for reason in pilot_summary_block.get("reasons", []):
-                _append_reason(reasons, reason)
-            if len(reasons) == pilot_summary_reason_count_before:
-                _append_reason(reasons, "pilot_summary_not_ready")
+            _append_reasons_with_fallback(
+                reasons=reasons,
+                raw_reasons=pilot_summary_block.get("reasons"),
+                fallback_reason="pilot_summary_not_ready",
+            )
         else:
             _append_reason(reasons, "pilot_summary_not_ready")
 
@@ -258,6 +310,31 @@ def _write_json(path: Path, payload: object) -> None:
     )
 
 
+def _ensure_directory(path: Path, *, label: str, exist_ok: bool) -> None:
+    try:
+        path.mkdir(parents=True, exist_ok=exist_ok)
+    except FileExistsError as exc:
+        raise ShiftBundleExportError(f"{label} already exists: {path}") from exc
+    except OSError as exc:
+        raise ShiftBundleExportError(f"Unable to create {label} '{path}': {exc}") from exc
+
+
+def _write_json_artifact(path: Path, payload: object) -> None:
+    try:
+        _write_json(path, payload)
+    except OSError as exc:
+        raise ShiftBundleExportError(f"Unable to write bundle artifact '{path}': {exc}") from exc
+
+
+def _cleanup_partial_bundle(bundle_dir: Path) -> None:
+    if not bundle_dir.exists():
+        return
+    try:
+        shutil.rmtree(bundle_dir)
+    except OSError:
+        return
+
+
 def export_pilot_shift_bundle(
     *,
     api_base_url: str,
@@ -274,7 +351,7 @@ def export_pilot_shift_bundle(
         raise ShiftBundleExportError("--hours must be >= 1")
 
     destination_root = _validate_output_dir(output_dir)
-    destination_root.mkdir(parents=True, exist_ok=True)
+    _ensure_directory(destination_root, label="output directory", exist_ok=True)
 
     request_json = _build_live_request(api_base_url)
     resolved_login_email = login_email or os.getenv("SEED_OWNER_EMAIL", DEFAULT_LOGIN_EMAIL)
@@ -318,45 +395,49 @@ def export_pilot_shift_bundle(
     generated_at = _iso_utc_timestamp(now)
     bundle_id = f"shift_bundle_{_compact_utc_timestamp(now)}"
     bundle_dir = destination_root / bundle_id
-    bundle_dir.mkdir(parents=True, exist_ok=True)
+    _ensure_directory(bundle_dir, label="bundle directory", exist_ok=False)
 
-    artifacts: dict[str, dict[str, str]] = {}
-    for artifact_name, payload in (
-        ("readiness", readiness_payload),
-        ("preflight", preflight_payload),
-        ("pilot_control", pilot_control_payload),
-        ("pilot_summary", pilot_summary_payload),
-    ):
-        file_name = f"{artifact_name}.json"
-        _write_json(bundle_dir / file_name, payload)
-        artifacts[artifact_name] = {
-            "file": file_name,
-            "captured_at": generated_at,
+    try:
+        artifacts: dict[str, dict[str, str]] = {}
+        for artifact_name, payload in (
+            ("readiness", readiness_payload),
+            ("preflight", preflight_payload),
+            ("pilot_control", pilot_control_payload),
+            ("pilot_summary", pilot_summary_payload),
+        ):
+            file_name = f"{artifact_name}.json"
+            _write_json_artifact(bundle_dir / file_name, payload)
+            artifacts[artifact_name] = {
+                "file": file_name,
+                "captured_at": generated_at,
+            }
+
+        degraded_reasons = _collect_degraded_reasons(
+            readiness_payload=readiness_payload,
+            preflight_payload=preflight_payload,
+            pilot_control_payload=pilot_control_payload,
+            pilot_summary_payload=pilot_summary_payload,
+        )
+        overall_status = READY_STATUS if not degraded_reasons else DEGRADED_STATUS
+
+        manifest_payload = {
+            "bundle_id": bundle_id,
+            "generated_at": generated_at,
+            "api_base_url": api_base_url,
+            "hours": hours,
+            "shop_id": pilot_control_payload.get("shop_id"),
+            "cutover_mode": pilot_control_payload.get("cutover_mode"),
+            "trial_provider_profile": pilot_control_payload.get("trial_provider_profile"),
+            "approved_calibration_artifact_id": pilot_control_payload.get("approved_calibration_artifact_id"),
+            "overall_status": overall_status,
+            "degraded_reasons": degraded_reasons,
+            "artifacts": artifacts,
         }
-
-    degraded_reasons = _collect_degraded_reasons(
-        readiness_payload=readiness_payload,
-        preflight_payload=preflight_payload,
-        pilot_control_payload=pilot_control_payload,
-        pilot_summary_payload=pilot_summary_payload,
-    )
-    overall_status = READY_STATUS if not degraded_reasons else DEGRADED_STATUS
-
-    manifest_payload = {
-        "bundle_id": bundle_id,
-        "generated_at": generated_at,
-        "api_base_url": api_base_url,
-        "hours": hours,
-        "shop_id": pilot_control_payload.get("shop_id"),
-        "cutover_mode": pilot_control_payload.get("cutover_mode"),
-        "trial_provider_profile": pilot_control_payload.get("trial_provider_profile"),
-        "approved_calibration_artifact_id": pilot_control_payload.get("approved_calibration_artifact_id"),
-        "overall_status": overall_status,
-        "degraded_reasons": degraded_reasons,
-        "artifacts": artifacts,
-    }
-    manifest_path = bundle_dir / "manifest.json"
-    _write_json(manifest_path, manifest_payload)
+        manifest_path = bundle_dir / "manifest.json"
+        _write_json_artifact(manifest_path, manifest_payload)
+    except ShiftBundleExportError:
+        _cleanup_partial_bundle(bundle_dir)
+        raise
 
     return {
         "bundle_id": bundle_id,

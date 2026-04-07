@@ -1,0 +1,153 @@
+import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import DashboardScreen from "./DashboardScreen";
+
+const mockNotifyDemoDataReset = jest.fn();
+const mockRunDemoBootstrap = jest.fn(async () => ({
+  shop_id: "shop_default",
+  session_id: "sess_default",
+  inventory_item_count: 2,
+  inventory_item_names: ["Apple", "Cola"],
+  pending_confirmation_count: 1,
+  pending_confirmation_types: ["voice-stock-in"],
+  open_low_stock_alert_count: 1,
+  open_low_stock_item_names: ["Apple"],
+  message_count: 12,
+  task_run_count: 6,
+}));
+const mockNavigate = jest.fn();
+
+let mockAlertsData = [
+  {
+    alert_id: "alert_1",
+    item_id: "item_apple",
+    item_name: "Apple",
+    status: "open",
+    stock: "3.000",
+    threshold: "5.000",
+    unit: "box",
+  },
+];
+
+let mockPendingData = [
+  {
+    confirmation_id: "confirm_1",
+    confirmation_type: "voice-stock-in",
+    status: "pending",
+    fields: {
+      summary: "Please confirm the stock-in details before commit.",
+    },
+  },
+];
+
+jest.mock("../hooks/useDashboardSummaryQuery", () => ({
+  useDashboardSummaryQuery: () => ({
+    data: {
+      shop_id: "shop_default",
+      today_stock_in_count: 7,
+      today_task_completed_count: 11,
+      pending_confirmations_count: 1,
+      open_low_stock_alert_count: 1,
+      last_inventory_event_at: "2026-04-05T12:00:00",
+    },
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
+jest.mock("../hooks/useLowStockAlertsQuery", () => ({
+  useLowStockAlertsQuery: () => ({
+    data: mockAlertsData,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
+jest.mock("../hooks/usePendingConfirmationsQuery", () => ({
+  usePendingConfirmationsQuery: () => ({
+    data: mockPendingData,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
+jest.mock("../hooks/useDemoBootstrapMutation", () => ({
+  useDemoBootstrapMutation: () => ({
+    isSubmitting: false,
+    error: null,
+    successMessage: null,
+    runDemoBootstrap: mockRunDemoBootstrap,
+  }),
+}));
+
+jest.mock("../../../shared/session/useSessionStream", () => ({
+  useSessionStream: () => ({
+    sessionId: "sess_default",
+    sessionTitle: "Demo Workgroup",
+    connectionState: "connected",
+    bootstrapError: null,
+    lastEvent: null,
+    recentEvents: [],
+    dataResetVersion: 0,
+    notifyDemoDataReset: mockNotifyDemoDataReset,
+  }),
+}));
+
+describe("DashboardScreen layout", () => {
+  beforeEach(() => {
+    mockAlertsData = [
+      {
+        alert_id: "alert_1",
+        item_id: "item_apple",
+        item_name: "Apple",
+        status: "open",
+        stock: "3.000",
+        threshold: "5.000",
+        unit: "box",
+      },
+    ];
+    mockPendingData = [
+      {
+        confirmation_id: "confirm_1",
+        confirmation_type: "voice-stock-in",
+        status: "pending",
+        fields: {
+          summary: "Please confirm the stock-in details before commit.",
+        },
+      },
+    ];
+    mockNavigate.mockReset();
+    mockNotifyDemoDataReset.mockReset();
+    mockRunDemoBootstrap.mockClear();
+  });
+
+  it("shows calm empty states when no low-stock alerts or confirmations exist", () => {
+    mockAlertsData = [];
+    mockPendingData = [];
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("库存状态平稳")).toBeTruthy();
+    expect(screen.getByText("当前没有低库存预警。")).toBeTruthy();
+    expect(screen.getByText("确认队列已清空")).toBeTruthy();
+    expect(screen.getByText("暂无待处理确认。")).toBeTruthy();
+  });
+
+  it("sends all quick actions to the 工作台 tab", () => {
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    fireEvent.press(screen.getByText("语音查货"));
+    fireEvent.press(screen.getByText("拍照入库"));
+    fireEvent.press(screen.getByText("票据识别"));
+    fireEvent.press(screen.getAllByText("待确认")[0]);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(4);
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "工作台");
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, "工作台");
+    expect(mockNavigate).toHaveBeenNthCalledWith(3, "工作台");
+    expect(mockNavigate).toHaveBeenNthCalledWith(4, "工作台");
+  });
+});

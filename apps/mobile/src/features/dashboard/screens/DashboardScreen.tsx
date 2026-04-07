@@ -1,14 +1,33 @@
 import { useEffect } from "react";
-import { Button, ScrollView, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
+import { DashboardExceptionCard } from "../components/DashboardExceptionCard";
+import { DashboardQuickActions } from "../components/DashboardQuickActions";
+import { DashboardSummaryHero } from "../components/DashboardSummaryHero";
 import { useDemoBootstrapMutation } from "../hooks/useDemoBootstrapMutation";
 import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
+import { AppScreen, DebugDisclosure, EmptyState, InlineNotice, PrimaryButton, space } from "../../../shared/ui";
 
+type DashboardScreenProps = {
+  navigation?: {
+    navigate: (screenName: string) => void;
+  };
+};
 
-export default function DashboardScreen() {
+const CONFIRMATION_LABELS: Record<string, string> = {
+  "voice-stock-in": "语音入库确认",
+  "receipt-stock-in-batch": "票据入库确认",
+  "stock-out": "出库确认",
+};
+
+function getConfirmationTitle(confirmationType: string) {
+  return CONFIRMATION_LABELS[confirmationType] ?? confirmationType;
+}
+
+export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const summary = useDashboardSummaryQuery();
   const alerts = useLowStockAlertsQuery();
   const pendingConfirmations = usePendingConfirmationsQuery();
@@ -41,6 +60,10 @@ export default function DashboardScreen() {
     refreshDashboard();
   }, [sessionStream.dataResetVersion]);
 
+  function handleNavigateToWorkbench() {
+    navigation?.navigate("工作台");
+  }
+
   async function handleDemoReset() {
     const result = await demoBootstrap.runDemoBootstrap();
     if (result === null) {
@@ -51,56 +74,97 @@ export default function DashboardScreen() {
 
   if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
     return (
-      <View>
-        <Text>Loading dashboard...</Text>
-      </View>
+      <AppScreen
+        title="今日门店概览"
+        subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
+      >
+        <EmptyState title="正在加载今日门店概览..." description="请稍候，我们正在同步门店实时数据。" />
+      </AppScreen>
     );
   }
 
   if (summary.error || alerts.error || pendingConfirmations.error || summary.data === null) {
     return (
-      <View>
-        <Text>Dashboard unavailable</Text>
-        <Text>{summary.error ?? alerts.error ?? pendingConfirmations.error ?? "Unknown error"}</Text>
-      </View>
+      <AppScreen
+        title="今日门店概览"
+        subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
+      >
+        <InlineNotice
+          tone="error"
+          title="今日概览暂不可用"
+          message={summary.error ?? alerts.error ?? pendingConfirmations.error ?? "Unknown error"}
+        />
+      </AppScreen>
     );
   }
 
+  const lowStockItems = alerts.data.map((alert) => ({
+    id: alert.alert_id,
+    title: alert.item_name,
+    detail: `库存 ${alert.stock} / 阈值 ${alert.threshold} ${alert.unit}`,
+    badgeTone: "warning" as const,
+    badgeLabel: "低库存",
+  }));
+
+  const pendingItems = pendingConfirmations.data.map((confirmation) => ({
+    id: confirmation.confirmation_id,
+    title: getConfirmationTitle(confirmation.confirmation_type),
+    detail: confirmation.fields.summary ?? "等待门店确认处理。",
+    badgeTone: "neutral" as const,
+    badgeLabel: "待确认",
+  }));
+
   return (
-    <ScrollView>
-      <Text>Dashboard</Text>
-      <Button
-        title={demoBootstrap.isSubmitting ? "Resetting Demo..." : "Reset Demo State"}
-        onPress={() => {
-          void handleDemoReset();
-        }}
-        disabled={demoBootstrap.isSubmitting}
-      />
-      {demoBootstrap.successMessage ? <Text>{demoBootstrap.successMessage}</Text> : null}
-      {demoBootstrap.error ? <Text>{demoBootstrap.error}</Text> : null}
-
-      <Text>{`Today stock-in: ${summary.data.today_stock_in_count}`}</Text>
-      <Text>{`Completed tasks: ${summary.data.today_task_completed_count}`}</Text>
-      <Text>{`Pending confirmations: ${summary.data.pending_confirmations_count}`}</Text>
-      <Text>{`Open low-stock alerts: ${summary.data.open_low_stock_alert_count}`}</Text>
-
-      <Text>Low-stock alerts</Text>
-      {alerts.data.length === 0 ? <Text>No open low-stock alerts.</Text> : null}
-      {alerts.data.map((alert) => (
-        <View key={alert.alert_id}>
-          <Text>{alert.item_name}</Text>
-          <Text>{`${alert.stock} / ${alert.threshold} ${alert.unit}`}</Text>
-        </View>
-      ))}
-
-      <Text>Pending confirmations</Text>
-      {pendingConfirmations.data.length === 0 ? <Text>No pending confirmations.</Text> : null}
-      {pendingConfirmations.data.map((confirmation) => (
-        <View key={confirmation.confirmation_id}>
-          <Text>{confirmation.confirmation_type}</Text>
-          <Text>{confirmation.fields.summary ?? "Confirmation pending"}</Text>
-        </View>
-      ))}
-    </ScrollView>
+    <AppScreen
+      title="今日门店概览"
+      subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
+    >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <DashboardSummaryHero summary={summary.data} />
+        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
+        <DashboardExceptionCard
+          title="低库存提醒"
+          subtitle="优先处理即将断货的商品，减少缺货影响。"
+          emptyTitle="库存状态平稳"
+          emptyDescription="当前没有低库存预警。"
+          items={lowStockItems}
+        />
+        <DashboardExceptionCard
+          title="待处理确认"
+          subtitle="集中处理语音、票据与库存确认请求。"
+          emptyTitle="确认队列已清空"
+          emptyDescription="暂无待处理确认。"
+          items={pendingItems}
+        />
+        <DebugDisclosure title="调试工具">
+          <View style={styles.debugPanel}>
+            <PrimaryButton
+              label="重置演示数据"
+              loading={demoBootstrap.isSubmitting}
+              loadingLabel="重置中..."
+              onPress={() => {
+                void handleDemoReset();
+              }}
+            />
+            {demoBootstrap.successMessage ? (
+              <InlineNotice tone="success" message={demoBootstrap.successMessage} />
+            ) : null}
+            {demoBootstrap.error ? (
+              <InlineNotice tone="error" title="重置失败" message={demoBootstrap.error} />
+            ) : null}
+          </View>
+        </DebugDisclosure>
+      </ScrollView>
+    </AppScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    gap: space.s12,
+    paddingBottom: space.s24,
+  },
+  debugPanel: {
+    gap: space.s12,
+  },
+});

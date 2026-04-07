@@ -139,14 +139,22 @@ describe("DashboardScreen", () => {
     jest.resetAllMocks();
   });
 
-  it("renders summary, low-stock alerts, and pending confirmations", async () => {
+  it("renders 今日门店概览 with summary, quick actions, and exception lists", async () => {
     render(<DashboardScreen />);
 
-    expect(screen.getByText("Loading dashboard...")).toBeTruthy();
+    expect(screen.getByText("正在加载今日门店概览...")).toBeTruthy();
 
     await waitFor(() => {
-      expect(screen.getByText("Dashboard")).toBeTruthy();
-      expect(screen.getByText("Today stock-in: 1")).toBeTruthy();
+      expect(screen.getByText("今日门店概览")).toBeTruthy();
+      expect(screen.getByText("聚焦门店库存与待处理事项，先看风险，再安排动作。")).toBeTruthy();
+      expect(screen.getByText("今日入库")).toBeTruthy();
+      expect(screen.getByText("已完成任务")).toBeTruthy();
+      expect(screen.getByText("语音查货")).toBeTruthy();
+      expect(screen.getByText("拍照入库")).toBeTruthy();
+      expect(screen.getByText("票据识别")).toBeTruthy();
+      expect(screen.getAllByText("待确认").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("低库存提醒").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("待处理确认").length).toBeGreaterThan(0);
       expect(screen.getByText("Apple")).toBeTruthy();
       expect(screen.getByText("Please confirm the stock-in details before commit.")).toBeTruthy();
     });
@@ -156,13 +164,14 @@ describe("DashboardScreen", () => {
     const { rerender } = render(<DashboardScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Dashboard")).toBeTruthy();
+      expect(screen.getByText("今日门店概览")).toBeTruthy();
       expect(summaryRequests).toBe(1);
       expect(alertRequests).toBe(1);
       expect(confirmationRequests).toBe(1);
     });
 
-    fireEvent.press(screen.getByText("Reset Demo State"));
+    fireEvent.press(screen.getByLabelText("调试工具"));
+    fireEvent.press(screen.getByText("重置演示数据"));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(

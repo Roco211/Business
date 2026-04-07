@@ -224,13 +224,14 @@ def mutate_pilot_control(
         changed = True
 
     if current_mode == MODE_SHADOW and next_mode == MODE_OPEN:
-        effective_preflight_status = normalized_preflight_status
-        if effective_preflight_status is None:
-            effective_preflight_status = _normalize_optional_text(pilot_control.last_preflight_status)
-        if (effective_preflight_status or "").lower() != PREFLIGHT_READY_STATUS:
+        if (normalized_preflight_status or "").lower() != PREFLIGHT_READY_STATUS:
             raise PilotControlTransitionError(
                 "cannot transition cutover_mode from 'shadow' to 'open' without successful preflight"
             )
+
+    normalized_notes: str | None = None
+    if notes is not None:
+        normalized_notes = _normalize_optional_text(notes)
 
     if approved_calibration_artifact_id is not None:
         normalized_artifact_id = _normalize_optional_text(approved_calibration_artifact_id)
@@ -243,7 +244,6 @@ def mutate_pilot_control(
             pilot_control.approved_calibration_report_path = normalized_report_path
             changed = True
     if notes is not None:
-        normalized_notes = _normalize_optional_text(notes)
         if pilot_control.notes != normalized_notes:
             pilot_control.notes = normalized_notes
             changed = True
@@ -257,6 +257,11 @@ def mutate_pilot_control(
     transition_audit_log_id: str | None = None
     if next_mode != current_mode:
         previous_cutover_mode = current_mode
+        transition_note = normalized_notes if notes is not None else None
+        if next_mode == MODE_CLOSED and transition_note is None:
+            raise PilotControlTransitionError(
+                "cannot transition cutover_mode to 'closed' without operator note"
+            )
         changed_at = _now()
         pilot_control.cutover_mode = next_mode
         changed = True
@@ -277,7 +282,7 @@ def mutate_pilot_control(
             new_cutover_mode=next_mode,
             trial_provider_profile=pilot_control.trial_provider_profile,
             approved_calibration_artifact_id=pilot_control.approved_calibration_artifact_id,
-            note=pilot_control.notes,
+            note=transition_note,
         )
         transition_audit_log_id = transition_log.audit_log_id
 

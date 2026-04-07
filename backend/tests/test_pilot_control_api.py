@@ -257,6 +257,126 @@ def test_pilot_control_post_allows_shadow_to_open_after_ready_preflight_and_clos
     assert audit_logs[2].metadata_json["note"] == "provider incident rollback"
 
 
+def test_pilot_control_post_requires_fresh_note_for_close_transition(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    headers = _auth_headers(client, monkeypatch)
+
+    shadow_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "shadow", "notes": "provider observation window"},
+    )
+    assert shadow_response.status_code == 200
+
+    open_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "open",
+            "approved_calibration_artifact_id": "artifact_20260407",
+            "last_preflight_status": "ready",
+            "notes": "morning shift",
+        },
+    )
+    assert open_response.status_code == 200
+
+    close_without_note = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "closed"},
+    )
+    assert close_without_note.status_code == 409
+    assert close_without_note.json()["error"]["code"] == "invalid_cutover_mode_transition"
+
+    state_after_rejected_close = client.get("/api/v1/system/pilot-control", headers=headers)
+    assert state_after_rejected_close.status_code == 200
+    assert state_after_rejected_close.json()["data"]["cutover_mode"] == "open"
+
+    close_with_note = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "closed", "notes": "provider incident rollback"},
+    )
+    assert close_with_note.status_code == 200
+
+    audit_logs = _list_cutover_transition_audits(shop_id="shop_default")
+    assert len(audit_logs) == 3
+    assert [log.metadata_json["new_cutover_mode"] for log in audit_logs] == [
+        "shadow",
+        "open",
+        "closed",
+    ]
+    assert audit_logs[2].metadata_json["note"] == "provider incident rollback"
+
+
+def test_pilot_control_post_requires_fresh_preflight_status_for_each_shadow_to_open_transition(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    headers = _auth_headers(client, monkeypatch)
+
+    shadow_first = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "shadow", "notes": "first window"},
+    )
+    assert shadow_first.status_code == 200
+
+    open_first = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "open",
+            "approved_calibration_artifact_id": "artifact_20260407",
+            "last_preflight_status": "ready",
+            "notes": "first open",
+        },
+    )
+    assert open_first.status_code == 200
+
+    close_first = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "closed", "notes": "close first window"},
+    )
+    assert close_first.status_code == 200
+
+    shadow_second = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "shadow", "notes": "second window"},
+    )
+    assert shadow_second.status_code == 200
+
+    open_without_fresh_preflight = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "open", "approved_calibration_artifact_id": "artifact_20260407"},
+    )
+    assert open_without_fresh_preflight.status_code == 409
+    assert open_without_fresh_preflight.json()["error"]["code"] == "invalid_cutover_mode_transition"
+
+    state_after_rejected_open = client.get("/api/v1/system/pilot-control", headers=headers)
+    assert state_after_rejected_open.status_code == 200
+    assert state_after_rejected_open.json()["data"]["cutover_mode"] == "shadow"
+
+    open_with_fresh_preflight = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "open",
+            "approved_calibration_artifact_id": "artifact_20260407",
+            "last_preflight_status": "ready",
+            "notes": "second open",
+        },
+    )
+    assert open_with_fresh_preflight.status_code == 200
+
+
 def test_pilot_control_database_enforces_allowed_cutover_modes(client, monkeypatch) -> None:
     monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
     headers = _auth_headers(client, monkeypatch)

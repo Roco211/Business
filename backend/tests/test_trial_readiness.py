@@ -474,10 +474,18 @@ def test_set_pilot_cutover_cli_returns_non_zero_when_server_rejects_transition(
         token: str | None = None,
         payload: dict[str, object] | None = None,
     ) -> tuple[int, object]:
-        del method, token, payload
         if path == "/api/v1/auth/login":
             return 200, {"data": {"access_token": "issued-token"}}
         if path == "/api/v1/system/pilot-control":
+            assert method == "POST"
+            assert token == "issued-token"
+            assert payload == {
+                "cutover_mode": "open",
+                "approved_calibration_artifact_id": None,
+                "approved_calibration_report_path": None,
+                "last_preflight_status": None,
+                "notes": None,
+            }
             return 409, {
                 "error": {
                     "code": "invalid_cutover_mode_transition",

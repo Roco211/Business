@@ -196,8 +196,8 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("当前会话暂时不可用")).toBeTruthy();
       expect(screen.getByText("消息列表暂时不可用")).toBeTruthy();
       expect(screen.getByText("待确认事项暂时不可用")).toBeTruthy();
-      expect(screen.getAllByText("请稍后再试。").length).toBeGreaterThanOrEqual(2);
       expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
+      expect(screen.getAllByText("Request failed").length).toBeGreaterThanOrEqual(2);
     });
   });
 });

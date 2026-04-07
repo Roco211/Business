@@ -72,7 +72,7 @@ describe("useDemoBootstrapMutation", () => {
     expect(response).toBeNull();
     expect(result.current.isSubmitting).toBe(false);
     expect(result.current.successMessage).toBeNull();
-    expect(result.current.error).toBe("演示数据暂时无法重置，请稍后再试。");
+    expect(result.current.error).toBe("Reset failed");
   });
 
   it("lets an in-flight reset resolve after unmount without React warnings", async () => {

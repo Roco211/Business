@@ -788,7 +788,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
-      expect(screen.getByText("请稍后再试。")).toBeTruthy();
+      expect(screen.getByText("Message text is required")).toBeTruthy();
       expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
     });
   });

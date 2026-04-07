@@ -142,7 +142,7 @@ describe("DashboardScreen", () => {
   it("renders 今日门店概览 with summary, quick actions, and exception lists", async () => {
     render(<DashboardScreen />);
 
-    expect(screen.getByText("正在加载今日门店概览...")).toBeTruthy();
+    expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
 
     await waitFor(() => {
       expect(screen.getByText("今日门店概览")).toBeTruthy();

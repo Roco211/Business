@@ -123,7 +123,46 @@ describe("LedgerScreen workspace", () => {
     render(<LedgerScreen />);
 
     expect(screen.getByTestId("ledger-loading-state")).toBeTruthy();
+    expect(screen.getByText("正在同步库存台账")).toBeTruthy();
+    expect(screen.getByText("请稍候，我们正在整理库存与最近活动。")).toBeTruthy();
     expect(screen.queryByText("Loading ledger...")).toBeNull();
+  });
+
+  it("shows a unified unavailable state when ledger data cannot load", () => {
+    mockedUseInventoryItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+      refresh: inventoryRefresh,
+    });
+    mockedUseAuditLogsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refresh: auditRefresh,
+    });
+
+    render(<LedgerScreen />);
+
+    expect(screen.getByTestId("ledger-error-state")).toBeTruthy();
+    expect(screen.getByText("库存台账暂时不可用")).toBeTruthy();
+    expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
+  });
+
+  it("shows clearer empty copy when search has no matches", async () => {
+    mockedUseInventoryItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refresh: inventoryRefresh,
+    });
+
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("暂未找到匹配商品")).toBeTruthy();
+      expect(screen.getByText("试试更换关键词，或稍后再刷新库存数据。")).toBeTruthy();
+    });
   });
 
   it("submits correction through the action panel and refreshes data", async () => {

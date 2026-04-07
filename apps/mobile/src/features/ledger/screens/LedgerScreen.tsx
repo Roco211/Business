@@ -8,6 +8,7 @@ import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
 import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutation";
 import { useCreateStockOutMutation } from "../hooks/useCreateStockOutMutation";
 import { useInventoryItemsQuery, type InventoryItemRecord } from "../hooks/useInventoryItemsQuery";
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 import {
   AppScreen,
   AppTextField,
@@ -125,9 +126,7 @@ export default function LedgerScreen() {
     return (
       <AppScreen title="库存台账" subtitle="轻量库存工作区">
         <View testID="ledger-loading-state">
-          <SurfaceCard emphasis="outlined">
-            <InlineNotice tone="neutral" title="同步中" message="正在拉取库存与最近活动，请稍候。" />
-          </SurfaceCard>
+          <EmptyState title="正在同步库存台账" description="请稍候，我们正在整理库存与最近活动。" />
         </View>
       </AppScreen>
     );
@@ -140,8 +139,8 @@ export default function LedgerScreen() {
           <SurfaceCard emphasis="outlined">
             <InlineNotice
               tone="error"
-              title="台账暂时不可用"
-              message={inventory.error ?? auditLogs.error ?? "请稍后重试"}
+              title="库存台账暂时不可用"
+              message={getFriendlyStatusMessage(inventory.error ?? auditLogs.error, "请稍后再试。")}
             />
           </SurfaceCard>
         </View>
@@ -165,7 +164,7 @@ export default function LedgerScreen() {
 
         <SectionHeader title="库存工作区" subtitle="从卡片直接进入修正或出库操作。" />
         {inventory.data.length === 0 ? (
-          <EmptyState title="暂无匹配库存" description="请调整搜索条件，或稍后刷新数据。" />
+          <EmptyState title="暂未找到匹配商品" description="试试更换关键词，或稍后再刷新库存数据。" />
         ) : (
           <View style={styles.cards}>
             {inventory.data.map((item) => (

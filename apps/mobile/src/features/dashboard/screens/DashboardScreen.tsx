@@ -8,6 +8,7 @@ import { useDemoBootstrapMutation } from "../hooks/useDemoBootstrapMutation";
 import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import { AppScreen, DebugDisclosure, EmptyState, InlineNotice, PrimaryButton, space } from "../../../shared/ui";
 
@@ -26,6 +27,9 @@ const CONFIRMATION_LABELS: Record<string, string> = {
 function getConfirmationTitle(confirmationType: string) {
   return CONFIRMATION_LABELS[confirmationType] ?? confirmationType;
 }
+
+const SCREEN_TITLE = "今日门店概览";
+const SCREEN_SUBTITLE = "聚焦门店库存与待处理事项，先看风险，再安排动作。";
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const summary = useDashboardSummaryQuery();
@@ -74,25 +78,25 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
   if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
     return (
-      <AppScreen
-        title="今日门店概览"
-        subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
-      >
-        <EmptyState title="正在加载今日门店概览..." description="请稍候，我们正在同步门店实时数据。" />
+      <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
+        <EmptyState
+          title="正在同步今日门店概览"
+          description="请稍候，我们正在整理最新库存与待处理事项。"
+        />
       </AppScreen>
     );
   }
 
   if (summary.error || alerts.error || pendingConfirmations.error || summary.data === null) {
     return (
-      <AppScreen
-        title="今日门店概览"
-        subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
-      >
+      <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
         <InlineNotice
           tone="error"
-          title="今日概览暂不可用"
-          message={summary.error ?? alerts.error ?? pendingConfirmations.error ?? "Unknown error"}
+          title="今日概览暂时不可用"
+          message={getFriendlyStatusMessage(
+            summary.error ?? alerts.error ?? pendingConfirmations.error,
+            "请稍后再试。",
+          )}
         />
       </AppScreen>
     );
@@ -115,10 +119,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   }));
 
   return (
-    <AppScreen
-      title="今日门店概览"
-      subtitle="聚焦门店库存与待处理事项，先看风险，再安排动作。"
-    >
+    <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <DashboardSummaryHero summary={summary.data} />
         <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { apiPostJson } from "../../../shared/api/client";
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 
 
 export type DemoBootstrapSummaryRecord = {
@@ -46,13 +47,17 @@ export function useDemoBootstrapMutation() {
         {},
       );
       if (isMountedRef.current) {
-        setSuccessMessage("Demo state reset.");
+        setSuccessMessage("演示数据已刷新，可继续体验。");
       }
       return response.data;
     } catch (reason: unknown) {
-      const message = reason instanceof Error ? reason.message : "Failed to reset demo state";
       if (isMountedRef.current) {
-        setError(message);
+        setError(
+          getFriendlyStatusMessage(
+            reason instanceof Error ? reason.message : null,
+            "演示数据暂时无法重置，请稍后再试。",
+          ),
+        );
       }
       return null;
     } finally {

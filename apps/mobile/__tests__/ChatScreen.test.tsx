@@ -627,7 +627,7 @@ describe("ChatScreen", () => {
   it("renders durable session messages instead of only recent session events", async () => {
     render(<ChatScreen />);
 
-    expect(screen.getByText("工作台加载中...")).toBeTruthy();
+    expect(screen.getByText("正在同步工作台")).toBeTruthy();
 
     await waitForChatReady();
     expect(screen.queryByText("Voice Query Demo")).toBeNull();
@@ -642,7 +642,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
 
     fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "Count chips too");
-    fireEvent.press(screen.getByText("发送更新"));
+    fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
       expect(screen.getByText("Count chips too")).toBeTruthy();
@@ -782,13 +782,13 @@ describe("ChatScreen", () => {
     await waitForChatReady();
 
     fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "   ");
-    fireEvent.press(screen.getByText("发送更新"));
+    fireEvent.press(screen.getByText("发送消息"));
 
     fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "cola restock");
-    fireEvent.press(screen.getByText("发送更新"));
+    fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
-      expect(screen.getByText("Message text is required")).toBeTruthy();
+      expect(screen.getByText("请稍后再试。")).toBeTruthy();
       expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
     });
   });

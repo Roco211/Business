@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 import { AppScreen, AppTextField, InlineNotice, PrimaryButton, SurfaceCard, color, space } from "../../../shared/ui";
 import { useLoginMutation } from "../hooks/useLoginMutation";
 
@@ -22,7 +23,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            <Text style={styles.kicker}>Frontline Pilot</Text>
+            <Text style={styles.kicker}>门店试点</Text>
             <Text style={styles.title}>{"\u95e8\u5e97\u5e93\u5b58\u52a9\u624b"}</Text>
             <Text style={styles.subtitle}>{"\u8bed\u97f3\u3001\u62cd\u7167\u3001\u7968\u636e\u7edf\u4e00\u5165\u8d26"}</Text>
           </View>
@@ -42,11 +43,17 @@ export default function LoginScreen() {
               secureTextEntry
               value={password}
             />
-            {login.error ? <InlineNotice tone="error" message={login.error} /> : null}
+            {login.error ? (
+              <InlineNotice
+                tone="error"
+                title="暂时无法登录"
+                message={getFriendlyStatusMessage(login.error, "登录暂时不可用，请稍后再试。")}
+              />
+            ) : null}
             <PrimaryButton
               label={"\u767b\u5f55"}
               loading={login.isSubmitting}
-              loadingLabel={"\u767b\u5f55\u4e2d..."}
+              loadingLabel="正在登录..."
               onPress={() => void login.submitLogin(email, password)}
             />
           </SurfaceCard>

@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { apiPostJson } from "../../../shared/api/client";
 import { useAuth } from "../../../shared/auth/AuthProvider";
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 
 type LoginResponse = {
   data: {
@@ -28,7 +29,7 @@ export function useLoginMutation() {
     const hasNonWhitespacePassword = password.trim().length > 0;
 
     if (trimmedEmail.length === 0 || !hasNonWhitespacePassword) {
-      setError("Email and password are required");
+      setError("请输入邮箱和密码。");
       return false;
     }
 
@@ -55,8 +56,12 @@ export function useLoginMutation() {
 
       return true;
     } catch (reason: unknown) {
-      const message = reason instanceof Error ? reason.message : "Failed to login";
-      setError(message);
+      setError(
+        getFriendlyStatusMessage(
+          reason instanceof Error ? reason.message : null,
+          "登录暂时不可用，请稍后再试。",
+        ),
+      );
       return false;
     } finally {
       setIsSubmitting(false);

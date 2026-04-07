@@ -23,26 +23,27 @@ import { WorkbenchHeader } from "../components/WorkbenchHeader";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
+import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 
 const COPY = {
   fallbackSessionTitle: "工作台会话",
-  loadingTitle: "工作台加载中...",
-  loadingDescription: "正在同步会话消息与确认任务。",
+  loadingTitle: "正在同步工作台",
+  loadingDescription: "请稍候，我们正在整理会话消息与待确认事项。",
   workbenchTitle: "聊天工作台",
-  sessionUnavailable: "会话不可用",
-  messagesUnavailable: "消息加载失败",
-  confirmationsUnavailable: "确认任务加载失败",
+  sessionUnavailable: "当前会话暂时不可用",
+  messagesUnavailable: "消息列表暂时不可用",
+  confirmationsUnavailable: "待确认事项暂时不可用",
   resultsTitle: "处理结果",
   resultsSubtitle: "消息时间线与强化确认卡。",
-  emptyTitle: "暂无工作台消息",
-  emptyDescription: "可先使用引导入口，或直接发送文字。",
+  emptyTitle: "工作台里还没有新消息",
+  emptyDescription: "可以先用引导入口，也可以直接发送文字请求。",
   composeTitle: "发送输入",
   composeSubtitle: "可用引导入口，或直接输入详细请求。",
   messageLabel: "消息",
   messagePlaceholder: "描述你的请求",
-  sendFailed: "发送失败",
-  sendAction: "发送更新",
-  sendLoading: "发送中...",
+  sendFailed: "发送未完成",
+  sendAction: "发送消息",
+  sendLoading: "正在发送...",
   connectionConnected: "会话实时流已连接。",
   connectionConnecting: "正在尝试重连会话流。",
   connectionDegraded:
@@ -153,17 +154,21 @@ export default function ChatScreen() {
           <InlineNotice
             tone="error"
             title={COPY.sessionUnavailable}
-            message={sessionStream.bootstrapError}
+            message={getFriendlyStatusMessage(sessionStream.bootstrapError, "请稍后再试。")}
           />
         ) : null}
         {messages.error ? (
-          <InlineNotice tone="error" title={COPY.messagesUnavailable} message={messages.error} />
+          <InlineNotice
+            tone="error"
+            title={COPY.messagesUnavailable}
+            message={getFriendlyStatusMessage(messages.error, "请稍后再试。")}
+          />
         ) : null}
         {confirmations.error ? (
           <InlineNotice
             tone="error"
             title={COPY.confirmationsUnavailable}
-            message={confirmations.error}
+            message={getFriendlyStatusMessage(confirmations.error, "请稍后再试。")}
           />
         ) : null}
 
@@ -236,7 +241,11 @@ export default function ChatScreen() {
               onChangeText={setDraftText}
             />
             {sendMessage.error ? (
-              <InlineNotice tone="error" title={COPY.sendFailed} message={sendMessage.error} />
+              <InlineNotice
+                tone="error"
+                title={COPY.sendFailed}
+                message={getFriendlyStatusMessage(sendMessage.error, "请稍后再试。")}
+              />
             ) : null}
             <PrimaryButton
               label={COPY.sendAction}

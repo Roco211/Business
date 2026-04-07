@@ -16,6 +16,28 @@ const mockRunDemoBootstrap = jest.fn(async () => ({
   task_run_count: 6,
 }));
 const mockNavigate = jest.fn();
+const mockSummaryRefresh = jest.fn();
+const mockAlertsRefresh = jest.fn();
+const mockPendingRefresh = jest.fn();
+
+let mockSummaryState = {
+  data: {
+    shop_id: "shop_default",
+    today_stock_in_count: 7,
+    today_task_completed_count: 11,
+    pending_confirmations_count: 1,
+    open_low_stock_alert_count: 1,
+    last_inventory_event_at: "2026-04-05T12:00:00",
+  },
+  isLoading: false,
+  error: null as string | null,
+};
+
+let mockDemoBootstrapState = {
+  isSubmitting: false,
+  error: null as string | null,
+  successMessage: null as string | null,
+};
 
 let mockAlertsData = [
   {
@@ -42,17 +64,8 @@ let mockPendingData = [
 
 jest.mock("../hooks/useDashboardSummaryQuery", () => ({
   useDashboardSummaryQuery: () => ({
-    data: {
-      shop_id: "shop_default",
-      today_stock_in_count: 7,
-      today_task_completed_count: 11,
-      pending_confirmations_count: 1,
-      open_low_stock_alert_count: 1,
-      last_inventory_event_at: "2026-04-05T12:00:00",
-    },
-    isLoading: false,
-    error: null,
-    refresh: jest.fn(),
+    ...mockSummaryState,
+    refresh: mockSummaryRefresh,
   }),
 }));
 
@@ -61,7 +74,7 @@ jest.mock("../hooks/useLowStockAlertsQuery", () => ({
     data: mockAlertsData,
     isLoading: false,
     error: null,
-    refresh: jest.fn(),
+    refresh: mockAlertsRefresh,
   }),
 }));
 
@@ -70,15 +83,13 @@ jest.mock("../hooks/usePendingConfirmationsQuery", () => ({
     data: mockPendingData,
     isLoading: false,
     error: null,
-    refresh: jest.fn(),
+    refresh: mockPendingRefresh,
   }),
 }));
 
 jest.mock("../hooks/useDemoBootstrapMutation", () => ({
   useDemoBootstrapMutation: () => ({
-    isSubmitting: false,
-    error: null,
-    successMessage: null,
+    ...mockDemoBootstrapState,
     runDemoBootstrap: mockRunDemoBootstrap,
   }),
 }));
@@ -98,6 +109,23 @@ jest.mock("../../../shared/session/useSessionStream", () => ({
 
 describe("DashboardScreen layout", () => {
   beforeEach(() => {
+    mockSummaryState = {
+      data: {
+        shop_id: "shop_default",
+        today_stock_in_count: 7,
+        today_task_completed_count: 11,
+        pending_confirmations_count: 1,
+        open_low_stock_alert_count: 1,
+        last_inventory_event_at: "2026-04-05T12:00:00",
+      },
+      isLoading: false,
+      error: null,
+    };
+    mockDemoBootstrapState = {
+      isSubmitting: false,
+      error: null,
+      successMessage: null,
+    };
     mockAlertsData = [
       {
         alert_id: "alert_1",
@@ -122,6 +150,35 @@ describe("DashboardScreen layout", () => {
     mockNavigate.mockReset();
     mockNotifyDemoDataReset.mockReset();
     mockRunDemoBootstrap.mockClear();
+    mockSummaryRefresh.mockReset();
+    mockAlertsRefresh.mockReset();
+    mockPendingRefresh.mockReset();
+  });
+
+  it("shows friendly loading copy while the overview syncs", () => {
+    mockSummaryState = {
+      data: null,
+      isLoading: true,
+      error: null,
+    };
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
+    expect(screen.getByText("请稍候，我们正在整理最新库存与待处理事项。")).toBeTruthy();
+  });
+
+  it("shows a calm unavailable state when dashboard queries fail", () => {
+    mockSummaryState = {
+      data: null,
+      isLoading: false,
+      error: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+    };
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("今日概览暂时不可用")).toBeTruthy();
+    expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
   });
 
   it("shows calm empty states when no low-stock alerts or confirmations exist", () => {
@@ -134,6 +191,19 @@ describe("DashboardScreen layout", () => {
     expect(screen.getByText("当前没有低库存预警。")).toBeTruthy();
     expect(screen.getByText("确认队列已清空")).toBeTruthy();
     expect(screen.getByText("暂无待处理确认。")).toBeTruthy();
+  });
+
+  it("shows polished demo reset success copy", () => {
+    mockDemoBootstrapState = {
+      isSubmitting: false,
+      error: null,
+      successMessage: "演示数据已刷新，可继续体验。",
+    };
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+    fireEvent.press(screen.getByLabelText("调试工具"));
+
+    expect(screen.getByText("演示数据已刷新，可继续体验。")).toBeTruthy();
   });
 
   it("sends all quick actions to the 工作台 tab", () => {

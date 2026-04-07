@@ -842,3 +842,112 @@ Notes:
 - `low_confidence_count`, `fallback_count`, and `provider_failures` are derived from `audit_logs(scope = pilot, action = runtime.provider_telemetry)`
 - telemetry rows from a different `trial_provider_profile` are ignored
 - an empty `trial_provider_profile` should be treated by operator tooling as a degraded pilot summary signal
+
+## 17.6 Pilot Control Addendum
+
+`GET /api/v1/system/pilot-control`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Response:
+
+```json
+{
+  "data": {
+    "shop_id": "shop_default",
+    "trial_provider_profile": "pilot-v1",
+    "approved_calibration_artifact_id": "artifact_20260407",
+    "approved_calibration_report_path": "C:/secure/pilot/artifacts/pilot-v1_report_20260407T090000000000Z.json",
+    "cutover_mode": "shadow",
+    "opened_at": null,
+    "opened_by_actor_id": null,
+    "closed_at": null,
+    "closed_by_actor_id": null,
+    "last_preflight_at": "2026-04-07T08:55:00Z",
+    "last_preflight_status": "ready",
+    "notes": "morning shift preparation"
+  }
+}
+```
+
+`POST /api/v1/system/pilot-control`
+
+Request body:
+
+```json
+{
+  "cutover_mode": "open",
+  "approved_calibration_artifact_id": "artifact_20260407",
+  "approved_calibration_report_path": "C:/secure/pilot/artifacts/pilot-v1_report_20260407T090000000000Z.json",
+  "last_preflight_status": "ready",
+  "notes": "opening controlled live shift"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "shop_id": "shop_default",
+    "previous_cutover_mode": "shadow",
+    "cutover_mode": "open",
+    "transition_audit_log_id": "audit_transition_open_001"
+  }
+}
+```
+
+Mode semantics:
+
+- `closed`: live cutover is blocked
+- `shadow`: live providers run with forced confirmation posture
+- `open`: controlled live cutover is enabled
+
+Transition notes:
+
+- transitions are owner-authenticated and audited
+- invalid transitions return `409 invalid_cutover_mode_transition`
+- invalid mode literals return `422 invalid_cutover_mode`
+
+## 17.7 Live Pilot Preflight CLI Addendum
+
+`python backend/scripts/run_live_pilot_preflight.py`
+
+Contract:
+
+- validates alignment across readiness payload, pilot-control payload, and approved artifact JSON
+- prints compact JSON:
+  - `overall_status`
+  - `runtime_mode`
+  - `trial_provider_profile`
+  - `cutover_mode`
+  - `approved_calibration_artifact_id`
+  - `reasons`
+- exits `0` only when `overall_status == "ready"`
+- exits `1` for degraded checks, auth issues, non-200 responses, or malformed envelopes
+
+## 17.8 Shift Bundle Export CLI Addendum
+
+`python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles`
+
+Contract:
+
+- collects and writes:
+  - readiness JSON
+  - preflight JSON
+  - current pilot-control JSON
+  - pilot summary JSON
+  - manifest JSON
+- manifest includes:
+  - artifact file names
+  - timestamps
+  - `shop_id`
+  - `cutover_mode`
+  - `trial_provider_profile`
+  - `approved_calibration_artifact_id`
+  - `overall_status`
+  - `degraded_reasons`
+- destination must be private or explicitly gitignored when under repository root
+- CLI exits `0` when bundle `overall_status` is `ready`; exits `1` when degraded

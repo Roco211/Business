@@ -7,14 +7,16 @@ This runbook covers the operator loop after trial readiness is green and the app
 1. Confirm the API is up and the trial profile is still configured.
 2. Run the readiness CLI.
 3. Run the pilot summary CLI for the current review window.
-4. Record the compact JSON outputs in the pilot handoff log or incident ticket.
-5. Continue pilot traffic only when both checks remain green.
+4. Export one shift bundle JSON package for handoff or incident review.
+5. Record the bundle manifest path in the pilot handoff log or incident ticket.
+6. Continue pilot traffic only when readiness, summary, and shift bundle export are all successful.
 
 Baseline commands:
 
 ```powershell
 python backend/scripts/run_trial_readiness_check.py
 python backend/scripts/run_pilot_summary_check.py
+python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles
 ```
 
 Useful overrides:
@@ -22,7 +24,16 @@ Useful overrides:
 ```powershell
 python backend/scripts/run_pilot_summary_check.py --hours 24
 python backend/scripts/run_pilot_summary_check.py --max-fallback-rate 0.05 --max-low-confidence-rate 0.20
+python backend/scripts/export_pilot_shift_bundle.py --hours 8 --api-base-url http://127.0.0.1:8001
 ```
+
+## Cutover Mode Meanings
+
+- `closed`: guardrails block live cutover behavior and operators should treat pilot traffic as halted
+- `shadow`: providers are observed under guardrails and state-changing actions are forced through confirmations
+- `open`: cutover is live under the approved profile/artifact/preflight alignment
+
+When in doubt, roll back from `open` to `shadow`. If the incident is severe or unresolved, roll back to `closed`.
 
 ## Pilot Summary CLI Contract
 
@@ -71,22 +82,61 @@ Rate denominator note:
 
 - Start of day: run readiness and a 24-hour pilot summary before opening pilot traffic.
 - Mid-shift: re-run the pilot summary after any provider incident or threshold alert.
-- End of day: archive the final summary JSON with the calibration artifact id that was active during the shift.
+- End of day: export and archive a final shift bundle with the calibration artifact id that was active during the shift.
+
+## Required Shift Bundle Export Workflow
+
+Run once per handoff and for every incident timeline:
+
+```powershell
+python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles
+```
+
+Bundle contents:
+
+- readiness JSON (`run_trial_readiness_check` equivalent payload)
+- preflight JSON (`run_live_pilot_preflight` equivalent payload)
+- current `GET /api/v1/system/pilot-control` JSON
+- pilot summary JSON (`run_pilot_summary_check` equivalent payload)
+- compact manifest with file names, timestamps, shop id, mode, profile, and artifact id
+
+Destination requirements:
+
+- use a private location outside the repo (recommended), or
+- use a repository path that is explicitly gitignored
+
+If any upstream artifact is degraded, export still succeeds but marks bundle `overall_status=degraded` and includes `degraded_reasons`.
 
 ## Rollback Posture
 
 If either operator CLI exits non-zero:
 
 1. Stop opening new pilot traffic until the cause is understood.
-2. Preserve the latest readiness JSON, pilot summary JSON, and calibration report path used for that shift.
-3. If the issue is provider or infrastructure related, revert to the last known-good runtime profile or move the environment back to `APP_RUNTIME_MODE=local-demo` before restarting the API.
-4. If the issue is calibration-rule related, re-apply the previous approved calibration report:
+2. Move cutover back to `shadow` first while investigation continues:
+
+```powershell
+python backend/scripts/set_pilot_cutover.py --mode shadow --note "rollback: investigating incident"
+```
+
+3. If the incident remains unresolved, close cutover completely:
+
+```powershell
+python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: cutover closed pending fix"
+```
+
+4. Preserve and attach a fresh shift bundle export to the incident ticket.
+5. If the issue is calibration-rule related, re-apply the previous approved calibration report:
 
 ```powershell
 python backend/scripts/apply_trial_calibration.py --report C:\secure\pilot\artifacts\last-known-good.json
 ```
 
-5. Re-run `run_trial_readiness_check.py` and `run_pilot_summary_check.py` before resuming the pilot.
+6. Re-run `run_trial_readiness_check.py`, `run_live_pilot_preflight.py`, and `run_pilot_summary_check.py` before resuming.
+7. Open cutover again only through the controlled path:
+
+```powershell
+python backend/scripts/set_pilot_cutover.py --mode open --artifact-path C:\secure\pilot\artifacts\last-known-good.json --note "resume after rollback"
+```
 
 Notes:
 

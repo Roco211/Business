@@ -163,6 +163,52 @@ Notes:
 - Calibration apply writes an audit log entry tied to the report `artifact_id` and `trial_provider_profile`.
 - If the applied rules are not acceptable, re-apply the last known-good report before running the next readiness check.
 
+## Live Pilot Preflight CLI Contract
+
+Run preflight immediately before any `shadow -> open` transition:
+
+```powershell
+python backend/scripts/run_live_pilot_preflight.py --artifact-path C:\secure\pilot\artifacts\pilot-v1_report_20260407T090000000000Z.json
+```
+
+Optional flags:
+
+```powershell
+python backend/scripts/run_live_pilot_preflight.py --api-base-url http://10.0.2.2:8001
+python backend/scripts/run_live_pilot_preflight.py --auth-token <access_token>
+```
+
+Output contract (compact JSON):
+
+- `overall_status`: `ready` or `degraded`
+- `runtime_mode`
+- `trial_provider_profile`
+- `cutover_mode`
+- `approved_calibration_artifact_id`
+- `reasons` (array of degraded reasons, empty when ready)
+
+Exit behavior:
+
+- Exit `0`: all preflight gates are green
+- Exit `1`: readiness mismatch, profile/label drift, artifact mismatch, allowlist mismatch, path safety issue, auth failure, or malformed payload
+
+Preflight contract notes:
+
+- the CLI uses protected routes and validates alignment across:
+  - `GET /api/v1/system/readiness`
+  - `GET /api/v1/system/pilot-control`
+  - approved artifact JSON content
+- if `reasons` is non-empty, treat the environment as not safe for `open` cutover
+- preflight status is not sticky; rerun it for each new cutover window
+
+## Cutover Mode Meanings
+
+- `closed`: live pilot traffic is blocked by cutover policy
+- `shadow`: live providers run, but guardrails force confirmation before state-changing actions
+- `open`: live providers and guardrails are aligned for controlled live cutover
+
+Only move to `open` after a fresh preflight result is `ready`.
+
 ## Handoff To Daily Pilot Review
 
 Once readiness is green and the approved calibration report has been applied, use the daily flow in `project_docs/pilot-execution-runbook.md` for ongoing operator checks. That runbook covers the pilot summary CLI, threshold overrides, and rollback posture.

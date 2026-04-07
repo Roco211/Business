@@ -7,6 +7,7 @@ from app.models import AuditLog, Confirmation, MediaUpload, Message, SessionReco
 from app.runtime.processor import process_task_run
 from app.services.bootstrap import ensure_default_context
 from app.services.messages import create_message
+from app.services.pilot_control import get_or_create_pilot_control
 from conftest import auth_headers, login_and_get_token
 
 
@@ -139,7 +140,38 @@ def _insert_provider_telemetry(
     low_confidence: bool = False,
     error_code: str | None = None,
     trial_provider_profile: str = "pilot-v1",
+    cutover_mode: str | None = None,
+    guardrail_status: str | None = None,
+    guardrail_reason: str | None = None,
+    shadow_forced_confirmation: bool | None = None,
+    guardrail_degraded: bool | None = None,
+    guardrail_degraded_reasons: list[str] | None = None,
 ) -> None:
+    metadata_json: dict[str, object] = {
+        "task_type": task_type,
+        "capability": capability,
+        "provider_mode": provider_mode,
+        "provider_label": provider_label,
+        "used_fallback": used_fallback,
+        "recognized_confidence": recognized_confidence,
+        "low_confidence": low_confidence,
+        "outcome": outcome,
+        "error_code": error_code,
+        "trial_provider_profile": trial_provider_profile,
+    }
+    if cutover_mode is not None:
+        metadata_json["cutover_mode"] = cutover_mode
+    if guardrail_status is not None:
+        metadata_json["guardrail_status"] = guardrail_status
+    if guardrail_reason is not None:
+        metadata_json["guardrail_reason"] = guardrail_reason
+    if shadow_forced_confirmation is not None:
+        metadata_json["shadow_forced_confirmation"] = shadow_forced_confirmation
+    if guardrail_degraded is not None:
+        metadata_json["guardrail_degraded"] = guardrail_degraded
+    if guardrail_degraded_reasons is not None:
+        metadata_json["guardrail_degraded_reasons"] = list(guardrail_degraded_reasons)
+
     db_session.add(
         AuditLog(
             audit_log_id=new_prefixed_id("audit"),
@@ -151,18 +183,7 @@ def _insert_provider_telemetry(
             task_run_id=task_run_id,
             target_type="task_run",
             target_id=task_run_id,
-            metadata_json={
-                "task_type": task_type,
-                "capability": capability,
-                "provider_mode": provider_mode,
-                "provider_label": provider_label,
-                "used_fallback": used_fallback,
-                "recognized_confidence": recognized_confidence,
-                "low_confidence": low_confidence,
-                "outcome": outcome,
-                "error_code": error_code,
-                "trial_provider_profile": trial_provider_profile,
-            },
+            metadata_json=metadata_json,
             created_at=created_at,
         )
     )
@@ -197,6 +218,41 @@ def _create_receipt_runtime_task(db_session, *, media_id: str, client_request_id
         actor_type="owner",
         actor_id="owner_default",
         message_type="receipt-image",
+        text=None,
+        media_ids=[media_id],
+        client_request_id=client_request_id,
+    )
+    return result.task_run_id
+
+
+def _create_voice_runtime_task(db_session, *, media_id: str, client_request_id: str) -> str:
+    context = ensure_default_context(db_session)
+    db_session.add(
+        MediaUpload(
+            media_id=media_id,
+            shop_id=context.shop.shop_id,
+            uploader_actor_type="owner",
+            uploader_actor_id="owner_default",
+            media_type="audio",
+            file_name=f"{media_id}.bin",
+            content_type="application/octet-stream",
+            size_bytes=1024,
+            status="uploaded",
+            upload_url=f"https://mock.example/uploads/{media_id}",
+            public_url=f"https://mock.example/media/{media_id}",
+            checksum_sha256="abc123",
+            uploaded_at=context.session.created_at,
+            created_at=context.session.created_at,
+            updated_at=context.session.created_at,
+        )
+    )
+    db_session.commit()
+    result = create_message(
+        db_session,
+        session_id=context.session.session_id,
+        actor_type="owner",
+        actor_id="owner_default",
+        message_type="voice",
         text=None,
         media_ids=[media_id],
         client_request_id=client_request_id,
@@ -520,6 +576,198 @@ def test_pilot_summary_counts_ocr_fallback_and_low_confidence_from_real_runtime_
     assert payload["fallback_count"] == 1
     assert payload["telemetry_task_count"] == 1
     assert payload["trial_provider_profile"] == "pilot-v1"
+
+
+def test_pilot_summary_counts_cutover_mode_from_real_open_allowed_runtime_telemetry(
+    client,
+    monkeypatch,
+) -> None:
+    from app.runtime import tools as runtime_tools
+    from app.services.asr_types import AsrTranscription
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+
+    class _Gateway:
+        def transcribe(self, _media_input):
+            return AsrTranscription(text="check stock left for cola", provider="real-asr", confidence=0.97)
+
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _Gateway())
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        pilot_control, _ = get_or_create_pilot_control(
+            db_session,
+            shop_id=context.shop.shop_id,
+            trial_provider_profile="pilot-v1",
+        )
+        pilot_control.cutover_mode = "open"
+        pilot_control.approved_calibration_artifact_id = "artifact_20260407"
+        pilot_control.last_preflight_status = "ready"
+        db_session.commit()
+
+        task_run_id = _create_voice_runtime_task(
+            db_session,
+            media_id="voice_summary_open_allowed",
+            client_request_id="pilot_summary_open_allowed_cutover",
+        )
+        result = process_task_run(db_session, task_run_id)
+        assert result.status == "completed"
+    finally:
+        db_session.close()
+
+    response = client.get(
+        "/api/v1/system/pilot-summary?hours=24",
+        headers=_auth_headers(client, monkeypatch),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["task_totals"]["voice-stock-query"]["completed"] == 1
+    assert payload["telemetry_task_count"] == 1
+    assert payload["cutover_mode_counts"]["open"] == 1
+
+
+def test_pilot_summary_distinguishes_cutover_guardrail_outcomes_from_provider_failures(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+
+    db_session = get_session_factory()()
+    try:
+        context = ensure_default_context(db_session)
+        now = _now()
+        guardrail_block_task = _insert_task_run(
+            db_session,
+            shop_id=context.shop.shop_id,
+            session_id=context.session.session_id,
+            task_type="voice-stock-in",
+            status="failed",
+            created_at=now - timedelta(minutes=40),
+            completed_at=now - timedelta(minutes=35),
+            error_code="pilot_cutover_closed",
+        )
+        provider_failure_task = _insert_task_run(
+            db_session,
+            shop_id=context.shop.shop_id,
+            session_id=context.session.session_id,
+            task_type="photo-stock-query",
+            status="failed",
+            created_at=now - timedelta(minutes=30),
+            completed_at=now - timedelta(minutes=25),
+            error_code="vision_unavailable",
+        )
+        shadow_task = _insert_task_run(
+            db_session,
+            shop_id=context.shop.shop_id,
+            session_id=context.session.session_id,
+            task_type="voice-stock-in",
+            status="awaiting-confirmation",
+            created_at=now - timedelta(minutes=20),
+        )
+        degraded_open_task = _insert_task_run(
+            db_session,
+            shop_id=context.shop.shop_id,
+            session_id=context.session.session_id,
+            task_type="voice-stock-in",
+            status="awaiting-confirmation",
+            created_at=now - timedelta(minutes=10),
+        )
+
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=guardrail_block_task,
+            created_at=now - timedelta(minutes=35),
+            task_type="voice-stock-in",
+            capability="guardrail",
+            provider_mode="guardrail",
+            provider_label="pilot-cutover",
+            outcome="failed",
+            error_code="pilot_cutover_closed",
+            cutover_mode="closed",
+            guardrail_status="blocked",
+            guardrail_reason="cutover_mode_closed",
+            shadow_forced_confirmation=False,
+            guardrail_degraded=False,
+            guardrail_degraded_reasons=[],
+        )
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=provider_failure_task,
+            created_at=now - timedelta(minutes=25),
+            task_type="photo-stock-query",
+            capability="vision",
+            provider_mode="real-provider",
+            provider_label="vision-primary",
+            outcome="failed",
+            error_code="vision_unavailable",
+            cutover_mode="open",
+            guardrail_status="allowed",
+            shadow_forced_confirmation=False,
+            guardrail_degraded=False,
+            guardrail_degraded_reasons=[],
+        )
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=shadow_task,
+            created_at=now - timedelta(minutes=20),
+            task_type="voice-stock-in",
+            capability="guardrail",
+            provider_mode="guardrail",
+            provider_label="pilot-cutover",
+            outcome="awaiting-confirmation",
+            cutover_mode="shadow",
+            guardrail_status="forced-confirmation",
+            guardrail_reason="cutover_mode_shadow",
+            shadow_forced_confirmation=True,
+            guardrail_degraded=False,
+            guardrail_degraded_reasons=[],
+        )
+        _insert_provider_telemetry(
+            db_session,
+            shop_id=context.shop.shop_id,
+            task_run_id=degraded_open_task,
+            created_at=now - timedelta(minutes=10),
+            task_type="voice-stock-in",
+            capability="guardrail",
+            provider_mode="guardrail",
+            provider_label="pilot-cutover",
+            outcome="awaiting-confirmation",
+            cutover_mode="open",
+            guardrail_status="forced-confirmation",
+            guardrail_reason="cutover_alignment_invalid",
+            shadow_forced_confirmation=False,
+            guardrail_degraded=True,
+            guardrail_degraded_reasons=[
+                "trial_provider_profile_mismatch",
+                "approved_calibration_artifact_missing",
+            ],
+        )
+        db_session.commit()
+    finally:
+        db_session.close()
+
+    response = client.get(
+        "/api/v1/system/pilot-summary?hours=24",
+        headers=_auth_headers(client, monkeypatch),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["provider_failures"]["vision_unavailable"] == 1
+    assert "pilot_cutover_closed" not in payload["provider_failures"]
+    assert payload["cutover_mode_counts"]["closed"] == 1
+    assert payload["cutover_mode_counts"]["shadow"] == 1
+    assert payload["cutover_mode_counts"]["open"] == 2
+    assert payload["guardrail_blocks"]["cutover_mode_closed"] == 1
+    assert payload["shadow_forced_confirmation_count"] == 1
+    assert payload["guardrail_degraded_reasons"]["trial_provider_profile_mismatch"] == 1
+    assert payload["guardrail_degraded_reasons"]["approved_calibration_artifact_missing"] == 1
 
 
 def test_pilot_summary_ignores_telemetry_from_other_trial_provider_profiles(

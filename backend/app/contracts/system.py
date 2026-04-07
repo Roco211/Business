@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -16,6 +18,8 @@ class SystemReadinessData(BaseModel):
     overall_status: str
     runtime_mode: str
     trial_provider_profile: str
+    approved_calibration_artifact_id: str | None = None
+    cutover_mode: str = "closed"
     checks: dict[str, ReadinessCheckData]
 
 
@@ -52,4 +56,33 @@ class PilotSummaryData(BaseModel):
     low_confidence_count: int
     fallback_count: int
     provider_failures: dict[str, int]
+    cutover_mode_counts: dict[str, int]
+    guardrail_blocks: dict[str, int]
+    shadow_forced_confirmation_count: int
+    guardrail_degraded_reasons: dict[str, int]
     trial_provider_profile: str
+
+
+class PilotControlData(BaseModel):
+    shop_id: str
+    trial_provider_profile: str
+    approved_calibration_artifact_id: str | None
+    approved_calibration_report_path: str | None
+    cutover_mode: str
+    opened_at: datetime | None
+    opened_by_actor_id: str | None
+    closed_at: datetime | None
+    closed_by_actor_id: str | None
+    last_preflight_at: datetime | None
+    last_preflight_status: str | None
+    notes: str | None
+    previous_cutover_mode: str | None = None
+    transition_audit_log_id: str | None = None
+
+
+class PilotControlMutationRequest(BaseModel):
+    cutover_mode: str | None = None
+    approved_calibration_artifact_id: str | None = None
+    approved_calibration_report_path: str | None = None
+    last_preflight_status: str | None = None
+    notes: str | None = None

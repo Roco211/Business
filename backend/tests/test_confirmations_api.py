@@ -323,9 +323,23 @@ def test_approve_confirmation_completes_task_run_writes_runtime_message_and_proj
     assert inventory_items[0].current_stock == Decimal("3")
     assert len(inventory_events) == 1
     assert inventory_events[0].event_type == "stock-in"
-    assert len(audit_logs) == 1
-    assert audit_logs[0].action == "inventory.stock_in_confirmed"
-    assert audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
+    relevant_audit_logs = [log for log in audit_logs if log.task_run_id == task_run_id]
+    stock_in_audit_logs = [
+        log
+        for log in relevant_audit_logs
+        if log.action == "inventory.stock_in_confirmed"
+    ]
+    assert len(stock_in_audit_logs) == 1
+    assert stock_in_audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
+    telemetry_log = next(
+        (
+            log
+            for log in relevant_audit_logs
+            if log.scope == "pilot" and log.action == "runtime.provider_telemetry"
+        ),
+        None,
+    )
+    assert telemetry_log is not None
     assert len(runtime_messages) == 2
     assert runtime_messages[-1].actor_id == "runtime_system"
     assert "committed" in (runtime_messages[-1].text or "").lower()
@@ -529,9 +543,23 @@ def test_approve_stock_out_confirmation_commits_inventory_event_and_projects_con
     assert len(inventory_events) == 1
     assert inventory_events[0].event_type == "stock-out"
     assert inventory_events[0].quantity_delta == Decimal("-2")
-    assert len(audit_logs) == 1
-    assert audit_logs[0].action == "inventory.stock_out_submitted"
-    assert audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
+    relevant_audit_logs = [log for log in audit_logs if log.task_run_id == task_run_id]
+    stock_out_audit_logs = [
+        log
+        for log in relevant_audit_logs
+        if log.action == "inventory.stock_out_submitted"
+    ]
+    assert len(stock_out_audit_logs) == 1
+    assert stock_out_audit_logs[0].metadata_json["confirmation_id"] == confirmation_id
+    telemetry_log = next(
+        (
+            log
+            for log in relevant_audit_logs
+            if log.scope == "pilot" and log.action == "runtime.provider_telemetry"
+        ),
+        None,
+    )
+    assert telemetry_log is not None
     assert len(runtime_messages) == 2
     assert "stock-out committed" in (runtime_messages[-1].text or "").lower()
     assert task_run_response.status_code == 200

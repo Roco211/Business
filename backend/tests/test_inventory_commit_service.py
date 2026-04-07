@@ -137,6 +137,10 @@ def test_commit_approved_stock_in_confirmation_rolls_back_on_inner_failure(db_se
         db_session,
         client_request_id="inventory_commit_rollback",
     )
+    baseline_audit_logs = db_session.scalars(
+        select(AuditLog).where(AuditLog.task_run_id == task_run.task_run_id)
+    ).all()
+    baseline_audit_log_ids = {log.audit_log_id for log in baseline_audit_logs}
 
     from app.services import approved_stock_in_commits as commit_service
 
@@ -161,4 +165,8 @@ def test_commit_approved_stock_in_confirmation_rolls_back_on_inner_failure(db_se
     assert persisted_task_run.status == "awaiting-confirmation"
     assert db_session.scalars(select(InventoryItem)).all() == []
     assert db_session.scalars(select(InventoryEvent)).all() == []
-    assert db_session.scalars(select(AuditLog)).all() == []
+    task_run_audit_logs = db_session.scalars(
+        select(AuditLog).where(AuditLog.task_run_id == task_run.task_run_id)
+    ).all()
+    assert {log.audit_log_id for log in task_run_audit_logs} == baseline_audit_log_ids
+    assert all(log.action != "inventory.stock_in_confirmed" for log in task_run_audit_logs)

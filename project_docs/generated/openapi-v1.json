@@ -695,6 +695,18 @@
         "title": "DataEnvelope[OcrDocumentData]",
         "type": "object"
       },
+      "DataEnvelope_PilotControlData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PilotControlData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[PilotControlData]",
+        "type": "object"
+      },
       "DataEnvelope_PilotSummaryData_": {
         "properties": {
           "data": {
@@ -1351,6 +1363,223 @@
         "title": "OcrDocumentData",
         "type": "object"
       },
+      "PilotControlData": {
+        "properties": {
+          "approved_calibration_artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Calibration Artifact Id"
+          },
+          "approved_calibration_report_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Calibration Report Path"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "closed_by_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By Actor Id"
+          },
+          "cutover_mode": {
+            "title": "Cutover Mode",
+            "type": "string"
+          },
+          "last_preflight_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Preflight At"
+          },
+          "last_preflight_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Preflight Status"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "opened_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened At"
+          },
+          "opened_by_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened By Actor Id"
+          },
+          "previous_cutover_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Cutover Mode"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "transition_audit_log_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transition Audit Log Id"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shop_id",
+          "trial_provider_profile",
+          "approved_calibration_artifact_id",
+          "approved_calibration_report_path",
+          "cutover_mode",
+          "opened_at",
+          "opened_by_actor_id",
+          "closed_at",
+          "closed_by_actor_id",
+          "last_preflight_at",
+          "last_preflight_status",
+          "notes"
+        ],
+        "title": "PilotControlData",
+        "type": "object"
+      },
+      "PilotControlMutationRequest": {
+        "properties": {
+          "approved_calibration_artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Calibration Artifact Id"
+          },
+          "approved_calibration_report_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Calibration Report Path"
+          },
+          "cutover_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutover Mode"
+          },
+          "last_preflight_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Preflight Status"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "title": "PilotControlMutationRequest",
+        "type": "object"
+      },
       "PilotSummaryConfirmationData": {
         "properties": {
           "approved": {
@@ -1379,9 +1608,30 @@
           "confirmations": {
             "$ref": "#/components/schemas/PilotSummaryConfirmationData"
           },
+          "cutover_mode_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Cutover Mode Counts",
+            "type": "object"
+          },
           "fallback_count": {
             "title": "Fallback Count",
             "type": "integer"
+          },
+          "guardrail_blocks": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Guardrail Blocks",
+            "type": "object"
+          },
+          "guardrail_degraded_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Guardrail Degraded Reasons",
+            "type": "object"
           },
           "low_confidence_count": {
             "title": "Low Confidence Count",
@@ -1393,6 +1643,10 @@
             },
             "title": "Provider Failures",
             "type": "object"
+          },
+          "shadow_forced_confirmation_count": {
+            "title": "Shadow Forced Confirmation Count",
+            "type": "integer"
           },
           "task_totals": {
             "additionalProperties": {
@@ -1424,6 +1678,10 @@
           "low_confidence_count",
           "fallback_count",
           "provider_failures",
+          "cutover_mode_counts",
+          "guardrail_blocks",
+          "shadow_forced_confirmation_count",
+          "guardrail_degraded_reasons",
           "trial_provider_profile"
         ],
         "title": "PilotSummaryData",
@@ -1788,12 +2046,28 @@
       },
       "SystemReadinessData": {
         "properties": {
+          "approved_calibration_artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved Calibration Artifact Id"
+          },
           "checks": {
             "additionalProperties": {
               "$ref": "#/components/schemas/ReadinessCheckData"
             },
             "title": "Checks",
             "type": "object"
+          },
+          "cutover_mode": {
+            "default": "closed",
+            "title": "Cutover Mode",
+            "type": "string"
           },
           "overall_status": {
             "title": "Overall Status",
@@ -3373,6 +3647,142 @@
           }
         },
         "summary": "Post Demo Bootstrap",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/pilot-control": {
+      "get": {
+        "operationId": "get_pilot_control_api_v1_system_pilot_control_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_PilotControlData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Pilot Control",
+        "tags": [
+          "system"
+        ]
+      },
+      "post": {
+        "operationId": "post_pilot_control_api_v1_system_pilot_control_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PilotControlMutationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_PilotControlData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cutover transition"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Post Pilot Control",
         "tags": [
           "system"
         ]

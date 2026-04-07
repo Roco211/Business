@@ -50,6 +50,7 @@ class Settings:
     vision_provider_label: str = os.getenv("VISION_PROVIDER_LABEL", "")
     trial_calibration_dataset_dir: str = os.getenv("TRIAL_CALIBRATION_DATASET_DIR", "")
     trial_calibration_artifacts_dir: str = os.getenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", "")
+    live_pilot_allowed_shop_ids_raw: str = os.getenv("LIVE_PILOT_ALLOWED_SHOP_IDS", "")
 
     def normalized_runtime_mode(self) -> str:
         normalized = self.app_runtime_mode.strip().lower()
@@ -67,6 +68,10 @@ class Settings:
             "access_key": self.object_storage_access_key or "",
             "secret_key": self.object_storage_secret_key or "",
         }
+
+    def live_pilot_allowed_shop_ids(self) -> list[str]:
+        raw = self.live_pilot_allowed_shop_ids_raw.strip()
+        return [shop_id.strip() for shop_id in raw.split(",") if shop_id.strip()]
 
 
 def _build_default_database_url() -> str:
@@ -145,4 +150,5 @@ def get_settings() -> Settings:
         vision_provider_label=os.getenv("VISION_PROVIDER_LABEL", ""),
         trial_calibration_dataset_dir=os.getenv("TRIAL_CALIBRATION_DATASET_DIR", ""),
         trial_calibration_artifacts_dir=os.getenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", ""),
+        live_pilot_allowed_shop_ids_raw=os.getenv("LIVE_PILOT_ALLOWED_SHOP_IDS", ""),
     )

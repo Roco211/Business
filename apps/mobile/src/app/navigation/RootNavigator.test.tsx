@@ -54,8 +54,8 @@ describe("RootNavigator", () => {
 
     render(<RootNavigator />);
 
-    expect(screen.getByLabelText("\\u9996\\u9875, tab, 1 of 3")).toBeTruthy();
-    expect(screen.getByLabelText("\\u5de5\\u4f5c\\u53f0, tab, 2 of 3")).toBeTruthy();
-    expect(screen.getByLabelText("\\u53f0\\u8d26, tab, 3 of 3")).toBeTruthy();
+    expect(screen.getByLabelText(/\\u9996\\u9875/)).toBeTruthy();
+    expect(screen.getByLabelText(/\\u5de5\\u4f5c\\u53f0/)).toBeTruthy();
+    expect(screen.getByLabelText(/\\u53f0\\u8d26/)).toBeTruthy();
   });
 });

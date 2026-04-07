@@ -9,6 +9,14 @@ type WorkbenchHeaderProps = {
   hint?: string | null;
 };
 
+const CONNECTION_STATE_LABELS: Record<string, string> = {
+  connected: "已连接",
+  connecting: "连接中",
+  bootstrapping: "启动中",
+  disconnected: "已断开",
+  error: "连接异常",
+};
+
 function getConnectionTone(connectionState: string): "warning" | "error" | "success" | "neutral" {
   if (connectionState === "connected") {
     return "success";
@@ -22,6 +30,10 @@ function getConnectionTone(connectionState: string): "warning" | "error" | "succ
   return "neutral";
 }
 
+function getConnectionLabel(connectionState: string) {
+  return CONNECTION_STATE_LABELS[connectionState] ?? connectionState;
+}
+
 export function WorkbenchHeader({
   title,
   sessionTitle,
@@ -33,8 +45,8 @@ export function WorkbenchHeader({
       <View style={styles.container} testID="chat-workbench-header">
         <SectionHeader title={title} subtitle={sessionTitle} />
         <View style={styles.connectionRow}>
-          <Text style={styles.connectionLabel}>Connection</Text>
-          <StatusBadge tone={getConnectionTone(connectionState)} label={connectionState} />
+          <Text style={styles.connectionLabel}>连接状态</Text>
+          <StatusBadge tone={getConnectionTone(connectionState)} label={getConnectionLabel(connectionState)} />
         </View>
         {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       </View>

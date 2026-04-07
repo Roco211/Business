@@ -5,6 +5,15 @@ import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
 import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 
+const COPY = {
+  title: "引导入口",
+  subtitle: "先用语音、拍照或票据发起任务。",
+  errorTitle: "提交失败",
+  voice: "语音",
+  photo: "拍照",
+  receipt: "票据",
+} as const;
+
 type GuidedEntryDockProps = {
   sessionId: string | null;
   onSubmitted: () => void;
@@ -45,12 +54,12 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
   return (
     <SurfaceCard tone="muted" emphasis="outlined">
       <View style={styles.container}>
-        <SectionHeader title="引导入口" subtitle="先用语音、拍照或票据发起任务。" />
-        {error ? <InlineNotice tone="error" title="Submission failed" message={error} /> : null}
+        <SectionHeader title={COPY.title} subtitle={COPY.subtitle} />
+        {error ? <InlineNotice tone="error" title={COPY.errorTitle} message={error} /> : null}
         <View style={styles.pillRow}>
           <PillActionButton
             testID="guided-pill-voice"
-            label="语音"
+            label={COPY.voice}
             onPress={() => {
               void handleVoiceEntry();
             }}
@@ -58,7 +67,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           />
           <PillActionButton
             testID="guided-pill-photo"
-            label="拍照"
+            label={COPY.photo}
             onPress={() => {
               void handlePhotoEntry();
             }}
@@ -66,7 +75,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           />
           <PillActionButton
             testID="guided-pill-receipt"
-            label="票据"
+            label={COPY.receipt}
             onPress={() => {
               void handleReceiptEntry();
             }}

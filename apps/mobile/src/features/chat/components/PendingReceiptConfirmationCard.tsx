@@ -7,6 +7,20 @@ import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationM
 import { ChatPendingConfirmationRecord, ReceiptDraftItem } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
 
+const COPY = {
+  title: "票据入库确认",
+  approve: "确认票据",
+  reject: "驳回票据",
+  approving: "提交票据中...",
+  rejecting: "驳回中...",
+  ocrPrefix: "OCR：",
+  totalPrefix: "总额：",
+  linePrefix: "行 ",
+  itemNamePrefix: "商品名称 ",
+  quantityPrefix: "数量 ",
+  unitPrefix: "单位 ",
+  pricePrefix: "单价 ",
+} as const;
 
 function toInputValue(value: number | string | null | undefined) {
   if (value === null || value === undefined) {
@@ -14,7 +28,6 @@ function toInputValue(value: number | string | null | undefined) {
   }
   return String(value);
 }
-
 
 type EditableReceiptLine = {
   lineId: string;
@@ -24,7 +37,6 @@ type EditableReceiptLine = {
   unit: string;
   price: string;
 };
-
 
 function toEditableLine(line: ReceiptDraftItem, index: number): EditableReceiptLine {
   return {
@@ -36,7 +48,6 @@ function toEditableLine(line: ReceiptDraftItem, index: number): EditableReceiptL
     price: toInputValue(line.price),
   };
 }
-
 
 export function PendingReceiptConfirmationCard({
   confirmation,
@@ -95,18 +106,18 @@ export function PendingReceiptConfirmationCard({
   return (
     <ConfirmationCardShell
       confirmationId={confirmation.confirmation_id}
-      title="Receipt confirmation"
+      title={COPY.title}
       summary={confirmation.fields.summary}
       transcript={
         confirmation.fields.ocr_document_id
-          ? `OCR: ${confirmation.fields.ocr_document_id}`
+          ? `${COPY.ocrPrefix}${confirmation.fields.ocr_document_id}`
           : undefined
       }
       error={error}
-      approveLabel="Approve Receipt"
-      rejectLabel="Reject Receipt"
-      approveLoadingLabel="Approving receipt..."
-      rejectLoadingLabel="Rejecting..."
+      approveLabel={COPY.approve}
+      rejectLabel={COPY.reject}
+      approveLoadingLabel={COPY.approving}
+      rejectLoadingLabel={COPY.rejecting}
       isApproveSubmitting={approveMutation.isSubmitting}
       isRejectSubmitting={rejectMutation.isSubmitting}
       isSubmitting={isSubmitting}
@@ -118,33 +129,39 @@ export function PendingReceiptConfirmationCard({
       }}
     >
       {confirmation.fields.total_amount !== undefined ? (
-        <Text style={styles.totalAmount}>Total: {confirmation.fields.total_amount}</Text>
+        <Text style={styles.totalAmount}>
+          {COPY.totalPrefix}
+          {confirmation.fields.total_amount}
+        </Text>
       ) : null}
       {items.map((item, index) => (
         <View key={item.lineId} style={styles.lineEditor}>
-          <Text style={styles.lineTitle}>Line {index + 1}</Text>
+          <Text style={styles.lineTitle}>
+            {COPY.linePrefix}
+            {index + 1}
+          </Text>
           <AppTextField
-            label={`Item name ${index + 1}`}
-            placeholder={`Item name ${index + 1}`}
+            label={`${COPY.itemNamePrefix}${index + 1}`}
+            placeholder={`${COPY.itemNamePrefix}${index + 1}`}
             value={item.itemName}
             onChangeText={(value) => updateItem(index, { itemName: value })}
           />
           <AppTextField
-            label={`Quantity ${index + 1}`}
-            placeholder={`Quantity ${index + 1}`}
+            label={`${COPY.quantityPrefix}${index + 1}`}
+            placeholder={`${COPY.quantityPrefix}${index + 1}`}
             keyboardType="numeric"
             value={item.quantity}
             onChangeText={(value) => updateItem(index, { quantity: value })}
           />
           <AppTextField
-            label={`Unit ${index + 1}`}
-            placeholder={`Unit ${index + 1}`}
+            label={`${COPY.unitPrefix}${index + 1}`}
+            placeholder={`${COPY.unitPrefix}${index + 1}`}
             value={item.unit}
             onChangeText={(value) => updateItem(index, { unit: value })}
           />
           <AppTextField
-            label={`Price ${index + 1}`}
-            placeholder={`Price ${index + 1}`}
+            label={`${COPY.pricePrefix}${index + 1}`}
+            placeholder={`${COPY.pricePrefix}${index + 1}`}
             keyboardType="numeric"
             value={item.price}
             onChangeText={(value) => updateItem(index, { price: value })}

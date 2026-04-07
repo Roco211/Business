@@ -28,6 +28,11 @@ type ConfirmationCardShellProps = PropsWithChildren<{
   onReject: () => void;
 }>;
 
+const COPY = {
+  pendingReview: "待复核",
+  actionFailed: "操作失败",
+} as const;
+
 export function ConfirmationCardShell({
   confirmationId,
   title,
@@ -50,12 +55,12 @@ export function ConfirmationCardShell({
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{title}</Text>
-          <StatusBadge tone="warning" label="Pending review" />
+          <StatusBadge tone="warning" label={COPY.pendingReview} />
         </View>
         {summary ? <Text style={styles.summary}>{summary}</Text> : null}
         {transcript ? <Text style={styles.transcript}>{transcript}</Text> : null}
         <View style={styles.fields}>{children}</View>
-        {error ? <InlineNotice tone="error" title="Action failed" message={error} /> : null}
+        {error ? <InlineNotice tone="error" title={COPY.actionFailed} message={error} /> : null}
         <View style={styles.actions}>
           <PrimaryButton
             testID={`confirm-approve-${confirmationId}`}

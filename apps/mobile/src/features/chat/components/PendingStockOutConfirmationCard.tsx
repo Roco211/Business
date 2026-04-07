@@ -6,6 +6,17 @@ import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationM
 import { ChatPendingConfirmationRecord } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
 
+const COPY = {
+  title: "待确认出库",
+  approve: "确认出库",
+  reject: "驳回",
+  approving: "提交中...",
+  rejecting: "驳回中...",
+  itemName: "商品名称",
+  quantity: "出库数量",
+  reason: "原因",
+  defaultReason: "聊天出库",
+} as const;
 
 function toInputValue(value: number | string | null | undefined) {
   if (value === null || value === undefined) {
@@ -13,7 +24,6 @@ function toInputValue(value: number | string | null | undefined) {
   }
   return String(value);
 }
-
 
 export function PendingStockOutConfirmationCard({
   confirmation,
@@ -26,7 +36,7 @@ export function PendingStockOutConfirmationCard({
   const [itemName, setItemName] = useState(toInputValue(draftFields.item_name));
   const [quantity, setQuantity] = useState(toInputValue(draftFields.stock_out_quantity));
   const [reason, setReason] = useState(
-    toInputValue(draftFields.reason ?? confirmation.fields.reason ?? "stock out via chat"),
+    toInputValue(draftFields.reason ?? confirmation.fields.reason ?? COPY.defaultReason),
   );
   const [isResolved, setIsResolved] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
@@ -68,14 +78,14 @@ export function PendingStockOutConfirmationCard({
   return (
     <ConfirmationCardShell
       confirmationId={confirmation.confirmation_id}
-      title="Pending stock-out confirmation"
+      title={COPY.title}
       summary={confirmation.fields.summary}
       transcript={confirmation.fields.transcript}
       error={error}
-      approveLabel="Approve"
-      rejectLabel="Reject"
-      approveLoadingLabel="Approving..."
-      rejectLoadingLabel="Rejecting..."
+      approveLabel={COPY.approve}
+      rejectLabel={COPY.reject}
+      approveLoadingLabel={COPY.approving}
+      rejectLoadingLabel={COPY.rejecting}
       isApproveSubmitting={approveMutation.isSubmitting}
       isRejectSubmitting={rejectMutation.isSubmitting}
       isSubmitting={isSubmitting}
@@ -87,19 +97,24 @@ export function PendingStockOutConfirmationCard({
       }}
     >
       <AppTextField
-        label="Item name"
-        placeholder="Item name"
+        label={COPY.itemName}
+        placeholder={COPY.itemName}
         value={itemName}
         onChangeText={setItemName}
       />
       <AppTextField
-        label="Stock-out quantity"
-        placeholder="Stock-out quantity"
+        label={COPY.quantity}
+        placeholder={COPY.quantity}
         keyboardType="numeric"
         value={quantity}
         onChangeText={setQuantity}
       />
-      <AppTextField label="Reason" placeholder="Reason" value={reason} onChangeText={setReason} />
+      <AppTextField
+        label={COPY.reason}
+        placeholder={COPY.reason}
+        value={reason}
+        onChangeText={setReason}
+      />
     </ConfirmationCardShell>
   );
 }

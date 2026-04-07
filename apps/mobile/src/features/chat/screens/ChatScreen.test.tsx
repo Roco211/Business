@@ -61,7 +61,9 @@ describe("ChatScreen (workbench shell)", () => {
     mockedUseSendMessageMutation.mockReturnValue({
       isSubmitting: false,
       error: null,
-      submitMessage: jest.fn().mockResolvedValue({ data: { message_id: "msg_2", task_run_id: "task_2", status: "created" } }),
+      submitMessage: jest.fn().mockResolvedValue({
+        data: { message_id: "msg_2", task_run_id: "task_2", status: "created" },
+      }),
     });
   });
 
@@ -75,10 +77,13 @@ describe("ChatScreen (workbench shell)", () => {
     await waitFor(() => {
       expect(screen.getByText("聊天工作台")).toBeTruthy();
       expect(screen.getByText("Store shift session")).toBeTruthy();
+      expect(screen.getByText("连接状态")).toBeTruthy();
+      expect(screen.getByText("已连接")).toBeTruthy();
       expect(screen.getByText("引导入口")).toBeTruthy();
       expect(screen.getByText("语音")).toBeTruthy();
       expect(screen.getByText("拍照")).toBeTruthy();
       expect(screen.getByText("票据")).toBeTruthy();
+      expect(screen.getByText("类型：文本")).toBeTruthy();
       expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
       expect(screen.getByText("发送更新")).toBeTruthy();
     });

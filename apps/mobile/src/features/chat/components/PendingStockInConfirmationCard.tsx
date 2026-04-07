@@ -6,6 +6,17 @@ import { useApproveConfirmationMutation } from "../hooks/useApproveConfirmationM
 import { ChatPendingConfirmationRecord } from "../hooks/useChatPendingConfirmationsQuery";
 import { useRejectConfirmationMutation } from "../hooks/useRejectConfirmationMutation";
 
+const COPY = {
+  title: "待确认入库",
+  approve: "确认入库",
+  reject: "驳回",
+  approving: "提交中...",
+  rejecting: "驳回中...",
+  itemName: "商品名称",
+  quantity: "数量",
+  unit: "单位",
+  price: "单价",
+} as const;
 
 function toInputValue(value: number | string | null | undefined) {
   if (value === null || value === undefined) {
@@ -13,7 +24,6 @@ function toInputValue(value: number | string | null | undefined) {
   }
   return String(value);
 }
-
 
 export function PendingStockInConfirmationCard({
   confirmation,
@@ -63,14 +73,14 @@ export function PendingStockInConfirmationCard({
   return (
     <ConfirmationCardShell
       confirmationId={confirmation.confirmation_id}
-      title="Pending confirmation"
+      title={COPY.title}
       summary={confirmation.fields.summary}
       transcript={confirmation.fields.transcript}
       error={error}
-      approveLabel="Approve"
-      rejectLabel="Reject"
-      approveLoadingLabel="Approving..."
-      rejectLoadingLabel="Rejecting..."
+      approveLabel={COPY.approve}
+      rejectLabel={COPY.reject}
+      approveLoadingLabel={COPY.approving}
+      rejectLoadingLabel={COPY.rejecting}
       isApproveSubmitting={approveMutation.isSubmitting}
       isRejectSubmitting={rejectMutation.isSubmitting}
       isSubmitting={isSubmitting}
@@ -82,22 +92,22 @@ export function PendingStockInConfirmationCard({
       }}
     >
       <AppTextField
-        label="Item name"
-        placeholder="Item name"
+        label={COPY.itemName}
+        placeholder={COPY.itemName}
         value={itemName}
         onChangeText={setItemName}
       />
       <AppTextField
-        label="Quantity"
-        placeholder="Quantity"
+        label={COPY.quantity}
+        placeholder={COPY.quantity}
         keyboardType="numeric"
         value={quantity}
         onChangeText={setQuantity}
       />
-      <AppTextField label="Unit" placeholder="Unit" value={unit} onChangeText={setUnit} />
+      <AppTextField label={COPY.unit} placeholder={COPY.unit} value={unit} onChangeText={setUnit} />
       <AppTextField
-        label="Price"
-        placeholder="Price"
+        label={COPY.price}
+        placeholder={COPY.price}
         keyboardType="numeric"
         value={price}
         onChangeText={setPrice}

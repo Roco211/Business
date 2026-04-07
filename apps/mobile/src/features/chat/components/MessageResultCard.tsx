@@ -11,6 +11,13 @@ type MessageResultCardProps = {
   createdAt: string;
 };
 
+const MESSAGE_TYPE_LABELS: Record<string, string> = {
+  text: "文本",
+  voice: "语音",
+  image: "图片",
+  "receipt-image": "票据",
+};
+
 function getActorTone(actorType: string): "warning" | "error" | "success" | "neutral" {
   if (actorType === "owner") {
     return "success";
@@ -19,6 +26,10 @@ function getActorTone(actorType: string): "warning" | "error" | "success" | "neu
     return "neutral";
   }
   return "warning";
+}
+
+function getMessageTypeLabel(messageType: string) {
+  return MESSAGE_TYPE_LABELS[messageType] ?? messageType;
 }
 
 export function MessageResultCard({
@@ -38,7 +49,7 @@ export function MessageResultCard({
             <Text style={styles.timestamp}>{createdAt}</Text>
           </View>
           <Text style={styles.messageText}>{text}</Text>
-          <Text style={styles.messageType}>Type: {messageType}</Text>
+          <Text style={styles.messageType}>类型：{getMessageTypeLabel(messageType)}</Text>
         </View>
       </SurfaceCard>
     </View>

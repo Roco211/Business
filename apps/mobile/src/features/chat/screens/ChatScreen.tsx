@@ -24,6 +24,32 @@ import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirm
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 
+const COPY = {
+  fallbackSessionTitle: "工作台会话",
+  loadingTitle: "工作台加载中...",
+  loadingDescription: "正在同步会话消息与确认任务。",
+  workbenchTitle: "聊天工作台",
+  sessionUnavailable: "会话不可用",
+  messagesUnavailable: "消息加载失败",
+  confirmationsUnavailable: "确认任务加载失败",
+  resultsTitle: "处理结果",
+  resultsSubtitle: "消息时间线与强化确认卡。",
+  emptyTitle: "暂无工作台消息",
+  emptyDescription: "可先使用引导入口，或直接发送文字。",
+  composeTitle: "发送输入",
+  composeSubtitle: "可用引导入口，或直接输入详细请求。",
+  messageLabel: "消息",
+  messagePlaceholder: "描述你的请求",
+  sendFailed: "发送失败",
+  sendAction: "发送更新",
+  sendLoading: "发送中...",
+  connectionConnected: "会话实时流已连接。",
+  connectionConnecting: "正在尝试重连会话流。",
+  connectionDegraded:
+    "实时更新受限，执行操作后仍会触发手动刷新。",
+  connectionIdle: "等待会话流启动。",
+} as const;
+
 function getActorLabel(actorType: string) {
   if (actorType === "owner") {
     return "Owner";
@@ -43,21 +69,22 @@ function getMessageText(messageType: string, text: string | null) {
 
 function getConnectionHint(connectionState: string) {
   if (connectionState === "connected") {
-    return "会话实时流已连接。";
+    return COPY.connectionConnected;
   }
   if (connectionState === "connecting" || connectionState === "bootstrapping") {
-    return "正在尝试重连会话流。";
+    return COPY.connectionConnecting;
   }
   if (connectionState === "error" || connectionState === "disconnected") {
-    return "实时更新受限，执行操作后仍会触发手动刷新。";
+    return COPY.connectionDegraded;
   }
-  return "等待会话流启动。";
+  return COPY.connectionIdle;
 }
 
 export default function ChatScreen() {
   const sessionStream = useSessionStream();
   const [draftText, setDraftText] = useState("");
-  const sessionTitle = sessionStream.sessionTitle ?? sessionStream.sessionId ?? "Workbench session";
+  const sessionTitle =
+    sessionStream.sessionTitle ?? sessionStream.sessionId ?? COPY.fallbackSessionTitle;
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
   const confirmations = useChatPendingConfirmationsQuery(sessionStream.sessionId);
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
@@ -100,10 +127,7 @@ export default function ChatScreen() {
   if (messages.isLoading && messages.data.length === 0) {
     return (
       <AppScreen safeArea={false}>
-        <EmptyState
-          title="工作台加载中..."
-          description="正在同步会话消息与确认任务。"
-        />
+        <EmptyState title={COPY.loadingTitle} description={COPY.loadingDescription} />
       </AppScreen>
     );
   }
@@ -114,7 +138,7 @@ export default function ChatScreen() {
     <AppScreen safeArea={false}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <WorkbenchHeader
-          title="聊天工作台"
+          title={COPY.workbenchTitle}
           sessionTitle={sessionTitle}
           connectionState={sessionStream.connectionState}
           hint={getConnectionHint(sessionStream.connectionState)}
@@ -123,30 +147,24 @@ export default function ChatScreen() {
         {sessionStream.bootstrapError ? (
           <InlineNotice
             tone="error"
-            title="Session unavailable"
+            title={COPY.sessionUnavailable}
             message={sessionStream.bootstrapError}
           />
         ) : null}
         {messages.error ? (
-          <InlineNotice tone="error" title="Chat unavailable" message={messages.error} />
+          <InlineNotice tone="error" title={COPY.messagesUnavailable} message={messages.error} />
         ) : null}
         {confirmations.error ? (
           <InlineNotice
             tone="error"
-            title="Confirmations unavailable"
+            title={COPY.confirmationsUnavailable}
             message={confirmations.error}
           />
         ) : null}
 
-        <SectionHeader
-          title="处理结果"
-          subtitle="消息时间线与强化确认卡。"
-        />
+        <SectionHeader title={COPY.resultsTitle} subtitle={COPY.resultsSubtitle} />
         {messages.data.length === 0 ? (
-          <EmptyState
-            title="暂无工作台消息"
-            description="可先使用引导入口，或直接发送文字。"
-          />
+          <EmptyState title={COPY.emptyTitle} description={COPY.emptyDescription} />
         ) : null}
 
         {messages.data.map((message) => {
@@ -204,24 +222,21 @@ export default function ChatScreen() {
 
         <SurfaceCard emphasis="elevated">
           <View style={styles.composer}>
-            <SectionHeader
-              title="发送输入"
-              subtitle="可用引导入口，或直接输入详细请求。"
-            />
+            <SectionHeader title={COPY.composeTitle} subtitle={COPY.composeSubtitle} />
             <GuidedEntryDock sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
             <AppTextField
-              label="消息"
-              placeholder="描述你的请求"
+              label={COPY.messageLabel}
+              placeholder={COPY.messagePlaceholder}
               value={draftText}
               onChangeText={setDraftText}
             />
             {sendMessage.error ? (
-              <InlineNotice tone="error" title="Message failed" message={sendMessage.error} />
+              <InlineNotice tone="error" title={COPY.sendFailed} message={sendMessage.error} />
             ) : null}
             <PrimaryButton
-              label="发送更新"
+              label={COPY.sendAction}
               loading={sendMessage.isSubmitting}
-              loadingLabel="发送中..."
+              loadingLabel={COPY.sendLoading}
               onPress={() => {
                 void handleSend();
               }}

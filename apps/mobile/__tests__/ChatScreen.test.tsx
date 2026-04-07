@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 
 import ChatScreen from "../src/features/chat/screens/ChatScreen";
 
-const SESSION_TITLE = "\u6570\u5b57\u5458\u5de5\u5de5\u4f5c\u7fa4";
+const SESSION_TITLE = "数字员工工作群";
 
 let mockLastChatEvent: {
   event_id: string;
@@ -52,7 +52,7 @@ describe("ChatScreen", () => {
         expect(screen.getByText("聊天工作台")).toBeTruthy();
         expect(screen.getByText("引导入口")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
-        expect(screen.getByText("connected")).toBeTruthy();
+        expect(screen.getByText("已连接")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
       },
       { timeout: 3000 },
@@ -659,7 +659,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pending confirmation")).toBeTruthy();
+      expect(screen.getByText("待确认入库")).toBeTruthy();
       expect(screen.getAllByDisplayValue("Cola").length).toBeGreaterThan(0);
       expect(screen.getAllByDisplayValue("3").length).toBeGreaterThan(0);
     });
@@ -682,7 +682,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pending stock-out confirmation")).toBeTruthy();
+      expect(screen.getByText("待确认出库")).toBeTruthy();
       expect(screen.getAllByDisplayValue("Cola").length).toBeGreaterThan(0);
       expect(screen.getAllByDisplayValue("2").length).toBeGreaterThan(0);
     });
@@ -705,7 +705,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pending confirmation")).toBeTruthy();
+      expect(screen.getByText("待确认入库")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByTestId("confirm-reject-conf_1"));
@@ -723,7 +723,7 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Pending stock-out confirmation")).toBeTruthy();
+      expect(screen.getByText("待确认出库")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByTestId("confirm-approve-conf_stock_out_1"));
@@ -740,13 +740,13 @@ describe("ChatScreen", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Receipt confirmation")).toBeTruthy();
+      expect(screen.getByText("票据入库确认")).toBeTruthy();
       expect(screen.getByDisplayValue("Red Bull 250ml")).toBeTruthy();
       expect(screen.getByDisplayValue("Coca Cola 500ml")).toBeTruthy();
     });
 
-    fireEvent.changeText(screen.getByPlaceholderText("Quantity 1"), "4");
-    fireEvent.changeText(screen.getByPlaceholderText("Price 2"), "13");
+    fireEvent.changeText(screen.getByPlaceholderText("数量 1"), "4");
+    fireEvent.changeText(screen.getByPlaceholderText("单价 2"), "13");
     fireEvent.press(screen.getByTestId("confirm-approve-conf_receipt_1"));
 
     await waitFor(() => {
@@ -836,6 +836,93 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(messageRequestCount).toBe(2);
       expect(confirmationRequestCount).toBe(2);
+    });
+  });
+
+  it("uses the default guided voice pill to run the upload-backed voice flow and refresh chat", async () => {
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    expect(screen.queryByText("Voice Query Demo")).toBeNull();
+
+    const initialMessageRequests = messageRequestCount;
+    const initialConfirmationRequests = confirmationRequestCount;
+
+    fireEvent.press(screen.getByTestId("guided-pill-voice"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(messageRequestCount).toBeGreaterThan(initialMessageRequests);
+      expect(confirmationRequestCount).toBeGreaterThan(initialConfirmationRequests);
+      expect(screen.getAllByText("check stock left for cola").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"voice\""),
+        }),
+      );
+    });
+  });
+
+  it("uses the default guided photo pill to run the upload-backed image flow and refresh chat", async () => {
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    expect(screen.queryByText("Photo Query Demo")).toBeNull();
+
+    const initialMessageRequests = messageRequestCount;
+    const initialConfirmationRequests = confirmationRequestCount;
+
+    fireEvent.press(screen.getByTestId("guided-pill-photo"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(messageRequestCount).toBeGreaterThan(initialMessageRequests);
+      expect(confirmationRequestCount).toBeGreaterThan(initialConfirmationRequests);
+      expect(screen.getAllByText("check shelf stock for red bull").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"image\""),
+        }),
+      );
+    });
+  });
+
+  it("uses the default guided receipt pill to run the upload-backed receipt flow and refresh chat", async () => {
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    expect(screen.queryByText("Receipt OCR Demo")).toBeNull();
+
+    const initialMessageRequests = messageRequestCount;
+    const initialConfirmationRequests = confirmationRequestCount;
+
+    fireEvent.press(screen.getByTestId("guided-pill-receipt"));
+
+    await waitFor(() => {
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(1);
+      expect(mediaUploadCompleteCount).toBe(1);
+      expect(messageRequestCount).toBeGreaterThan(initialMessageRequests);
+      expect(confirmationRequestCount).toBeGreaterThan(initialConfirmationRequests);
+      expect(screen.getAllByText("receipt scan today").length).toBeGreaterThan(0);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/v1/sessions/sess_default/messages"),
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("\"message_type\":\"receipt-image\""),
+        }),
+      );
     });
   });
 

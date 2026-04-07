@@ -25,6 +25,13 @@ def _load_pilot_summary_check_script_module():
         pytest.fail(f"scripts.run_pilot_summary_check module is missing: {exc}")
 
 
+def _load_set_pilot_cutover_script_module():
+    try:
+        return importlib.import_module("scripts.set_pilot_cutover")
+    except ModuleNotFoundError as exc:
+        pytest.fail(f"scripts.set_pilot_cutover module is missing: {exc}")
+
+
 def test_run_trial_readiness_reports_compact_ready_summary() -> None:
     module = _load_trial_readiness_module()
     calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
@@ -330,6 +337,161 @@ def test_trial_readiness_cli_reports_error_and_exits_non_zero(capsys, monkeypatc
     assert exit_code == 1
     assert captured.out == ""
     assert "Trial readiness check failed" in captured.err
+
+
+def test_set_pilot_cutover_cli_defaults_to_owner_login_credentials() -> None:
+    script_module = _load_set_pilot_cutover_script_module()
+    parser = script_module.build_parser()
+
+    args = parser.parse_args(["--mode", "shadow"])
+
+    assert args.auth_token is None
+    assert args.login_email == "owner@example.com"
+    assert args.login_password == "dev-password"
+
+
+def test_set_pilot_cutover_cli_returns_non_zero_when_open_preflight_is_not_ready(
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_set_pilot_cutover_script_module()
+
+    class _Summary:
+        overall_status = "degraded"
+
+        @staticmethod
+        def to_dict() -> dict[str, object]:
+            return {
+                "overall_status": "degraded",
+                "reasons": ["artifact_profile_mismatch"],
+            }
+
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary())
+
+    calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        calls.append((method, path, token, payload))
+        raise AssertionError(f"Unexpected request path: {path}")
+
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(["--mode", "open", "--artifact-path", "C:/secure/pilot/artifacts/approved.json"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "Cutover preflight failed" in captured.err
+    assert calls == []
+
+
+def test_set_pilot_cutover_cli_prints_compact_json_and_exits_zero_on_success(capsys, monkeypatch) -> None:
+    script_module = _load_set_pilot_cutover_script_module()
+    calls: list[tuple[str, str, str | None, dict[str, object] | None]] = []
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        calls.append((method, path, token, payload))
+        if path == "/api/v1/auth/login":
+            return 200, {"data": {"access_token": "issued-token"}}
+        if path == "/api/v1/system/pilot-control":
+            assert token == "issued-token"
+            assert payload == {
+                "cutover_mode": "shadow",
+                "approved_calibration_report_path": None,
+                "last_preflight_status": None,
+                "notes": "provider observation window",
+            }
+            return 200, {
+                "data": {
+                    "shop_id": "shop_default",
+                    "previous_cutover_mode": "closed",
+                    "cutover_mode": "shadow",
+                    "transition_audit_log_id": "audit_transition_shadow",
+                }
+            }
+        raise AssertionError(f"Unexpected request path: {path}")
+
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(
+        [
+            "--mode",
+            "shadow",
+            "--note",
+            "provider observation window",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert json.loads(captured.out) == {
+        "cutover_mode": "shadow",
+        "previous_cutover_mode": "closed",
+        "shop_id": "shop_default",
+        "transition_audit_log_id": "audit_transition_shadow",
+    }
+    assert captured.err == ""
+    assert calls == [
+        ("POST", "/api/v1/auth/login", None, {"email": "owner@example.com", "password": "dev-password"}),
+        (
+            "POST",
+            "/api/v1/system/pilot-control",
+            "issued-token",
+            {
+                "cutover_mode": "shadow",
+                "approved_calibration_report_path": None,
+                "last_preflight_status": None,
+                "notes": "provider observation window",
+            },
+        ),
+    ]
+
+
+def test_set_pilot_cutover_cli_returns_non_zero_when_server_rejects_transition(
+    capsys,
+    monkeypatch,
+) -> None:
+    script_module = _load_set_pilot_cutover_script_module()
+
+    def _fake_request_json(
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> tuple[int, object]:
+        del method, token, payload
+        if path == "/api/v1/auth/login":
+            return 200, {"data": {"access_token": "issued-token"}}
+        if path == "/api/v1/system/pilot-control":
+            return 409, {
+                "error": {
+                    "code": "invalid_cutover_mode_transition",
+                    "message": "cutover_mode transition is not allowed",
+                }
+            }
+        raise AssertionError(f"Unexpected request path: {path}")
+
+    monkeypatch.setattr(script_module, "_build_live_request", lambda _: _fake_request_json)
+
+    exit_code = script_module.main(["--mode", "open", "--skip-preflight"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "invalid_cutover_mode_transition" in captured.err
 
 
 def test_pilot_summary_check_cli_prints_compact_json_and_exits_zero_when_summary_is_ready(

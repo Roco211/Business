@@ -238,6 +238,43 @@ def append_shop_rules_trial_calibration_audit_log(
     return log
 
 
+def append_pilot_cutover_transition_audit_log(
+    db_session: Session,
+    *,
+    shop_id: str,
+    actor_id: str,
+    previous_cutover_mode: str,
+    new_cutover_mode: str,
+    trial_provider_profile: str,
+    approved_calibration_artifact_id: str | None,
+    note: str | None,
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop_id,
+        scope="pilot",
+        action="pilot.cutover_transition",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=None,
+        target_type="shop",
+        target_id=shop_id,
+        metadata_json={
+            "shop_id": shop_id,
+            "previous_cutover_mode": previous_cutover_mode,
+            "new_cutover_mode": new_cutover_mode,
+            "actor_id": actor_id,
+            "trial_provider_profile": trial_provider_profile,
+            "approved_calibration_artifact_id": approved_calibration_artifact_id,
+            "note": note,
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log
+
+
 def append_pilot_runtime_telemetry_audit_log(
     db_session: Session,
     *,

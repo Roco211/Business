@@ -3,13 +3,29 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from app.db.session import get_session_factory
-from app.models import PilotControl
+from app.models import AuditLog, PilotControl
 from app.api.routes import health as health_routes
 from conftest import auth_headers, login_and_get_token
 
 
 def _auth_headers(client, monkeypatch=None) -> dict[str, str]:
     return auth_headers(login_and_get_token(client, monkeypatch))
+
+
+def _list_cutover_transition_audits(*, shop_id: str) -> list[AuditLog]:
+    db_session = get_session_factory()()
+    try:
+        return db_session.scalars(
+            select(AuditLog)
+            .where(
+                AuditLog.shop_id == shop_id,
+                AuditLog.scope == "pilot",
+                AuditLog.action == "pilot.cutover_transition",
+            )
+            .order_by(AuditLog.created_at.asc(), AuditLog.audit_log_id.asc())
+        ).all()
+    finally:
+        db_session.close()
 
 
 def test_pilot_control_endpoint_requires_owner_auth(client) -> None:
@@ -102,6 +118,143 @@ def test_pilot_control_post_requires_non_empty_mutation_payload(client, monkeypa
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "validation_error"
+
+
+def test_pilot_control_post_switches_closed_to_shadow_and_writes_transition_audit(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    headers = _auth_headers(client, monkeypatch)
+
+    response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "shadow",
+            "notes": "provider observation window",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["previous_cutover_mode"] == "closed"
+    assert payload["cutover_mode"] == "shadow"
+    assert payload["notes"] == "provider observation window"
+    assert isinstance(payload["transition_audit_log_id"], str)
+
+    audit_logs = _list_cutover_transition_audits(shop_id="shop_default")
+    assert len(audit_logs) == 1
+    assert audit_logs[0].audit_log_id == payload["transition_audit_log_id"]
+    assert audit_logs[0].actor_id == "owner_default"
+    assert audit_logs[0].metadata_json == {
+        "shop_id": "shop_default",
+        "previous_cutover_mode": "closed",
+        "new_cutover_mode": "shadow",
+        "actor_id": "owner_default",
+        "trial_provider_profile": "pilot-v1",
+        "approved_calibration_artifact_id": None,
+        "note": "provider observation window",
+    }
+
+
+def test_pilot_control_post_rejects_shadow_to_open_without_ready_preflight(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    headers = _auth_headers(client, monkeypatch)
+
+    shadow_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "shadow"},
+    )
+    assert shadow_response.status_code == 200
+
+    response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "open", "notes": "morning shift"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "invalid_cutover_mode_transition"
+
+    current_state = client.get("/api/v1/system/pilot-control", headers=headers)
+    assert current_state.status_code == 200
+    assert current_state.json()["data"]["cutover_mode"] == "shadow"
+
+    audit_logs = _list_cutover_transition_audits(shop_id="shop_default")
+    assert len(audit_logs) == 1
+    assert audit_logs[0].metadata_json["new_cutover_mode"] == "shadow"
+
+
+def test_pilot_control_post_allows_shadow_to_open_after_ready_preflight_and_close_with_note(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    headers = _auth_headers(client, monkeypatch)
+
+    shadow_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={"cutover_mode": "shadow", "notes": "provider observation window"},
+    )
+    assert shadow_response.status_code == 200
+    shadow_payload = shadow_response.json()["data"]
+
+    open_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "open",
+            "approved_calibration_artifact_id": "artifact_20260407",
+            "last_preflight_status": "ready",
+            "notes": "morning shift",
+        },
+    )
+    assert open_response.status_code == 200
+    open_payload = open_response.json()["data"]
+    assert open_payload["previous_cutover_mode"] == "shadow"
+    assert open_payload["cutover_mode"] == "open"
+    assert open_payload["last_preflight_status"] == "ready"
+
+    close_response = client.post(
+        "/api/v1/system/pilot-control",
+        headers=headers,
+        json={
+            "cutover_mode": "closed",
+            "notes": "provider incident rollback",
+        },
+    )
+    assert close_response.status_code == 200
+    close_payload = close_response.json()["data"]
+    assert close_payload["previous_cutover_mode"] == "open"
+    assert close_payload["cutover_mode"] == "closed"
+    assert close_payload["closed_by_actor_id"] == "owner_default"
+    assert close_payload["notes"] == "provider incident rollback"
+
+    audit_logs = _list_cutover_transition_audits(shop_id="shop_default")
+    assert len(audit_logs) == 3
+    assert [log.audit_log_id for log in audit_logs] == [
+        shadow_payload["transition_audit_log_id"],
+        open_payload["transition_audit_log_id"],
+        close_payload["transition_audit_log_id"],
+    ]
+    assert [log.metadata_json["previous_cutover_mode"] for log in audit_logs] == [
+        "closed",
+        "shadow",
+        "open",
+    ]
+    assert [log.metadata_json["new_cutover_mode"] for log in audit_logs] == [
+        "shadow",
+        "open",
+        "closed",
+    ]
+    assert audit_logs[1].metadata_json["approved_calibration_artifact_id"] == "artifact_20260407"
+    assert audit_logs[2].metadata_json["note"] == "provider incident rollback"
 
 
 def test_pilot_control_database_enforces_allowed_cutover_modes(client, monkeypatch) -> None:

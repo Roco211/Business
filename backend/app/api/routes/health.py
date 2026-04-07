@@ -18,6 +18,7 @@ from app.db.session import get_db_session
 from app.models import PilotControl
 from app.services.demo_state import bootstrap_demo_state
 from app.services.pilot_control import (
+    PilotControlMutationResult,
     PilotControlTransitionError,
     PilotControlValidationError,
     get_or_create_pilot_control,
@@ -56,8 +57,21 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
     )
 
 
-def _to_pilot_control_data(pilot_control: PilotControl) -> PilotControlData:
-    return PilotControlData.model_validate(pilot_control, from_attributes=True)
+def _to_pilot_control_data(
+    pilot_control: PilotControl,
+    *,
+    previous_cutover_mode: str | None = None,
+    transition_audit_log_id: str | None = None,
+) -> PilotControlData:
+    data = PilotControlData.model_validate(pilot_control, from_attributes=True)
+    if previous_cutover_mode is None and transition_audit_log_id is None:
+        return data
+    return data.model_copy(
+        update={
+            "previous_cutover_mode": previous_cutover_mode,
+            "transition_audit_log_id": transition_audit_log_id,
+        }
+    )
 
 
 def _ensure_pilot_control_with_retry(
@@ -96,9 +110,9 @@ def _mutate_pilot_control_with_retry(
     actor_id: str,
     trial_provider_profile: str,
     payload: PilotControlMutationRequest,
-) -> PilotControl:
+) -> PilotControlMutationResult:
     try:
-        pilot_control, changed = mutate_pilot_control(
+        mutation_result = mutate_pilot_control(
             db_session,
             shop_id=shop_id,
             actor_id=actor_id,
@@ -106,14 +120,15 @@ def _mutate_pilot_control_with_retry(
             cutover_mode=payload.cutover_mode,
             approved_calibration_artifact_id=payload.approved_calibration_artifact_id,
             approved_calibration_report_path=payload.approved_calibration_report_path,
+            last_preflight_status=payload.last_preflight_status,
             notes=payload.notes,
         )
-        if changed:
+        if mutation_result.changed:
             db_session.commit()
-        return pilot_control
+        return mutation_result
     except IntegrityError:
         db_session.rollback()
-        pilot_control, changed = mutate_pilot_control(
+        mutation_result = mutate_pilot_control(
             db_session,
             shop_id=shop_id,
             actor_id=actor_id,
@@ -121,11 +136,12 @@ def _mutate_pilot_control_with_retry(
             cutover_mode=payload.cutover_mode,
             approved_calibration_artifact_id=payload.approved_calibration_artifact_id,
             approved_calibration_report_path=payload.approved_calibration_report_path,
+            last_preflight_status=payload.last_preflight_status,
             notes=payload.notes,
         )
-        if changed:
+        if mutation_result.changed:
             db_session.commit()
-        return pilot_control
+        return mutation_result
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -231,6 +247,7 @@ def post_pilot_control(
         payload.cutover_mode is None
         and payload.approved_calibration_artifact_id is None
         and payload.approved_calibration_report_path is None
+        and payload.last_preflight_status is None
         and payload.notes is None
     ):
         return _error_response(
@@ -241,7 +258,7 @@ def post_pilot_control(
 
     settings = get_settings()
     try:
-        pilot_control = _mutate_pilot_control_with_retry(
+        mutation_result = _mutate_pilot_control_with_retry(
             db_session,
             shop_id=auth.shop_id,
             actor_id=auth.actor_id,
@@ -266,4 +283,10 @@ def post_pilot_control(
         db_session.rollback()
         raise
 
-    return DataEnvelope(data=_to_pilot_control_data(pilot_control))
+    return DataEnvelope(
+        data=_to_pilot_control_data(
+            mutation_result.pilot_control,
+            previous_cutover_mode=mutation_result.previous_cutover_mode,
+            transition_audit_log_id=mutation_result.transition_audit_log_id,
+        )
+    )

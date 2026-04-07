@@ -6,6 +6,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.models import PilotControl
+from app.services.audit_logs import append_pilot_cutover_transition_audit_log
 
 MODE_CLOSED = "closed"
 MODE_SHADOW = "shadow"
@@ -34,6 +35,14 @@ class PilotRuntimeControlState:
     approved_calibration_artifact_id: str | None
     approved_calibration_report_path: str | None
     last_preflight_status: str | None
+
+
+@dataclass(frozen=True)
+class PilotControlMutationResult:
+    pilot_control: PilotControl
+    changed: bool
+    previous_cutover_mode: str | None = None
+    transition_audit_log_id: str | None = None
 
 
 def _now() -> datetime:
@@ -190,30 +199,38 @@ def mutate_pilot_control(
     cutover_mode: str | None,
     approved_calibration_artifact_id: str | None,
     approved_calibration_report_path: str | None,
+    last_preflight_status: str | None,
     notes: str | None,
-) -> tuple[PilotControl, bool]:
+) -> PilotControlMutationResult:
     pilot_control, changed = get_or_create_pilot_control(
         db_session,
         shop_id=shop_id,
         trial_provider_profile=trial_provider_profile,
     )
     current_mode = _normalize_mode(pilot_control.cutover_mode)
+    next_mode = current_mode
 
     if cutover_mode is not None:
         next_mode = _normalize_mode(cutover_mode)
         _assert_valid_mode_transition(current_mode, next_mode)
-        if next_mode != current_mode:
-            changed_at = _now()
-            pilot_control.cutover_mode = next_mode
+
+    normalized_preflight_status: str | None = None
+    if last_preflight_status is not None:
+        normalized_preflight_status = _normalize_optional_text(last_preflight_status)
+        if pilot_control.last_preflight_status != normalized_preflight_status:
+            pilot_control.last_preflight_status = normalized_preflight_status
             changed = True
-            if next_mode == MODE_CLOSED:
-                pilot_control.closed_at = changed_at
-                pilot_control.closed_by_actor_id = actor_id
-            else:
-                pilot_control.opened_at = changed_at
-                pilot_control.opened_by_actor_id = actor_id
-                pilot_control.closed_at = None
-                pilot_control.closed_by_actor_id = None
+        pilot_control.last_preflight_at = _now()
+        changed = True
+
+    if current_mode == MODE_SHADOW and next_mode == MODE_OPEN:
+        effective_preflight_status = normalized_preflight_status
+        if effective_preflight_status is None:
+            effective_preflight_status = _normalize_optional_text(pilot_control.last_preflight_status)
+        if (effective_preflight_status or "").lower() != PREFLIGHT_READY_STATUS:
+            raise PilotControlTransitionError(
+                "cannot transition cutover_mode from 'shadow' to 'open' without successful preflight"
+            )
 
     if approved_calibration_artifact_id is not None:
         normalized_artifact_id = _normalize_optional_text(approved_calibration_artifact_id)
@@ -236,6 +253,39 @@ def mutate_pilot_control(
         pilot_control.trial_provider_profile = normalized_profile
         changed = True
 
+    previous_cutover_mode: str | None = None
+    transition_audit_log_id: str | None = None
+    if next_mode != current_mode:
+        previous_cutover_mode = current_mode
+        changed_at = _now()
+        pilot_control.cutover_mode = next_mode
+        changed = True
+        if next_mode == MODE_CLOSED:
+            pilot_control.closed_at = changed_at
+            pilot_control.closed_by_actor_id = actor_id
+        else:
+            pilot_control.opened_at = changed_at
+            pilot_control.opened_by_actor_id = actor_id
+            pilot_control.closed_at = None
+            pilot_control.closed_by_actor_id = None
+
+        transition_log = append_pilot_cutover_transition_audit_log(
+            db_session,
+            shop_id=shop_id,
+            actor_id=actor_id,
+            previous_cutover_mode=current_mode,
+            new_cutover_mode=next_mode,
+            trial_provider_profile=pilot_control.trial_provider_profile,
+            approved_calibration_artifact_id=pilot_control.approved_calibration_artifact_id,
+            note=pilot_control.notes,
+        )
+        transition_audit_log_id = transition_log.audit_log_id
+
     if changed:
         db_session.flush()
-    return pilot_control, changed
+    return PilotControlMutationResult(
+        pilot_control=pilot_control,
+        changed=changed,
+        previous_cutover_mode=previous_cutover_mode,
+        transition_audit_log_id=transition_audit_log_id,
+    )

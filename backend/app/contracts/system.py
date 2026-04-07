@@ -76,10 +76,13 @@ class PilotControlData(BaseModel):
     last_preflight_at: datetime | None
     last_preflight_status: str | None
     notes: str | None
+    previous_cutover_mode: str | None = None
+    transition_audit_log_id: str | None = None
 
 
 class PilotControlMutationRequest(BaseModel):
     cutover_mode: str | None = None
     approved_calibration_artifact_id: str | None = None
     approved_calibration_report_path: str | None = None
+    last_preflight_status: str | None = None
     notes: str | None = None

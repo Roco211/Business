@@ -9,9 +9,17 @@ from app.contracts.common import DataEnvelope, ErrorBody, ErrorEnvelope
 from app.contracts.system import (
     DemoBootstrapSummaryData,
     HealthResponse,
+    IncidentTimelineData,
+    IncidentTaskDiagnosticReplayData,
+    IncidentTaskDiagnosticReplayRequest,
+    OperatorDiagnosticsData,
+    OperatorViewBackfillData,
+    OperatorViewBackfillRequest,
     PilotControlData,
     PilotControlMutationRequest,
     PilotSummaryData,
+    ShiftBundleExportRecordData,
+    ShiftBundleExportRecordRequest,
     SystemReadinessData,
 )
 from app.db.session import get_db_session
@@ -23,6 +31,14 @@ from app.services.pilot_control import (
     PilotControlValidationError,
     get_or_create_pilot_control,
     mutate_pilot_control,
+)
+from app.services.pilot_incidents import (
+    IncidentRecoveryTaskNotFoundError,
+    build_incident_timeline,
+    build_operator_diagnostics,
+    build_operator_view_backfill,
+    build_task_diagnostic_replay,
+    record_shift_bundle_export,
 )
 from app.services.pilot_summary import build_pilot_summary
 from app.services.system_readiness import build_system_readiness
@@ -193,6 +209,137 @@ def get_pilot_summary(
             trial_provider_profile=settings.trial_provider_profile.strip(),
         )
     )
+
+
+@router.get(
+    "/api/v1/system/incident-timeline",
+    response_model=DataEnvelope[IncidentTimelineData],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
+def get_incident_timeline(
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
+    db_session: Session = Depends(get_db_session),
+    hours: int = Query(default=24, ge=1, le=168),
+    limit: int = Query(default=20, ge=1, le=100),
+) -> DataEnvelope[IncidentTimelineData]:
+    settings = get_settings()
+    return DataEnvelope(
+        data=build_incident_timeline(
+            db_session,
+            shop_id=auth.shop_id,
+            hours=hours,
+            limit=limit,
+            trial_provider_profile=settings.trial_provider_profile.strip(),
+        )
+    )
+
+
+@router.post(
+    "/api/v1/system/incident-replays/task-diagnostic",
+    response_model=DataEnvelope[IncidentTaskDiagnosticReplayData],
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorEnvelope, "description": "Task run not found"},
+    },
+)
+def post_task_diagnostic_replay(
+    payload: IncidentTaskDiagnosticReplayRequest,
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
+    db_session: Session = Depends(get_db_session),
+) -> DataEnvelope[IncidentTaskDiagnosticReplayData] | JSONResponse:
+    settings = get_settings()
+    try:
+        replay = build_task_diagnostic_replay(
+            db_session,
+            shop_id=auth.shop_id,
+            actor_id=auth.actor_id,
+            task_run_id=payload.task_run_id,
+            idempotency_key=payload.idempotency_key,
+            trial_provider_profile=settings.trial_provider_profile.strip(),
+        )
+        db_session.commit()
+    except IncidentRecoveryTaskNotFoundError:
+        db_session.rollback()
+        return _error_response(status.HTTP_404_NOT_FOUND, "task_run_not_found", "Task run not found")
+    except Exception:
+        db_session.rollback()
+        raise
+    return DataEnvelope(data=replay)
+
+
+@router.post(
+    "/api/v1/system/operator-view-backfills",
+    response_model=DataEnvelope[OperatorViewBackfillData],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
+def post_operator_view_backfill(
+    payload: OperatorViewBackfillRequest,
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
+    db_session: Session = Depends(get_db_session),
+) -> DataEnvelope[OperatorViewBackfillData]:
+    settings = get_settings()
+    backfill = build_operator_view_backfill(
+        db_session,
+        shop_id=auth.shop_id,
+        actor_id=auth.actor_id,
+        view=payload.view,
+        hours=payload.hours,
+        limit=payload.limit,
+        idempotency_key=payload.idempotency_key,
+        trial_provider_profile=settings.trial_provider_profile.strip(),
+    )
+    db_session.commit()
+    return DataEnvelope(data=backfill)
+
+
+@router.get(
+    "/api/v1/system/operator-diagnostics",
+    response_model=DataEnvelope[OperatorDiagnosticsData],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
+def get_operator_diagnostics(
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
+    db_session: Session = Depends(get_db_session),
+    hours: int = Query(default=24, ge=1, le=168),
+    limit: int = Query(default=20, ge=1, le=100),
+) -> DataEnvelope[OperatorDiagnosticsData]:
+    settings = get_settings()
+    return DataEnvelope(
+        data=build_operator_diagnostics(
+            db_session,
+            shop_id=auth.shop_id,
+            hours=hours,
+            limit=limit,
+            trial_provider_profile=settings.trial_provider_profile.strip(),
+        )
+    )
+
+
+@router.post(
+    "/api/v1/system/shift-bundle-exports",
+    response_model=DataEnvelope[ShiftBundleExportRecordData],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": ErrorEnvelope, "description": "Unauthorized"}},
+)
+def post_shift_bundle_export_record(
+    payload: ShiftBundleExportRecordRequest,
+    auth: AuthenticatedContext = Depends(require_authenticated_context),
+    db_session: Session = Depends(get_db_session),
+) -> DataEnvelope[ShiftBundleExportRecordData]:
+    settings = get_settings()
+    result = record_shift_bundle_export(
+        db_session,
+        shop_id=auth.shop_id,
+        actor_id=auth.actor_id,
+        bundle_id=payload.bundle_id,
+        manifest_path=payload.manifest_path,
+        overall_status=payload.overall_status,
+        degraded_reasons=list(payload.degraded_reasons),
+        cutover_mode=payload.cutover_mode,
+        hours=payload.hours,
+        trial_provider_profile=settings.trial_provider_profile.strip(),
+    )
+    db_session.commit()
+    return DataEnvelope(data=result)
 
 
 @router.post("/api/v1/system/demo/bootstrap", response_model=DataEnvelope[DemoBootstrapSummaryData])

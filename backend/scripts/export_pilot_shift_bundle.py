@@ -231,6 +231,42 @@ def _load_pilot_control(*, request_json, auth_token: str) -> dict[str, object]:
     return payload
 
 
+def _record_shift_bundle_export(
+    *,
+    request_json,
+    auth_token: str,
+    bundle_id: str,
+    manifest_path: Path,
+    overall_status: str,
+    degraded_reasons: list[str],
+    cutover_mode: object,
+    hours: int,
+) -> None:
+    status_code, body = request_json(
+        "POST",
+        "/api/v1/system/shift-bundle-exports",
+        token=auth_token,
+        payload={
+            "bundle_id": bundle_id,
+            "manifest_path": str(manifest_path),
+            "overall_status": overall_status,
+            "degraded_reasons": list(degraded_reasons),
+            "cutover_mode": cutover_mode,
+            "hours": hours,
+        },
+    )
+    data = _expect_data_envelope(
+        status_code=status_code,
+        body=body,
+        label="POST /api/v1/system/shift-bundle-exports",
+    )
+    payload = _expect_object(data, label="POST /api/v1/system/shift-bundle-exports data")
+    _expect_string(
+        payload.get("shift_bundle_audit_log_id"),
+        label="POST /api/v1/system/shift-bundle-exports shift_bundle_audit_log_id",
+    )
+
+
 def _normalize_timestamp(now: datetime) -> datetime:
     if now.tzinfo is None:
         return now.replace(tzinfo=UTC)
@@ -440,7 +476,17 @@ def export_pilot_shift_bundle(
         }
         manifest_path = bundle_dir / "manifest.json"
         _write_json_artifact(manifest_path, manifest_payload)
-    except ShiftBundleExportError:
+        _record_shift_bundle_export(
+            request_json=request_json,
+            auth_token=active_auth_token,
+            bundle_id=bundle_id,
+            manifest_path=manifest_path,
+            overall_status=overall_status,
+            degraded_reasons=degraded_reasons,
+            cutover_mode=pilot_control_payload.get("cutover_mode"),
+            hours=hours,
+        )
+    except (ShiftBundleExportError, TrialReadinessError):
         _cleanup_partial_bundle(bundle_dir)
         raise
 

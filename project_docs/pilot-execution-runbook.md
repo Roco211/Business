@@ -143,3 +143,4 @@ Notes:
 - Do not use `/api/v1/system/demo/bootstrap` as a recovery step for trial mode.
 - Any non-empty `provider_failures` map should be treated as a pilot incident until the underlying provider issue is explained.
 - Missing or empty `trial_provider_profile` means the run is not safe to treat as calibrated pilot traffic.
+- For a full incident-response loop after a degraded summary or rollback signal, continue in `project_docs/pilot-incident-recovery-runbook.md`.

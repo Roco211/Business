@@ -93,3 +93,4 @@ python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: pilo
 
 3. Export a fresh shift bundle and attach it to the incident record.
 4. Re-run readiness, preflight, and pilot summary before re-opening.
+5. Use `project_docs/pilot-incident-recovery-runbook.md` for the full diagnostics, replay, backfill, and reopen sequence.

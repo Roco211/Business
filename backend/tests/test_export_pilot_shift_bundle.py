@@ -25,7 +25,11 @@ class _Summary:
         return dict(self.payload)
 
 
-def _build_request_json(*, pilot_control_payload: dict[str, object]):
+def _build_request_json(
+    *,
+    pilot_control_payload: dict[str, object],
+    recorded_exports: list[dict[str, object]] | None = None,
+):
     def request_json(
         method: str,
         path: str,
@@ -43,6 +47,19 @@ def _build_request_json(*, pilot_control_payload: dict[str, object]):
             assert token == "issued-token"
             assert payload is None
             return 200, {"data": pilot_control_payload}
+        if path == "/api/v1/system/shift-bundle-exports":
+            assert method == "POST"
+            assert token == "issued-token"
+            assert isinstance(payload, dict)
+            if recorded_exports is not None:
+                recorded_exports.append(dict(payload))
+            return 200, {
+                "data": {
+                    "shift_bundle_audit_log_id": "audit_shift_bundle_1",
+                    "bundle_id": str(payload["bundle_id"]),
+                    "reused_existing": False,
+                }
+            }
         raise AssertionError(f"Unexpected request path: {path}")
 
     return request_json
@@ -215,6 +232,60 @@ def test_export_shift_bundle_collects_outputs_and_writes_compact_manifest(tmp_pa
     assert json.loads(pilot_control_artifact.read_text(encoding="utf-8")) == pilot_control_payload
     pilot_summary_artifact = bundle_dir / manifest_payload["artifacts"]["pilot_summary"]["file"]
     assert json.loads(pilot_summary_artifact.read_text(encoding="utf-8")) == pilot_summary_payload
+
+
+def test_export_shift_bundle_records_export_audit_after_manifest_is_written(tmp_path, monkeypatch) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".gitignore").write_text("secure-bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    readiness_payload = _ready_readiness_payload()
+    preflight_payload = _ready_preflight_payload()
+    pilot_control_payload = _ready_pilot_control_payload()
+    pilot_summary_payload = _ready_pilot_summary_payload(readiness_payload)
+    recorded_exports: list[dict[str, object]] = []
+
+    monkeypatch.setattr(script_module, "run_trial_readiness", lambda **_: _Summary(readiness_payload))
+    monkeypatch.setattr(script_module, "run_live_pilot_preflight", lambda **_: _Summary(preflight_payload))
+    monkeypatch.setattr(script_module, "run_pilot_summary_check", lambda **_: dict(pilot_summary_payload))
+    monkeypatch.setattr(
+        script_module,
+        "_build_live_request",
+        lambda _api_base_url: _build_request_json(
+            pilot_control_payload=pilot_control_payload,
+            recorded_exports=recorded_exports,
+        ),
+    )
+
+    result = script_module.export_pilot_shift_bundle(
+        api_base_url="http://127.0.0.1:8001",
+        output_dir=str(repo_root / "secure-bundles" / "shift-handoff"),
+        auth_token=None,
+        login_email="owner@example.com",
+        login_password="dev-password",
+        hours=24,
+        now_fn=_fixed_now,
+    )
+
+    assert result["overall_status"] == "ready"
+    assert recorded_exports == [
+        {
+            "bundle_id": "shift_bundle_20260407T090000000000Z",
+            "manifest_path": str(
+                repo_root
+                / "secure-bundles"
+                / "shift-handoff"
+                / "shift_bundle_20260407T090000000000Z"
+                / "manifest.json"
+            ),
+            "overall_status": "ready",
+            "degraded_reasons": [],
+            "cutover_mode": "shadow",
+            "hours": 24,
+        }
+    ]
 
 
 def test_export_shift_bundle_rejects_repo_destination_that_is_not_gitignored(tmp_path, monkeypatch) -> None:

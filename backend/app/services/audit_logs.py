@@ -338,3 +338,118 @@ def append_pilot_runtime_telemetry_audit_log(
     db_session.add(log)
     db_session.flush()
     return log
+
+
+def append_pilot_task_diagnostic_replayed_audit_log(
+    db_session: Session,
+    *,
+    shop_id: str,
+    actor_id: str,
+    task_run_id: str,
+    idempotency_key: str | None,
+    trial_provider_profile: str,
+    incident_id: str | None,
+    reasons: list[str],
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop_id,
+        scope="pilot",
+        action="pilot.task_diagnostic_replayed",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=task_run_id,
+        target_type="task_run",
+        target_id=task_run_id,
+        metadata_json={
+            "task_run_id": task_run_id,
+            "idempotency_key": idempotency_key,
+            "trial_provider_profile": trial_provider_profile,
+            "incident_id": incident_id,
+            "reasons": list(reasons),
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log
+
+
+def append_pilot_operator_view_backfill_audit_log(
+    db_session: Session,
+    *,
+    shop_id: str,
+    actor_id: str,
+    view: str,
+    hours: int,
+    limit: int,
+    idempotency_key: str | None,
+    trial_provider_profile: str,
+    total_incidents: int,
+    current_cutover_mode: str,
+    affected_task_ids: list[str],
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop_id,
+        scope="pilot",
+        action="pilot.operator_view_backfilled",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=None,
+        target_type="operator_view",
+        target_id=view,
+        metadata_json={
+            "view": view,
+            "hours": hours,
+            "limit": limit,
+            "idempotency_key": idempotency_key,
+            "trial_provider_profile": trial_provider_profile,
+            "total_incidents": total_incidents,
+            "current_cutover_mode": current_cutover_mode,
+            "affected_task_ids": list(affected_task_ids),
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log
+
+
+def append_pilot_shift_bundle_export_audit_log(
+    db_session: Session,
+    *,
+    shop_id: str,
+    actor_id: str,
+    bundle_id: str,
+    manifest_path: str,
+    overall_status: str,
+    degraded_reasons: list[str],
+    trial_provider_profile: str,
+    cutover_mode: str | None,
+    hours: int | None,
+) -> AuditLog:
+    log = AuditLog(
+        audit_log_id=new_prefixed_id("audit"),
+        shop_id=shop_id,
+        scope="pilot",
+        action="pilot.shift_bundle_exported",
+        actor_type="owner",
+        actor_id=actor_id,
+        task_run_id=None,
+        target_type="shift_bundle",
+        target_id=bundle_id,
+        metadata_json={
+            "bundle_id": bundle_id,
+            "manifest_path": manifest_path,
+            "overall_status": overall_status,
+            "degraded_reasons": list(degraded_reasons),
+            "trial_provider_profile": trial_provider_profile,
+            "cutover_mode": cutover_mode,
+            "hours": hours,
+        },
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+    )
+    db_session.add(log)
+    db_session.flush()
+    return log

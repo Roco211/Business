@@ -659,6 +659,30 @@
         "title": "DataEnvelope[DemoBootstrapSummaryData]",
         "type": "object"
       },
+      "DataEnvelope_IncidentTaskDiagnosticReplayData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IncidentTaskDiagnosticReplayData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[IncidentTaskDiagnosticReplayData]",
+        "type": "object"
+      },
+      "DataEnvelope_IncidentTimelineData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IncidentTimelineData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[IncidentTimelineData]",
+        "type": "object"
+      },
       "DataEnvelope_InventoryItemData_": {
         "properties": {
           "data": {
@@ -693,6 +717,30 @@
           "data"
         ],
         "title": "DataEnvelope[OcrDocumentData]",
+        "type": "object"
+      },
+      "DataEnvelope_OperatorDiagnosticsData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OperatorDiagnosticsData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[OperatorDiagnosticsData]",
+        "type": "object"
+      },
+      "DataEnvelope_OperatorViewBackfillData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OperatorViewBackfillData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[OperatorViewBackfillData]",
         "type": "object"
       },
       "DataEnvelope_PilotControlData_": {
@@ -741,6 +789,18 @@
           "data"
         ],
         "title": "DataEnvelope[SessionBootstrapData]",
+        "type": "object"
+      },
+      "DataEnvelope_ShiftBundleExportRecordData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShiftBundleExportRecordData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "DataEnvelope[ShiftBundleExportRecordData]",
         "type": "object"
       },
       "DataEnvelope_SystemReadinessData_": {
@@ -936,6 +996,433 @@
           "status"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "IncidentTaskDiagnosticReplayData": {
+        "properties": {
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "incident": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentTimelineEntryData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "replay_audit_log_id": {
+            "title": "Replay Audit Log Id",
+            "type": "string"
+          },
+          "reused_existing": {
+            "title": "Reused Existing",
+            "type": "boolean"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "replay_audit_log_id",
+          "task_run_id",
+          "reused_existing"
+        ],
+        "title": "IncidentTaskDiagnosticReplayData",
+        "type": "object"
+      },
+      "IncidentTaskDiagnosticReplayRequest": {
+        "properties": {
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_run_id"
+        ],
+        "title": "IncidentTaskDiagnosticReplayRequest",
+        "type": "object"
+      },
+      "IncidentTimelineConfirmationData": {
+        "properties": {
+          "confirmation_id": {
+            "title": "Confirmation Id",
+            "type": "string"
+          },
+          "confirmation_type": {
+            "title": "Confirmation Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmation_id",
+          "confirmation_type",
+          "status",
+          "created_at",
+          "resolved_at"
+        ],
+        "title": "IncidentTimelineConfirmationData",
+        "type": "object"
+      },
+      "IncidentTimelineData": {
+        "properties": {
+          "current_cutover_mode": {
+            "title": "Current Cutover Mode",
+            "type": "string"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentTimelineEntryData"
+            },
+            "title": "Incidents",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/IncidentTimelineSummaryData"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/PilotSummaryTimeWindowData"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_window",
+          "trial_provider_profile",
+          "current_cutover_mode",
+          "summary",
+          "incidents"
+        ],
+        "title": "IncidentTimelineData",
+        "type": "object"
+      },
+      "IncidentTimelineEntryData": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "capability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability"
+          },
+          "confirmation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentTimelineConfirmationData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cutover_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutover Mode"
+          },
+          "guardrail_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardrail Status"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "provider_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Label"
+          },
+          "provider_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Mode"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "session_events": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentTimelineSessionEventData"
+            },
+            "title": "Session Events",
+            "type": "array"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "task": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentTimelineTaskData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "incident_id",
+          "source",
+          "action",
+          "severity",
+          "occurred_at",
+          "summary",
+          "reasons",
+          "session_events"
+        ],
+        "title": "IncidentTimelineEntryData",
+        "type": "object"
+      },
+      "IncidentTimelineSessionEventData": {
+        "properties": {
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_id",
+          "seq",
+          "event_type",
+          "occurred_at"
+        ],
+        "title": "IncidentTimelineSessionEventData",
+        "type": "object"
+      },
+      "IncidentTimelineSummaryData": {
+        "properties": {
+          "affected_task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Task Ids",
+            "type": "array"
+          },
+          "guardrail_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Guardrail Reasons",
+            "type": "object"
+          },
+          "incidents_by_severity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Incidents By Severity",
+            "type": "object"
+          },
+          "incidents_by_source": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Incidents By Source",
+            "type": "object"
+          },
+          "latest_incident_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Incident At"
+          },
+          "provider_failures": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Provider Failures",
+            "type": "object"
+          },
+          "total_incidents": {
+            "title": "Total Incidents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_incidents",
+          "incidents_by_severity",
+          "incidents_by_source",
+          "provider_failures",
+          "guardrail_reasons",
+          "affected_task_ids"
+        ],
+        "title": "IncidentTimelineSummaryData",
+        "type": "object"
+      },
+      "IncidentTimelineTaskData": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "task_type": {
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_run_id",
+          "session_id",
+          "task_type",
+          "status",
+          "error_code",
+          "created_at",
+          "completed_at"
+        ],
+        "title": "IncidentTimelineTaskData",
         "type": "object"
       },
       "InventoryItemData": {
@@ -1361,6 +1848,243 @@
           "updated_at"
         ],
         "title": "OcrDocumentData",
+        "type": "object"
+      },
+      "OperatorDiagnosticsAffectedTaskData": {
+        "properties": {
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "task_type": {
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_run_id",
+          "task_type",
+          "status",
+          "severity",
+          "reasons"
+        ],
+        "title": "OperatorDiagnosticsAffectedTaskData",
+        "type": "object"
+      },
+      "OperatorDiagnosticsData": {
+        "properties": {
+          "affected_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/OperatorDiagnosticsAffectedTaskData"
+            },
+            "title": "Affected Tasks",
+            "type": "array"
+          },
+          "current_cutover_mode": {
+            "title": "Current Cutover Mode",
+            "type": "string"
+          },
+          "incident_summary": {
+            "$ref": "#/components/schemas/IncidentTimelineSummaryData"
+          },
+          "latest_shift_bundle": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OperatorDiagnosticsLatestShiftBundleData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operator_verdict": {
+            "title": "Operator Verdict",
+            "type": "string"
+          },
+          "recent_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Recent Reasons",
+            "type": "object"
+          },
+          "suggested_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggested Actions",
+            "type": "array"
+          },
+          "time_window": {
+            "$ref": "#/components/schemas/PilotSummaryTimeWindowData"
+          },
+          "trial_provider_profile": {
+            "title": "Trial Provider Profile",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_window",
+          "trial_provider_profile",
+          "current_cutover_mode",
+          "operator_verdict",
+          "incident_summary",
+          "recent_reasons",
+          "affected_tasks",
+          "suggested_actions"
+        ],
+        "title": "OperatorDiagnosticsData",
+        "type": "object"
+      },
+      "OperatorDiagnosticsLatestShiftBundleData": {
+        "properties": {
+          "audit_log_id": {
+            "title": "Audit Log Id",
+            "type": "string"
+          },
+          "bundle_id": {
+            "title": "Bundle Id",
+            "type": "string"
+          },
+          "degraded_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Degraded Reasons",
+            "type": "array"
+          },
+          "manifest_path": {
+            "title": "Manifest Path",
+            "type": "string"
+          },
+          "overall_status": {
+            "title": "Overall Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audit_log_id",
+          "bundle_id",
+          "manifest_path",
+          "overall_status",
+          "degraded_reasons"
+        ],
+        "title": "OperatorDiagnosticsLatestShiftBundleData",
+        "type": "object"
+      },
+      "OperatorViewBackfillData": {
+        "properties": {
+          "backfill_audit_log_id": {
+            "title": "Backfill Audit Log Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "reused_existing": {
+            "title": "Reused Existing",
+            "type": "boolean"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/OperatorViewBackfillSnapshotData"
+          },
+          "view": {
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backfill_audit_log_id",
+          "view",
+          "reused_existing",
+          "snapshot"
+        ],
+        "title": "OperatorViewBackfillData",
+        "type": "object"
+      },
+      "OperatorViewBackfillRequest": {
+        "properties": {
+          "hours": {
+            "default": 24,
+            "title": "Hours",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "limit": {
+            "default": 20,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "view": {
+            "default": "incident-timeline",
+            "enum": [
+              "incident-timeline",
+              "operator-diagnostics"
+            ],
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "title": "OperatorViewBackfillRequest",
+        "type": "object"
+      },
+      "OperatorViewBackfillSnapshotData": {
+        "properties": {
+          "affected_task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Task Ids",
+            "type": "array"
+          },
+          "current_cutover_mode": {
+            "title": "Current Cutover Mode",
+            "type": "string"
+          },
+          "total_incidents": {
+            "title": "Total Incidents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_incidents",
+          "current_cutover_mode",
+          "affected_task_ids"
+        ],
+        "title": "OperatorViewBackfillSnapshotData",
         "type": "object"
       },
       "PilotControlData": {
@@ -2042,6 +2766,82 @@
           "occurred_at"
         ],
         "title": "SessionStreamEventEnvelope",
+        "type": "object"
+      },
+      "ShiftBundleExportRecordData": {
+        "properties": {
+          "bundle_id": {
+            "title": "Bundle Id",
+            "type": "string"
+          },
+          "reused_existing": {
+            "title": "Reused Existing",
+            "type": "boolean"
+          },
+          "shift_bundle_audit_log_id": {
+            "title": "Shift Bundle Audit Log Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shift_bundle_audit_log_id",
+          "bundle_id",
+          "reused_existing"
+        ],
+        "title": "ShiftBundleExportRecordData",
+        "type": "object"
+      },
+      "ShiftBundleExportRecordRequest": {
+        "properties": {
+          "bundle_id": {
+            "title": "Bundle Id",
+            "type": "string"
+          },
+          "cutover_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutover Mode"
+          },
+          "degraded_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Degraded Reasons",
+            "type": "array"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "manifest_path": {
+            "title": "Manifest Path",
+            "type": "string"
+          },
+          "overall_status": {
+            "title": "Overall Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bundle_id",
+          "manifest_path",
+          "overall_status",
+          "degraded_reasons"
+        ],
+        "title": "ShiftBundleExportRecordRequest",
         "type": "object"
       },
       "SystemReadinessData": {
@@ -3652,6 +4452,320 @@
         ]
       }
     },
+    "/api/v1/system/incident-replays/task-diagnostic": {
+      "post": {
+        "operationId": "post_task_diagnostic_replay_api_v1_system_incident_replays_task_diagnostic_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncidentTaskDiagnosticReplayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_IncidentTaskDiagnosticReplayData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Task run not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Task Diagnostic Replay",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/incident-timeline": {
+      "get": {
+        "operationId": "get_incident_timeline_api_v1_system_incident_timeline_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Hours",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_IncidentTimelineData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Incident Timeline",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/operator-diagnostics": {
+      "get": {
+        "operationId": "get_operator_diagnostics_api_v1_system_operator_diagnostics_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Hours",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_OperatorDiagnosticsData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Operator Diagnostics",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/operator-view-backfills": {
+      "post": {
+        "operationId": "post_operator_view_backfill_api_v1_system_operator_view_backfills_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperatorViewBackfillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_OperatorViewBackfillData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Operator View Backfill",
+        "tags": [
+          "system"
+        ]
+      }
+    },
     "/api/v1/system/pilot-control": {
       "get": {
         "operationId": "get_pilot_control_api_v1_system_pilot_control_get",
@@ -3913,6 +5027,75 @@
           }
         },
         "summary": "Get System Readiness",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/shift-bundle-exports": {
+      "post": {
+        "operationId": "post_shift_bundle_export_record_api_v1_system_shift_bundle_exports_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftBundleExportRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataEnvelope_ShiftBundleExportRecordData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Shift Bundle Export Record",
         "tags": [
           "system"
         ]

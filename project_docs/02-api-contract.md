@@ -951,3 +951,224 @@ Contract:
   - `degraded_reasons`
 - destination must be private or explicitly gitignored when under repository root
 - CLI exits `0` when bundle `overall_status` is `ready`; exits `1` when degraded
+- after a bundle is written, the CLI records one protected `pilot.shift_bundle_exported` audit entry through:
+  - `POST /api/v1/system/shift-bundle-exports`
+
+## 17.9 Incident Recovery Addendum
+
+### 17.9.1 Incident Timeline
+
+`GET /api/v1/system/incident-timeline?hours=24&limit=20`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Response:
+
+```json
+{
+  "data": {
+    "time_window": {
+      "hours": 24,
+      "started_at": "2026-04-07T00:00:00",
+      "ended_at": "2026-04-08T00:00:00"
+    },
+    "trial_provider_profile": "pilot-v1",
+    "current_cutover_mode": "open",
+    "summary": {
+      "total_incidents": 3,
+      "incidents_by_severity": {
+        "critical": 2,
+        "degraded": 1
+      },
+      "incidents_by_source": {
+        "provider-telemetry": 2,
+        "cutover-transition": 1
+      },
+      "provider_failures": {
+        "vision_unavailable": 1
+      },
+      "guardrail_reasons": {
+        "cutover_alignment_invalid": 1
+      },
+      "affected_task_ids": ["task_123"]
+    },
+    "incidents": [
+      {
+        "incident_id": "audit_123",
+        "source": "provider-telemetry",
+        "severity": "critical",
+        "summary": "vision-primary reported vision_unavailable for photo-stock-query",
+        "reasons": ["vision_unavailable"],
+        "task": {
+          "task_run_id": "task_123",
+          "task_type": "photo-stock-query",
+          "status": "failed"
+        },
+        "session_events": [
+          {
+            "event_type": "task.updated",
+            "seq": 12
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Notes:
+
+- the route correlates pilot cutover transitions, runtime telemetry, task runs, confirmations, and durable session stream events
+- successful telemetry without failure, guardrail, fallback, or low-confidence signals is omitted
+- telemetry rows from a different `trial_provider_profile` are ignored
+- `summary.total_incidents` counts the full matching set before pagination
+
+### 17.9.2 Task Diagnostic Replay
+
+`POST /api/v1/system/incident-replays/task-diagnostic`
+
+Request body:
+
+```json
+{
+  "task_run_id": "task_123",
+  "idempotency_key": "incident-ticket-123-task-123"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "replay_audit_log_id": "audit_replay_001",
+    "task_run_id": "task_123",
+    "idempotency_key": "incident-ticket-123-task-123",
+    "reused_existing": false,
+    "incident": {
+      "incident_id": "audit_runtime_001",
+      "reasons": ["vision_unavailable"]
+    }
+  }
+}
+```
+
+Notes:
+
+- the action is read-only; it does not mutate inventory truth
+- the server writes one protected `pilot.task_diagnostic_replayed` audit entry
+- reusing the same `idempotency_key` for the same task returns the existing audit entry instead of writing a duplicate
+- when the task does not belong to the authenticated shop, the server returns `404 task_run_not_found`
+
+### 17.9.3 Operator View Backfill
+
+`POST /api/v1/system/operator-view-backfills`
+
+Request body:
+
+```json
+{
+  "view": "incident-timeline",
+  "hours": 24,
+  "limit": 20,
+  "idempotency_key": "incident-ticket-123-backfill-1"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "backfill_audit_log_id": "audit_backfill_001",
+    "view": "incident-timeline",
+    "reused_existing": false,
+    "snapshot": {
+      "total_incidents": 3,
+      "current_cutover_mode": "closed",
+      "affected_task_ids": ["task_123", "task_124"]
+    }
+  }
+}
+```
+
+Notes:
+
+- the action recomputes the requested operator snapshot from source-of-truth data
+- it is read-only and writes one protected `pilot.operator_view_backfilled` audit entry
+- the route currently accepts:
+  - `incident-timeline`
+  - `operator-diagnostics`
+
+### 17.9.4 Operator Diagnostics
+
+`GET /api/v1/system/operator-diagnostics?hours=24&limit=10`
+
+Auth:
+
+- `Authorization: Bearer <opaque bearer token>`
+
+Response:
+
+```json
+{
+  "data": {
+    "trial_provider_profile": "pilot-v1",
+    "current_cutover_mode": "open",
+    "operator_verdict": "rollback-recommended",
+    "recent_reasons": {
+      "vision_unavailable": 1,
+      "cutover_alignment_invalid": 1
+    },
+    "affected_tasks": [
+      {
+        "task_run_id": "task_123",
+        "task_type": "photo-stock-query",
+        "status": "failed",
+        "severity": "critical",
+        "reasons": ["vision_unavailable"]
+      }
+    ],
+    "latest_shift_bundle": {
+      "bundle_id": "shift_bundle_20260407T090000000000Z",
+      "manifest_path": "C:/secure/pilot/shift_bundle_20260407/manifest.json",
+      "overall_status": "degraded"
+    },
+    "suggested_actions": [
+      "set_cutover_closed",
+      "run_task_diagnostic_replay",
+      "review_latest_shift_bundle"
+    ]
+  }
+}
+```
+
+Notes:
+
+- this is a thin operator read surface, not a general admin portal
+- it reuses the incident timeline plus the latest recorded shift-bundle export audit
+- `operator_verdict = rollback-recommended` when cutover is currently `open` and at least one critical incident is present
+
+### 17.9.5 Shift Bundle Export Record
+
+`POST /api/v1/system/shift-bundle-exports`
+
+Request body:
+
+```json
+{
+  "bundle_id": "shift_bundle_20260407T090000000000Z",
+  "manifest_path": "C:/secure/pilot/shift_bundle_20260407/manifest.json",
+  "overall_status": "degraded",
+  "degraded_reasons": ["provider_failures_present"],
+  "cutover_mode": "closed",
+  "hours": 24
+}
+```
+
+Notes:
+
+- the route records one protected `pilot.shift_bundle_exported` audit entry
+- the record is idempotent by `(bundle_id, manifest_path)` and returns the existing audit row when the same export is recorded again

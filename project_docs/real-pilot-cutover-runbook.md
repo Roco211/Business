@@ -1,99 +1,103 @@
 # Real Pilot Cutover Runbook
 
-This runbook defines the controlled operator sequence for opening, monitoring, handing off, and rolling back real pilot cutover.
+This runbook defines the controlled live cutover flow for real pilot shifts.
 
-## Mode Semantics
+## Cutover Mode Meanings
 
-- `closed`: block live cutover operations; treat pilot traffic as paused.
-- `shadow`: observe live providers while forcing confirmation gates.
-- `open`: controlled live cutover after successful preflight and approved artifact alignment.
+- `closed`: live cutover is blocked; do not process live pilot traffic.
+- `shadow`: live providers run for observation, but guardrails force confirmation before state-changing writes.
+- `open`: live providers are allowed under the approved profile/artifact/preflight alignment.
 
-## Preconditions Before Opening
+## Required Transition Path
 
-1. Trial profile is active (`APP_RUNTIME_MODE=trial`).
-2. Current readiness check is green.
-3. Latest approved calibration artifact is available on a private path.
-4. Operator has a rollback note prepared in case of incident.
+Use the protected pilot-control mutation flow and keep transitions explicit:
 
-## Controlled Open Sequence
+1. `closed -> shadow` when beginning observation for a shift.
+2. Run live preflight and confirm `overall_status=ready`.
+3. `shadow -> open` only after fresh preflight is ready.
+4. `open -> shadow` for rapid safety rollback.
+5. `shadow -> closed` when the pilot window is halted.
 
-1. Run readiness:
+Never jump directly from `closed -> open`.
+
+## Cutover Commands
+
+Move to shadow:
 
 ```powershell
-python backend/scripts/run_trial_readiness_check.py
+python backend/scripts/set_pilot_cutover.py --mode shadow --note "shift start: observation window"
 ```
 
-2. Run live preflight with the approved artifact:
+Run preflight before open:
 
 ```powershell
 python backend/scripts/run_live_pilot_preflight.py --artifact-path C:\secure\pilot\artifacts\pilot-v1_report_20260407T090000000000Z.json
 ```
 
-3. Move cutover to `shadow` (if not already there):
+Open cutover:
 
 ```powershell
-python backend/scripts/set_pilot_cutover.py --mode shadow --note "pre-open observation window"
+python backend/scripts/set_pilot_cutover.py --mode open --artifact-path C:\secure\pilot\artifacts\pilot-v1_report_20260407T090000000000Z.json --note "shift start: controlled open"
 ```
 
-4. Open cutover with the same artifact path:
+Inspect current control state:
 
 ```powershell
-python backend/scripts/set_pilot_cutover.py --mode open --artifact-path C:\secure\pilot\artifacts\pilot-v1_report_20260407T090000000000Z.json --note "morning shift open"
+python - <<'PY'
+import json
+import urllib.request
+request = urllib.request.Request(
+    "http://127.0.0.1:8001/api/v1/system/pilot-control",
+    headers={"Authorization": "Bearer <access_token>"},
+)
+with urllib.request.urlopen(request, timeout=10) as response:
+    print(json.dumps(json.loads(response.read().decode("utf-8"))["data"], sort_keys=True))
+PY
 ```
 
-5. Validate live window health:
+## Required Shift Bundle Export
 
-```powershell
-python backend/scripts/run_pilot_summary_check.py --hours 24
-```
-
-## Required Shift Handoff Export
-
-Export one bundle for each shift handoff and each incident timeline:
+At each handoff and every incident, export a shift bundle:
 
 ```powershell
 python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles
 ```
 
-Bundle includes:
+For shorter incident windows:
+
+```powershell
+python backend/scripts/export_pilot_shift_bundle.py --hours 8 --api-base-url http://127.0.0.1:8001 --output-dir C:\secure\pilot\shift-bundles
+```
+
+Bundle contents:
 
 - readiness JSON
 - preflight JSON
 - current pilot-control JSON
 - pilot summary JSON
-- manifest (`manifest.json`) containing file names, timestamps, shop id, mode, profile, and artifact id
+- manifest JSON with file names, timestamps, shop id, mode, profile, and artifact id
 
-Store bundle output in private storage and reference the manifest path in handoff/incident notes.
+Destination rule:
 
-## Incident Rollback Path
+- use a private external directory when possible, or
+- use a repository path that is explicitly gitignored.
 
-If pilot checks degrade or provider incidents occur:
+## Rollback Path
 
-1. Roll back from `open` to `shadow`:
+When any preflight/summary/bundle output is degraded:
 
-```powershell
-python backend/scripts/set_pilot_cutover.py --mode shadow --note "rollback: provider incident investigation"
-```
-
-2. If needed, roll back from `shadow` to `closed`:
+1. Roll back from `open` to `shadow` immediately:
 
 ```powershell
-python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: stop live cutover"
+python backend/scripts/set_pilot_cutover.py --mode shadow --note "rollback: investigating degraded signal"
 ```
 
-3. Export an incident shift bundle immediately:
+2. If risk remains, roll back to `closed`:
 
 ```powershell
-python backend/scripts/export_pilot_shift_bundle.py --hours 8 --output-dir C:\secure\pilot\shift-bundles
+python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: pilot closed pending fix"
 ```
 
-4. Re-run readiness, preflight, and pilot summary before considering reopen.
+3. Export a fresh shift bundle and attach it to the incident record.
+4. Re-run readiness, preflight, and pilot summary before re-opening.
 
-## Reopen After Rollback
-
-Only reopen after:
-
-1. root cause is understood and mitigated,
-2. preflight returns `overall_status=ready`,
-3. cutover transition is explicitly audited through `set_pilot_cutover.py --mode open`,
-4. a new shift bundle is exported after reopen for traceability.

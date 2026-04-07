@@ -320,6 +320,39 @@ describe("LedgerScreen", () => {
     });
   });
 
+  it("initializes correction quantity when switching from stock-out to correction inside panel", async () => {
+    render(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-stock-out"));
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-quantity-input"), "2");
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-reason-input"), "Switching action");
+
+    const correctionSwitchButtons = screen.getAllByRole("button", { name: "库存修正" });
+    fireEvent.press(correctionSwitchButtons[1]);
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Panel switch correction");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
+
+    await waitFor(() => {
+      const correctionRequest = (global.fetch as jest.Mock).mock.calls.find((call) => {
+        const [input, init] = call as [RequestInfo | URL, RequestInit | undefined];
+        return (
+          String(input).includes("/api/v1/inventory-events/corrections") &&
+          (init?.method ?? "GET") === "POST"
+        );
+      });
+
+      expect(correctionRequest).toBeDefined();
+      const requestPayload = JSON.parse(String(correctionRequest?.[1]?.body ?? "{}")) as {
+        corrected_quantity?: number;
+      };
+      expect(requestPayload.corrected_quantity).toBe(3);
+    });
+  });
+
   it("refreshes inventory and audit reads when a relevant session event arrives", async () => {
     const { rerender } = render(<LedgerScreen />);
 

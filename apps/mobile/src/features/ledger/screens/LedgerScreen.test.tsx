@@ -145,4 +145,50 @@ describe("LedgerScreen workspace", () => {
       expect(auditRefresh).toHaveBeenCalled();
     });
   });
+
+  it("does not leak correction draft when switching item then switching action in panel", async () => {
+    mockedUseInventoryItemsQuery.mockReturnValue({
+      data: [
+        {
+          item_id: "item_apple",
+          name: "Apple",
+          default_unit: "box",
+          current_stock: "3.000",
+          current_price: "11.50",
+        },
+        {
+          item_id: "item_orange",
+          name: "Orange",
+          default_unit: "box",
+          current_stock: "9.000",
+          current_price: "12.50",
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: inventoryRefresh,
+    });
+
+    render(<LedgerScreen />);
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-correction"));
+    fireEvent.changeText(screen.getByTestId("ledger-correction-quantity-input"), "7");
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Apple draft");
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_orange-action-stock-out"));
+
+    const correctionSwitchButtons = screen.getAllByRole("button", { name: "库存修正" });
+    fireEvent.press(correctionSwitchButtons[correctionSwitchButtons.length - 1]);
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Orange correction");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
+
+    await waitFor(() => {
+      expect(submitCorrection).toHaveBeenCalledWith({
+        item_id: "item_orange",
+        expected_quantity: 9,
+        corrected_quantity: 9,
+        reason: "Orange correction",
+      });
+    });
+  });
 });

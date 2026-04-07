@@ -58,6 +58,25 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }, [sessionStream.dataResetVersion]);
 
+  function switchActionForItem(item: InventoryItemRecord, action: LedgerActionType) {
+    setSelectedItem(item);
+    setSelectedAction(action);
+    setSelectedItemCurrentStock(item.current_stock);
+
+    if (action === "correction") {
+      setCorrectedQuantity(formatEditableQuantity(item.current_stock));
+      setCorrectionReason("");
+      setStockOutQuantity("");
+      setStockOutReason("");
+      return;
+    }
+
+    setStockOutQuantity("");
+    setStockOutReason("");
+    setCorrectedQuantity("");
+    setCorrectionReason("");
+  }
+
   async function handleSubmitCorrection() {
     if (!selectedItem) {
       return;
@@ -154,18 +173,10 @@ export default function LedgerScreen() {
                 key={item.item_id}
                 item={item}
                 onPressCorrection={() => {
-                  setSelectedAction("correction");
-                  setSelectedItem(item);
-                  setSelectedItemCurrentStock(item.current_stock);
-                  setCorrectedQuantity(formatEditableQuantity(item.current_stock));
-                  setCorrectionReason("");
+                  switchActionForItem(item, "correction");
                 }}
                 onPressStockOut={() => {
-                  setSelectedAction("stock-out");
-                  setSelectedItem(item);
-                  setSelectedItemCurrentStock(item.current_stock);
-                  setStockOutQuantity("");
-                  setStockOutReason("");
+                  switchActionForItem(item, "stock-out");
                 }}
               />
             ))}
@@ -185,7 +196,10 @@ export default function LedgerScreen() {
           correctionSubmitting={correction.isSubmitting}
           stockOutSubmitting={stockOut.isSubmitting}
           onSelectAction={(action) => {
-            setSelectedAction(action);
+            if (!selectedItem) {
+              return;
+            }
+            switchActionForItem(selectedItem, action);
           }}
           onChangeCorrectedQuantity={setCorrectedQuantity}
           onChangeCorrectionReason={setCorrectionReason}

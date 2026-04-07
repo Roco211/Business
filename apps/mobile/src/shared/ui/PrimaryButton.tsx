@@ -13,6 +13,7 @@ export function PrimaryButton({
   loading = false,
   loadingLabel = "Loading...",
   disabled,
+  style,
   ...pressableProps
 }: PrimaryButtonProps) {
   const isDisabled = Boolean(disabled || loading);
@@ -21,7 +22,11 @@ export function PrimaryButton({
   return (
     <Pressable
       accessibilityRole="button"
-      style={[styles.button, isDisabled ? styles.buttonDisabled : null]}
+      style={(state) => [
+        styles.button,
+        isDisabled ? styles.buttonDisabled : null,
+        typeof style === "function" ? style(state) : style,
+      ]}
       disabled={isDisabled}
       {...pressableProps}
     >
@@ -49,4 +54,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-

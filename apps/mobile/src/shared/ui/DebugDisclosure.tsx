@@ -13,7 +13,13 @@ export function DebugDisclosure({ title, children }: DebugDisclosureProps) {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => setIsOpen((previous) => !previous)} style={styles.trigger}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ expanded: isOpen }}
+        onPress={() => setIsOpen((previous) => !previous)}
+        style={styles.trigger}
+      >
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.chevron}>{isOpen ? "Hide" : "Show"}</Text>
       </Pressable>
@@ -53,4 +59,3 @@ const styles = StyleSheet.create({
     padding: space.s12,
   },
 });
-

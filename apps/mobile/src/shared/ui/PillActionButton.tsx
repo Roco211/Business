@@ -7,12 +7,18 @@ type PillActionButtonProps = Omit<PressableProps, "children"> & {
 };
 
 export function PillActionButton({ label, disabled, ...pressableProps }: PillActionButtonProps) {
+  const { style, ...restProps } = pressableProps;
+
   return (
     <Pressable
       accessibilityRole="button"
-      style={[styles.button, disabled ? styles.disabled : null]}
+      style={(state) => [
+        styles.button,
+        disabled ? styles.disabled : null,
+        typeof style === "function" ? style(state) : style,
+      ]}
       disabled={disabled}
-      {...pressableProps}
+      {...restProps}
     >
       <Text style={styles.label}>{label}</Text>
     </Pressable>
@@ -40,4 +46,3 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
-

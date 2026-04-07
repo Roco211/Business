@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { StyleSheet, View, type ViewStyle } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { color, radius, space } from "./tokens";
 
@@ -9,7 +9,7 @@ type SurfaceEmphasis = "none" | "outlined" | "elevated";
 type SurfaceCardProps = PropsWithChildren<{
   tone?: SurfaceTone;
   emphasis?: SurfaceEmphasis;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }>;
 
 export function SurfaceCard({
@@ -50,13 +50,12 @@ const emphasisStyles = StyleSheet.create({
     borderWidth: 1,
   },
   elevated: {
-    backgroundColor: color.bgElevated,
     borderColor: color.borderSubtle,
     borderWidth: 1,
+    elevation: 2,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
   },
 });
-

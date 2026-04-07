@@ -10,15 +10,21 @@ type AppTextFieldProps = Omit<TextInputProps, "onChangeText" | "value"> & {
 };
 
 export function AppTextField({ label, value, onChangeText, error, ...textInputProps }: AppTextFieldProps) {
+  const { style, accessibilityState, ...restProps } = textInputProps;
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
+        accessibilityState={{
+          ...accessibilityState,
+          invalid: Boolean(error) || accessibilityState?.invalid,
+        }}
         value={value}
         onChangeText={onChangeText}
-        style={[styles.input, error ? styles.inputError : null]}
-        {...textInputProps}
+        style={[styles.input, error ? styles.inputError : null, style]}
+        {...restProps}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -52,4 +58,3 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
-

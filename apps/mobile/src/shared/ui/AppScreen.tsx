@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color, space } from "./tokens";
 
@@ -8,6 +9,7 @@ type AppScreenProps = PropsWithChildren<{
   subtitle?: string;
   centerContent?: boolean;
   contentWidth?: number;
+  safeArea?: boolean;
 }>;
 
 export function AppScreen({
@@ -15,16 +17,19 @@ export function AppScreen({
   subtitle,
   centerContent = false,
   contentWidth = 640,
+  safeArea = true,
   children,
 }: AppScreenProps) {
+  const Container = safeArea ? SafeAreaView : View;
+
   return (
-    <View style={[styles.screen, centerContent ? styles.centered : null]}>
+    <Container style={[styles.screen, centerContent ? styles.centered : null]}>
       <View style={[styles.content, { maxWidth: contentWidth }]}>
         {title ? <Text style={styles.title}>{title}</Text> : null}
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         <View style={styles.body}>{children}</View>
       </View>
-    </View>
+    </Container>
   );
 }
 
@@ -56,4 +61,3 @@ const styles = StyleSheet.create({
     marginTop: space.s16,
   },
 });
-

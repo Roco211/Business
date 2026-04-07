@@ -8,61 +8,77 @@ import {
   InlineNotice,
   PillActionButton,
   PrimaryButton,
+  SectionHeader,
   StatusBadge,
+  SurfaceCard,
 } from "../index";
 
 describe("shared ui primitives", () => {
   it("shows loading copy for PrimaryButton", () => {
-    render(<PrimaryButton label="登录" loadingLabel="登录中..." loading onPress={() => undefined} />);
+    render(
+      <PrimaryButton label="Login" loadingLabel="Logging in..." loading onPress={() => undefined} />,
+    );
 
-    expect(screen.getByText("登录中...")).toBeTruthy();
+    expect(screen.getByText("Logging in...")).toBeTruthy();
   });
 
   it("renders AppTextField label and error copy", () => {
     render(
       <AppTextField
-        label="邮箱"
+        label="Email"
         value="owner@example.com"
         onChangeText={() => undefined}
-        error="请输入有效邮箱"
+        error="Please enter a valid email"
       />,
     );
 
-    expect(screen.getByText("邮箱")).toBeTruthy();
-    expect(screen.getByText("请输入有效邮箱")).toBeTruthy();
+    expect(screen.getByText("Email")).toBeTruthy();
+    expect(screen.getByText("Please enter a valid email")).toBeTruthy();
+    expect(screen.getByLabelText("Email").props.accessibilityState?.invalid).toBe(true);
   });
 
   it("hides and reveals DebugDisclosure content", () => {
     render(
-      <DebugDisclosure title="调试工具">
+      <DebugDisclosure title="Debug tools">
         <InlineNotice tone="neutral" message="Demo reset lives here" />
       </DebugDisclosure>,
     );
 
     expect(screen.queryByText("Demo reset lives here")).toBeNull();
 
-    fireEvent.press(screen.getByText("调试工具"));
+    fireEvent.press(screen.getByRole("button", { name: "Debug tools" }));
 
     expect(screen.getByText("Demo reset lives here")).toBeTruthy();
   });
 
   it("renders AppScreen with StatusBadge and EmptyState", () => {
     render(
-      <AppScreen title="今天">
-        <StatusBadge tone="warning" label="待确认" />
-        <EmptyState title="暂无数据" description="先从语音或拍照开始。" />
+      <AppScreen title="Today">
+        <StatusBadge tone="warning" label="Needs confirmation" />
+        <EmptyState title="No data yet" description="Start with voice or photo capture." />
       </AppScreen>,
     );
 
-    expect(screen.getByText("今天")).toBeTruthy();
-    expect(screen.getByText("待确认")).toBeTruthy();
-    expect(screen.getByText("暂无数据")).toBeTruthy();
-    expect(screen.getByText("先从语音或拍照开始。")).toBeTruthy();
+    expect(screen.getByText("Today")).toBeTruthy();
+    expect(screen.getByText("Needs confirmation")).toBeTruthy();
+    expect(screen.getByText("No data yet")).toBeTruthy();
+    expect(screen.getByText("Start with voice or photo capture.")).toBeTruthy();
   });
 
   it("renders PillActionButton label", () => {
-    render(<PillActionButton label="语音" onPress={() => undefined} />);
+    render(<PillActionButton label="Voice" onPress={() => undefined} />);
 
-    expect(screen.getByText("语音")).toBeTruthy();
+    expect(screen.getByText("Voice")).toBeTruthy();
+  });
+
+  it("renders SurfaceCard with SectionHeader content", () => {
+    render(
+      <SurfaceCard tone="default" emphasis="elevated">
+        <SectionHeader title="Overview" subtitle="Daily data" />
+      </SurfaceCard>,
+    );
+
+    expect(screen.getByText("Overview")).toBeTruthy();
+    expect(screen.getByText("Daily data")).toBeTruthy();
   });
 });

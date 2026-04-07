@@ -212,16 +212,16 @@ describe("LedgerScreen", () => {
   it("renders inventory and audit activity, then re-queries inventory on search", async () => {
     render(<LedgerScreen />);
 
-    expect(screen.getByText("Loading ledger...")).toBeTruthy();
+    expect(screen.getByTestId("ledger-loading-state")).toBeTruthy();
     await waitFor(() => {
-      expect(screen.getByText("Apple")).toBeTruthy();
-      expect(screen.getByText("inventory.stock_in_confirmed")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
+      expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
     });
 
-    fireEvent.changeText(screen.getByPlaceholderText("Search inventory"), "ora");
+    fireEvent.changeText(screen.getByTestId("ledger-search-input"), "ora");
 
     await waitFor(() => {
-      expect(screen.getByText("Orange")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_orange")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/inventory-items?query=ora"),
         expect.any(Object),
@@ -233,14 +233,14 @@ describe("LedgerScreen", () => {
     render(<LedgerScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
       expect(screen.getByText("3.000 box")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Correct Apple"));
-    fireEvent.changeText(screen.getByPlaceholderText("Corrected quantity"), "6");
-    fireEvent.changeText(screen.getByPlaceholderText("Correction reason"), "Physical recount");
-    fireEvent.press(screen.getByText("Submit correction"));
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-correction"));
+    fireEvent.changeText(screen.getByTestId("ledger-correction-quantity-input"), "6");
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Physical recount");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
 
     await waitFor(() => {
       expect(screen.getByText("6.000 box")).toBeTruthy();
@@ -258,13 +258,13 @@ describe("LedgerScreen", () => {
     render(<LedgerScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Correct Apple"));
-    fireEvent.changeText(screen.getByPlaceholderText("Corrected quantity"), "6");
-    fireEvent.changeText(screen.getByPlaceholderText("Correction reason"), "Outdated snapshot");
-    fireEvent.press(screen.getByText("Submit correction"));
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-correction"));
+    fireEvent.changeText(screen.getByTestId("ledger-correction-quantity-input"), "6");
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Outdated snapshot");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
 
     await waitFor(() => {
       expect(
@@ -278,14 +278,14 @@ describe("LedgerScreen", () => {
     render(<LedgerScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
       expect(screen.getByText("3.000 box")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Stock out Apple"));
-    fireEvent.changeText(screen.getByPlaceholderText("Stock-out quantity"), "2");
-    fireEvent.changeText(screen.getByPlaceholderText("Stock-out reason"), "Walk-in sale");
-    fireEvent.press(screen.getByText("Submit stock-out"));
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-stock-out"));
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-quantity-input"), "2");
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-reason-input"), "Walk-in sale");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
 
     await waitFor(() => {
       expect(screen.getByText("1.000 box")).toBeTruthy();
@@ -304,13 +304,13 @@ describe("LedgerScreen", () => {
     render(<LedgerScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Apple")).toBeTruthy();
+      expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Stock out Apple"));
-    fireEvent.changeText(screen.getByPlaceholderText("Stock-out quantity"), "2");
-    fireEvent.changeText(screen.getByPlaceholderText("Stock-out reason"), "Outdated sale");
-    fireEvent.press(screen.getByText("Submit stock-out"));
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-stock-out"));
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-quantity-input"), "2");
+    fireEvent.changeText(screen.getByTestId("ledger-stock-out-reason-input"), "Outdated sale");
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
 
     await waitFor(() => {
       expect(

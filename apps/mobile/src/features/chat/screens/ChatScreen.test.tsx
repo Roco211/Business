@@ -166,12 +166,30 @@ describe("ChatScreen (workbench shell)", () => {
     });
   });
 
+  it("shows bootstrap-specific recovery copy when session bootstrap fails", async () => {
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: "sess_1",
+      sessionTitle: "Store shift session",
+      connectionState: "error",
+      bootstrapError: "Cannot reach API at http://192.168.1.4:8001 (Network request failed)",
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
+    expect(screen.getAllByText("当前无法连接门店服务，请检查网络后重试。").length).toBeGreaterThan(0);
+  });
+
   it("shows friendly unavailable titles for shared chat states", async () => {
     mockedUseSessionStream.mockReturnValue({
       sessionId: "sess_1",
       sessionTitle: "Store shift session",
       connectionState: "error",
-      bootstrapError: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+      bootstrapError: null,
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -193,10 +211,10 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("当前会话暂时不可用")).toBeTruthy();
+      expect(screen.getByText("连接受限")).toBeTruthy();
       expect(screen.getByText("消息列表暂时不可用")).toBeTruthy();
       expect(screen.getByText("待确认事项暂时不可用")).toBeTruthy();
-      expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
+      expect(screen.getByText("实时更新受限，执行操作后仍会触发手动刷新。")).toBeTruthy();
       expect(screen.getAllByText("Request failed").length).toBeGreaterThanOrEqual(2);
     });
   });

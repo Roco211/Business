@@ -36,6 +36,7 @@ export function useBootstrapSession() {
 
     setIsLoading(true);
     setError(null);
+    setData(null);
 
     apiPostJson<SessionBootstrapResponse, Record<string, never>>("/api/v1/sessions/bootstrap", {})
       .then((response) => {
@@ -48,6 +49,7 @@ export function useBootstrapSession() {
         if (!isActive) {
           return;
         }
+        setData(null);
         setError(reason instanceof Error ? reason.message : "Failed to bootstrap session");
       })
       .finally(() => {

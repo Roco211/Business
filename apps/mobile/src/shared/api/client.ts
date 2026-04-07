@@ -1,6 +1,7 @@
-import { Platform } from "react-native";
+import { NativeModules, Platform } from "react-native";
 
 import { clearAuthSession, getAccessToken } from "../auth/authStore";
+import { resolveApiBaseUrl } from "./resolveApiBaseUrl";
 
 type ApiRequestOptions = {
   requiresAuth?: boolean;
@@ -8,11 +9,14 @@ type ApiRequestOptions = {
 
 
 export function getApiBaseUrl(): string {
-  const configuredBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  if (configuredBaseUrl) {
-    return configuredBaseUrl.replace(/\/+$/, "");
-  }
-  return Platform.OS === "android" ? "http://10.0.2.2:8001" : "http://127.0.0.1:8001";
+  const scriptURL =
+    typeof NativeModules.SourceCode?.scriptURL === "string" ? NativeModules.SourceCode.scriptURL : null;
+
+  return resolveApiBaseUrl({
+    configuredBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+    platform: Platform.OS === "android" ? "android" : "ios",
+    scriptURL,
+  });
 }
 
 function buildAuthHeader(options?: ApiRequestOptions): Record<string, string> {

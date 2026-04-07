@@ -59,11 +59,19 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
     }
 
     if (bootstrap.error) {
+      startTransition(() => {
+        setLastEvent(null);
+        setRecentEvents([]);
+      });
       setConnectionState("error");
       return;
     }
 
     if (bootstrap.data === null) {
+      startTransition(() => {
+        setLastEvent(null);
+        setRecentEvents([]);
+      });
       setConnectionState("idle");
       return;
     }

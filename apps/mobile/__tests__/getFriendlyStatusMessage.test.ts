@@ -1,4 +1,5 @@
 import { getFriendlyStatusMessage } from "../src/shared/copy/getFriendlyStatusMessage";
+import { FRONTLINE_STATUS_COPY } from "../src/shared/copy/frontlineStatus";
 
 describe("getFriendlyStatusMessage", () => {
   it("uses the fallback when the message is empty", () => {
@@ -9,13 +10,22 @@ describe("getFriendlyStatusMessage", () => {
     expect(getFriendlyStatusMessage("库存同步失败", "请稍后再试。")).toBe("库存同步失败");
   });
 
-  it("maps only explicit network failures to the friendly network copy", () => {
+  it("converts network failures into stable frontline network copy", () => {
     expect(
       getFriendlyStatusMessage(
         "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
         "请稍后再试。",
       ),
-    ).toBe("当前无法连接门店服务，请检查网络后重试。");
+    ).toBe(FRONTLINE_STATUS_COPY.networkUnavailable);
+  });
+
+  it("normalizes leaked mock runtime task failures into stable task-failed copy", () => {
+    expect(
+      getFriendlyStatusMessage(
+        "Mock runtime could not process this task because no simulation route matched.",
+        "请稍后再试。",
+      ),
+    ).toBe(FRONTLINE_STATUS_COPY.taskFailed);
   });
 
   it("preserves english business errors instead of collapsing them to the fallback", () => {

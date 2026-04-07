@@ -1,3 +1,5 @@
+import { FRONTLINE_STATUS_COPY, normalizeRuntimeMessage } from "./frontlineStatus";
+
 const CHINESE_CHARACTER_PATTERN = /[\u3400-\u9fff]/;
 const NETWORK_ERROR_PATTERN =
   /(network request failed|failed to fetch|fetch failed|cannot reach api|econnrefused|timeout|timed out)/i;
@@ -12,13 +14,15 @@ export function getFriendlyStatusMessage(
     return fallbackMessage;
   }
 
-  if (CHINESE_CHARACTER_PATTERN.test(trimmedMessage)) {
-    return trimmedMessage;
+  const normalizedMessage = normalizeRuntimeMessage(trimmedMessage);
+
+  if (CHINESE_CHARACTER_PATTERN.test(normalizedMessage)) {
+    return normalizedMessage;
   }
 
-  if (NETWORK_ERROR_PATTERN.test(trimmedMessage)) {
-    return "当前无法连接门店服务，请检查网络后重试。";
+  if (NETWORK_ERROR_PATTERN.test(normalizedMessage)) {
+    return FRONTLINE_STATUS_COPY.networkUnavailable;
   }
 
-  return trimmedMessage;
+  return normalizedMessage;
 }

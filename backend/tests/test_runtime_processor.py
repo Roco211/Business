@@ -12,7 +12,7 @@ from app.runtime import tools as runtime_tools
 from app.runtime.policy import PolicyDecision
 from app.runtime.types import RuntimeTurnContext
 from app.runtime.processor import process_task_run
-from app.services.asr_types import AsrTranscription
+from app.services.asr_types import AsrProviderError, AsrTranscription
 from app.services.bootstrap import ensure_default_context
 from app.services.media_uploads import MediaUploadNotReadyError
 from app.services.messages import create_message
@@ -1470,6 +1470,50 @@ def test_process_task_run_appends_cutover_metadata_for_route_time_provider_failu
     assert audit_log.metadata_json["task_type"] == "voice-stock-query"
     assert audit_log.metadata_json["cutover_mode"] == "open"
     assert audit_log.metadata_json["guardrail_status"] == "allowed"
+    assert audit_log.metadata_json["shadow_forced_confirmation"] is False
+    assert audit_log.metadata_json["guardrail_degraded"] is False
+    assert audit_log.metadata_json["guardrail_degraded_reasons"] == []
+
+
+def test_process_task_run_appends_cutover_metadata_for_unclassified_route_time_asr_unavailable(
+    db_session,
+    monkeypatch,
+) -> None:
+    _, task_run_id = _create_owner_message(
+        db_session,
+        message_type="voice",
+        text=None,
+        media_ids=["voice_query_demo"],
+        client_request_id="runtime_voice_route_asr_unavailable_cutover_metadata",
+    )
+
+    class _FailingGateway:
+        def transcribe(self, media_input):
+            raise AsrProviderError("asr_unavailable", "primary down", retryable=True)
+
+    monkeypatch.setenv("APP_RUNTIME_MODE", "trial")
+    monkeypatch.setenv("TRIAL_PROVIDER_PROFILE", "pilot-v1")
+    monkeypatch.setenv("ASR_PROVIDER", "real-provider")
+    monkeypatch.setenv("ASR_PROVIDER_LABEL", "asr-primary")
+    monkeypatch.setattr(runtime_tools, "get_default_asr_gateway", lambda: _FailingGateway())
+    _set_pilot_cutover_state(db_session, cutover_mode="open")
+
+    result = process_task_run(db_session, task_run_id)
+    audit_log = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.task_run_id == task_run_id,
+            AuditLog.scope == "pilot",
+            AuditLog.action == "runtime.provider_telemetry",
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.error_code == "runtime_processing_error"
+    assert audit_log is not None
+    assert audit_log.metadata_json["task_type"] is None
+    assert audit_log.metadata_json["cutover_mode"] == "open"
+    assert audit_log.metadata_json["guardrail_status"] == "unclassified"
+    assert audit_log.metadata_json["guardrail_reason"] == "route_task_type_unclassified"
     assert audit_log.metadata_json["shadow_forced_confirmation"] is False
     assert audit_log.metadata_json["guardrail_degraded"] is False
     assert audit_log.metadata_json["guardrail_degraded_reasons"] == []

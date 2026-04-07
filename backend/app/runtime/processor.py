@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.models import Confirmation, InventoryItem, OcrDocument, TaskRun
 from app.runtime.context import build_runtime_turn_context
-from app.runtime.guardrails import evaluate_pilot_cutover_guardrail, is_write_intent_task_type
+from app.runtime.guardrails import (
+    evaluate_pilot_cutover_guardrail,
+    is_write_intent_task_type,
+    unclassified_route_failure_guardrail_telemetry,
+)
 from app.runtime.policy import PolicyDecision, evaluate_runtime_policy
 from app.runtime.router import RuntimeRouteBlocked, route_runtime_input
 from app.runtime.summarizer import summarize_completed_task, summarize_failed_task
@@ -800,6 +804,15 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 telemetry_payload = {
                     **telemetry_payload,
                     **route_guardrail.telemetry_fields(),
+                }
+            else:
+                telemetry_payload = {
+                    **telemetry_payload,
+                    **unclassified_route_failure_guardrail_telemetry(
+                        db_session,
+                        settings=settings or get_settings(),
+                        shop_id=context.shop_id,
+                    ),
                 }
         return _build_failed_result(
             db_session,

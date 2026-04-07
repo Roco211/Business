@@ -18,6 +18,7 @@ PILOT_CUTOVER_BLOCK_ERROR_CODE = "pilot_cutover_closed"
 GUARDRAIL_STATUS_ALLOWED = "allowed"
 GUARDRAIL_STATUS_BLOCKED = "blocked"
 GUARDRAIL_STATUS_FORCED_CONFIRMATION = "forced-confirmation"
+GUARDRAIL_STATUS_UNCLASSIFIED = "unclassified"
 WRITE_INTENT_TASK_TYPES = {
     "voice-stock-in",
     "voice-stock-out",
@@ -66,6 +67,31 @@ def is_trial_mode(runtime_mode: str | None) -> bool:
 
 def is_write_intent_task_type(task_type: str | None) -> bool:
     return (task_type or "").strip() in WRITE_INTENT_TASK_TYPES
+
+
+def unclassified_route_failure_guardrail_telemetry(
+    db_session: Session,
+    *,
+    settings: Settings,
+    shop_id: str,
+) -> dict[str, object]:
+    if is_trial_mode(settings.normalized_runtime_mode()):
+        control_state = resolve_pilot_runtime_control_state(
+            db_session,
+            shop_id=shop_id,
+            trial_provider_profile=settings.trial_provider_profile.strip(),
+        )
+        cutover_mode = control_state.cutover_mode
+    else:
+        cutover_mode = LOCAL_DEMO_RUNTIME_MODE
+    return {
+        "cutover_mode": cutover_mode,
+        "guardrail_status": GUARDRAIL_STATUS_UNCLASSIFIED,
+        "guardrail_reason": "route_task_type_unclassified",
+        "shadow_forced_confirmation": False,
+        "guardrail_degraded": False,
+        "guardrail_degraded_reasons": [],
+    }
 
 
 def evaluate_pilot_cutover_guardrail(

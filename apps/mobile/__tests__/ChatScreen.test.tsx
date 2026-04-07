@@ -60,7 +60,7 @@ describe("ChatScreen", () => {
   }
 
   async function openDebugTools() {
-    fireEvent.press(screen.getByLabelText("Debug tools"));
+    fireEvent.press(screen.getByLabelText("调试工具"));
     await waitFor(() => {
       expect(screen.getByText("Voice Query Demo")).toBeTruthy();
     });
@@ -865,6 +865,23 @@ describe("ChatScreen", () => {
           body: expect.stringContaining("\"message_type\":\"voice\""),
         }),
       );
+    });
+  });
+
+  it("shows a chinese dock error notice when the default guided voice pill upload request fails", async () => {
+    mediaUploadCreateShouldFail = true;
+    render(<ChatScreen />);
+
+    await waitForChatReady();
+
+    fireEvent.press(screen.getByTestId("guided-pill-voice"));
+
+    await waitFor(() => {
+      expect(screen.getByText("提交失败")).toBeTruthy();
+      expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
+      expect(mediaUploadRequestCount).toBe(1);
+      expect(mediaUploadPutCount).toBe(0);
+      expect(mediaUploadCompleteCount).toBe(0);
     });
   });
 

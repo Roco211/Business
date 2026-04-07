@@ -39,16 +39,18 @@ describe("shared ui primitives", () => {
 
   it("hides and reveals DebugDisclosure content", () => {
     render(
-      <DebugDisclosure title="Debug tools">
+      <DebugDisclosure title="调试工具">
         <InlineNotice tone="neutral" message="Demo reset lives here" />
       </DebugDisclosure>,
     );
 
     expect(screen.queryByText("Demo reset lives here")).toBeNull();
+    expect(screen.getByText("展开")).toBeTruthy();
 
-    fireEvent.press(screen.getByRole("button", { name: "Debug tools" }));
+    fireEvent.press(screen.getByRole("button", { name: "调试工具" }));
 
     expect(screen.getByText("Demo reset lives here")).toBeTruthy();
+    expect(screen.getByText("收起")).toBeTruthy();
   });
 
   it("renders AppScreen with StatusBadge and EmptyState", () => {

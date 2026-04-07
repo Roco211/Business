@@ -83,9 +83,12 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("语音")).toBeTruthy();
       expect(screen.getByText("拍照")).toBeTruthy();
       expect(screen.getByText("票据")).toBeTruthy();
+      expect(screen.getByText("店主")).toBeTruthy();
       expect(screen.getByText("类型：文本")).toBeTruthy();
       expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
       expect(screen.getByText("发送更新")).toBeTruthy();
+      expect(screen.getByText("调试工具")).toBeTruthy();
+      expect(screen.getByText("展开")).toBeTruthy();
     });
   });
 
@@ -96,10 +99,40 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.queryByText("Voice Query Demo")).toBeNull();
     });
 
-    fireEvent.press(screen.getByLabelText("Debug tools"));
+    fireEvent.press(screen.getByLabelText("调试工具"));
 
     await waitFor(() => {
       expect(screen.getByText("Voice Query Demo")).toBeTruthy();
+      expect(screen.getByText("收起")).toBeTruthy();
+    });
+  });
+
+  it("renders chinese fallback copy for non-text messages without visible text", async () => {
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [
+        {
+          message_id: "msg_2",
+          session_id: "sess_1",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "image",
+          text: "   ",
+          media_ids: ["media_1"],
+          task_run_id: "task_2",
+          created_at: "2026-04-05T12:01:00.000Z",
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("系统")).toBeTruthy();
+      expect(screen.getByText("类型：图片")).toBeTruthy();
+      expect(screen.getByText("此消息暂无可显示内容")).toBeTruthy();
     });
   });
 });

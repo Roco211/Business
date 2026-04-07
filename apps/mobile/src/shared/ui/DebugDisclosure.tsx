@@ -8,6 +8,11 @@ type DebugDisclosureProps = PropsWithChildren<{
   title: string;
 }>;
 
+const COPY = {
+  show: "展开",
+  hide: "收起",
+} as const;
+
 export function DebugDisclosure({ title, children }: DebugDisclosureProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -21,7 +26,7 @@ export function DebugDisclosure({ title, children }: DebugDisclosureProps) {
         style={styles.trigger}
       >
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.chevron}>{isOpen ? "Hide" : "Show"}</Text>
+        <Text style={styles.chevron}>{isOpen ? COPY.hide : COPY.show}</Text>
       </Pressable>
       {isOpen ? <View style={styles.body}>{children}</View> : null}
     </View>

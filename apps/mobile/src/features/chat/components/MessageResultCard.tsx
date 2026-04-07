@@ -18,6 +18,8 @@ const MESSAGE_TYPE_LABELS: Record<string, string> = {
   "receipt-image": "票据",
 };
 
+const FALLBACK_MESSAGE_TYPE_LABEL = "其他";
+
 function getActorTone(actorType: string): "warning" | "error" | "success" | "neutral" {
   if (actorType === "owner") {
     return "success";
@@ -29,7 +31,7 @@ function getActorTone(actorType: string): "warning" | "error" | "success" | "neu
 }
 
 function getMessageTypeLabel(messageType: string) {
-  return MESSAGE_TYPE_LABELS[messageType] ?? messageType;
+  return MESSAGE_TYPE_LABELS[messageType] ?? FALLBACK_MESSAGE_TYPE_LABEL;
 }
 
 export function MessageResultCard({

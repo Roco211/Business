@@ -48,23 +48,28 @@ const COPY = {
   connectionDegraded:
     "实时更新受限，执行操作后仍会触发手动刷新。",
   connectionIdle: "等待会话流启动。",
+  actorOwner: "店主",
+  actorSystem: "系统",
+  actorFallback: "参与方",
+  messageFallback: "此消息暂无可显示内容",
+  debugTools: "调试工具",
 } as const;
 
 function getActorLabel(actorType: string) {
   if (actorType === "owner") {
-    return "Owner";
+    return COPY.actorOwner;
   }
   if (actorType === "system") {
-    return "System";
+    return COPY.actorSystem;
   }
-  return actorType;
+  return COPY.actorFallback;
 }
 
 function getMessageText(messageType: string, text: string | null) {
   if (text && text.trim().length > 0) {
     return text;
   }
-  return `Unsupported ${messageType} message`;
+  return COPY.messageFallback;
 }
 
 function getConnectionHint(connectionState: string) {
@@ -242,7 +247,7 @@ export default function ChatScreen() {
               }}
               disabled={sendMessage.isSubmitting}
             />
-            <DebugDisclosure title="Debug tools">
+            <DebugDisclosure title={COPY.debugTools}>
               <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
             </DebugDisclosure>
           </View>

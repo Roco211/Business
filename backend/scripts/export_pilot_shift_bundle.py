@@ -137,26 +137,31 @@ def _run_git_check_ignore(path: Path) -> bool | None:
         return None
 
     try:
-        result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(REPO_ROOT),
-                "check-ignore",
-                "-q",
-                "--",
-                relative_path,
-            ],
-            check=False,
-        )
+        candidate_paths = [relative_path]
+        directory_candidate = relative_path.rstrip("/") + "/"
+        if directory_candidate not in candidate_paths:
+            candidate_paths.append(directory_candidate)
+        for candidate_path in candidate_paths:
+            result = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(REPO_ROOT),
+                    "check-ignore",
+                    "-q",
+                    "--",
+                    candidate_path,
+                ],
+                check=False,
+            )
+            if result.returncode == 0:
+                return True
+            if result.returncode not in (0, 1):
+                return None
     except OSError:
         return None
 
-    if result.returncode == 0:
-        return True
-    if result.returncode == 1:
-        return False
-    return None
+    return False
 
 
 def _is_gitignored_destination(path: Path) -> bool:

@@ -738,3 +738,33 @@ def test_validate_output_dir_prefers_git_check_ignore_when_available(tmp_path, m
 
     with pytest.raises(script_module.ShiftBundleExportError, match="gitignored"):
         script_module._validate_output_dir(str(repo_root / "secure-bundles" / "shift-handoff"))
+
+
+def test_validate_output_dir_accepts_gitignored_directory_when_git_check_ignore_matches_trailing_slash(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    script_module = _load_export_shift_bundle_script_module()
+    repo_root = tmp_path / "repo"
+    output_dir = repo_root / "backend" / "devdata" / "pilot_shift_bundles"
+    output_dir.mkdir(parents=True)
+    (repo_root / ".gitignore").write_text("backend/devdata/pilot_shift_bundles/\n", encoding="utf-8")
+    monkeypatch.setattr(script_module, "REPO_ROOT", repo_root)
+
+    def _fake_run(command, check=False):
+        del check
+        separator_index = command.index("--")
+        checked_paths = command[separator_index + 1 :]
+        if len(checked_paths) != 1:
+            raise AssertionError("git check-ignore -q should be invoked with a single pathname")
+        checked_path = checked_paths[0]
+        return SimpleNamespace(returncode=0 if checked_path.endswith("/") else 1)
+
+    monkeypatch.setattr(
+        script_module,
+        "subprocess",
+        SimpleNamespace(run=_fake_run),
+        raising=False,
+    )
+
+    assert script_module._validate_output_dir(str(output_dir)) == output_dir.resolve()

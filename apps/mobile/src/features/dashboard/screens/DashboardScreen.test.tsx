@@ -164,7 +164,7 @@ describe("DashboardScreen layout", () => {
 
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
+    expect(screen.getByText("正在同步今日门店总览")).toBeTruthy();
     expect(screen.getByText("请稍候，我们正在整理最新库存与待处理事项。")).toBeTruthy();
   });
 
@@ -177,7 +177,7 @@ describe("DashboardScreen layout", () => {
 
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByText("今日概览暂时不可用")).toBeTruthy();
+    expect(screen.getByText("今日总览暂不可用")).toBeTruthy();
     expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
   });
 
@@ -191,6 +191,17 @@ describe("DashboardScreen layout", () => {
     expect(screen.getByText("当前没有低库存预警。")).toBeTruthy();
     expect(screen.getByText("确认队列已清空")).toBeTruthy();
     expect(screen.getByText("暂无待处理确认。")).toBeTruthy();
+  });
+
+  it("foregrounds connection health and next action before debug tools", () => {
+    const { toJSON } = render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("连接状态：已连接")).toBeTruthy();
+    expect(screen.getByText("下一步：前往工作台处理待确认与补货任务。")).toBeTruthy();
+    expect(screen.getByText("调试工具")).toBeTruthy();
+
+    const renderedTree = JSON.stringify(toJSON());
+    expect(renderedTree.indexOf("连接状态：已连接")).toBeLessThan(renderedTree.indexOf("调试工具"));
   });
 
   it("shows polished demo reset success copy", () => {

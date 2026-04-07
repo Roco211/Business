@@ -24,15 +24,18 @@ describe("LoginScreen", () => {
     jest.clearAllMocks();
   });
 
-  it("renders branded hierarchy and friendly login error copy", () => {
+  it("shows readable login hero copy and keeps environment details secondary", () => {
     render(<LoginScreen />);
 
-    expect(screen.getByText("\u95e8\u5e97\u8bd5\u70b9")).toBeTruthy();
-    expect(screen.getByText("\u95e8\u5e97\u5e93\u5b58\u52a9\u624b")).toBeTruthy();
-    expect(screen.getByText("\u8bed\u97f3\u3001\u62cd\u7167\u3001\u7968\u636e\u7edf\u4e00\u5165\u8d26")).toBeTruthy();
+    expect(screen.getByText("门店试运行")).toBeTruthy();
+    expect(screen.getByText("先确认连接，再开始今日入库")).toBeTruthy();
+    expect(screen.getByText("登录后即可继续语音、拍照和票据入账")).toBeTruthy();
+    expect(screen.getByText("环境地址仅供排查，日常可直接登录。")).toBeTruthy();
     expect(screen.getByText("\u767b\u5f55")).toBeTruthy();
     expect(screen.getByText("\u6682\u65f6\u65e0\u6cd5\u767b\u5f55")).toBeTruthy();
     expect(screen.getByText("\u5f53\u524d\u65e0\u6cd5\u8fde\u63a5\u95e8\u5e97\u670d\u52a1\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002")).toBeTruthy();
+    expect(screen.queryByText("http://10.0.2.2:8001")).toBeNull();
+    expect(screen.queryByText(/http:\/\/192\.168\.1\.4:8001/i)).toBeNull();
   });
 
   it("submits current email and password when pressing login", () => {

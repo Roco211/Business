@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react-native";
 
 import { clearAuthSession, setAuthSession } from "../../shared/auth/authStore";
 import RootNavigator from "./RootNavigator";
+import { ROOT_TAB_LABELS } from "./rootTabConfig";
 
 jest.mock("../../features/dashboard/screens/DashboardScreen", () => {
   const ReactNative = require("react-native");
@@ -41,7 +42,7 @@ describe("RootNavigator", () => {
     });
   });
 
-  it("shows updated tab labels when auth session exists", () => {
+  it("shows clean tab labels for authenticated users", () => {
     act(() => {
       setAuthSession({
         accessToken: "token_existing",
@@ -54,8 +55,8 @@ describe("RootNavigator", () => {
 
     render(<RootNavigator />);
 
-    expect(screen.getByLabelText(/\\u9996\\u9875/)).toBeTruthy();
-    expect(screen.getByLabelText(/\\u5de5\\u4f5c\\u53f0/)).toBeTruthy();
-    expect(screen.getByLabelText(/\\u53f0\\u8d26/)).toBeTruthy();
+    expect(screen.getByText(ROOT_TAB_LABELS.dashboard)).toBeTruthy();
+    expect(screen.getByText(ROOT_TAB_LABELS.workbench)).toBeTruthy();
+    expect(screen.getByText(ROOT_TAB_LABELS.ledger)).toBeTruthy();
   });
 });

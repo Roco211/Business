@@ -8,6 +8,8 @@ import { useDemoBootstrapMutation } from "../hooks/useDemoBootstrapMutation";
 import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
+import type { WorkbenchIntent } from "../../chat/workbenchIntent";
+import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import {
@@ -23,7 +25,7 @@ import {
 
 type DashboardScreenProps = {
   navigation?: {
-    navigate: (screenName: string) => void;
+    navigate: (screenName: string, params?: { initialIntent?: WorkbenchIntent }) => void;
   };
 };
 
@@ -33,7 +35,7 @@ const CONFIRMATION_LABELS: Record<string, string> = {
   "stock-out": "出库确认",
 };
 
-const SCREEN_TITLE = "今日门店概览";
+const SCREEN_TITLE = "今日门店总览";
 const SCREEN_SUBTITLE = "聚焦门店库存与待处理事项，先看风险，再安排动作。";
 
 type HealthTone = "neutral" | "warning" | "error" | "success";
@@ -123,8 +125,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     refreshDashboard();
   }, [sessionStream.dataResetVersion]);
 
-  function handleNavigateToWorkbench() {
-    navigation?.navigate("工作台");
+  function handleNavigateToWorkbench(intent: WorkbenchIntent) {
+    navigation?.navigate(ROOT_TABS.workbench, { initialIntent: intent });
   }
 
   async function handleDemoReset() {
@@ -139,7 +141,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     return (
       <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
         <EmptyState
-          title="正在同步今日门店概览"
+          title="正在同步今日门店总览"
           description="请稍候，我们正在整理最新库存与待处理事项。"
         />
       </AppScreen>
@@ -186,10 +188,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   return (
     <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <DashboardSummaryHero summary={summary.data} />
-        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
         <SurfaceCard emphasis="outlined" style={styles.healthCard}>
-          <SectionHeader title="当前健康" subtitle="先看连接状态，再安排下一步动作。" />
+          <SectionHeader title="当前状态" subtitle="先确认连接，再开始处理。" />
           <InlineNotice tone={connectionHealth.tone} title={connectionHealth.title} message={connectionHealth.message} />
           <InlineNotice
             tone="neutral"
@@ -197,6 +197,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             message="调试工具保留在下方，排障时再展开即可。"
           />
         </SurfaceCard>
+        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
+        <DashboardSummaryHero summary={summary.data} />
         <DashboardExceptionCard
           title="低库存提醒"
           subtitle="优先处理即将断货的商品，减少缺货影响。"

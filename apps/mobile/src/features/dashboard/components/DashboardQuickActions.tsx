@@ -1,28 +1,29 @@
 import { StyleSheet, View } from "react-native";
 
+import { WORKBENCH_INTENT_COPY, type WorkbenchIntent } from "../../chat/workbenchIntent";
 import { PillActionButton, SectionHeader, SurfaceCard, space } from "../../../shared/ui";
 
 type DashboardQuickActionsProps = {
-  onNavigateToWorkbench: () => void;
+  onNavigateToWorkbench: (intent: WorkbenchIntent) => void;
 };
 
-const QUICK_ACTIONS = [
-  { key: "voice-inventory", label: "语音查货" },
-  { key: "photo-stock-in", label: "拍照入库" },
-  { key: "receipt-ocr", label: "票据识别" },
-  { key: "pending-confirmations", label: "待确认" },
-] as const;
+const QUICK_ACTIONS: WorkbenchIntent[] = [
+  "voice-query",
+  "photo-stock-in",
+  "receipt-entry",
+  "pending-confirmations",
+];
 
 export function DashboardQuickActions({ onNavigateToWorkbench }: DashboardQuickActionsProps) {
   return (
     <SurfaceCard emphasis="outlined">
       <SectionHeader title="快捷操作" subtitle="统一跳转到工作台，继续处理具体任务。" />
       <View style={styles.actions}>
-        {QUICK_ACTIONS.map((action) => (
+        {QUICK_ACTIONS.map((intent) => (
           <PillActionButton
-            key={action.key}
-            label={action.label}
-            onPress={onNavigateToWorkbench}
+            key={intent}
+            label={WORKBENCH_INTENT_COPY[intent].dashboardLabel}
+            onPress={() => onNavigateToWorkbench(intent)}
             style={styles.actionButton}
           />
         ))}

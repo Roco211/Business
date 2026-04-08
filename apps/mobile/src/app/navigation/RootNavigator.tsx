@@ -9,25 +9,26 @@ import LedgerScreen from "../../features/ledger/screens/LedgerScreen";
 import { AuthProvider, useAuth } from "../../shared/auth/AuthProvider";
 import { SessionStreamProvider } from "../../shared/session/SessionStreamProvider";
 import { color } from "../../shared/ui";
+import { ROOT_TAB_LABELS, ROOT_TABS, type RootTabParamList } from "./rootTabConfig";
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function ProtectedTabs() {
   return (
     <SessionStreamProvider>
       <NavigationContainer>
         <Tab.Navigator
-          screenOptions={{
+          screenOptions={({ route }) => ({
             headerShown: false,
-            tabBarActiveTintColor: color.accentPrimary,
-            tabBarInactiveTintColor: color.fgTertiary,
+            tabBarShowIcon: false,
+            tabBarLabel: ROOT_TAB_LABELS[route.name],
             tabBarLabelStyle: styles.tabBarLabel,
             tabBarStyle: styles.tabBar,
-          }}
+          })}
         >
-          <Tab.Screen name="\u9996\u9875" component={DashboardScreen} />
-          <Tab.Screen name="\u5de5\u4f5c\u53f0" component={ChatScreen} />
-          <Tab.Screen name="\u53f0\u8d26" component={LedgerScreen} />
+          <Tab.Screen name={ROOT_TABS.dashboard} component={DashboardScreen} />
+          <Tab.Screen name={ROOT_TABS.workbench} component={ChatScreen} />
+          <Tab.Screen name={ROOT_TABS.ledger} component={LedgerScreen} />
         </Tab.Navigator>
       </NavigationContainer>
     </SessionStreamProvider>
@@ -60,6 +61,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
   tabBarLabel: {
+    color: color.fgSecondary,
     fontSize: 12,
     fontWeight: "600",
   },

@@ -877,7 +877,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByTestId("guided-pill-voice"));
 
     await waitFor(() => {
-      expect(screen.getByText("提交未完成")).toBeTruthy();
+      expect(screen.getByText("提交失败")).toBeTruthy();
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
       expect(mediaUploadRequestCount).toBe(1);
       expect(mediaUploadPutCount).toBe(0);
@@ -903,7 +903,7 @@ describe("ChatScreen", () => {
       expect(mediaUploadCompleteCount).toBe(1);
       expect(messageRequestCount).toBeGreaterThan(initialMessageRequests);
       expect(confirmationRequestCount).toBeGreaterThan(initialConfirmationRequests);
-      expect(screen.getAllByText("check shelf stock for red bull").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("restock red bull cans").length).toBeGreaterThan(0);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/sessions/sess_default/messages"),
         expect.objectContaining({

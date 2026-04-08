@@ -29,6 +29,7 @@ const COPY = {
 type GuidedEntryStatus =
   | { tone: "neutral" | "success" | "error"; title: string; message: string }
   | null;
+type GuidedEntryType = "voice" | "photo" | "receipt" | null;
 
 type GuidedEntryDockProps = {
   sessionId: string | null;
@@ -42,6 +43,7 @@ export function GuidedEntryDock({
   highlightedIntent = null,
 }: GuidedEntryDockProps) {
   const [status, setStatus] = useState<GuidedEntryStatus>(null);
+  const [activeEntry, setActiveEntry] = useState<GuidedEntryType>(null);
 
   const voiceDemo = useSendVoiceDemoMutation(sessionId);
   const imageDemo = useSendImageDemoMutation(sessionId);
@@ -50,23 +52,31 @@ export function GuidedEntryDock({
   const isSessionAvailable = sessionId !== null;
   const isSubmitting = voiceDemo.isSubmitting || imageDemo.isSubmitting || receiptDemo.isSubmitting;
   const isDockDisabled = isSubmitting || !isSessionAvailable;
-  const error = voiceDemo.error ?? imageDemo.error ?? receiptDemo.error;
+  const activeEntryError =
+    activeEntry === "voice"
+      ? voiceDemo.error
+      : activeEntry === "photo"
+        ? imageDemo.error
+        : activeEntry === "receipt"
+          ? receiptDemo.error
+          : null;
 
   useEffect(() => {
-    if (!isSessionAvailable || !error) {
+    if (!isSessionAvailable || !activeEntryError) {
       return;
     }
     setStatus({
       tone: "error",
       title: COPY.errorTitle,
-      message: error,
+      message: activeEntryError,
     });
-  }, [error, isSessionAvailable]);
+  }, [activeEntryError, isSessionAvailable]);
 
   async function handleVoiceEntry() {
     if (!isSessionAvailable) {
       return;
     }
+    setActiveEntry("voice");
     setStatus({
       tone: "neutral",
       title: COPY.voiceSubmitting,
@@ -97,6 +107,7 @@ export function GuidedEntryDock({
     if (!isSessionAvailable) {
       return;
     }
+    setActiveEntry("photo");
     setStatus({
       tone: "neutral",
       title: COPY.photoSubmitting,
@@ -127,6 +138,7 @@ export function GuidedEntryDock({
     if (!isSessionAvailable) {
       return;
     }
+    setActiveEntry("receipt");
     setStatus({
       tone: "neutral",
       title: COPY.receiptSubmitting,

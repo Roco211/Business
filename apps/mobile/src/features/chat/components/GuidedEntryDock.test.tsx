@@ -152,4 +152,52 @@ describe("GuidedEntryDock", () => {
     expect(submitReceiptDemo).not.toHaveBeenCalled();
     expect(screen.queryByText("提交失败")).toBeNull();
   });
+
+  it("shows the latest active-entry error when different guided entries fail sequentially", async () => {
+    let voiceError: string | null = null;
+    let imageError: string | null = null;
+
+    const submitVoiceDemo = jest.fn().mockImplementation(async () => {
+      voiceError = "voice demo failed";
+      return null;
+    });
+    const submitImageDemo = jest.fn().mockImplementation(async () => {
+      imageError = "photo demo failed";
+      return null;
+    });
+
+    mockedUseSendVoiceDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      get error() {
+        return voiceError;
+      },
+      submitVoiceDemo,
+    } as never);
+    mockedUseSendImageDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      get error() {
+        return imageError;
+      },
+      submitImageDemo,
+    } as never);
+    mockedUseSendReceiptDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitReceiptDemo: jest.fn(),
+    } as never);
+
+    render(<GuidedEntryDock sessionId="sess_1" onSubmitted={jest.fn()} />);
+
+    fireEvent.press(screen.getByTestId("guided-pill-voice"));
+
+    await waitFor(() => {
+      expect(screen.getByText("voice demo failed")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("guided-pill-photo"));
+
+    await waitFor(() => {
+      expect(screen.getByText("photo demo failed")).toBeTruthy();
+    });
+  });
 });

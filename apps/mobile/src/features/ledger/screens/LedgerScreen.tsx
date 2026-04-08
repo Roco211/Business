@@ -43,13 +43,15 @@ export default function LedgerScreen() {
   const correction = useCreateCorrectionMutation();
   const stockOut = useCreateStockOutMutation();
   const sessionStream = useSessionStream();
-  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
+  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(
+    () => !inventory.isLoading && !auditLogs.isLoading,
+  );
 
   useEffect(() => {
-    if (!inventory.isLoading && !auditLogs.isLoading) {
+    if (!hasCompletedInitialLoad && !inventory.isLoading && !auditLogs.isLoading) {
       setHasCompletedInitialLoad(true);
     }
-  }, [inventory.isLoading, auditLogs.isLoading]);
+  }, [hasCompletedInitialLoad, inventory.isLoading, auditLogs.isLoading]);
 
   useEffect(() => {
     const eventType = sessionStream.lastEvent?.event_type;

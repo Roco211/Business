@@ -169,7 +169,12 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }
 
+  const hasInventoryData = inventory.data.length > 0;
+  const hasAuditLogData = auditLogs.data.length > 0;
+  const hasAnyLedgerData = hasInventoryData || hasAuditLogData;
+  const ledgerError = inventory.error ?? auditLogs.error;
   const isInitialLoading = !hasCompletedInitialLoad && (inventory.isLoading || auditLogs.isLoading);
+  const shouldShowFullPageError = Boolean(ledgerError) && !hasAnyLedgerData;
 
   if (isInitialLoading) {
     return (
@@ -181,7 +186,7 @@ export default function LedgerScreen() {
     );
   }
 
-  if (inventory.error || auditLogs.error) {
+  if (shouldShowFullPageError) {
     return (
       <AppScreen title="库存台账" subtitle="轻量库存工作区">
         <View testID="ledger-error-state">
@@ -189,7 +194,7 @@ export default function LedgerScreen() {
             <InlineNotice
               tone="error"
               title="库存台账暂时不可用"
-              message={getFriendlyStatusMessage(inventory.error ?? auditLogs.error, "请稍后再试。")}
+              message={getFriendlyStatusMessage(ledgerError, "请稍后再试。")}
             />
           </SurfaceCard>
         </View>
@@ -210,6 +215,18 @@ export default function LedgerScreen() {
             onChangeText={setSearchText}
           />
         </SurfaceCard>
+
+        {ledgerError ? (
+          <View testID="ledger-inline-error-notice">
+            <SurfaceCard emphasis="outlined">
+              <InlineNotice
+                tone="error"
+                title="Unable to refresh some ledger data"
+                message={getFriendlyStatusMessage(ledgerError, "Please try again in a moment.")}
+              />
+            </SurfaceCard>
+          </View>
+        ) : null}
 
         <SectionHeader title="库存工作区" subtitle="从库存卡片可直接发起修正或出库登记。" />
         {inventory.data.length === 0 ? (

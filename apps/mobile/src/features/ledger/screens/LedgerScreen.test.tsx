@@ -160,6 +160,60 @@ describe("LedgerScreen workspace", () => {
     expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
   });
 
+  it("keeps ledger content/action panel visible when inventory refresh or search fails with stale data", () => {
+    mockedUseInventoryItemsQuery.mockReturnValue({
+      data: [
+        {
+          item_id: "item_apple",
+          name: "Apple",
+          default_unit: "box",
+          current_stock: "3.000",
+          current_price: "11.50",
+        },
+      ],
+      isLoading: false,
+      error: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+      refresh: inventoryRefresh,
+    });
+
+    render(<LedgerScreen />);
+
+    expect(screen.queryByTestId("ledger-error-state")).toBeNull();
+    expect(screen.getByTestId("ledger-search-input")).toBeTruthy();
+    expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
+    expect(screen.getByTestId("ledger-action-panel-section")).toBeTruthy();
+    expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
+    expect(screen.getByTestId("ledger-inline-error-notice")).toBeTruthy();
+  });
+
+  it("keeps ledger content/action panel visible when audit refresh fails with stale data", () => {
+    mockedUseAuditLogsQuery.mockReturnValue({
+      data: [
+        {
+          audit_log_id: "audit_1",
+          action: "inventory.stock_in_confirmed",
+          created_at: "2026-04-05T09:00:00",
+          metadata: {
+            item_name: "Apple",
+            quantity_delta: 3,
+          },
+        },
+      ],
+      isLoading: false,
+      error: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+      refresh: auditRefresh,
+    });
+
+    render(<LedgerScreen />);
+
+    expect(screen.queryByTestId("ledger-error-state")).toBeNull();
+    expect(screen.getByTestId("ledger-search-input")).toBeTruthy();
+    expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
+    expect(screen.getByTestId("ledger-action-panel-section")).toBeTruthy();
+    expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
+    expect(screen.getByTestId("ledger-inline-error-notice")).toBeTruthy();
+  });
+
   it("shows a unified unavailable state when ledger data cannot load", () => {
     mockedUseInventoryItemsQuery.mockReturnValue({
       data: [],

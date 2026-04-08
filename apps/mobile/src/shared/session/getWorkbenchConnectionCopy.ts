@@ -12,13 +12,19 @@ type WorkbenchConnectionCopy = {
   actionLabel?: string;
 };
 
+const NETWORK_BOOTSTRAP_ERROR_PATTERN =
+  /(network request failed|failed to fetch|fetch failed|cannot reach api|econnrefused|timeout|timed out)/i;
+
 export function getWorkbenchConnectionCopy(
   input: GetWorkbenchConnectionCopyInput,
 ): WorkbenchConnectionCopy {
   if (input.bootstrapError) {
+    const isNetworkBootstrapError = NETWORK_BOOTSTRAP_ERROR_PATTERN.test(input.bootstrapError);
     return {
       title: "\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528",
-      hint: FRONTLINE_STATUS_COPY.networkUnavailable,
+      hint: isNetworkBootstrapError
+        ? FRONTLINE_STATUS_COPY.networkUnavailable
+        : FRONTLINE_STATUS_COPY.workbenchUnavailable,
       actionLabel: "\u91cd\u8bd5\u8fde\u63a5",
     };
   }
@@ -26,7 +32,14 @@ export function getWorkbenchConnectionCopy(
   if (input.connectionState === "connected") {
     return {
       title: "\u5df2\u8fde\u63a5",
-      hint: "\u7ed3\u679c\u4f1a\u81ea\u52a8\u5237\u65b0\u3002",
+      hint: "\u5b9e\u65f6\u66f4\u65b0\u6b63\u5e38\u3002",
+    };
+  }
+
+  if (input.connectionState === "connecting" || input.connectionState === "bootstrapping") {
+    return {
+      title: "\u6b63\u5728\u8fde\u63a5",
+      hint: "\u6b63\u5728\u540c\u6b65\u4f1a\u8bdd\u4e0e\u5b9e\u65f6\u66f4\u65b0\u3002",
     };
   }
 
@@ -39,7 +52,7 @@ export function getWorkbenchConnectionCopy(
   }
 
   return {
-    title: "\u6b63\u5728\u540c\u6b65",
-    hint: "\u6b63\u5728\u51c6\u5907\u4f1a\u8bdd\u548c\u7ed3\u679c\u3002",
+    title: "\u7b49\u5f85\u8fde\u63a5",
+    hint: "\u8bf7\u7a0d\u5019\uff0c\u5de5\u4f5c\u53f0\u6b63\u5728\u51c6\u5907\u4e2d\u3002",
   };
 }

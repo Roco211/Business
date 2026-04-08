@@ -286,7 +286,7 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
-    expect(screen.getAllByText(FRONTLINE_STATUS_COPY.networkUnavailable).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(FRONTLINE_STATUS_COPY.workbenchUnavailable).length).toBeGreaterThan(0);
   });
 
   it("shows friendly unavailable titles for shared chat states", async () => {

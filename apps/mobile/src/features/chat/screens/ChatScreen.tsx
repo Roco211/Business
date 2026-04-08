@@ -67,9 +67,14 @@ function getActorLabel(actorType: string) {
   return COPY.actorFallback;
 }
 
-function getMessageText(text: string | null) {
+function getMessageText(actorType: string, actorId: string, text: string | null) {
   if (text && text.trim().length > 0) {
-    return presentRuntimeMessageText(text);
+    const presentedText = presentRuntimeMessageText(text, {
+      isRuntimeSystemMessage: actorType === "system" && actorId === "runtime",
+    });
+    if (presentedText.trim().length > 0) {
+      return presentedText;
+    }
   }
   return COPY.messageFallback;
 }
@@ -197,7 +202,7 @@ export default function ChatScreen() {
                 actorLabel={getActorLabel(message.actor_type)}
                 actorType={message.actor_type}
                 messageType={message.message_type}
-                text={getMessageText(message.text)}
+                text={getMessageText(message.actor_type, message.actor_id, message.text)}
                 createdAt={message.created_at}
               />
               {linkedConfirmations.map((confirmation) => {

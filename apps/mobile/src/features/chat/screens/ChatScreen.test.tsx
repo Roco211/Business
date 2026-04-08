@@ -151,6 +151,62 @@ describe("ChatScreen (workbench shell)", () => {
     });
   });
 
+  it("does not rewrite owner-authored text that starts with mock runtime prefix", async () => {
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [
+        {
+          message_id: "msg_2",
+          session_id: "sess_1",
+          actor_type: "owner",
+          actor_id: "owner_1",
+          message_type: "text",
+          text: "Mock runtime: stock query accepted and queued for simulation.",
+          media_ids: [],
+          task_run_id: "task_2",
+          created_at: "2026-04-05T12:01:00.000Z",
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mock runtime: stock query accepted and queued for simulation.")).toBeTruthy();
+      expect(screen.queryByText(FRONTLINE_STATUS_COPY.realtimeDegraded)).toBeNull();
+    });
+  });
+
+  it("shows fallback copy when runtime payload only contains mock runtime prefix", async () => {
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [
+        {
+          message_id: "msg_2",
+          session_id: "sess_1",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime:      ",
+          media_ids: [],
+          task_run_id: "task_2",
+          created_at: "2026-04-05T12:01:00.000Z",
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("此消息暂无可显示内容")).toBeTruthy();
+      expect(screen.queryByText("Mock runtime:")).toBeNull();
+    });
+  });
+
   it("renders chinese fallback copy for non-text messages without visible text", async () => {
     mockedUseSessionMessagesQuery.mockReturnValue({
       data: [

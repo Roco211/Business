@@ -70,6 +70,25 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }, [sessionStream.dataResetVersion]);
 
+  useEffect(() => {
+    if (!selectedItem) {
+      return;
+    }
+
+    const refreshedSelectedItem = inventory.data.find((item) => item.item_id === selectedItem.item_id);
+    if (!refreshedSelectedItem) {
+      return;
+    }
+
+    if (refreshedSelectedItem !== selectedItem) {
+      setSelectedItem(refreshedSelectedItem);
+    }
+
+    if (refreshedSelectedItem.current_stock !== selectedItemCurrentStock) {
+      setSelectedItemCurrentStock(refreshedSelectedItem.current_stock);
+    }
+  }, [inventory.data, selectedItem, selectedItemCurrentStock]);
+
   function revealActionPanel() {
     const scrollToPanel = () => {
       scrollViewRef.current?.scrollTo({

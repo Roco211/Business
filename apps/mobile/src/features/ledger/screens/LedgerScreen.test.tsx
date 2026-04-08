@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
 import LedgerScreen from "./LedgerScreen";
@@ -248,6 +248,58 @@ describe("LedgerScreen workspace", () => {
       expect(screen.getByTestId("ledger-selected-item-summary")).toBeTruthy();
       expect(screen.getByTestId("ledger-stock-out-reason-input")).toBeTruthy();
       expect(screen.getByTestId("ledger-stock-out-quantity-input").props.autoFocus).toBe(true);
+    });
+  });
+
+  it("resyncs selected item stock after inventory refresh while preserving correction draft", async () => {
+    let inventoryData = [
+      {
+        item_id: "item_apple",
+        name: "Apple",
+        default_unit: "box",
+        current_stock: "3.000",
+        current_price: "11.50",
+      },
+    ];
+    mockedUseInventoryItemsQuery.mockImplementation(() => ({
+      data: inventoryData,
+      isLoading: false,
+      error: null,
+      refresh: inventoryRefresh,
+    }));
+
+    const { rerender } = render(<LedgerScreen />);
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-correction"));
+    fireEvent.changeText(screen.getByTestId("ledger-correction-quantity-input"), "5");
+    fireEvent.changeText(screen.getByTestId("ledger-correction-reason-input"), "Manual recount");
+
+    inventoryData = [
+      {
+        item_id: "item_apple",
+        name: "Apple",
+        default_unit: "box",
+        current_stock: "8.000",
+        current_price: "11.50",
+      },
+    ];
+    rerender(<LedgerScreen />);
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId("ledger-selected-item-summary")).getByText(/8\.000 box/)).toBeTruthy();
+      expect(screen.getByTestId("ledger-correction-quantity-input").props.value).toBe("5");
+      expect(screen.getByTestId("ledger-correction-reason-input").props.value).toBe("Manual recount");
+    });
+
+    fireEvent.press(screen.getByTestId("ledger-action-submit-button"));
+
+    await waitFor(() => {
+      expect(submitCorrection).toHaveBeenCalledWith({
+        item_id: "item_apple",
+        expected_quantity: 8,
+        corrected_quantity: 5,
+        reason: "Manual recount",
+      });
     });
   });
 

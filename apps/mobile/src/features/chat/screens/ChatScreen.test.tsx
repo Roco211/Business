@@ -110,6 +110,66 @@ describe("ChatScreen (workbench shell)", () => {
     expect(screen.getByText("请稍候，我们正在整理会话消息与待确认事项。")).toBeTruthy();
   });
 
+  it("keeps the screen in preparing mode while bootstrap is in progress and session is still null", () => {
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: null,
+      sessionTitle: null,
+      connectionState: "bootstrapping",
+      bootstrapError: null,
+      retryBootstrap: jest.fn(),
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    expect(screen.getByTestId("chat-bootstrap-loading")).toBeTruthy();
+    expect(screen.queryByTestId("chat-workbench-header")).toBeNull();
+    expect(screen.queryByTestId("chat-send-button")).toBeNull();
+  });
+
+  it("disables composer send when there is no session and bootstrap is not preparing", () => {
+    const submitMessage = jest.fn();
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: null,
+      sessionTitle: null,
+      connectionState: "idle",
+      bootstrapError: null,
+      retryBootstrap: jest.fn(),
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    mockedUseSendMessageMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitMessage,
+    });
+
+    render(<ChatScreen />);
+
+    const sendButton = screen.getByTestId("chat-send-button");
+    expect(sendButton.props.accessibilityState?.disabled).toBe(true);
+
+    fireEvent.press(sendButton);
+    expect(submitMessage).not.toHaveBeenCalled();
+  });
+
   it("hides legacy media demos until debug disclosure is opened", async () => {
     render(<ChatScreen />);
 

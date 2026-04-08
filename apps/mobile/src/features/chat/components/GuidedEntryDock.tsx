@@ -12,6 +12,8 @@ const COPY = {
   subtitle: "用语音盘点、拍照入库或票据录入发起任务。",
   rehearsalTitle: "流程演练说明",
   rehearsalMessage: "当前为流程演练，会提交预设样例请求。",
+  sessionPreparingTitle: "会话正在准备",
+  sessionPreparingMessage: "会话仍在同步中，请稍候再尝试提交演练请求。",
   sessionUnavailableTitle: "会话暂不可用",
   sessionUnavailableMessage: "会话尚未就绪，暂时不能提交演练请求。",
   errorTitle: "提交失败",
@@ -30,15 +32,18 @@ type GuidedEntryStatus =
   | { tone: "neutral" | "success" | "error"; title: string; message: string }
   | null;
 type GuidedEntryType = "voice" | "photo" | "receipt" | null;
+type GuidedEntrySessionState = "ready" | "preparing" | "unavailable";
 
 type GuidedEntryDockProps = {
   sessionId: string | null;
+  sessionState?: GuidedEntrySessionState;
   onSubmitted: () => void;
   highlightedIntent?: WorkbenchIntent | null;
 };
 
 export function GuidedEntryDock({
   sessionId,
+  sessionState,
   onSubmitted,
   highlightedIntent = null,
 }: GuidedEntryDockProps) {
@@ -49,9 +54,12 @@ export function GuidedEntryDock({
   const imageDemo = useSendImageDemoMutation(sessionId);
   const receiptDemo = useSendReceiptDemoMutation(sessionId);
 
-  const isSessionAvailable = sessionId !== null;
+  const resolvedSessionState: GuidedEntrySessionState =
+    sessionState ?? (sessionId !== null ? "ready" : "unavailable");
+  const isSessionPreparing = resolvedSessionState === "preparing";
+  const isSessionReady = resolvedSessionState === "ready" && sessionId !== null;
   const isSubmitting = voiceDemo.isSubmitting || imageDemo.isSubmitting || receiptDemo.isSubmitting;
-  const isDockDisabled = isSubmitting || !isSessionAvailable;
+  const isDockDisabled = isSubmitting || !isSessionReady;
   const activeEntryError =
     activeEntry === "voice"
       ? voiceDemo.error
@@ -62,7 +70,7 @@ export function GuidedEntryDock({
           : null;
 
   useEffect(() => {
-    if (!isSessionAvailable || !activeEntryError) {
+    if (!isSessionReady || !activeEntryError) {
       return;
     }
     setStatus({
@@ -70,10 +78,10 @@ export function GuidedEntryDock({
       title: COPY.errorTitle,
       message: activeEntryError,
     });
-  }, [activeEntryError, isSessionAvailable]);
+  }, [activeEntryError, isSessionReady]);
 
   async function handleVoiceEntry() {
-    if (!isSessionAvailable) {
+    if (!isSessionReady) {
       return;
     }
     setActiveEntry("voice");
@@ -104,7 +112,7 @@ export function GuidedEntryDock({
   }
 
   async function handlePhotoEntry() {
-    if (!isSessionAvailable) {
+    if (!isSessionReady) {
       return;
     }
     setActiveEntry("photo");
@@ -135,7 +143,7 @@ export function GuidedEntryDock({
   }
 
   async function handleReceiptEntry() {
-    if (!isSessionAvailable) {
+    if (!isSessionReady) {
       return;
     }
     setActiveEntry("receipt");
@@ -170,7 +178,14 @@ export function GuidedEntryDock({
       <View style={styles.container}>
         <SectionHeader title={COPY.title} subtitle={COPY.subtitle} />
         <InlineNotice tone="neutral" title={COPY.rehearsalTitle} message={COPY.rehearsalMessage} />
-        {!isSessionAvailable ? (
+        {isSessionPreparing ? (
+          <InlineNotice
+            tone="neutral"
+            title={COPY.sessionPreparingTitle}
+            message={COPY.sessionPreparingMessage}
+          />
+        ) : null}
+        {resolvedSessionState === "unavailable" ? (
           <InlineNotice
             tone="neutral"
             title={COPY.sessionUnavailableTitle}

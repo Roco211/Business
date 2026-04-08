@@ -102,6 +102,20 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
   const confirmations = useChatPendingConfirmationsQuery(sessionStream.sessionId);
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
+  const isSessionPreparing =
+    sessionStream.sessionId === null
+    && sessionStream.bootstrapError === null
+    && (
+      sessionStream.connectionState === "bootstrapping"
+      || sessionStream.connectionState === "connecting"
+    );
+  const hasReadySession = sessionStream.sessionId !== null;
+  const guidedEntrySessionState = hasReadySession
+    ? "ready"
+    : isSessionPreparing
+      ? "preparing"
+      : "unavailable";
+  const isComposerDisabled = sendMessage.isSubmitting || !hasReadySession;
 
   function refreshChat() {
     messages.refresh();
@@ -158,6 +172,9 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
   }, [initialIntent, confirmations.data.length, pendingOffset]);
 
   async function handleSend() {
+    if (!hasReadySession) {
+      return;
+    }
     const result = await sendMessage.submitMessage(draftText);
     if (result === null) {
       return;
@@ -166,10 +183,12 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
     refreshChat();
   }
 
-  if (messages.isLoading && messages.data.length === 0) {
+  if (isSessionPreparing || (messages.isLoading && messages.data.length === 0)) {
     return (
       <AppScreen safeArea={false}>
-        <EmptyState title={COPY.loadingTitle} description={COPY.loadingDescription} />
+        <View testID="chat-bootstrap-loading">
+          <EmptyState title={COPY.loadingTitle} description={COPY.loadingDescription} />
+        </View>
       </AppScreen>
     );
   }
@@ -217,6 +236,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
           <SectionHeader title={COPY.taskFirstTitle} subtitle={COPY.taskFirstSubtitle} />
           <GuidedEntryDock
             sessionId={sessionStream.sessionId}
+            sessionState={guidedEntrySessionState}
             onSubmitted={refreshChat}
             highlightedIntent={initialIntent}
           />
@@ -273,6 +293,8 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
               placeholder={COPY.messagePlaceholder}
               value={draftText}
               onChangeText={setDraftText}
+              editable={hasReadySession}
+              accessibilityState={{ disabled: !hasReadySession }}
             />
             {sendMessage.error ? (
               <InlineNotice
@@ -282,13 +304,14 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
               />
             ) : null}
             <PrimaryButton
+              testID="chat-send-button"
               label={COPY.sendAction}
               loading={sendMessage.isSubmitting}
               loadingLabel={COPY.sendLoading}
               onPress={() => {
                 void handleSend();
               }}
-              disabled={sendMessage.isSubmitting}
+              disabled={isComposerDisabled}
             />
             <DebugDisclosure title={COPY.debugTools}>
               <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />

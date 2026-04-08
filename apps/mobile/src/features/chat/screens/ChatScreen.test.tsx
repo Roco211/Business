@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
 import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
@@ -345,6 +345,59 @@ describe("ChatScreen (workbench shell)", () => {
       const selectedStyleProp = screen.getByTestId("guided-pill-voice").props.style;
       const selectedStyles = Array.isArray(selectedStyleProp) ? selectedStyleProp : [selectedStyleProp];
       expect(selectedStyles.some((entry: { borderColor?: string } | null) => entry?.borderColor === "#0071e3")).toBe(true);
+    });
+  });
+
+  it("consumes dashboard intent so a later plain revisit returns to default workbench state", async () => {
+    let onBlur: (() => void) | null = null;
+    const route = {
+      key: "workbench",
+      name: ROOT_TABS.workbench,
+      params: { initialIntent: "voice-query" },
+    };
+    const navigation = {
+      setParams: jest.fn((params: { initialIntent?: "voice-query" | "photo-stock-in" | "receipt-entry" | "pending-confirmations" }) => {
+        route.params = { ...route.params, ...params };
+      }),
+      addListener: jest.fn((event: string, listener: () => void) => {
+        if (event === "blur") {
+          onBlur = listener;
+        }
+        return jest.fn();
+      }),
+    };
+
+    const { rerender } = render(
+      <ChatScreen
+        {...({
+          route,
+          navigation,
+        } as never)}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(true);
+    });
+
+    await waitFor(() => {
+      expect(navigation.setParams).toHaveBeenCalledWith({ initialIntent: undefined });
+    });
+
+    act(() => {
+      onBlur?.();
+    });
+    rerender(
+      <ChatScreen
+        {...({
+          route,
+          navigation,
+        } as never)}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(false);
     });
   });
 

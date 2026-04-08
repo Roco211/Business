@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { RouteProp } from "@react-navigation/native";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -31,6 +32,7 @@ import { WORKBENCH_INTENT_COPY, type WorkbenchIntent } from "../workbenchIntent"
 
 type ChatScreenProps = {
   route?: RouteProp<RootTabParamList, "workbench">;
+  navigation?: BottomTabNavigationProp<RootTabParamList, "workbench">;
 };
 
 const COPY = {
@@ -85,15 +87,16 @@ function getMessageText(actorType: string, actorId: string, text: string | null)
   return COPY.messageFallback;
 }
 
-export default function ChatScreen({ route }: ChatScreenProps = {}) {
+export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) {
   const sessionStream = useSessionStream();
   const [draftText, setDraftText] = useState("");
   const scrollViewRef = useRef<ScrollView | null>(null);
   const [pendingOffset, setPendingOffset] = useState(0);
+  const routeIntent: WorkbenchIntent | null = route?.params?.initialIntent ?? null;
+  const [initialIntent, setInitialIntent] = useState<WorkbenchIntent | null>(routeIntent);
 
   const sessionTitle =
     sessionStream.sessionTitle ?? sessionStream.sessionId ?? COPY.fallbackSessionTitle;
-  const initialIntent: WorkbenchIntent | null = route?.params?.initialIntent ?? null;
   const intentCopy = initialIntent ? WORKBENCH_INTENT_COPY[initialIntent] : null;
 
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
@@ -125,6 +128,24 @@ export default function ChatScreen({ route }: ChatScreenProps = {}) {
     }
     refreshChat();
   }, [sessionStream.dataResetVersion]);
+
+  useEffect(() => {
+    if (routeIntent === null) {
+      return;
+    }
+    setInitialIntent(routeIntent);
+    navigation?.setParams({ initialIntent: undefined });
+  }, [routeIntent, navigation]);
+
+  useEffect(() => {
+    if (!navigation) {
+      return;
+    }
+    const unsubscribe = navigation.addListener("blur", () => {
+      setInitialIntent(null);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     if (

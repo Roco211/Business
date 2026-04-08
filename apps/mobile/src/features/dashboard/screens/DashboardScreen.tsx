@@ -189,7 +189,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <SurfaceCard emphasis="outlined" style={styles.healthCard}>
-          <SectionHeader title="当前状态" subtitle="先确认连接，再开始处理。" />
+          <SectionHeader title="当前健康" subtitle="先看连接状态，再安排下一步动作。" />
           <InlineNotice tone={connectionHealth.tone} title={connectionHealth.title} message={connectionHealth.message} />
           <InlineNotice
             tone="neutral"

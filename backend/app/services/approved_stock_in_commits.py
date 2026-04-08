@@ -127,7 +127,7 @@ def commit_approved_stock_in_confirmation(
             session_id=session_record.session_id,
             task_run_id=task_run.task_run_id,
             text=(
-                f"Mock runtime: stock-in committed for {inventory_item.name} "
+                f"Stock-in committed for {inventory_item.name} "
                 f"(+{_format_decimal(approved_fields.quantity)} {inventory_item.default_unit}). "
                 f"Current stock: {_format_decimal(inventory_item.current_stock)} {inventory_item.default_unit}."
             ),

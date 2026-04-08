@@ -204,7 +204,7 @@ def commit_approved_stock_out_confirmation(
             session_id=session_record.session_id,
             task_run_id=task_run.task_run_id,
             text=(
-                f"Mock runtime: stock-out committed for {inventory_item.name} "
+                f"Stock-out committed for {inventory_item.name} "
                 f"(-{_format_decimal(approved_fields.stock_out_quantity)} {inventory_item.default_unit}). "
                 f"Current stock: {_format_decimal(Decimal(inventory_item.current_stock))} {inventory_item.default_unit}."
             ),

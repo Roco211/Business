@@ -198,7 +198,7 @@ def commit_approved_receipt_stock_in_confirmation(
             session_id=session_record.session_id,
             task_run_id=task_run.task_run_id,
             text=(
-                f"Mock runtime: receipt stock-in committed for {len(line_results)} line items. "
+                f"Receipt stock-in committed for {len(line_results)} line items. "
                 f"Items: {item_names}."
             ),
         )

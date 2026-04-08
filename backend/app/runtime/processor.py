@@ -645,11 +645,11 @@ def process_task_run(db_session: Session, task_run_id: str) -> RuntimeProcessRes
                 session_id=context.session_id,
                 task_run_id=task_run_id,
                 text=(
-                    "Mock runtime: please confirm the receipt line items before committing inventory."
+                    "Please confirm the receipt line items before committing inventory."
                     if decision.task_type == "receipt-ocr"
-                    else "Mock runtime: please confirm the stock-out details before commit."
+                    else "Please confirm the stock-out details before commit."
                     if decision.task_type == "voice-stock-out"
-                    else "Mock runtime: please confirm the stock-in details before commit."
+                    else "Please confirm the stock-in details before commit."
                 ),
             )
             _append_provider_telemetry(

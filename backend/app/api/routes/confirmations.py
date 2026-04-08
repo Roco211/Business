@@ -242,7 +242,7 @@ def post_reject_confirmation(
             db_session,
             session_id=task_run.session_id,
             task_run_id=task_run.task_run_id,
-            text="Mock runtime: owner rejected the confirmation and the stock-in task was rejected.",
+            text="Owner rejected the confirmation and the stock-in task was rejected.",
         )
         db_session.commit()
     except LookupError:

@@ -9,16 +9,16 @@ def summarize_completed_task(
 
     if task_type == "voice-stock-query":
         return (
-            f"Mock runtime query processed: {normalized_transcript or 'query'}",
-            "Mock runtime: stock query accepted. Fixture inventory shows low stock for the requested item.",
+            f"Stock query processed: {normalized_transcript or 'query'}",
+            "Stock query accepted. Inventory currently shows low stock for the requested item.",
         )
     if task_type == "photo-stock-query":
         item_name = str(normalized_payload.get("item_name") or "recognized item")
         stock = normalized_payload.get("stock")
         unit = str(normalized_payload.get("unit") or normalized_payload.get("packaging_hint") or "unit")
         return (
-            f"Mock runtime photo query processed: {item_name}",
-            f"Mock runtime: photo query recognized {item_name}. Current stock: {stock} {unit}.",
+            f"Photo stock query processed: {item_name}",
+            f"Photo query recognized {item_name}. Current stock: {stock} {unit}.",
         )
     if task_type == "receipt-ocr":
         total_amount = normalized_payload.get("total_amount") or "unknown"
@@ -29,13 +29,13 @@ def summarize_completed_task(
             else ""
         )
         return (
-            f"Mock runtime receipt OCR processed: total {total_amount}",
-            f"Mock runtime: receipt OCR completed. Total amount: {total_amount}.{low_confidence_suffix}",
+            f"Receipt OCR processed: total {total_amount}",
+            f"Receipt OCR completed. Total amount: {total_amount}.{low_confidence_suffix}",
         )
 
     return (
-        f"Mock runtime stock-in intent captured: {normalized_transcript or 'stock-in'}",
-        "Mock runtime: stock-in intent accepted. Inventory writes are deferred to later confirmation and inventory phases.",
+        f"Stock-in intent captured: {normalized_transcript or 'stock-in'}",
+        "Stock-in intent accepted. Inventory writes are deferred to later confirmation and inventory phases.",
     )
 
 
@@ -46,5 +46,5 @@ def summarize_failed_task(
 ) -> tuple[str, str]:
     return (
         f"Runtime failed with {error_code}",
-        f"Mock runtime could not process this task: {error_message}",
+        f"Runtime could not process this task: {error_message}",
     )

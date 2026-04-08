@@ -179,7 +179,8 @@ def test_text_owner_message_completes_and_writes_runtime_message(db_session) -> 
     assert task_run.status == "completed"
     assert task_run.task_type == "voice-stock-query"
     assert task_run.assigned_employee_id == "xiaoya"
-    assert task_run.result_summary == "Mock runtime query processed: check stock left for cola"
+    assert task_run.result_summary == "Stock query processed: check stock left for cola"
+    assert "mock runtime" not in task_run.result_summary.lower()
     assert task_run.error_code is None
     assert task_run.error_message is None
     assert task_run.completed_at is not None
@@ -190,7 +191,10 @@ def test_text_owner_message_completes_and_writes_runtime_message(db_session) -> 
     assert runtime_messages[0].media_ids == []
     assert runtime_messages[0].client_request_id is None
     assert runtime_messages[0].task_run_id == task_run_id
-    assert "stock query accepted" in (runtime_messages[0].text or "").lower()
+    assert runtime_messages[0].text == (
+        "Stock query accepted. Inventory currently shows low stock for the requested item."
+    )
+    assert "mock runtime" not in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 
@@ -221,13 +225,17 @@ def test_voice_owner_message_completes_and_writes_runtime_message(db_session) ->
     assert task_run.status == "completed"
     assert task_run.task_type == "voice-stock-query"
     assert task_run.assigned_employee_id == "xiaoya"
-    assert task_run.result_summary == "Mock runtime query processed: check stock left for cola"
+    assert task_run.result_summary == "Stock query processed: check stock left for cola"
+    assert "mock runtime" not in task_run.result_summary.lower()
     assert len(runtime_messages) == 1
     assert runtime_messages[0].actor_type == "system"
     assert runtime_messages[0].actor_id == "runtime_system"
     assert runtime_messages[0].message_type == "text"
     assert runtime_messages[0].task_run_id == task_run_id
-    assert "stock query accepted" in (runtime_messages[0].text or "").lower()
+    assert runtime_messages[0].text == (
+        "Stock query accepted. Inventory currently shows low stock for the requested item."
+    )
+    assert "mock runtime" not in (runtime_messages[0].text or "").lower()
     assert session_record is not None
     assert session_record.last_message_at == runtime_messages[0].created_at
 

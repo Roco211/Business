@@ -105,6 +105,7 @@ export function LedgerActionPanel({
                   testID="ledger-stock-out-quantity-input"
                   value={stockOutQuantity}
                   keyboardType="numeric"
+                  autoFocus
                   onChangeText={onChangeStockOutQuantity}
                 />
                 <AppTextField

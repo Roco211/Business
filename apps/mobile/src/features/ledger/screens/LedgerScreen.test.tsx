@@ -212,6 +212,18 @@ describe("LedgerScreen workspace", () => {
     });
   });
 
+  it("keeps stock-out continuity and autofocuses stock-out quantity input", async () => {
+    render(<LedgerScreen />);
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-stock-out"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ledger-selected-item-summary")).toBeTruthy();
+      expect(screen.getByTestId("ledger-stock-out-reason-input")).toBeTruthy();
+      expect(screen.getByTestId("ledger-stock-out-quantity-input").props.autoFocus).toBe(true);
+    });
+  });
+
   it("does not leak correction draft when switching item then switching action in panel", async () => {
     mockedUseInventoryItemsQuery.mockReturnValue({
       data: [

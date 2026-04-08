@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+showcase_app/.deps/
+showcase_app/__pycache__/
+.worktrees/
+apps/mobile/node_modules/
+apps/mobile/.expo/
+apps/mobile/dist/
+backend/.pytest_cache/
+backend/.venv/
+backend/devdata/pilot_shift_bundles/
+backend/devdata/trial_calibration/
+backend/devdata/trial_calibration_artifacts/
+pytest-cache-files-*/

@@ -1,0 +1,36 @@
+{
+  "trial_id": "example-live-trial-calibration",
+  "cases": [
+    {
+      "case_id": "voice-query-demo",
+      "capability": "asr",
+      "media_path": "../providers/asr/success.json",
+      "media_id": "voice_query_demo",
+      "expected": {
+        "transcript_contains": [
+          "cola"
+        ]
+      }
+    },
+    {
+      "case_id": "receipt-demo",
+      "capability": "ocr",
+      "media_path": "../providers/ocr/success.json",
+      "expected": {
+        "total_amount": 147.0,
+        "amount_tolerance": 0.0
+      }
+    },
+    {
+      "case_id": "shelf-demo",
+      "capability": "vision",
+      "media_path": "../providers/vision/success.json",
+      "expected": {
+        "top_candidate_in": [
+          "Red Bull 250ml"
+        ],
+        "min_confidence": 0.6
+      }
+    }
+  ]
+}

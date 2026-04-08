@@ -1,0 +1,2 @@
+-r showcase_app/requirements.txt
+

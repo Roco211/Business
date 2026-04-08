@@ -1,392 +1,371 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI数字管家 - 全功能原型预览</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-
-        :root {
-            --brand-color: #FA6400; 
-            --brand-gradient: linear-gradient(135deg, #FF7B00 0%, #E64A19 100%);
-            --bg-color: #F4F5F7;
-            --card-bg: #FFFFFF;
-            --text-main: #1F2329;
-            --text-sub: #8F959E;
-            --border-color: #EBEDF0;
-            --green: #24B15C;
-            --danger: #F53F3F;
-            --call-bg: #1A1D21;
-        }
-
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            font-family: 'Inter', -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            background-color: #2D3136;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .mobile-container {
-            width: 390px;
-            height: 844px;
-            background-color: var(--bg-color);
-            border-radius: 46px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 0 0 10px #111;
-            overflow: hidden;
-            position: relative;
-            border: 2px solid #555;
-        }
-
-        /* 视图管理 */
-        .view {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: none;
-            flex-direction: column;
-            padding-bottom: 80px; /* 为Tab留空 */
-        }
-        .view.active { display: flex; }
-
-        /* 公用头部 */
-        .page-header {
-            padding: 50px 20px 20px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 800;
-            font-size: 18px;
-        }
-
-        /* ------------------ 1. 经营大盘 (Dashboard) ------------------ */
-        #view-dashboard .header-special {
-            padding: 50px 20px 30px;
-            background: var(--brand-gradient);
-            color: white;
-            border-bottom-left-radius: 28px;
-            border-bottom-right-radius: 28px;
-        }
-        .user-greeting { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 800; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255,255,255,0.3); }
-        
-        .data-panel { background: white; border-radius: 20px; padding: 20px; margin-top: 20px; display: flex; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
-        .data-item { flex: 1; text-align: center; }
-        .data-item:not(:last-child) { border-right: 1px solid var(--border-color); }
-        .data-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        .data-value { font-size: 18px; font-weight: 800; color: var(--brand-color); }
-
-        .dashboard-content { flex: 1; overflow-y: auto; padding: 20px; }
-        .card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .card-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        
-        .floating-ai-trigger {
-            position: absolute; bottom: 100px; left: 20px; right: 20px;
-            background: var(--brand-gradient); color: white; padding: 16px;
-            border-radius: 30px; text-align: center; font-weight: 800;
-            box-shadow: 0 8px 20px rgba(250, 100, 0, 0.4); cursor: pointer;
-            animation: breathe 3s infinite;
-        }
-
-        /* ------------------ 2. 业务后台 (Data Center) ------------------ */
-        .backoffice-item { display: flex; align-items: center; gap: 16px; padding: 20px; background: white; border-radius: 16px; margin-bottom: 12px; cursor: pointer; }
-        .icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #f0f2f5; }
-        .item-info { flex: 1; }
-        .item-title { font-weight: 800; font-size: 16px; margin-bottom: 2px; }
-        .item-desc { font-size: 12px; color: var(--text-sub); }
-
-        /* ------------------ 3. 员工管理 (Team) ------------------ */
-        .agent-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
-        .agent-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .agent-main { display: flex; gap: 12px; }
-        .agent-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: var(--green); font-weight: 800; }
-        .skill-tag { display: inline-block; font-size: 11px; background: #f0f2f5; padding: 4px 10px; border-radius: 12px; margin-right: 6px; margin-top: 6px; font-weight: 600; }
-
-        /* ------------------ 4. 人才市场 (Market) ------------------ */
-        .market-banner { background: #1a1d21; color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
-        .market-banner h3 { font-size: 18px; margin-bottom: 8px; position: relative; z-index: 2; }
-        .market-btn { background: var(--brand-color); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; margin-top: 10px; }
-
-        /* ------------------ 5. 内部群聊 (Chat - Overlay) ------------------ */
-        #view-chat { z-index: 100; background: var(--bg-color); padding-bottom: 0; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-        .msg { display: flex; gap: 10px; max-width: 85%; }
-        .msg.me { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-content { background: white; padding: 12px 16px; border-radius: 4px 16px 16px 16px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .msg.me .msg-content { background: var(--brand-color); color: white; border-radius: 16px 4px 16px 16px; }
-        .chat-footer { padding: 15px 20px 40px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
-        .chat-input { flex: 1; background: #f0f2f5; height: 44px; border-radius: 22px; padding: 0 16px; display: flex; align-items: center; color: var(--text-sub); font-size: 14px; }
-        .call-btn-trigger { width: 44px; height: 44px; border-radius: 50%; background: var(--green); color: white; display:flex; align-items:center; justify-content:center; font-size: 20px; box-shadow: 0 4px 12px rgba(36,177,92,0.3); cursor: pointer; }
-
-        /* ------------------ 6. 实时通话 (Live Call - Fullscreen) ------------------ */
-        #view-call { z-index: 200; background: var(--call-bg); color: white; padding-bottom: 0; }
-        .call-header { padding: 50px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .call-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .ai-avatar-big { width: 120px; height: 120px; border-radius: 50%; background: var(--brand-gradient); margin-bottom: 20px; display:flex; align-items:center; justify-content:center; font-size: 50px; position: relative; }
-        .ai-avatar-big::after { content: ''; position: absolute; width: 100%; height: 100%; border: 2px solid var(--brand-color); border-radius: 50%; animation: ripple 2s infinite; }
-        .sub-avatars { display: flex; gap: 15px; margin-top: 40px; }
-        .sub-avatar { width: 60px; height: 60px; border-radius: 50%; background: #333; display:flex; align-items:center; justify-content:center; font-size: 24px; border: 2px solid #444; opacity: 0.6; }
-        .subtitle-box { width: 100%; padding: 20px; background: rgba(0,0,0,0.5); min-height: 100px; font-size: 14px; line-height: 1.6; color: #ccc; }
-        .call-footer { padding: 40px 20px 60px; display: flex; justify-content: space-around; }
-        .call-control-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size: 20px; cursor: pointer; }
-        .call-control-btn.end { background: var(--danger); }
-        .btn-label { font-size: 10px; margin-top: 8px; color: #888; }
-
-        /* 底部导航栏 */
-        .tab-bar {
-            position: absolute; bottom: 0; width: 100%; height: 80px;
-            background: white; border-top: 1px solid var(--border-color);
-            display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: 20px; z-index: 10;
-        }
-        .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sub); cursor: pointer; }
-        .tab-btn.active { color: var(--brand-color); }
-        .tab-btn span:first-child { font-size: 24px; }
-        .tab-btn span:last-child { font-size: 10px; font-weight: 800; }
-
-        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 12px 28px rgba(250, 100, 0, 0.5); } }
-        @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI数字店铺大管家 v2 MVP</title>
+  <style>
+    :root{--bg:#1a120f;--paper:#f7efe3;--card:rgba(255,250,244,.9);--ink:#2d1d16;--muted:#7b685f;--line:rgba(61,39,28,.08);--brand:#d56731;--brand2:#8c3619;--green:#1f916b;--red:#c8513c;--shadow:0 18px 38px rgba(38,23,15,.16);--r:22px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Avenir Next","Microsoft YaHei UI","PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(255,194,120,.24),transparent 26%),radial-gradient(circle at bottom right,rgba(31,145,107,.18),transparent 24%),linear-gradient(145deg,#130d0b,#241915 58%,#120d0b)}
+    .phone{width:min(420px,100%);height:min(860px,calc(100vh - 48px));border-radius:30px;overflow:hidden;position:relative;background:radial-gradient(circle at top,rgba(255,203,145,.28),transparent 24%),linear-gradient(180deg,#fbf4ea,#f1e9de 60%,#ebe2d8);box-shadow:0 28px 70px rgba(0,0,0,.34)}
+    .app{height:100%;display:flex;flex-direction:column}
+    .top{display:flex;justify-content:space-between;gap:12px;padding:24px 20px 12px}
+    .brand{display:flex;gap:12px;min-width:0}
+    .logo{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-size:24px;color:#fffaf4;background:linear-gradient(135deg,#f29b5b,#c24d22);box-shadow:0 12px 22px rgba(194,77,34,.22)}
+    .eyebrow,.chip,.mini,.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;line-height:1}
+    .eyebrow{margin-bottom:8px;color:#ffd8bf;background:rgba(213,103,49,.14)}
+    h1{font-size:20px;line-height:1.2;font-weight:900}
+    .top p,.head p,.card p,.msg p,.item p,.audit p{color:var(--muted);font-size:12px;line-height:1.6}
+    .right{display:grid;gap:8px;justify-items:end}
+    .chip{background:rgba(255,255,255,.78);color:var(--brand2)}
+    .chip.ok,.tag.ok{background:rgba(31,145,107,.12);color:var(--green)}
+    .chip.warn,.tag.warn{background:rgba(200,81,60,.12);color:var(--red)}
+    button{border:none;cursor:pointer;font:inherit}
+    .icon{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.84);color:var(--brand2);box-shadow:var(--shadow)}
+    .views{flex:1;position:relative;overflow:hidden}
+    .view{position:absolute;inset:0;display:none;flex-direction:column}
+    .view.active{display:flex}
+    .scroll{flex:1;overflow:auto;padding:8px 20px 110px;scrollbar-width:none}
+    .scroll::-webkit-scrollbar{display:none}
+    .hero,.card,.msgbox,.sheet,.toast{border-radius:var(--r);box-shadow:var(--shadow)}
+    .hero{padding:20px;color:#fffaf4;background:radial-gradient(circle at top right,rgba(255,219,167,.36),transparent 28%),linear-gradient(150deg,#2b1814,#5d2818 60%,#8c3619)}
+    .hero h2{margin-top:12px;font-size:26px;line-height:1.15;font-weight:900}
+    .hero p{margin-top:8px;color:rgba(255,250,244,.78);font-size:13px;line-height:1.7}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+    .metric{padding:14px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1)}
+    .metric span,.field span{display:block;font-size:11px;opacity:.74;margin-bottom:6px}
+    .metric strong,.field strong{font-size:21px;line-height:1.1;font-weight:900}
+    .sec{margin-top:18px}
+    .head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+    .head h3{font-size:16px;font-weight:900}
+    .head p{text-align:right;font-size:11px}
+    .card,.sheet{padding:16px;background:var(--card);border:1px solid var(--line)}
+    .pending{background:linear-gradient(180deg,#fff7ef,#fffefb)}
+    .row,.chips,.list,.msgs,.auditlist{display:grid;gap:12px}
+    .chips{display:flex;flex-wrap:wrap;margin-top:10px}
+    .mini,.tag{background:rgba(255,255,255,.78);color:var(--brand2);border:1px solid rgba(61,39,28,.06)}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .primary,.secondary,.ghost,.action{padding:12px 14px;border-radius:14px;font-size:12px;font-weight:800;line-height:1.15}
+    .primary{color:#fffaf4;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 12px 22px rgba(194,77,34,.22)}
+    .secondary,.action{color:var(--brand2);background:rgba(255,255,255,.86);border:1px solid rgba(140,54,25,.12)}
+    .ghost{color:var(--muted);background:rgba(255,255,255,.56)}
+    .item{padding:14px;border-radius:18px;background:rgba(255,255,255,.82);border:1px solid rgba(61,39,28,.06)}
+    .itemtop,.audittop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+    .field{padding:10px;border-radius:14px;background:rgba(247,239,227,.86)}
+    .msgs{padding-bottom:18px}
+    .msg{display:flex;gap:10px;align-items:flex-start}
+    .msg.self{flex-direction:row-reverse}
+    .ava{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:18px;background:rgba(45,29,22,.08);flex-shrink:0}
+    .msg.self .ava{background:linear-gradient(135deg,#f29b5b,#c24d22);color:#fffaf4}
+    .msgbox{max-width:82%;padding:14px;background:rgba(255,255,255,.94);border:1px solid rgba(45,29,22,.06)}
+    .msg.self .msgbox{background:linear-gradient(135deg,rgba(213,103,49,.96),rgba(140,54,25,.96));color:#fffaf4}
+    .meta{font-size:11px;font-weight:800;opacity:.8}
+    .body{margin-top:8px;font-size:13px;line-height:1.78}
+    .result{margin-top:10px;padding:12px;border-radius:18px;background:linear-gradient(180deg,#fff7ef,#fffefb);border:1px solid rgba(213,103,49,.12)}
+    .resultgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+    .resultgrid div{padding:10px;border-radius:14px;background:rgba(255,255,255,.84)}
+    .resultgrid span{display:block;font-size:11px;opacity:.74;margin-bottom:6px}
+    .composer{margin-top:auto;padding:12px 0 0}
+    .actgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .action strong{display:block;font-size:20px;margin-bottom:6px}
+    .action span{display:block;font-size:11px;line-height:1.4}
+    .form{display:grid;gap:12px;margin-top:14px}
+    .input{padding:12px;border-radius:16px;background:rgba(255,255,255,.86);border:1px solid rgba(61,39,28,.06)}
+    .input label{display:block;margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:800}
+    .input input,.input select,.input textarea{width:100%;border:none;outline:none;resize:none;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:1.5}
+    .audit{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(255,255,255,.82)}
+    .audit strong{font-size:14px}
+    .time{color:var(--brand2);font-size:12px;font-weight:800}
+    .tabs{position:absolute;left:14px;right:14px;bottom:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px;border-radius:24px;background:rgba(255,250,244,.86);backdrop-filter:blur(18px);box-shadow:0 18px 44px rgba(44,24,15,.18)}
+    .tab{padding:12px 8px;border-radius:18px;color:var(--muted);background:transparent}
+    .tab strong{display:block;font-size:19px;margin-bottom:4px}
+    .tab span{display:block;font-size:11px;font-weight:800}
+    .tab.active{color:var(--brand2);background:linear-gradient(135deg,rgba(242,155,91,.18),rgba(255,255,255,.92))}
+    .toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);min-width:220px;max-width:calc(100% - 48px);padding:12px 14px;background:rgba(27,18,15,.94);color:#fffaf4;text-align:center;font-size:12px;line-height:1.5;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+    .app[data-mode="chat"] .top,.app[data-mode="chat"] .tabs{display:none}
+    .app[data-mode="chat"] .views{background:#ededed}
+    .chat-page{background:#ededed}
+    .wechat-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 14px 10px;background:#f7f7f7;border-bottom:1px solid rgba(0,0,0,.06)}
+    .wechat-nav{width:32px;height:32px;border-radius:50%;background:transparent;color:#1f1f1f;font-size:22px;line-height:1}
+    .wechat-title{flex:1;min-width:0;text-align:center}
+    .wechat-title strong{display:block;font-size:17px;font-weight:800;color:#111}
+    .wechat-title span{display:block;margin-top:4px;font-size:11px;color:#7a7a7a}
+    .wechat-room{flex:1;overflow:auto;padding:10px 10px 8px;background:#ededed;scrollbar-width:none}
+    .wechat-room::-webkit-scrollbar{display:none}
+    .wechat-hint{margin:2px auto 12px;padding:7px 12px;max-width:88%;border-radius:999px;background:rgba(255,255,255,.66);color:#7f7f7f;text-align:center;font-size:11px;line-height:1.4}
+    .msgs{gap:10px}
+    .wx-time,.wx-system{justify-self:center;max-width:84%;padding:4px 10px;border-radius:999px;color:#9a9a9a;font-size:11px;line-height:1.4}
+    .wx-time{background:rgba(0,0,0,.06)}
+    .wx-system{background:transparent}
+    .msg{gap:8px;align-items:flex-start}
+    .ava{width:36px;height:36px;border-radius:7px;display:grid;place-items:center;font-size:18px;background:#d8d8d8;color:#fff;flex-shrink:0}
+    .msg.self .ava{background:#d8d8d8;color:#fff}
+    .msgbox{max-width:76%;padding:0;background:transparent;border:none;box-shadow:none}
+    .msg.self .msgbox{background:transparent;color:inherit}
+    .wx-name{margin:0 0 4px 2px;color:#8a8a8a;font-size:12px;line-height:1.2}
+    .wx-name span{margin-left:6px;font-size:11px;color:#b0b0b0}
+    .wx-bubble{padding:12px 14px;border-radius:8px;background:#fff;box-shadow:0 1px 1px rgba(0,0,0,.05)}
+    .msg.self .wx-bubble{background:#95ec69}
+    .body{margin-top:0;font-size:14px;line-height:1.72;color:#222}
+    .msg.self .body{color:#1f1f1f}
+    .body p{color:inherit}
+    .result{margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06)}
+    .result strong{font-size:13px}
+    .resultgrid{gap:8px}
+    .resultgrid div{background:#fff}
+    .wechat-composer{padding:8px 10px 10px;background:#f7f7f7;border-top:1px solid rgba(0,0,0,.06)}
+    .wechat-inputbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center}
+    .wechat-icon{width:34px;height:34px;border-radius:50%;background:#fff;color:#3a3a3a;font-size:18px;box-shadow:none;border:1px solid rgba(0,0,0,.06)}
+    .wechat-field{min-height:38px;padding:9px 14px;border-radius:20px;background:#fff;color:#8a8a8a;font-size:13px;display:flex;align-items:center;border:1px solid rgba(0,0,0,.06)}
+    .wechat-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:12px}
+    .wechat-panel[hidden]{display:none}
+    .wechat-tool{padding:10px 6px;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,.05);color:#2f2f2f}
+    .wechat-tool strong{display:block;font-size:20px;margin-bottom:6px}
+    .wechat-tool span{display:block;font-size:11px;line-height:1.35}
+    @media (max-width:480px){body{padding:0}.phone{width:100%;height:100vh;border-radius:0}}
+  </style>
 </head>
 <body>
-
-<div class="mobile-container">
-    
-    <!-- 1. 经营大盘 View -->
-    <div id="view-dashboard" class="view active">
-        <div class="header-special">
-            <div class="user-greeting">
-                <div class="avatar">🏪</div>
-                <span>强盛百货老板，下午好！</span>
-            </div>
-            <div class="data-panel">
-                <div class="data-item">
-                    <div class="data-label">今日流水</div>
-                    <div class="data-value">￥2,450</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-label">有效利润</div>
-                    <div class="data-value" style="color:var(--text-main)">￥820</div>
-                </div>
-                <div class="data-item">
-                    <div class="data-label">库存预警</div>
-                    <div class="data-value" style="color:var(--danger)">5款</div>
-                </div>
-            </div>
+  <div class="phone">
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <div class="logo">🏪</div>
+          <div>
+            <div class="eyebrow">v2 MVP · 语音优先 + 多模态辅助</div>
+            <h1>AI数字店铺大管家</h1>
+            <p>三屏就够了：工作台、工作群、账本。先把语音操作做成主入口，再用拍照识别、拍照查询和进货单 OCR 补齐信息。</p>
+          </div>
         </div>
-        <div class="dashboard-content">
-            <div class="card" style="background:#FFF3F3; border: 1px solid #FFE4E4;">
-                <div class="card-title" style="color:var(--danger)">⚠️ 紧急推送</div>
-                <p style="font-size:13px; color:#c82a2a; margin-bottom:10px;">红牛(24罐)库存仅剩2箱！建议立即补货。</p>
-                <button style="width:100%; padding:10px; border-radius:12px; border:none; background:var(--brand-gradient); color:white; font-weight:800;">🎙️ 一键呼叫老李采购</button>
+        <div class="right">
+          <div class="chip ok">可审计</div>
+          <button class="icon" data-action="scope" aria-label="查看范围">◎</button>
+        </div>
+      </header>
+
+      <main class="views">
+        <section class="view active" data-view="dashboard">
+          <div class="scroll">
+            <div class="hero">
+              <div class="chips">
+                <div class="chip">小雅在线</div>
+                <div class="chip ok">语音主入口已接通</div>
+                <div class="chip warn">待确认 <span id="heroPending">1</span></div>
+              </div>
+              <h2>老板先开口，不够再拍照或拍单据。</h2>
+              <p>当前原型把“语音 + AI”放回 MVP 核心。你可以直接用语音入库、语音查库存；如果遇到无码商品、货架查询或纸质进货单，再补一张图交给多模态能力处理。</p>
+              <div class="grid">
+                <div class="metric"><span>今日营业额</span><strong id="mRevenue">￥2,450</strong></div>
+                <div class="metric"><span>语音发起任务</span><strong id="mInbound">3 次</strong></div>
+                <div class="metric"><span>低库存商品</span><strong id="mLow">2 款</strong></div>
+                <div class="metric"><span>多模态待确认</span><strong id="mPending">1 项</strong></div>
+              </div>
             </div>
+
+            <section class="sec">
+              <div class="head">
+                <h3>核心差异化入口</h3>
+                <p>先说话，再让 AI 要图。</p>
+              </div>
+              <div class="card">
+                <strong>语音是主入口，多模态是关键辅助</strong>
+                <p>老板最常见的两句话应该直接在 MVP 里跑通：“今天进来 3 箱可乐”和“红牛还剩多少？” 当语音无法唯一定位商品时，系统再自然要求补商品图、货架图或进货单。</p>
+                <div class="btns">
+                  <button class="primary" data-action="voice">试一条语音入库</button>
+                  <button class="secondary" data-action="voice-query">试一条语音查询</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>多模态辅助能力</h3>
+                <p>这三条必须都进 MVP。</p>
+              </div>
+              <div class="row">
+                <div class="item"><strong>拍照识物入库</strong><p>无码商品先识别，再确认建档，不允许直接写库。</p></div>
+                <div class="item"><strong>拍照查询商品</strong><p>对着商品或货架拍一张，返回“这是什么 + 还有多少库存”。</p></div>
+                <div class="item"><strong>进货单 OCR</strong><p>拍一张纸质单据，先抽商品、数量、价格，再辅助入库。</p></div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>现在最该处理</h3>
+                <p>只留一个真实待办，不堆入口。</p>
+              </div>
+              <div class="card pending">
+                <strong id="pendingTitle">新扳手待确认建档</strong>
+                <p id="pendingCopy">无码五金件，系统识别到“活动扳手”但不敢直接写库。需要老板确认名称、数量和进价后再入账。</p>
+                <div class="chips">
+                  <div class="mini">新商品先确认</div>
+                  <div class="mini">价格不明不写库</div>
+                  <div class="mini">写入后可追溯</div>
+                </div>
+                <div class="btns">
+                  <button class="primary" data-action="confirm">确认扳手建档</button>
+                  <button class="secondary" data-view-target="chat">去工作群看上下文</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>库存提醒</h3>
+                <p>先做提醒，不做自动下单。</p>
+              </div>
+              <div class="list" id="lowList"></div>
+            </section>
+
+            <section class="sec">
+              <div class="head">
+                <h3>这版故意没做什么</h3>
+                <p>先把核心闭环做深。</p>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <div class="item"><strong>P0</strong><p>工作台、工作群、账本，跑通库存闭环。</p></div>
+                  <div class="item"><strong>P1</strong><p>继续优化 OCR 字段纠错、经营问答和会话摘要续接。</p></div>
+                  <div class="item"><strong>P2</strong><p>最后才做通话、团队和人才市场。</p></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view chat-page" data-view="chat">
+          <div class="wechat-header">
+            <button class="wechat-nav" data-view-target="dashboard" aria-label="返回">‹</button>
+            <div class="wechat-title">
+              <strong>数字员工工作群(2)</strong>
+              <span>小雅 / 老李</span>
+            </div>
+            <button class="wechat-nav" data-action="scope" aria-label="更多">⋯</button>
+          </div>
+
+          <div class="wechat-room">
+            <div class="wechat-hint">尽量贴近微信群聊的使用节奏，降低店主学习成本。</div>
+            <div class="msgs" id="msgs"></div>
+          </div>
+
+          <div class="wechat-composer">
+            <div class="wechat-inputbar">
+              <button class="wechat-icon" data-action="voice" aria-label="语音">🎙</button>
+              <div class="wechat-field" data-action="voice">按住说话，说“今天进来 3 箱可乐”</div>
+              <button class="wechat-icon" data-action="emoji" aria-label="表情">☺</button>
+              <button class="wechat-icon" data-action="toggle-tools" aria-label="更多">＋</button>
+            </div>
+            <div class="wechat-panel" id="chatTools" hidden>
+              <button class="wechat-tool" data-action="voice-query"><strong>🗣️</strong><span>语音查询</span></button>
+              <button class="wechat-tool" data-action="photo"><strong>📷</strong><span>拍照建档</span></button>
+              <button class="wechat-tool" data-action="photo-query"><strong>🔍</strong><span>拍照查询</span></button>
+              <button class="wechat-tool" data-action="receipt"><strong>🧾</strong><span>进货单 OCR</span></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="ledger">
+          <div class="scroll">
             <div class="card">
-                <div class="card-title">🏆 今日热销榜项</div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>1. 农夫山泉 (550ml)</span><span style="color:var(--brand-color)">48件</span></div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee;"><span>2. 芙蓉王 (中支)</span><span style="color:var(--brand-color)">12包</span></div>
-                <div style="display:flex; justify-content:space-between; padding:8px 0;"><span>3. 乐事原味 (大包)</span><span style="color:var(--brand-color)">8袋</span></div>
-            </div>
-        </div>
-        <div class="floating-ai-trigger" onclick="showView('view-chat')">💬 进入数字员工对话群</div>
-    </div>
-
-    <!-- 2. 业务后台 View -->
-    <div id="view-data" class="view">
-        <div class="page-header">业务数据后台</div>
-        <div style="padding: 20px; overflow-y: auto;">
-            <p style="color:var(--text-sub); font-size:13px; margin-bottom:20px;">这里是所有数据的“手工柜台”，在AI出错时可手动修改。</p>
-            <div class="backoffice-item">
-                <div class="icon-box">📦</div>
-                <div class="item-info">
-                    <div class="item-title">老李的库房台账</div>
-                    <div class="item-desc">包含所有商品档案、实时库存、进货价</div>
-                </div>
-                <span>→</span>
-            </div>
-            <div class="backoffice-item">
-                <div class="icon-box">💸</div>
-                <div class="item-info">
-                    <div class="item-title">小丽的钱箱流水</div>
-                    <div class="item-desc">每日收支明细、退款、销售单据</div>
-                </div>
-                <span>→</span>
-            </div>
-            <div class="backoffice-item" style="opacity: 0.5;">
-                <div class="icon-box">🔒</div>
-                <div class="item-info">
-                    <div class="item-title">未解锁账本</div>
-                    <div class="item-desc">招募对应的数字员工后开启</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. 员工管理 View -->
-    <div id="view-team" class="view">
-        <div class="page-header">数字团队管理</div>
-        <div style="padding:20px; overflow-y: auto;">
-            <div class="agent-card">
-                <div class="agent-header">
-                    <div class="agent-main">
-                        <div style="font-size:32px;">👨🏻‍💼</div>
-                        <div>
-                            <div style="font-weight:800;">首席助理 小雅</div>
-                            <div class="agent-status" style="margin-top:4px;">🟢 实时待命中</div>
-                        </div>
-                    </div>
-                    <button style="font-size:12px; color:var(--brand-color); border:none; background:none; font-weight:800;">设置性格 ></button>
-                </div>
-                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">今日为您处理了 42 次任务分发。</div>
-                <div class="skill-tag">意图识别</div><div class="skill-tag">方言转换</div><div class="skill-tag">全局调度</div>
-            </div>
-            <div class="agent-card">
-                <div class="agent-header">
-                    <div class="agent-main">
-                        <div style="font-size:32px;">📦</div>
-                        <div>
-                            <div style="font-weight:800;">仓管员 老李</div>
-                            <div class="agent-status" style="background:#fff3e0; color:#f57c00;">🟠 正在理货</div>
-                        </div>
-                    </div>
-                </div>
-                <div style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">刚刚完成了“红牛啤酒”入库的操作，准确率100%。</div>
-                <div class="skill-tag">拍照识物</div><div class="skill-tag">条码比对</div><div class="skill-tag">进价趋势</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. 人才市场 View -->
-    <div id="view-market" class="view">
-        <div class="page-header">人才市场 (Market)</div>
-        <div style="padding:20px; overflow-y: auto;">
-            <div class="market-banner">
-                <div style="position:absolute; right:-20px; top:-10px; font-size:100px; opacity:0.1;">👑</div>
-                <h3>官方金牌套装</h3>
-                <p style="font-size:12px; opacity:0.8;">助理+仓管+收银，全方位解放店主</p>
-                <div style="font-size:20px; font-weight:800; margin-top:10px;">￥99.00 <span style="font-size:12px; font-weight:400;">/月</span></div>
-                <button class="market-btn">一键雇佣全部成员</button>
-            </div>
-            <p style="font-size:14px; font-weight:800; margin-bottom:15px;">按需招募 Skill / 角色</p>
-            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div><div style="font-weight:800;">🗣️ 五种方言播报包</div><div style="font-size:11px; color:var(--text-sub);">四川/广东/东北等，更亲切</div></div>
-                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥5</button>
-            </div>
-            <div style="background:white; border-radius:16px; padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div><div style="font-weight:800;">📄 极速单据OCR识别</div><div style="font-size:11px; color:var(--text-sub);">再潦草的进货单也能看懂</div></div>
-                <button style="background:var(--brand-color); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:800;">￥15</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. 工作群聊 (Overlays from floating trigger) -->
-    <div id="view-chat" class="view">
-        <div class="page-header">
-            <span onclick="hideChat()" style="cursor:pointer;">✕</span>
-            <span>数字员工内部群 (3)</span>
-            <span style="font-size:14px; color:var(--brand-color)">设置</span>
-        </div>
-        <div class="chat-messages">
-            <div class="msg">
-                <div class="avatar" style="background:#555; width:36px; height:36px; font-size:16px;">📦</div>
+              <div class="head" style="margin-bottom:0">
                 <div>
-                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px;">老李 刚刚</div>
-                    <div class="msg-content">
-                        老板，刚刚拍照那箱矿泉水已经入库了，一共24瓶，进价1.2元/瓶，您看对不？
-                        <div style="margin-top:10px; display:flex; gap:8px;">
-                            <button style="padding:5px 10px; border-radius:8px; border:1px solid #ddd; background:#f9f9f9; font-size:12px;">撤销入库</button>
-                            <button style="padding:5px 10px; border-radius:8px; border:1px solid var(--brand-color); background:white; color:var(--brand-color); font-size:12px;">修改价格</button>
-                        </div>
-                    </div>
+                  <h3>库存账本</h3>
+                  <p style="text-align:left">AI 可以记错，但不能静默改。手工修正必须带原因。</p>
                 </div>
+                <div class="chip warn">Correction Event</div>
+              </div>
             </div>
-            <div class="msg me">
-                <div class="avatar" style="background:#ddd; width:36px; height:36px; font-size:16px;">🤴</div>
-                <div class="msg-content">对的，就这样记。</div>
-            </div>
-        </div>
-        <div class="chat-footer">
-            <span style="font-size:20px;">⌨️</span>
-            <div class="chat-input" onclick="showCall()">按住说话，或点击发起通话...</div>
-            <div class="call-btn-trigger" onclick="showCall()">📞</div>
-        </div>
+
+            <section class="sec">
+              <div class="list" id="inventory"></div>
+            </section>
+
+            <section class="sec">
+              <div class="sheet">
+                <strong>手工纠错</strong>
+                <p>改库存时必须记录改前值、改后值和原因，并回写到工作群。</p>
+                <div class="form">
+                  <div class="input"><label for="item">商品</label><select id="item"></select></div>
+                  <div class="input"><label for="qty">改成多少</label><input id="qty" type="number" min="0" step="1" value="3"></div>
+                  <div class="input"><label for="reason">修改原因</label><textarea id="reason" rows="3">实际清点数量与 AI 入库结果不一致</textarea></div>
+                  <button class="primary" id="save">保存人工修正</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="sec">
+              <div class="sheet">
+                <div class="head">
+                  <div>
+                    <h3>审计时间线</h3>
+                    <p style="text-align:left">只保留关键库存动作，不做大而全的控制台。</p>
+                  </div>
+                  <div class="mini">最近 6 条</div>
+                </div>
+                <div class="auditlist" id="audit"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <nav class="tabs">
+        <button class="tab active" data-view-target="dashboard"><strong>🏠</strong><span>工作台</span></button>
+        <button class="tab" data-view-target="chat"><strong>💬</strong><span>工作群</span></button>
+        <button class="tab" data-view-target="ledger"><strong>🧾</strong><span>账本</span></button>
+      </nav>
     </div>
+    <div class="toast" id="toast"></div>
+  </div>
 
-    <!-- 6. 实时通话 (Full Overlays) -->
-    <div id="view-call" class="view">
-        <div class="call-header">
-            <span>实时视讯通话已接通</span>
-            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; font-size:12px;">04:35</span>
-        </div>
-        <div class="call-main">
-            <div class="ai-avatar-big">👨🏻‍💼</div>
-            <div style="font-weight:800; font-size:18px;">小雅 正在听您指挥...</div>
-            <div class="sub-avatars">
-                <div class="sub-avatar">📦</div>
-                <div class="sub-avatar" style="opacity:1; border-color:var(--brand-color)">💸</div>
-            </div>
-        </div>
-        <div class="subtitle-box">
-            <div style="color:var(--brand-color); margin-bottom:8px;">小雅：</div>
-            “明白老板，我现在已经让小丽拉出这两天的销售对比了。需要我帮您在屏幕上显示出具体的利润差吗？”
-        </div>
-        <div class="call-footer">
-            <div class="call-control-btn">🔇<div class="btn-label">静音</div></div>
-            <div class="call-control-btn">📱<div class="btn-label">共享</div></div>
-            <div class="call-control-btn">📷<div class="btn-label">相机</div></div>
-            <div class="call-control-btn end" onclick="hideCall()">☎️<div class="btn-label" style="color:white">挂断</div></div>
-        </div>
-    </div>
+  <script>
+    const state={view:"dashboard",revenue:2450,inbound:3,pending:1,wrenchPending:true,chatToolsOpen:false,items:[{id:"coke",name:"可口可乐 500ml",stock:18,unit:"箱",threshold:6,price:41,note:"常卖商品，语音入库最稳定。"},
+    {id:"redbull",name:"红牛 250ml",stock:2,unit:"罐",threshold:6,price:6,note:"低库存，适合语音或拍照查询。"},
+    {id:"water",name:"农夫山泉 550ml",stock:5,unit:"箱",threshold:3,price:22,note:"条码命中率高。"}],
+    msgs:[{type:"time",text:"17:56"},
+    {actor:"老板",self:true,meta:"语音 6 秒",text:"今天进来 3 箱可乐。"},
+    {actor:"小雅",self:false,meta:"已路由",text:"收到，我已经把这条入库任务交给老李处理。价格沿用上次进货价，先给您出结果卡。"},
+    {actor:"老李",self:false,meta:"库存已写入",text:"可乐已经入库完成。",card:[["商品","可口可乐 500ml"],["数量","3 箱"],["进价","￥41 / 箱"],["当前库存","18 箱"]]},
+    {type:"time",text:"18:00"},
+    {actor:"老板",self:true,meta:"照片",text:"这个扳手也入一下库。"},
+    {actor:"小雅",self:false,meta:"待确认",text:"我看到了，是一个无码五金件。为了避免建错档，我先停在待确认，等您确认名称、数量和进价后再入账。"},
+    {type:"system",text:"点击右下角 +，可以继续试拍照查询和进货单 OCR。"}],
+    audit:[{time:"14:21",title:"语音入库：可口可乐 500ml +3 箱",tag:"AI执行"},{time:"14:17",title:"拍照识物：扳手建档进入待确认",tag:"需确认"},{time:"14:08",title:"库存提醒：红牛触发低库存阈值",tag:"提醒"}]};
 
-    <!-- 底部 Tab Bar -->
-    <div class="tab-bar">
-        <div class="tab-btn active" onclick="switchTab('dashboard')"><span>📊</span><span>经营大盘</span></div>
-        <div class="tab-btn" onclick="switchTab('data')"><span>🗄️</span><span>业务数据</span></div>
-        <div class="tab-btn" onclick="switchTab('team')"><span>👨🏻‍💼</span><span>员工管理</span></div>
-        <div class="tab-btn" onclick="switchTab('market')"><span>💼</span><span>人才市场</span></div>
-    </div>
+    const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s); let cursor=22,timer;
+    const appRoot=$(".app"), toast=$("#toast"),msgs=$("#msgs"),lowList=$("#lowList"),inventory=$("#inventory"),audit=$("#audit"),item=$("#item"),qty=$("#qty"),reason=$("#reason"),chatTools=$("#chatTools"),chatRoom=$(".wechat-room");
+    const money=n=>`￥${n.toLocaleString("zh-CN")}`, now=()=>`14:${String(++cursor).padStart(2,"0")}`;
+    const low=()=>state.items.filter(i=>i.stock<=i.threshold);
+    const tag=i=>i.stock<=i.threshold?["低库存","warn"]:["正常","ok"];
+    const avatar=a=>({老板:"🤴",小雅:"👩‍💼",老李:"📦",系统:"🧾"}[a]||"🧾");
+    function say(t){toast.textContent=t;toast.style.opacity="1";toast.style.transform="translate(-50%,0)";clearTimeout(timer);timer=setTimeout(()=>{toast.style.opacity="0";toast.style.transform="translate(-50%,14px)"},2200)}
+    function addAudit(title,tag){state.audit.unshift({time:now(),title,tag});state.audit=state.audit.slice(0,6)}
+    function addMsg(m){state.msgs.push(m)}
+    function addTime(text=now()){state.msgs.push({type:"time",text})}
+    function addSystem(text){state.msgs.push({type:"system",text})}
+    function view(name){state.view=name;appRoot.dataset.mode=name;$$(".view").forEach(v=>v.classList.toggle("active",v.dataset.view===name));$$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.viewTarget===name))}
+    function renderTop(){ const confirmBtn=$('[data-action="confirm"]'); $("#mRevenue").textContent=money(state.revenue); $("#mInbound").textContent=`${state.inbound} 次`; $("#mLow").textContent=`${low().length} 款`; $("#mPending").textContent=`${state.pending} 项`; $("#heroPending").textContent=state.pending;
+      if(state.wrenchPending){$("#pendingTitle").textContent="新扳手待确认建档";$("#pendingCopy").textContent="无码五金件，系统识别到“活动扳手”但不敢直接写库。需要老板确认名称、数量和进价后再入账。"; confirmBtn.disabled=false; confirmBtn.style.opacity="1"; confirmBtn.textContent="确认扳手建档";} else {$("#pendingTitle").textContent="当前没有待确认的新商品";$("#pendingCopy").textContent="这版 MVP 只要把待确认任务清掉，库存主链路就算跑通。下一步建议去工作群继续试语音入库或库存查询。"; confirmBtn.disabled=true; confirmBtn.style.opacity=".55"; confirmBtn.textContent="已完成确认";}}
+    function renderLow(){lowList.innerHTML=low().map(i=>`<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag warn">建议补货</div></div><div class="stats"><div class="field"><span>当前库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>提醒阈值</span><strong>${i.threshold} ${i.unit}</strong></div><div class="field"><span>建议动作</span><strong>语音追问或补货</strong></div></div></div>`).join("")}
+    function renderMsgs(){msgs.innerHTML=state.msgs.map(m=>{if(m.type==="time") return `<div class="wx-time">${m.text}</div>`; if(m.type==="system") return `<div class="wx-system">${m.text}</div>`; return `<div class="msg${m.self?" self":""}"><div class="ava">${avatar(m.actor)}</div><div class="msgbox">${m.self?"":`<div class="wx-name">${m.actor}${m.meta?`<span>${m.meta}</span>`:""}</div>`}<div class="wx-bubble"><div class="body"><p>${m.text}</p>${m.card?`<div class="result"><strong>结果卡</strong><div class="resultgrid">${m.card.map(([k,v])=>`<div><span>${k}</span><strong>${v}</strong></div>`).join("")}</div></div>`:""}</div></div></div></div>`}).join(""); if(chatRoom) chatRoom.scrollTop=chatRoom.scrollHeight}
+    function renderLedger(){inventory.innerHTML=state.items.map(i=>{const [txt,cls]=tag(i);return `<div class="item"><div class="itemtop"><div><strong>${i.name}</strong><p>${i.note}</p></div><div class="tag ${cls}">${txt}</div></div><div class="stats"><div class="field"><span>库存</span><strong>${i.stock} ${i.unit}</strong></div><div class="field"><span>进价</span><strong>${money(i.price)}</strong></div><div class="field"><span>阈值</span><strong>${i.threshold} ${i.unit}</strong></div></div></div>`}).join(""); item.innerHTML=state.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join("")}
+    function renderAudit(){audit.innerHTML=state.audit.map(a=>`<div class="audit"><div class="time">${a.time}</div><div><strong>${a.title}</strong></div><div class="mini">${a.tag}</div></div>`).join("")}
+    function renderChatTools(){chatTools.hidden=!state.chatToolsOpen}
+    function render(){renderTop();renderLow();renderMsgs();renderLedger();renderAudit();renderChatTools();view(state.view)}
 
-</div>
+    function confirm(){if(!state.wrenchPending){say("扳手已经确认过了。");return} addTime(); state.wrenchPending=false;state.pending=0;state.inbound+=1;state.items.push({id:"wrench",name:"得力活动扳手 12 寸",stock:1,unit:"件",threshold:2,price:18.5,note:"新商品已由老板确认建档。"}); addMsg({actor:"老李",self:false,meta:"确认后入账",text:"扳手已经按您确认的信息建档并入库。我把这次写入也同步到了账本。",card:[["商品","得力活动扳手 12 寸"],["数量","1 件"],["进价","￥18.5"],["状态","已建档"]]}); addAudit("人工确认后建档：得力活动扳手 12 寸 +1 件","老板确认"); render(); say("扳手已确认建档，账本与工作群已同步。")}
+    function voice(){const water=state.items.find(i=>i.id==="water"); addTime(); water.stock+=1; state.inbound+=1; addMsg({actor:"老板",self:true,meta:"语音 4 秒",text:"再加 1 箱农夫山泉。"}); addMsg({actor:"小雅",self:false,meta:"已路由",text:"收到，这条是已有商品入库，我直接让老李按既有档案处理。"}); addMsg({actor:"老李",self:false,meta:"入库完成",text:"农夫山泉已经补进去了。",card:[["商品","农夫山泉 550ml"],["数量","1 箱"],["进价","￥22 / 箱"],["当前库存",`${water.stock} 箱`]]}); addAudit("语音入库：农夫山泉 550ml +1 箱","AI执行"); render(); say("已模拟一条语音入库。")}
+    function voiceQuery(){const rb=state.items.find(i=>i.id==="redbull"); addTime(); addMsg({actor:"老板",self:true,meta:"语音 2 秒",text:"红牛还剩多少？"}); addMsg({actor:"小雅",self:false,meta:"语音查询",text:`红牛现在还剩 ${rb.stock} 罐，已经低于提醒阈值 ${rb.threshold} 罐。我建议您今天就补货，不自动下单。`}); addAudit("语音查询：红牛 250ml","只读"); render(); say("已模拟一条语音库存查询。")}
+    function photo(){if(state.wrenchPending){say("工作群里已经有一个待确认的新商品了。");return} addTime(); state.wrenchPending=true; state.pending=1; addMsg({actor:"老板",self:true,meta:"商品照片",text:"这个新工具也帮我入库。"}); addMsg({actor:"小雅",self:false,meta:"待确认",text:"这又是一个无码商品。我先不直接写库，等您确认名称、数量和价格后再入账。"}); addAudit("拍照识物：新增 1 条新商品待确认任务","需确认"); render(); say("已生成新的拍照建档待确认任务。")}
+    function photoQuery(){const rb=state.items.find(i=>i.id==="redbull"); addTime(); addMsg({actor:"老板",self:true,meta:"货架照片",text:"这个还有没有库存？"}); addMsg({actor:"小雅",self:false,meta:"拍照查询",text:`我识别到这是红牛 250ml。当前库存还有 ${rb.stock} 罐，已经低于提醒线，建议尽快补货。`}); addAudit("拍照查询：红牛 250ml","只读"); render(); say("已模拟一条拍照库存查询。")}
+    function receipt(){addTime(); addMsg({actor:"老板",self:true,meta:"进货单照片",text:"帮我看一下这单货。"}); addMsg({actor:"小雅",self:false,meta:"OCR 抽取",text:"我先把进货单里的关键字段抽出来了，您确认后就能继续生成待入库任务。",card:[["商品数","2 项"],["商品明细","可乐 3 箱 / 扳手 1 件"],["金额","￥141.5"],["状态","低置信字段待确认"]]}); addSystem("这一步更像微信里的“拍一张发群里”，只是系统会帮你先读单据。"); addAudit("进货单 OCR：抽取 2 个商品字段","OCR"); render(); say("已模拟一条进货单 OCR 结果。")}
+    function save(){const id=item.value,n=Number(qty.value),r=reason.value.trim(),it=state.items.find(i=>i.id===id); if(!it||Number.isNaN(n)||n<0||!r){say("请补全商品、数量和修改原因。");return} const prev=it.stock; it.stock=n; addAudit(`人工修正：${it.name} ${prev}${it.unit} -> ${n}${it.unit}`,"Correction"); addMsg({actor:"系统",self:false,meta:"账本回执",text:`老板刚刚在账本里把 ${it.name} 从 ${prev}${it.unit} 改成了 ${n}${it.unit}。原因是：${r}。`}); render(); say("人工修正已保存，并回写到工作群。")}
 
-<script>
-    function showView(id) {
-        document.getElementById(id).classList.add('active');
-    }
-    
-    function hideChat() {
-        document.getElementById('view-chat').classList.remove('active');
-    }
-
-    function showCall() {
-        document.getElementById('view-call').classList.add('active');
-    }
-    
-    function hideCall() {
-        document.getElementById('view-call').classList.remove('active');
-    }
-
-    function switchTab(tab) {
-        // 重置所有 view 的 active 状态（排除 chat 和 call 遮罩）
-        document.querySelectorAll('.view:not(#view-chat):not(#view-call)').forEach(v => v.classList.remove('active'));
-        // 重置 Tab 状态
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        const targetViewId = 'view-' + tab;
-        document.getElementById(targetViewId).classList.add('active');
-        
-        // 找到点击的按钮设置 active (这里简单处理)
-        event.currentTarget.classList.add('active');
-    }
-</script>
-
+    document.addEventListener("click",e=>{const b=e.target.closest("button, .wechat-field"); if(!b) return; if(b.dataset.viewTarget) return view(b.dataset.viewTarget); const a=b.dataset.action; if(a==="scope") say("v2 以语音为主入口，多模态为关键辅助；通话、团队、市场仍然延后。"); if(a==="confirm") confirm(); if(a==="voice") {state.chatToolsOpen=false; voice()} if(a==="voice-query") voiceQuery(); if(a==="photo") photo(); if(a==="photo-query") photoQuery(); if(a==="receipt") receipt(); if(a==="emoji") say("表情入口先占位，当前原型重点演示语音和多模态任务。"); if(a==="toggle-tools") {state.chatToolsOpen=!state.chatToolsOpen; renderChatTools();}});
+    $("#save").addEventListener("click",save);
+    render();
+  </script>
 </body>
 </html>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" fill="none">
+  <rect width="1200" height="760" rx="28" fill="#FFF9F2"/>
+  <text x="68" y="92" fill="#2E1E17" font-family="Segoe UI, Arial" font-size="34" font-weight="700">FastAPI 架构角色图</text>
+  <text x="68" y="126" fill="#7A665B" font-family="Segoe UI, Arial" font-size="18">FastAPI 在这里不是单纯接口层，而是会话编排、任务调度、确认链和审计链的中心。</text>
+  <rect x="76" y="180" width="226" height="150" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="104" y="228" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">React Native App</text>
+  <text x="104" y="264" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">工作台 / 工作群 / 账本</text>
+  <text x="104" y="296" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">语音 / 商品图 / 单据图</text>
+  <rect x="388" y="148" width="420" height="212" rx="28" fill="#2B1B16"/>
+  <text x="420" y="202" fill="#FFF9F2" font-family="Segoe UI, Arial" font-size="26" font-weight="700">FastAPI 编排层</text>
+  <text x="420" y="242" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">REST API + WebSocket</text>
+  <text x="420" y="274" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">Session / TaskRun / Confirmation</text>
+  <text x="420" y="306" fill="#FFD8BE" font-family="Segoe UI, Arial" font-size="18">InventoryEvent / AuditLog</text>
+  <rect x="880" y="180" width="238" height="150" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="910" y="228" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">WebSocket 回执</text>
+  <text x="910" y="264" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">处理中</text>
+  <text x="910" y="294" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">识别完成</text>
+  <text x="910" y="324" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">待确认 / 结果卡</text>
+  <rect x="162" y="470" width="214" height="150" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="190" y="518" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">Celery + Redis</text>
+  <text x="190" y="554" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">ASR / OCR / 识图</text>
+  <text x="190" y="586" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">低置信复核</text>
+  <rect x="492" y="470" width="214" height="150" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="526" y="518" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">MySQL</text>
+  <text x="526" y="554" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">商品 / 库存 / 确认</text>
+  <text x="526" y="586" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">审计 / 会话索引</text>
+  <rect x="822" y="470" width="214" height="150" rx="24" fill="#FFFFFF" stroke="#E1D4C8"/>
+  <text x="856" y="518" fill="#8A331A" font-family="Segoe UI, Arial" font-size="22" font-weight="700">MinIO</text>
+  <text x="856" y="554" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">语音文件</text>
+  <text x="856" y="586" fill="#4A3228" font-family="Segoe UI, Arial" font-size="18">商品图 / 单据图</text>
+  <path d="M302 256H388" stroke="#D1642E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M808 256H880" stroke="#D1642E" stroke-width="6" stroke-linecap="round"/>
+  <path d="M598 360V470" stroke="#1D8F69" stroke-width="6" stroke-linecap="round"/>
+  <path d="M470 360L324 470" stroke="#1D8F69" stroke-width="6" stroke-linecap="round"/>
+  <path d="M726 360L874 470" stroke="#1D8F69" stroke-width="6" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/provider-calibration/manifest.schema.json",
+  "title": "Pilot Calibration Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trial_id",
+    "cases"
+  ],
+  "properties": {
+    "trial_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "capability",
+          "media_path",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capability": {
+            "type": "string",
+            "enum": [
+              "asr",
+              "ocr",
+              "vision"
+            ]
+          },
+          "media_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "media_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text_hint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expected": {
+            "type": "object"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "capability": {
+                  "const": "asr"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "expected": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "transcript_contains": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "min_confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "capability": {
+                  "const": "ocr"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "expected": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "total_amount": {
+                      "type": "number"
+                    },
+                    "amount_tolerance": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "capability": {
+                  "const": "vision"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "expected": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "top_candidate_in": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "min_confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

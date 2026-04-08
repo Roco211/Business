@@ -133,6 +133,33 @@ describe("LedgerScreen workspace", () => {
     expect(screen.queryByText("Loading ledger...")).toBeNull();
   });
 
+  it("keeps existing ledger content visible during background inventory loading", () => {
+    let inventoryIsLoading = false;
+    mockedUseInventoryItemsQuery.mockImplementation(() => ({
+      data: [
+        {
+          item_id: "item_apple",
+          name: "Apple",
+          default_unit: "box",
+          current_stock: "3.000",
+          current_price: "11.50",
+        },
+      ],
+      isLoading: inventoryIsLoading,
+      error: null,
+      refresh: inventoryRefresh,
+    }));
+
+    const { rerender } = render(<LedgerScreen />);
+    inventoryIsLoading = true;
+    rerender(<LedgerScreen />);
+
+    expect(screen.queryByTestId("ledger-loading-state")).toBeNull();
+    expect(screen.getByTestId("ledger-search-input")).toBeTruthy();
+    expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
+    expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
+  });
+
   it("shows a unified unavailable state when ledger data cannot load", () => {
     mockedUseInventoryItemsQuery.mockReturnValue({
       data: [],

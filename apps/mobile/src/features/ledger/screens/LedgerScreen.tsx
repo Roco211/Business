@@ -43,6 +43,13 @@ export default function LedgerScreen() {
   const correction = useCreateCorrectionMutation();
   const stockOut = useCreateStockOutMutation();
   const sessionStream = useSessionStream();
+  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false);
+
+  useEffect(() => {
+    if (!inventory.isLoading && !auditLogs.isLoading) {
+      setHasCompletedInitialLoad(true);
+    }
+  }, [inventory.isLoading, auditLogs.isLoading]);
 
   useEffect(() => {
     const eventType = sessionStream.lastEvent?.event_type;
@@ -141,7 +148,9 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }
 
-  if (inventory.isLoading || auditLogs.isLoading) {
+  const isInitialLoading = !hasCompletedInitialLoad && (inventory.isLoading || auditLogs.isLoading);
+
+  if (isInitialLoading) {
     return (
       <AppScreen title="库存台账" subtitle="轻量库存工作区">
         <View testID="ledger-loading-state">

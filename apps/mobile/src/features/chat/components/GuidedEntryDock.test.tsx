@@ -57,4 +57,37 @@ describe("GuidedEntryDock", () => {
       expect(onSubmitted).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("submits stock-in demo kind when pressing the photo stock-in entry", async () => {
+    const onSubmitted = jest.fn();
+    const submitImageDemo = jest.fn().mockResolvedValue({ data: { task_run_id: "task_2" } });
+
+    mockedUseSendVoiceDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitVoiceDemo: jest.fn(),
+    } as never);
+    mockedUseSendImageDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitImageDemo,
+    } as never);
+    mockedUseSendReceiptDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitReceiptDemo: jest.fn(),
+    } as never);
+
+    render(<GuidedEntryDock sessionId="sess_1" onSubmitted={onSubmitted} highlightedIntent="photo-stock-in" />);
+
+    fireEvent.press(screen.getByTestId("guided-pill-photo"));
+
+    expect(await screen.findByText("正在提交拍照入库请求")).toBeTruthy();
+
+    await waitFor(() => {
+      expect(submitImageDemo).toHaveBeenCalledWith("stock_in");
+      expect(screen.getByText("已提交")).toBeTruthy();
+      expect(onSubmitted).toHaveBeenCalledTimes(1);
+    });
+  });
 });

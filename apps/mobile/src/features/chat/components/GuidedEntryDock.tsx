@@ -92,7 +92,7 @@ export function GuidedEntryDock({
       title: COPY.photoSubmitting,
       message: "",
     });
-    const result = await imageDemo.submitImageDemo("query");
+    const result = await imageDemo.submitImageDemo("stock_in");
     if (result === null) {
       setStatus((currentStatus) =>
         currentStatus?.tone === "error"

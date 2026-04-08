@@ -90,4 +90,66 @@ describe("GuidedEntryDock", () => {
       expect(onSubmitted).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("shows a stock-in photo label that matches the submitted action", () => {
+    mockedUseSendVoiceDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitVoiceDemo: jest.fn(),
+    } as never);
+    mockedUseSendImageDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitImageDemo: jest.fn(),
+    } as never);
+    mockedUseSendReceiptDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitReceiptDemo: jest.fn(),
+    } as never);
+
+    render(<GuidedEntryDock sessionId="sess_1" onSubmitted={jest.fn()} highlightedIntent="photo-stock-in" />);
+
+    expect(screen.getByText("拍照入库")).toBeTruthy();
+  });
+
+  it("shows session-unavailable guidance and keeps guided actions disabled when no session exists", () => {
+    const submitVoiceDemo = jest.fn();
+    const submitImageDemo = jest.fn();
+    const submitReceiptDemo = jest.fn();
+
+    mockedUseSendVoiceDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitVoiceDemo,
+    } as never);
+    mockedUseSendImageDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitImageDemo,
+    } as never);
+    mockedUseSendReceiptDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitReceiptDemo,
+    } as never);
+
+    render(<GuidedEntryDock sessionId={null} onSubmitted={jest.fn()} />);
+
+    expect(screen.getByText("会话暂不可用")).toBeTruthy();
+    expect(screen.getByText("会话尚未就绪，暂时不能提交演练请求。")).toBeTruthy();
+
+    expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByTestId("guided-pill-photo").props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByTestId("guided-pill-receipt").props.accessibilityState.disabled).toBe(true);
+
+    fireEvent.press(screen.getByTestId("guided-pill-voice"));
+    fireEvent.press(screen.getByTestId("guided-pill-photo"));
+    fireEvent.press(screen.getByTestId("guided-pill-receipt"));
+
+    expect(submitVoiceDemo).not.toHaveBeenCalled();
+    expect(submitImageDemo).not.toHaveBeenCalled();
+    expect(submitReceiptDemo).not.toHaveBeenCalled();
+    expect(screen.queryByText("提交失败")).toBeNull();
+  });
 });

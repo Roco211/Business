@@ -84,7 +84,7 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("已连接")).toBeTruthy();
       expect(screen.getByText("业务快捷入口")).toBeTruthy();
       expect(screen.getByText("语音盘点")).toBeTruthy();
-      expect(screen.getByText("拍照识别")).toBeTruthy();
+      expect(screen.getByText("拍照入库")).toBeTruthy();
       expect(screen.getByText("票据录入")).toBeTruthy();
       expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
       expect(screen.getByText("店主")).toBeTruthy();

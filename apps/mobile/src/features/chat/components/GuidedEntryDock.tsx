@@ -9,9 +9,11 @@ import type { WorkbenchIntent } from "../workbenchIntent";
 
 const COPY = {
   title: "业务快捷入口",
-  subtitle: "用语音盘点、拍照识别或票据录入发起任务。",
+  subtitle: "用语音盘点、拍照入库或票据录入发起任务。",
   rehearsalTitle: "流程演练说明",
   rehearsalMessage: "当前为流程演练，会提交预设样例请求。",
+  sessionUnavailableTitle: "会话暂不可用",
+  sessionUnavailableMessage: "会话尚未就绪，暂时不能提交演练请求。",
   errorTitle: "提交失败",
   genericErrorMessage: "请求未成功，请稍后重试。",
   successTitle: "已提交",
@@ -20,7 +22,7 @@ const COPY = {
   photoSubmitting: "正在提交拍照入库请求",
   receiptSubmitting: "正在提交票据识别请求",
   voice: "语音盘点",
-  photo: "拍照识别",
+  photo: "拍照入库",
   receipt: "票据录入",
 } as const;
 
@@ -45,11 +47,13 @@ export function GuidedEntryDock({
   const imageDemo = useSendImageDemoMutation(sessionId);
   const receiptDemo = useSendReceiptDemoMutation(sessionId);
 
+  const isSessionAvailable = sessionId !== null;
   const isSubmitting = voiceDemo.isSubmitting || imageDemo.isSubmitting || receiptDemo.isSubmitting;
+  const isDockDisabled = isSubmitting || !isSessionAvailable;
   const error = voiceDemo.error ?? imageDemo.error ?? receiptDemo.error;
 
   useEffect(() => {
-    if (!error) {
+    if (!isSessionAvailable || !error) {
       return;
     }
     setStatus({
@@ -57,9 +61,12 @@ export function GuidedEntryDock({
       title: COPY.errorTitle,
       message: error,
     });
-  }, [error]);
+  }, [error, isSessionAvailable]);
 
   async function handleVoiceEntry() {
+    if (!isSessionAvailable) {
+      return;
+    }
     setStatus({
       tone: "neutral",
       title: COPY.voiceSubmitting,
@@ -87,6 +94,9 @@ export function GuidedEntryDock({
   }
 
   async function handlePhotoEntry() {
+    if (!isSessionAvailable) {
+      return;
+    }
     setStatus({
       tone: "neutral",
       title: COPY.photoSubmitting,
@@ -114,6 +124,9 @@ export function GuidedEntryDock({
   }
 
   async function handleReceiptEntry() {
+    if (!isSessionAvailable) {
+      return;
+    }
     setStatus({
       tone: "neutral",
       title: COPY.receiptSubmitting,
@@ -145,6 +158,13 @@ export function GuidedEntryDock({
       <View style={styles.container}>
         <SectionHeader title={COPY.title} subtitle={COPY.subtitle} />
         <InlineNotice tone="neutral" title={COPY.rehearsalTitle} message={COPY.rehearsalMessage} />
+        {!isSessionAvailable ? (
+          <InlineNotice
+            tone="neutral"
+            title={COPY.sessionUnavailableTitle}
+            message={COPY.sessionUnavailableMessage}
+          />
+        ) : null}
         {status ? <InlineNotice tone={status.tone} title={status.title} message={status.message} /> : null}
         <View style={styles.pillRow}>
           <PillActionButton
@@ -155,7 +175,7 @@ export function GuidedEntryDock({
             onPress={() => {
               void handleVoiceEntry();
             }}
-            disabled={isSubmitting}
+            disabled={isDockDisabled}
           />
           <PillActionButton
             testID="guided-pill-photo"
@@ -165,7 +185,7 @@ export function GuidedEntryDock({
             onPress={() => {
               void handlePhotoEntry();
             }}
-            disabled={isSubmitting}
+            disabled={isDockDisabled}
           />
           <PillActionButton
             testID="guided-pill-receipt"
@@ -175,7 +195,7 @@ export function GuidedEntryDock({
             onPress={() => {
               void handleReceiptEntry();
             }}
-            disabled={isSubmitting}
+            disabled={isDockDisabled}
           />
         </View>
       </View>

@@ -20,7 +20,6 @@ function ProtectedTabs() {
         <Tab.Navigator
           screenOptions={({ route }) => ({
             headerShown: false,
-            tabBarShowIcon: false,
             tabBarActiveTintColor: color.accentPrimary,
             tabBarInactiveTintColor: color.fgTertiary,
             tabBarLabel: ROOT_TAB_LABELS[route.name],

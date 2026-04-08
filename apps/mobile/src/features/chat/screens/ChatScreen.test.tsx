@@ -4,6 +4,7 @@ import ChatScreen from "./ChatScreen";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
+import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 
 jest.mock("../../../shared/session/useSessionStream");
@@ -71,7 +72,7 @@ describe("ChatScreen (workbench shell)", () => {
     jest.clearAllMocks();
   });
 
-  it("renders guided workbench header and dock", async () => {
+  it("renders business-language guided entry actions on the default path", async () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
@@ -79,10 +80,11 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("Store shift session")).toBeTruthy();
       expect(screen.getByText("连接状态")).toBeTruthy();
       expect(screen.getByText("已连接")).toBeTruthy();
-      expect(screen.getByText("引导入口")).toBeTruthy();
-      expect(screen.getByText("语音")).toBeTruthy();
-      expect(screen.getByText("拍照")).toBeTruthy();
-      expect(screen.getByText("票据")).toBeTruthy();
+      expect(screen.getByText("业务快捷入口")).toBeTruthy();
+      expect(screen.getByText("语音盘点")).toBeTruthy();
+      expect(screen.getByText("拍照识别")).toBeTruthy();
+      expect(screen.getByText("票据录入")).toBeTruthy();
+      expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
       expect(screen.getByText("店主")).toBeTruthy();
       expect(screen.getByText("类型：文本")).toBeTruthy();
       expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
@@ -110,14 +112,42 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Voice Query Demo")).toBeNull();
+      expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
     });
 
     fireEvent.press(screen.getByLabelText("调试工具"));
 
     await waitFor(() => {
-      expect(screen.getByText("Voice Query Demo")).toBeTruthy();
+      expect(screen.getByText("调试: 语音查询 (旧演示)")).toBeTruthy();
       expect(screen.getByText("收起")).toBeTruthy();
+    });
+  });
+
+  it("presents runtime text without leaking mock runtime copy", async () => {
+    mockedUseSessionMessagesQuery.mockReturnValue({
+      data: [
+        {
+          message_id: "msg_2",
+          session_id: "sess_1",
+          actor_type: "system",
+          actor_id: "runtime",
+          message_type: "text",
+          text: "Mock runtime: stock query accepted and queued for simulation.",
+          media_ids: [],
+          task_run_id: "task_2",
+          created_at: "2026-04-05T12:01:00.000Z",
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText(FRONTLINE_STATUS_COPY.realtimeDegraded)).toBeTruthy();
+      expect(screen.queryByText("Mock runtime: stock query accepted and queued for simulation.")).toBeNull();
     });
   });
 

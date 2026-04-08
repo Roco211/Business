@@ -45,45 +45,45 @@ export function MockMediaEntryPanel({
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="Media demos" subtitle="Legacy debug entry points for demo uploads." />
-      {error ? <InlineNotice tone="error" title="Demo failed" message={error} /> : null}
+      <SectionHeader title="调试专用：历史演示入口" subtitle="仅用于开发调试，模拟旧版媒体演示动作。" />
+      {error ? <InlineNotice tone="error" title="调试动作失败" message={error} /> : null}
       <PrimaryButton
-        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Query Demo"}
+        label={voiceDemo.isSubmitting ? "调试提交中（语音）..." : "调试: 语音查询 (旧演示)"}
         onPress={() => {
           void handleVoiceSubmit("query");
         }}
         disabled={isSubmitting}
       />
       <PrimaryButton
-        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-In Demo"}
+        label={voiceDemo.isSubmitting ? "调试提交中（语音）..." : "调试: 语音入库 (旧演示)"}
         onPress={() => {
           void handleVoiceSubmit("stock_in");
         }}
         disabled={isSubmitting}
       />
       <PrimaryButton
-        label={voiceDemo.isSubmitting ? "Sending voice..." : "Voice Stock-Out Demo"}
+        label={voiceDemo.isSubmitting ? "调试提交中（语音）..." : "调试: 语音出库 (旧演示)"}
         onPress={() => {
           void handleVoiceSubmit("stock_out");
         }}
         disabled={isSubmitting}
       />
       <PrimaryButton
-        label={imageDemo.isSubmitting ? "Sending photo..." : "Photo Query Demo"}
+        label={imageDemo.isSubmitting ? "调试提交中（图片）..." : "调试: 拍照查询 (旧演示)"}
         onPress={() => {
           void handleImageSubmit("query");
         }}
         disabled={isSubmitting}
       />
       <PrimaryButton
-        label={imageDemo.isSubmitting ? "Sending photo..." : "Photo Stock-In Demo"}
+        label={imageDemo.isSubmitting ? "调试提交中（图片）..." : "调试: 拍照入库 (旧演示)"}
         onPress={() => {
           void handleImageSubmit("stock_in");
         }}
         disabled={isSubmitting}
       />
       <PrimaryButton
-        label={receiptDemo.isSubmitting ? "Sending receipt..." : "Receipt OCR Demo"}
+        label={receiptDemo.isSubmitting ? "调试提交中（票据）..." : "调试: 票据识别 (旧演示)"}
         onPress={() => {
           void handleReceiptSubmit();
         }}

@@ -50,7 +50,7 @@ describe("ChatScreen", () => {
     await waitFor(
       () => {
         expect(screen.getByText("聊天工作台")).toBeTruthy();
-        expect(screen.getByText("引导入口")).toBeTruthy();
+        expect(screen.getByText("业务快捷入口")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
         expect(screen.getByText("已连接")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
@@ -62,7 +62,7 @@ describe("ChatScreen", () => {
   async function openDebugTools() {
     fireEvent.press(screen.getByLabelText("调试工具"));
     await waitFor(() => {
-      expect(screen.getByText("Voice Query Demo")).toBeTruthy();
+      expect(screen.getByText("调试: 语音查询 (旧演示)")).toBeTruthy();
     });
   }
 
@@ -630,9 +630,9 @@ describe("ChatScreen", () => {
     expect(screen.getByText("正在同步工作台")).toBeTruthy();
 
     await waitForChatReady();
-    expect(screen.queryByText("Voice Query Demo")).toBeNull();
+    expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
     expect(
-      screen.getByText("Mock runtime: please confirm the stock-in details before commit."),
+      screen.getByText("please confirm the stock-in details before commit."),
     ).toBeTruthy();
   });
 
@@ -667,7 +667,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByTestId("confirm-approve-conf_1"));
 
     await waitFor(() => {
-      expect(screen.getByText("Mock runtime: approved stock-in committed to inventory.")).toBeTruthy();
+      expect(screen.getByText("approved stock-in committed to inventory.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_1/approve"),
         expect.objectContaining({
@@ -690,7 +690,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByTestId("confirm-approve-conf_stock_out_1"));
 
     await waitFor(() => {
-      expect(screen.getByText("Mock runtime: approved stock-out committed to inventory.")).toBeTruthy();
+      expect(screen.getByText("approved stock-out committed to inventory.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_stock_out_1/approve"),
         expect.objectContaining({
@@ -750,7 +750,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByTestId("confirm-approve-conf_receipt_1"));
 
     await waitFor(() => {
-      expect(screen.getByText("Mock runtime: receipt stock-in committed for 2 line items.")).toBeTruthy();
+      expect(screen.getByText("receipt stock-in committed for 2 line items.")).toBeTruthy();
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/confirmations/conf_receipt_1/approve"),
         expect.objectContaining({
@@ -844,7 +844,7 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    expect(screen.queryByText("Voice Query Demo")).toBeNull();
+    expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
 
     const initialMessageRequests = messageRequestCount;
     const initialConfirmationRequests = confirmationRequestCount;
@@ -877,7 +877,7 @@ describe("ChatScreen", () => {
     fireEvent.press(screen.getByTestId("guided-pill-voice"));
 
     await waitFor(() => {
-      expect(screen.getByText("提交失败")).toBeTruthy();
+      expect(screen.getByText("提交未完成")).toBeTruthy();
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
       expect(mediaUploadRequestCount).toBe(1);
       expect(mediaUploadPutCount).toBe(0);
@@ -890,7 +890,7 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    expect(screen.queryByText("Photo Query Demo")).toBeNull();
+    expect(screen.queryByText("调试: 拍照查询 (旧演示)")).toBeNull();
 
     const initialMessageRequests = messageRequestCount;
     const initialConfirmationRequests = confirmationRequestCount;
@@ -919,7 +919,7 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    expect(screen.queryByText("Receipt OCR Demo")).toBeNull();
+    expect(screen.queryByText("调试: 票据识别 (旧演示)")).toBeNull();
 
     const initialMessageRequests = messageRequestCount;
     const initialConfirmationRequests = confirmationRequestCount;
@@ -949,7 +949,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Voice Stock-In Demo"));
+    fireEvent.press(screen.getByText("调试: 语音入库 (旧演示)"));
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
@@ -973,7 +973,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Voice Stock-Out Demo"));
+    fireEvent.press(screen.getByText("调试: 语音出库 (旧演示)"));
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
@@ -997,7 +997,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Voice Query Demo"));
+    fireEvent.press(screen.getByText("调试: 语音查询 (旧演示)"));
 
     await waitFor(() => {
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();
@@ -1014,7 +1014,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Voice Query Demo"));
+    fireEvent.press(screen.getByText("调试: 语音查询 (旧演示)"));
 
     await waitFor(() => {
       expect(screen.getByText("Failed to upload demo media bytes")).toBeTruthy();
@@ -1030,7 +1030,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Photo Query Demo"));
+    fireEvent.press(screen.getByText("调试: 拍照查询 (旧演示)"));
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
@@ -1053,7 +1053,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Receipt OCR Demo"));
+    fireEvent.press(screen.getByText("调试: 票据识别 (旧演示)"));
 
     await waitFor(() => {
       expect(mediaUploadRequestCount).toBe(1);
@@ -1077,7 +1077,7 @@ describe("ChatScreen", () => {
     await waitForChatReady();
     await openDebugTools();
 
-    fireEvent.press(screen.getByText("Photo Query Demo"));
+    fireEvent.press(screen.getByText("调试: 拍照查询 (旧演示)"));
 
     await waitFor(() => {
       expect(screen.getByText("size_bytes must be greater than 0")).toBeTruthy();

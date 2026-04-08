@@ -23,6 +23,7 @@ import { WorkbenchHeader } from "../components/WorkbenchHeader";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
+import { presentRuntimeMessageText } from "../utils/presentRuntimeMessageText";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 
 const COPY = {
@@ -66,9 +67,9 @@ function getActorLabel(actorType: string) {
   return COPY.actorFallback;
 }
 
-function getMessageText(messageType: string, text: string | null) {
+function getMessageText(text: string | null) {
   if (text && text.trim().length > 0) {
-    return text;
+    return presentRuntimeMessageText(text);
   }
   return COPY.messageFallback;
 }
@@ -196,7 +197,7 @@ export default function ChatScreen() {
                 actorLabel={getActorLabel(message.actor_type)}
                 actorType={message.actor_type}
                 messageType={message.message_type}
-                text={getMessageText(message.message_type, message.text)}
+                text={getMessageText(message.text)}
                 createdAt={message.created_at}
               />
               {linkedConfirmations.map((confirmation) => {

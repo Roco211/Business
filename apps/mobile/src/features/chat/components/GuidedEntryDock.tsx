@@ -6,12 +6,12 @@ import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation"
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 
 const COPY = {
-  title: "引导入口",
-  subtitle: "先用语音、拍照或票据发起任务。",
-  errorTitle: "提交失败",
-  voice: "语音",
-  photo: "拍照",
-  receipt: "票据",
+  title: "业务快捷入口",
+  subtitle: "用语音盘点、拍照识别或票据录入发起任务。",
+  errorTitle: "提交未完成",
+  voice: "语音盘点",
+  photo: "拍照识别",
+  receipt: "票据录入",
 } as const;
 
 type GuidedEntryDockProps = {

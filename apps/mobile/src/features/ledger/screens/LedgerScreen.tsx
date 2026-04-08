@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import { AuditTimeline } from "../components/AuditTimeline";
@@ -35,6 +35,8 @@ export default function LedgerScreen() {
   const [correctionReason, setCorrectionReason] = useState("");
   const [stockOutQuantity, setStockOutQuantity] = useState("");
   const [stockOutReason, setStockOutReason] = useState("");
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const actionPanelOffsetRef = useRef(0);
 
   const inventory = useInventoryItemsQuery(searchText);
   const auditLogs = useAuditLogsQuery();
@@ -59,6 +61,22 @@ export default function LedgerScreen() {
     auditLogs.refresh();
   }, [sessionStream.dataResetVersion]);
 
+  function revealActionPanel() {
+    const scrollToPanel = () => {
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(actionPanelOffsetRef.current - space.s12, 0),
+        animated: true,
+      });
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(scrollToPanel);
+      return;
+    }
+
+    setTimeout(scrollToPanel, 0);
+  }
+
   function switchActionForItem(item: InventoryItemRecord, action: LedgerActionType) {
     setSelectedItem(item);
     setSelectedAction(action);
@@ -69,13 +87,14 @@ export default function LedgerScreen() {
       setCorrectionReason("");
       setStockOutQuantity("");
       setStockOutReason("");
-      return;
+    } else {
+      setStockOutQuantity("");
+      setStockOutReason("");
+      setCorrectedQuantity("");
+      setCorrectionReason("");
     }
 
-    setStockOutQuantity("");
-    setStockOutReason("");
-    setCorrectedQuantity("");
-    setCorrectionReason("");
+    revealActionPanel();
   }
 
   async function handleSubmitCorrection() {
@@ -150,7 +169,7 @@ export default function LedgerScreen() {
 
   return (
     <AppScreen title="库存台账" subtitle="轻量库存工作区">
-      <ScrollView contentContainerStyle={styles.scrollBody}>
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollBody}>
         <SurfaceCard emphasis="outlined">
           <SectionHeader title="搜索与筛选" subtitle="输入商品名称，快速定位需要处理的库存条目。" />
           <AppTextField
@@ -182,35 +201,41 @@ export default function LedgerScreen() {
           </View>
         )}
 
-        <SectionHeader title="操作面板" subtitle="确认数量与原因后，在此提交库存修正或出库登记。" />
-        <LedgerActionPanel
-          selectedItem={selectedItem}
-          selectedAction={selectedAction}
-          correctedQuantity={correctedQuantity}
-          correctionReason={correctionReason}
-          stockOutQuantity={stockOutQuantity}
-          stockOutReason={stockOutReason}
-          correctionError={correction.error}
-          stockOutError={stockOut.error}
-          correctionSubmitting={correction.isSubmitting}
-          stockOutSubmitting={stockOut.isSubmitting}
-          onSelectAction={(action) => {
-            if (!selectedItem) {
-              return;
-            }
-            switchActionForItem(selectedItem, action);
+        <View
+          onLayout={(event) => {
+            actionPanelOffsetRef.current = event.nativeEvent.layout.y;
           }}
-          onChangeCorrectedQuantity={setCorrectedQuantity}
-          onChangeCorrectionReason={setCorrectionReason}
-          onChangeStockOutQuantity={setStockOutQuantity}
-          onChangeStockOutReason={setStockOutReason}
-          onSubmitCorrection={() => {
-            void handleSubmitCorrection();
-          }}
-          onSubmitStockOut={() => {
-            void handleSubmitStockOut();
-          }}
-        />
+        >
+          <SectionHeader title="操作面板" subtitle="确认数量与原因后，在此提交库存修正或出库登记。" />
+          <LedgerActionPanel
+            selectedItem={selectedItem}
+            selectedAction={selectedAction}
+            correctedQuantity={correctedQuantity}
+            correctionReason={correctionReason}
+            stockOutQuantity={stockOutQuantity}
+            stockOutReason={stockOutReason}
+            correctionError={correction.error}
+            stockOutError={stockOut.error}
+            correctionSubmitting={correction.isSubmitting}
+            stockOutSubmitting={stockOut.isSubmitting}
+            onSelectAction={(action) => {
+              if (!selectedItem) {
+                return;
+              }
+              switchActionForItem(selectedItem, action);
+            }}
+            onChangeCorrectedQuantity={setCorrectedQuantity}
+            onChangeCorrectionReason={setCorrectionReason}
+            onChangeStockOutQuantity={setStockOutQuantity}
+            onChangeStockOutReason={setStockOutReason}
+            onSubmitCorrection={() => {
+              void handleSubmitCorrection();
+            }}
+            onSubmitStockOut={() => {
+              void handleSubmitStockOut();
+            }}
+          />
+        </View>
 
         <SectionHeader title="活动时间线" subtitle="按时间顺序查看最近库存相关操作记录。" />
         <AuditTimeline logs={auditLogs.data} />

@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { InventoryItemRecord } from "../hooks/useInventoryItemsQuery";
 import { AppTextField, EmptyState, InlineNotice, PillActionButton, PrimaryButton, SurfaceCard } from "../../../shared/ui";
-import { color, space } from "../../../shared/ui/tokens";
+import { space } from "../../../shared/ui/tokens";
 
 export type LedgerActionType = "correction" | "stock-out";
 
@@ -52,8 +52,17 @@ export function LedgerActionPanel({
           <EmptyState title="先选择库存项" description="从上方库存卡片选择“库存修正”或“出库登记”后开始处理。" />
         ) : (
           <View style={styles.content}>
-            <Text style={styles.itemName}>{selectedItem.name}</Text>
-            <Text style={styles.itemStock}>{`当前库存 ${selectedItem.current_stock} ${selectedItem.default_unit}`}</Text>
+            <View testID="ledger-selected-item-summary">
+              <InlineNotice
+                tone="neutral"
+                title={
+                  selectedAction === "stock-out"
+                    ? `已选择 ${selectedItem.name}，继续出库登记`
+                    : `已选择 ${selectedItem.name}，继续库存修正`
+                }
+                message={`当前库存 ${selectedItem.current_stock} ${selectedItem.default_unit}`}
+              />
+            </View>
 
             <View style={styles.actionSwitches}>
               <PillActionButton label="库存修正" onPress={() => onSelectAction("correction")} />
@@ -67,6 +76,7 @@ export function LedgerActionPanel({
                   testID="ledger-correction-quantity-input"
                   value={correctedQuantity}
                   keyboardType="numeric"
+                  autoFocus
                   onChangeText={onChangeCorrectedQuantity}
                 />
                 <AppTextField
@@ -125,15 +135,6 @@ export function LedgerActionPanel({
 const styles = StyleSheet.create({
   content: {
     gap: space.s12,
-  },
-  itemName: {
-    color: color.fgPrimary,
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  itemStock: {
-    color: color.fgSecondary,
-    fontSize: 14,
   },
   actionSwitches: {
     flexDirection: "row",

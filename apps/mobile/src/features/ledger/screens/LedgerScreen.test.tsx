@@ -188,6 +188,19 @@ describe("LedgerScreen workspace", () => {
     });
   });
 
+  it("surfaces selected-item continuity copy and focuses the first correction input", async () => {
+    render(<LedgerScreen />);
+
+    fireEvent.press(screen.getByTestId("inventory-card-item_apple-action-correction"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ledger-selected-item-summary")).toBeTruthy();
+      expect(screen.getByText("已选择 Apple，继续库存修正")).toBeTruthy();
+      expect(screen.getByText("当前库存 3.000 box")).toBeTruthy();
+      expect(screen.getByTestId("ledger-correction-quantity-input").props.autoFocus).toBe(true);
+    });
+  });
+
   it("does not leak correction draft when switching item then switching action in panel", async () => {
     mockedUseInventoryItemsQuery.mockReturnValue({
       data: [

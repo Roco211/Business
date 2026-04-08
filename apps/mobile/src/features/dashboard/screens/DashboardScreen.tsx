@@ -144,6 +144,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     && !pendingConfirmations.error
     && (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading)
   );
+  const refreshError = summary.error ?? alerts.error ?? pendingConfirmations.error;
 
   if (isInitialDashboardLoad) {
     return (
@@ -156,14 +157,14 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     );
   }
 
-  if (summary.error || alerts.error || pendingConfirmations.error || summary.data === null) {
+  if (summary.data === null) {
     return (
       <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
         <InlineNotice
           tone="error"
           title="今日总览暂不可用"
           message={getFriendlyStatusMessage(
-            summary.error ?? alerts.error ?? pendingConfirmations.error,
+            refreshError,
             "请稍后再试。",
           )}
         />
@@ -204,6 +205,16 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
             title={nextActionCopy}
             message="调试工具保留在下方，排障时再展开即可。"
           />
+          {refreshError ? (
+            <InlineNotice
+              tone="error"
+              title="部分数据刷新失败"
+              message={getFriendlyStatusMessage(
+                refreshError,
+                "部分数据更新失败，请稍后再试。",
+              )}
+            />
+          ) : null}
         </SurfaceCard>
         <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
         <DashboardSummaryHero summary={summary.data} />

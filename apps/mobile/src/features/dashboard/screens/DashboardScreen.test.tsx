@@ -194,6 +194,20 @@ describe("DashboardScreen", () => {
     expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
   });
 
+  it("keeps dashboard content visible when refresh fails after data has loaded", () => {
+    mockSummaryState = {
+      ...mockSummaryState,
+      error: "Cannot reach API at http://127.0.0.1:8001 (Network request failed)",
+    };
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
+    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
+    expect(screen.getByText("\u90e8\u5206\u6570\u636e\u5237\u65b0\u5931\u8d25")).toBeTruthy();
+    expect(screen.queryByText("今日总览暂不可用")).toBeNull();
+  });
+
   it("keeps debug tools hidden until the disclosure is opened", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 

@@ -9,8 +9,8 @@ type DebugDisclosureProps = PropsWithChildren<{
 }>;
 
 const COPY = {
-  show: "展开",
-  hide: "收起",
+  show: "展开调试信息",
+  hide: "收起调试信息",
 } as const;
 
 export function DebugDisclosure({ title, children }: DebugDisclosureProps) {
@@ -42,16 +42,16 @@ const styles = StyleSheet.create({
   },
   trigger: {
     alignItems: "center",
-    backgroundColor: color.bgSurface,
+    backgroundColor: color.bgApp,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: space.s12,
     paddingVertical: space.s12,
   },
   title: {
-    color: color.fgPrimary,
+    color: color.fgSecondary,
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "500",
   },
   chevron: {
     color: color.fgTertiary,

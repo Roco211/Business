@@ -152,7 +152,7 @@ export default function LedgerScreen() {
     <AppScreen title="库存台账" subtitle="轻量库存工作区">
       <ScrollView contentContainerStyle={styles.scrollBody}>
         <SurfaceCard emphasis="outlined">
-          <SectionHeader title="搜索" subtitle="输入商品名快速过滤库存卡片" />
+          <SectionHeader title="搜索与筛选" subtitle="输入商品名称，快速定位需要处理的库存条目。" />
           <AppTextField
             label="搜索库存"
             testID="ledger-search-input"
@@ -162,7 +162,7 @@ export default function LedgerScreen() {
           />
         </SurfaceCard>
 
-        <SectionHeader title="库存工作区" subtitle="从卡片直接进入修正或出库操作。" />
+        <SectionHeader title="库存工作区" subtitle="从库存卡片可直接发起修正或出库登记。" />
         {inventory.data.length === 0 ? (
           <EmptyState title="暂未找到匹配商品" description="试试更换关键词，或稍后再刷新库存数据。" />
         ) : (
@@ -182,7 +182,7 @@ export default function LedgerScreen() {
           </View>
         )}
 
-        <SectionHeader title="操作面板" subtitle="在这里提交库存修正或出库登记。" />
+        <SectionHeader title="操作面板" subtitle="确认数量与原因后，在此提交库存修正或出库登记。" />
         <LedgerActionPanel
           selectedItem={selectedItem}
           selectedAction={selectedAction}
@@ -212,7 +212,7 @@ export default function LedgerScreen() {
           }}
         />
 
-        <SectionHeader title="最近活动" subtitle="按时间查看库存相关操作记录。" />
+        <SectionHeader title="活动时间线" subtitle="按时间顺序查看最近库存相关操作记录。" />
         <AuditTimeline logs={auditLogs.data} />
       </ScrollView>
     </AppScreen>

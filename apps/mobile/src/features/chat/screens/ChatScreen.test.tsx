@@ -90,7 +90,7 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
       expect(screen.getByText("发送消息")).toBeTruthy();
       expect(screen.getByText("调试工具")).toBeTruthy();
-      expect(screen.getByText("展开")).toBeTruthy();
+      expect(screen.getByText("展开调试信息")).toBeTruthy();
     });
   });
 
@@ -119,7 +119,7 @@ describe("ChatScreen (workbench shell)", () => {
 
     await waitFor(() => {
       expect(screen.getByText("调试: 语音查询 (旧演示)")).toBeTruthy();
-      expect(screen.getByText("收起")).toBeTruthy();
+      expect(screen.getByText("收起调试信息")).toBeTruthy();
     });
   });
 

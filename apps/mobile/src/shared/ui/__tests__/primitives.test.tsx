@@ -45,12 +45,12 @@ describe("shared ui primitives", () => {
     );
 
     expect(screen.queryByText("Demo reset lives here")).toBeNull();
-    expect(screen.getByText("展开")).toBeTruthy();
+    expect(screen.getByText("展开调试信息")).toBeTruthy();
 
     fireEvent.press(screen.getByRole("button", { name: "调试工具" }));
 
     expect(screen.getByText("Demo reset lives here")).toBeTruthy();
-    expect(screen.getByText("收起")).toBeTruthy();
+    expect(screen.getByText("收起调试信息")).toBeTruthy();
   });
 
   it("renders AppScreen with StatusBadge and EmptyState", () => {

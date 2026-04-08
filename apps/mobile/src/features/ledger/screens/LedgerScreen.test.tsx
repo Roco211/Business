@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import LedgerScreen from "./LedgerScreen";
 import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
@@ -6,6 +7,7 @@ import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutatio
 import { useCreateStockOutMutation } from "../hooks/useCreateStockOutMutation";
 import { useInventoryItemsQuery } from "../hooks/useInventoryItemsQuery";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
+import { space } from "../../../shared/ui/tokens";
 
 jest.mock("../hooks/useInventoryItemsQuery");
 jest.mock("../hooks/useAuditLogsQuery");
@@ -186,6 +188,15 @@ describe("LedgerScreen workspace", () => {
       expect(inventoryRefresh).toHaveBeenCalled();
       expect(auditRefresh).toHaveBeenCalled();
     });
+  });
+
+  it("keeps action panel header spacing when using the layout-capture wrapper", () => {
+    render(<LedgerScreen />);
+
+    const actionPanelSection = screen.getByTestId("ledger-action-panel-section");
+    const flattenedStyle = StyleSheet.flatten(actionPanelSection.props.style);
+
+    expect(flattenedStyle?.gap).toBe(space.s12);
   });
 
   it("surfaces selected-item continuity copy and focuses the first correction input", async () => {

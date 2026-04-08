@@ -202,6 +202,8 @@ export default function LedgerScreen() {
         )}
 
         <View
+          testID="ledger-action-panel-section"
+          style={styles.actionPanelSection}
           onLayout={(event) => {
             actionPanelOffsetRef.current = event.nativeEvent.layout.y;
           }}
@@ -251,5 +253,8 @@ const styles = StyleSheet.create({
   },
   cards: {
     gap: space.s8,
+  },
+  actionPanelSection: {
+    gap: space.s12,
   },
 });

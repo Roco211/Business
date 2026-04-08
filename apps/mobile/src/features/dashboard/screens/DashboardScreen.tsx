@@ -35,7 +35,7 @@ const CONFIRMATION_LABELS: Record<string, string> = {
   "stock-out": "出库确认",
 };
 
-const SCREEN_TITLE = "今日门店总览";
+const SCREEN_TITLE = "今日门店概览";
 const SCREEN_SUBTITLE = "聚焦门店库存与待处理事项，先看风险，再安排动作。";
 
 type HealthTone = "neutral" | "warning" | "error" | "success";
@@ -141,7 +141,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     return (
       <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
         <EmptyState
-          title="正在同步今日门店总览"
+          title="正在同步今日门店概览"
           description="请稍候，我们正在整理最新库存与待处理事项。"
         />
       </AppScreen>

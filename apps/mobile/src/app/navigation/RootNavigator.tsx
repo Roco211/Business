@@ -21,6 +21,8 @@ function ProtectedTabs() {
           screenOptions={({ route }) => ({
             headerShown: false,
             tabBarShowIcon: false,
+            tabBarActiveTintColor: color.accentPrimary,
+            tabBarInactiveTintColor: color.fgTertiary,
             tabBarLabel: ROOT_TAB_LABELS[route.name],
             tabBarLabelStyle: styles.tabBarLabel,
             tabBarStyle: styles.tabBar,
@@ -61,7 +63,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
   tabBarLabel: {
-    color: color.fgSecondary,
     fontSize: 12,
     fontWeight: "600",
   },

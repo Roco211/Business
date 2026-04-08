@@ -137,7 +137,15 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     sessionStream.notifyDemoDataReset();
   }
 
-  if (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading) {
+  const isInitialDashboardLoad = (
+    summary.data === null
+    && !summary.error
+    && !alerts.error
+    && !pendingConfirmations.error
+    && (summary.isLoading || alerts.isLoading || pendingConfirmations.isLoading)
+  );
+
+  if (isInitialDashboardLoad) {
     return (
       <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
         <EmptyState

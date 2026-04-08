@@ -155,6 +155,32 @@ describe("DashboardScreen", () => {
     expect(screen.getByText("请稍候，我们正在整理最新库存与待处理事项。")).toBeTruthy();
   });
 
+  it("keeps rendered overview visible during background refresh loading", () => {
+    const { rerender } = render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
+    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
+
+    mockSummaryState = {
+      ...mockSummaryState,
+      isLoading: true,
+    };
+    mockAlertsState = {
+      ...mockAlertsState,
+      isLoading: true,
+    };
+    mockPendingState = {
+      ...mockPendingState,
+      isLoading: true,
+    };
+
+    rerender(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
+    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
+    expect(screen.queryByText("\u6b63\u5728\u540c\u6b65\u4eca\u65e5\u95e8\u5e97\u6982\u89c8")).toBeNull();
+  });
+
   it("shows a friendly unavailable notice for network errors", () => {
     mockSummaryState = {
       data: null,

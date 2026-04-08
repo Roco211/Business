@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppTextField } from "../../../shared/ui";
 import { ConfirmationCardShell } from "./ConfirmationCardShell";
@@ -33,6 +33,7 @@ export function PendingStockInConfirmationCard({
   onResolved: () => void;
 }) {
   const draftFields = confirmation.fields.draft_fields ?? {};
+  const draftFieldsSyncKey = JSON.stringify(draftFields);
   const [itemName, setItemName] = useState(toInputValue(draftFields.item_name));
   const [quantity, setQuantity] = useState(toInputValue(draftFields.quantity));
   const [unit, setUnit] = useState(toInputValue(draftFields.unit));
@@ -42,6 +43,13 @@ export function PendingStockInConfirmationCard({
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
   const isSubmitting = approveMutation.isSubmitting || rejectMutation.isSubmitting;
+
+  useEffect(() => {
+    setItemName(toInputValue(draftFields.item_name));
+    setQuantity(toInputValue(draftFields.quantity));
+    setUnit(toInputValue(draftFields.unit));
+    setPrice(toInputValue(draftFields.price));
+  }, [confirmation.confirmation_id, draftFieldsSyncKey]);
 
   async function handleApprove() {
     const result = await approveMutation.approveConfirmation(confirmation.confirmation_id, {

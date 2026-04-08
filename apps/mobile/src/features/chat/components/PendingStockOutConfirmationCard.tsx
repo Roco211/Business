@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppTextField } from "../../../shared/ui";
 import { ConfirmationCardShell } from "./ConfirmationCardShell";
@@ -33,16 +33,22 @@ export function PendingStockOutConfirmationCard({
   onResolved: () => void;
 }) {
   const draftFields = confirmation.fields.draft_fields ?? {};
+  const draftFieldsSyncKey = JSON.stringify(draftFields);
+  const reasonSeed = draftFields.reason ?? confirmation.fields.reason ?? COPY.defaultReason;
   const [itemName, setItemName] = useState(toInputValue(draftFields.item_name));
   const [quantity, setQuantity] = useState(toInputValue(draftFields.stock_out_quantity));
-  const [reason, setReason] = useState(
-    toInputValue(draftFields.reason ?? confirmation.fields.reason ?? COPY.defaultReason),
-  );
+  const [reason, setReason] = useState(toInputValue(reasonSeed));
   const [isResolved, setIsResolved] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
   const isSubmitting = approveMutation.isSubmitting || rejectMutation.isSubmitting;
+
+  useEffect(() => {
+    setItemName(toInputValue(draftFields.item_name));
+    setQuantity(toInputValue(draftFields.stock_out_quantity));
+    setReason(toInputValue(reasonSeed));
+  }, [confirmation.confirmation_id, draftFieldsSyncKey, reasonSeed]);
 
   async function handleApprove() {
     const payload: Record<string, unknown> = {

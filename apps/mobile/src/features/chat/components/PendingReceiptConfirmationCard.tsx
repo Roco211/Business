@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppTextField, color, space } from "../../../shared/ui";
 import { ConfirmationCardShell } from "./ConfirmationCardShell";
@@ -14,8 +14,14 @@ const COPY = {
   approving: "提交票据中...",
   rejecting: "驳回中...",
   ocrPrefix: "OCR：",
-  totalPrefix: "总额：",
-  linePrefix: "行 ",
+  identifiedPrefix: "已识别",
+  identifiedSuffix: "条明细",
+  totalPrefix: "总额",
+  suspiciousPrefix: "需要复核",
+  suspiciousSuffix: "项",
+  expandDetail: "查看明细",
+  collapseDetail: "收起明细",
+  linePrefix: "行",
   itemNamePrefix: "商品名称 ",
   quantityPrefix: "数量 ",
   unitPrefix: "单位 ",
@@ -57,14 +63,17 @@ export function PendingReceiptConfirmationCard({
   onResolved: () => void;
 }) {
   const draftItems = confirmation.fields.draft_items ?? [];
+  const suspiciousCount = confirmation.fields.low_confidence_fields?.length ?? 0;
   const [items, setItems] = useState<EditableReceiptLine[]>(
     draftItems.map((item, index) => toEditableLine(item, index)),
   );
   const [isResolved, setIsResolved] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
   const rejectMutation = useRejectConfirmationMutation();
   const error = approveMutation.error ?? rejectMutation.error;
   const isSubmitting = approveMutation.isSubmitting || rejectMutation.isSubmitting;
+  const detailToggleLabel = isDetailOpen ? COPY.collapseDetail : COPY.expandDetail;
 
   function updateItem(index: number, patch: Partial<EditableReceiptLine>) {
     setItems((current) =>
@@ -128,54 +137,95 @@ export function PendingReceiptConfirmationCard({
         void handleReject();
       }}
     >
-      {confirmation.fields.total_amount !== undefined ? (
-        <Text style={styles.totalAmount}>
-          {COPY.totalPrefix}
-          {confirmation.fields.total_amount}
+      <View style={styles.summaryRow}>
+        <Text style={styles.summaryMetric}>
+          {COPY.identifiedPrefix} {draftItems.length} {COPY.identifiedSuffix}
         </Text>
-      ) : null}
-      {items.map((item, index) => (
-        <View key={item.lineId} style={styles.lineEditor}>
-          <Text style={styles.lineTitle}>
-            {COPY.linePrefix}
-            {index + 1}
+        {confirmation.fields.total_amount !== undefined ? (
+          <Text style={styles.summaryMetric}>
+            {COPY.totalPrefix} {confirmation.fields.total_amount}
           </Text>
-          <AppTextField
-            label={`${COPY.itemNamePrefix}${index + 1}`}
-            placeholder={`${COPY.itemNamePrefix}${index + 1}`}
-            value={item.itemName}
-            onChangeText={(value) => updateItem(index, { itemName: value })}
-          />
-          <AppTextField
-            label={`${COPY.quantityPrefix}${index + 1}`}
-            placeholder={`${COPY.quantityPrefix}${index + 1}`}
-            keyboardType="numeric"
-            value={item.quantity}
-            onChangeText={(value) => updateItem(index, { quantity: value })}
-          />
-          <AppTextField
-            label={`${COPY.unitPrefix}${index + 1}`}
-            placeholder={`${COPY.unitPrefix}${index + 1}`}
-            value={item.unit}
-            onChangeText={(value) => updateItem(index, { unit: value })}
-          />
-          <AppTextField
-            label={`${COPY.pricePrefix}${index + 1}`}
-            placeholder={`${COPY.pricePrefix}${index + 1}`}
-            keyboardType="numeric"
-            value={item.price}
-            onChangeText={(value) => updateItem(index, { price: value })}
-          />
-        </View>
-      ))}
+        ) : null}
+        {suspiciousCount > 0 ? (
+          <Text style={styles.summaryMetric}>
+            {COPY.suspiciousPrefix} {suspiciousCount} {COPY.suspiciousSuffix}
+          </Text>
+        ) : null}
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={detailToggleLabel}
+        onPress={() => setIsDetailOpen((current) => !current)}
+        style={styles.detailToggle}
+      >
+        <Text style={styles.detailToggleLabel}>{detailToggleLabel}</Text>
+      </Pressable>
+
+      {isDetailOpen
+        ? items.map((item, index) => (
+            <View key={item.lineId} style={styles.lineEditor}>
+              <Text style={styles.lineTitle}>
+                {COPY.linePrefix} {index + 1}
+              </Text>
+              <AppTextField
+                label={`${COPY.itemNamePrefix}${index + 1}`}
+                placeholder={`${COPY.itemNamePrefix}${index + 1}`}
+                value={item.itemName}
+                onChangeText={(value) => updateItem(index, { itemName: value })}
+              />
+              <AppTextField
+                label={`${COPY.quantityPrefix}${index + 1}`}
+                placeholder={`${COPY.quantityPrefix}${index + 1}`}
+                keyboardType="numeric"
+                value={item.quantity}
+                onChangeText={(value) => updateItem(index, { quantity: value })}
+              />
+              <AppTextField
+                label={`${COPY.unitPrefix}${index + 1}`}
+                placeholder={`${COPY.unitPrefix}${index + 1}`}
+                value={item.unit}
+                onChangeText={(value) => updateItem(index, { unit: value })}
+              />
+              <AppTextField
+                label={`${COPY.pricePrefix}${index + 1}`}
+                placeholder={`${COPY.pricePrefix}${index + 1}`}
+                keyboardType="numeric"
+                value={item.price}
+                onChangeText={(value) => updateItem(index, { price: value })}
+              />
+            </View>
+          ))
+        : null}
     </ConfirmationCardShell>
   );
 }
 
 const styles = StyleSheet.create({
-  totalAmount: {
+  summaryRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: space.s8,
+  },
+  summaryMetric: {
     color: color.fgSecondary,
     fontSize: 14,
+  },
+  detailToggle: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderColor: color.borderSubtle,
+    borderRadius: 999,
+    borderWidth: 1,
+    justifyContent: "center",
+    minHeight: 36,
+    paddingHorizontal: space.s12,
+    paddingVertical: space.s8,
+  },
+  detailToggleLabel: {
+    color: color.fgPrimary,
+    fontSize: 14,
+    fontWeight: "500",
   },
   lineEditor: {
     borderColor: color.borderSubtle,

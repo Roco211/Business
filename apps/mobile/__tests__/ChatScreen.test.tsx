@@ -741,6 +741,12 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(screen.getByText("票据入库确认")).toBeTruthy();
+      expect(screen.getByLabelText("查看明细")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByLabelText("查看明细"));
+
+    await waitFor(() => {
       expect(screen.getByDisplayValue("Red Bull 250ml")).toBeTruthy();
       expect(screen.getByDisplayValue("Coca Cola 500ml")).toBeTruthy();
     });

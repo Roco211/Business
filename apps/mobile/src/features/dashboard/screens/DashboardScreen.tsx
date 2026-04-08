@@ -63,7 +63,7 @@ function getConnectionHealth(connectionState: string, bootstrapError: string | n
     return {
       tone: "warning" as HealthTone,
       title: "连接状态：连接中断",
-      message: "已切换到手动刷新模式，请留意网络。",
+      message: "请检查网络，连接恢复后会自动同步最新数据。",
     };
   }
 

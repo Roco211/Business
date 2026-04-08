@@ -39,6 +39,11 @@ let mockDemoBootstrapState = {
   successMessage: null as string | null,
 };
 
+let mockSessionStreamState = {
+  connectionState: "connected" as "idle" | "bootstrapping" | "connecting" | "connected" | "disconnected" | "error",
+  bootstrapError: null as string | null,
+};
+
 let mockAlertsData = [
   {
     alert_id: "alert_1",
@@ -98,8 +103,8 @@ jest.mock("../../../shared/session/useSessionStream", () => ({
   useSessionStream: () => ({
     sessionId: "sess_default",
     sessionTitle: "Demo Workgroup",
-    connectionState: "connected",
-    bootstrapError: null,
+    connectionState: mockSessionStreamState.connectionState,
+    bootstrapError: mockSessionStreamState.bootstrapError,
     lastEvent: null,
     recentEvents: [],
     dataResetVersion: 0,
@@ -125,6 +130,10 @@ describe("DashboardScreen layout", () => {
       isSubmitting: false,
       error: null,
       successMessage: null,
+    };
+    mockSessionStreamState = {
+      connectionState: "connected",
+      bootstrapError: null,
     };
     mockAlertsData = [
       {
@@ -181,6 +190,19 @@ describe("DashboardScreen layout", () => {
     expect(screen.getByText("当前无法连接门店服务，请检查网络后重试。")).toBeTruthy();
   });
 
+  it("shows truthful degraded connection guidance without manual-refresh wording", () => {
+    mockSessionStreamState = {
+      connectionState: "disconnected",
+      bootstrapError: null,
+    };
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("连接状态：连接中断")).toBeTruthy();
+    expect(screen.getByText("请检查网络，连接恢复后会自动同步最新数据。")).toBeTruthy();
+    expect(screen.queryByText(/手动刷新/i)).toBeNull();
+  });
+
   it("shows calm empty states when no low-stock alerts or confirmations exist", () => {
     mockAlertsData = [];
     mockPendingData = [];
@@ -193,15 +215,16 @@ describe("DashboardScreen layout", () => {
     expect(screen.getByText("暂无待处理确认。")).toBeTruthy();
   });
 
-  it("foregrounds connection health and next action before debug tools", () => {
-    const { toJSON } = render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+  it("keeps debug tools secondary by hiding actions until the disclosure is opened", () => {
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
+    expect(screen.getByText("当前健康")).toBeTruthy();
     expect(screen.getByText("连接状态：已连接")).toBeTruthy();
     expect(screen.getByText("下一步：前往工作台处理待确认与补货任务。")).toBeTruthy();
-    expect(screen.getByText("调试工具")).toBeTruthy();
+    expect(screen.queryByText("重置演示数据")).toBeNull();
 
-    const renderedTree = JSON.stringify(toJSON());
-    expect(renderedTree.indexOf("连接状态：已连接")).toBeLessThan(renderedTree.indexOf("调试工具"));
+    fireEvent.press(screen.getByLabelText("调试工具"));
+    expect(screen.getByText("重置演示数据")).toBeTruthy();
   });
 
   it("shows polished demo reset success copy", () => {

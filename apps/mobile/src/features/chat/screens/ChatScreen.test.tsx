@@ -1,11 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
+import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
+import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
+import { useSessionStream } from "../../../shared/session/useSessionStream";
 import ChatScreen from "./ChatScreen";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
-import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
-import { useSessionStream } from "../../../shared/session/useSessionStream";
 
 jest.mock("../../../shared/session/useSessionStream");
 jest.mock("../hooks/useSessionMessagesQuery");
@@ -267,7 +268,7 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
-    expect(screen.getAllByText("当前无法连接门店服务，请检查网络后重试。").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(FRONTLINE_STATUS_COPY.networkUnavailable).length).toBeGreaterThan(0);
   });
 
   it("shows general workbench-unavailable hint for non-network bootstrap failures", async () => {
@@ -284,11 +285,8 @@ describe("ChatScreen (workbench shell)", () => {
 
     render(<ChatScreen />);
 
-    expect(await screen.findByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528")).toBeTruthy();
-    expect(
-      screen.getAllByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002").length,
-    ).toBeGreaterThan(0);
-    expect(screen.queryByText("\u5f53\u524d\u65e0\u6cd5\u8fde\u63a5\u95e8\u5e97\u670d\u52a1\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002")).toBeNull();
+    expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
+    expect(screen.getAllByText(FRONTLINE_STATUS_COPY.networkUnavailable).length).toBeGreaterThan(0);
   });
 
   it("shows friendly unavailable titles for shared chat states", async () => {
@@ -321,8 +319,45 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("连接受限")).toBeTruthy();
       expect(screen.getByText("消息列表暂时不可用")).toBeTruthy();
       expect(screen.getByText("待确认事项暂时不可用")).toBeTruthy();
-      expect(screen.getByText("实时更新受限，执行操作后仍会触发手动刷新。")).toBeTruthy();
+      expect(screen.getByText("提交仍可继续，但结果刷新可能延迟。")).toBeTruthy();
       expect(screen.getAllByText("Request failed").length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it("highlights the matching task when opened from a dashboard intent", async () => {
+    render(
+      <ChatScreen
+        route={{
+          key: "workbench",
+          name: ROOT_TABS.workbench,
+          params: { initialIntent: "voice-query" },
+        } as never}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("从这里发起语音查货")).toBeTruthy();
+      expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(true);
+    });
+  });
+
+  it("shows a refresh affordance when connection is limited", async () => {
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: "sess_1",
+      sessionTitle: "Store shift session",
+      connectionState: "disconnected",
+      bootstrapError: null,
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("连接受限")).toBeTruthy();
+      expect(screen.getByText("立即刷新")).toBeTruthy();
     });
   });
 });

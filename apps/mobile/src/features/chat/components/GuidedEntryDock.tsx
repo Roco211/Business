@@ -4,6 +4,7 @@ import { InlineNotice, PillActionButton, SectionHeader, SurfaceCard, space } fro
 import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
 import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
+import type { WorkbenchIntent } from "../workbenchIntent";
 
 const COPY = {
   title: "业务快捷入口",
@@ -17,9 +18,14 @@ const COPY = {
 type GuidedEntryDockProps = {
   sessionId: string | null;
   onSubmitted: () => void;
+  highlightedIntent?: WorkbenchIntent | null;
 };
 
-export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps) {
+export function GuidedEntryDock({
+  sessionId,
+  onSubmitted,
+  highlightedIntent = null,
+}: GuidedEntryDockProps) {
   const voiceDemo = useSendVoiceDemoMutation(sessionId);
   const imageDemo = useSendImageDemoMutation(sessionId);
   const receiptDemo = useSendReceiptDemoMutation(sessionId);
@@ -60,6 +66,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           <PillActionButton
             testID="guided-pill-voice"
             label={COPY.voice}
+            accessibilityState={{ selected: highlightedIntent === "voice-query" }}
             onPress={() => {
               void handleVoiceEntry();
             }}
@@ -68,6 +75,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           <PillActionButton
             testID="guided-pill-photo"
             label={COPY.photo}
+            accessibilityState={{ selected: highlightedIntent === "photo-stock-in" }}
             onPress={() => {
               void handlePhotoEntry();
             }}
@@ -76,6 +84,7 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
           <PillActionButton
             testID="guided-pill-receipt"
             label={COPY.receipt}
+            accessibilityState={{ selected: highlightedIntent === "receipt-entry" }}
             onPress={() => {
               void handleReceiptEntry();
             }}

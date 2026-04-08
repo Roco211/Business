@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { SectionHeader, StatusBadge, SurfaceCard, color, space } from "../../../shared/ui";
+import { PillActionButton, SectionHeader, StatusBadge, SurfaceCard, color, space } from "../../../shared/ui";
 import { getWorkbenchConnectionCopy } from "../../../shared/session/getWorkbenchConnectionCopy";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import { SessionStreamConnectionState } from "../../../shared/session/sessionStreamClient";
@@ -11,6 +11,7 @@ type WorkbenchHeaderProps = {
   connectionState: SessionStreamConnectionState;
   bootstrapError?: string | null;
   hint?: string | null;
+  onAction?: (() => void) | null;
 };
 
 function getConnectionTone(
@@ -34,6 +35,7 @@ export function WorkbenchHeader({
   connectionState,
   bootstrapError = null,
   hint = null,
+  onAction = null,
 }: WorkbenchHeaderProps) {
   const sessionStream = useSessionStream();
   const resolvedBootstrapError = bootstrapError ?? sessionStream.bootstrapError;
@@ -52,6 +54,9 @@ export function WorkbenchHeader({
           <StatusBadge tone={getConnectionTone(connectionState)} label={connectionCopy.title} />
         </View>
         {resolvedHint ? <Text style={styles.hint}>{resolvedHint}</Text> : null}
+        {connectionCopy.actionLabel && onAction ? (
+          <PillActionButton label={connectionCopy.actionLabel} onPress={onAction} />
+        ) : null}
       </View>
     </SurfaceCard>
   );

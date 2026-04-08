@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { ScrollView } from "react-native";
 
 import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
 import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
@@ -522,6 +523,62 @@ describe("ChatScreen (workbench shell)", () => {
     await waitFor(() => {
       expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(false);
     });
+  });
+
+  it("restores guided-entry area when mounted workbench receives a non-pending dashboard intent", async () => {
+    const originalScrollTo = ScrollView.prototype.scrollTo;
+    const scrollToMock = jest.fn();
+    Object.defineProperty(ScrollView.prototype, "scrollTo", {
+      configurable: true,
+      value: scrollToMock,
+    });
+
+    try {
+      const route = {
+        key: "workbench",
+        name: ROOT_TABS.workbench,
+        params: {} as { initialIntent?: "voice-query" | "photo-stock-in" | "receipt-entry" | "pending-confirmations" },
+      };
+      const navigation = {
+        setParams: jest.fn((params: { initialIntent?: "voice-query" | "photo-stock-in" | "receipt-entry" | "pending-confirmations" }) => {
+          route.params = { ...route.params, ...params };
+        }),
+        addListener: jest.fn(() => jest.fn()),
+      };
+
+      const { rerender } = render(
+        <ChatScreen
+          {...({
+            route,
+            navigation,
+          } as never)}
+        />,
+      );
+
+      act(() => {
+        route.params = { ...route.params, initialIntent: "voice-query" };
+      });
+      rerender(
+        <ChatScreen
+          {...({
+            route,
+            navigation,
+          } as never)}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(true);
+      });
+      await waitFor(() => {
+        expect(scrollToMock).toHaveBeenCalledWith({ y: 0, animated: false });
+      });
+    } finally {
+      Object.defineProperty(ScrollView.prototype, "scrollTo", {
+        configurable: true,
+        value: originalScrollTo,
+      });
+    }
   });
 
   it("shows a refresh affordance when connection is limited", async () => {

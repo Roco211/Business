@@ -165,6 +165,16 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
 
   useEffect(() => {
     if (
+      initialIntent === "voice-query"
+      || initialIntent === "photo-stock-in"
+      || initialIntent === "receipt-entry"
+    ) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [initialIntent]);
+
+  useEffect(() => {
+    if (
       initialIntent === "pending-confirmations"
       && confirmations.data.length > 0
       && pendingOffset > 0

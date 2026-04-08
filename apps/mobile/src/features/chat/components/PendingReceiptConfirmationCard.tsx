@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppTextField, color, space } from "../../../shared/ui";
@@ -55,6 +55,10 @@ function toEditableLine(line: ReceiptDraftItem, index: number): EditableReceiptL
   };
 }
 
+function toEditableItems(lines: ReceiptDraftItem[]): EditableReceiptLine[] {
+  return lines.map((line, index) => toEditableLine(line, index));
+}
+
 export function PendingReceiptConfirmationCard({
   confirmation,
   onResolved,
@@ -63,10 +67,9 @@ export function PendingReceiptConfirmationCard({
   onResolved: () => void;
 }) {
   const draftItems = confirmation.fields.draft_items ?? [];
+  const draftItemsSyncKey = JSON.stringify(draftItems);
   const suspiciousCount = confirmation.fields.low_confidence_fields?.length ?? 0;
-  const [items, setItems] = useState<EditableReceiptLine[]>(
-    draftItems.map((item, index) => toEditableLine(item, index)),
-  );
+  const [items, setItems] = useState<EditableReceiptLine[]>(() => toEditableItems(draftItems));
   const [isResolved, setIsResolved] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const approveMutation = useApproveConfirmationMutation();
@@ -74,6 +77,10 @@ export function PendingReceiptConfirmationCard({
   const error = approveMutation.error ?? rejectMutation.error;
   const isSubmitting = approveMutation.isSubmitting || rejectMutation.isSubmitting;
   const detailToggleLabel = isDetailOpen ? COPY.collapseDetail : COPY.expandDetail;
+
+  useEffect(() => {
+    setItems(toEditableItems(draftItems));
+  }, [confirmation.confirmation_id, draftItemsSyncKey]);
 
   function updateItem(index: number, patch: Partial<EditableReceiptLine>) {
     setItems((current) =>

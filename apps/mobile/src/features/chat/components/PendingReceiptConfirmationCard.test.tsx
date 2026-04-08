@@ -139,4 +139,72 @@ describe("PendingReceiptConfirmationCard", () => {
       expect(onResolved).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("syncs editable line items with refreshed confirmation draft items on rerender", async () => {
+    const onResolved = jest.fn();
+    const { rerender } = render(
+      <PendingReceiptConfirmationCard confirmation={buildConfirmation()} onResolved={onResolved} />,
+    );
+
+    fireEvent.press(screen.getByLabelText("查看明细"));
+    fireEvent.changeText(screen.getByDisplayValue("Red Bull 250ml"), "User Edited Name");
+    fireEvent.changeText(screen.getByDisplayValue("3"), "99");
+
+    rerender(
+      <PendingReceiptConfirmationCard
+        confirmation={buildConfirmation({
+          draft_items: [
+            {
+              line_id: "line_1",
+              item_id: null,
+              item_name: "Sprite 330ml",
+              quantity: 5,
+              unit: "can",
+              price: 77,
+            },
+            {
+              line_id: "line_2",
+              item_id: null,
+              item_name: "Coca Cola 500ml",
+              quantity: 2,
+              unit: "bottle",
+              price: 12,
+            },
+          ],
+        })}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(screen.getByDisplayValue("Sprite 330ml")).toBeTruthy();
+    expect(screen.getByDisplayValue("5")).toBeTruthy();
+    expect(screen.queryByDisplayValue("User Edited Name")).toBeNull();
+    expect(screen.queryByDisplayValue("99")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("confirm-approve-conf_receipt_1"));
+
+    await waitFor(() => {
+      expect(approveConfirmation).toHaveBeenCalledWith("conf_receipt_1", {
+        items: [
+          {
+            line_id: "line_1",
+            item_id: null,
+            item_name: "Sprite 330ml",
+            quantity: 5,
+            unit: "can",
+            price: 77,
+          },
+          {
+            line_id: "line_2",
+            item_id: null,
+            item_name: "Coca Cola 500ml",
+            quantity: 2,
+            unit: "bottle",
+            price: 12,
+          },
+        ],
+      });
+      expect(onResolved).toHaveBeenCalledTimes(1);
+    });
+  });
 });

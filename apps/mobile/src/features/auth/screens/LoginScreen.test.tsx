@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { KeyboardAvoidingView } from "react-native";
 
 import { useLoginMutation } from "../hooks/useLoginMutation";
 import LoginScreen from "./LoginScreen";
@@ -60,5 +61,13 @@ describe("LoginScreen", () => {
     expect(screen.getByText("\u6b63\u5728\u767b\u5f55...")).toBeTruthy();
     fireEvent.press(screen.getByRole("button"));
     expect(mockSubmitLogin).not.toHaveBeenCalled();
+  });
+
+  it("keeps the keyboard container content-sized so Android does not collapse the login form", () => {
+    const view = render(<LoginScreen />);
+
+    expect(view.UNSAFE_getByType(KeyboardAvoidingView).props.style).not.toEqual(
+      expect.objectContaining({ flex: 1 }),
+    );
   });
 });

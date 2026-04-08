@@ -66,7 +66,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   keyboardAvoid: {
-    flex: 1,
+    width: "100%",
   },
   scrollContent: {
     flexGrow: 1,

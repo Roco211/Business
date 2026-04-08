@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { InlineNotice, PillActionButton, SectionHeader, SurfaceCard, color, space } from "../../../shared/ui";
@@ -9,11 +10,23 @@ import type { WorkbenchIntent } from "../workbenchIntent";
 const COPY = {
   title: "业务快捷入口",
   subtitle: "用语音盘点、拍照识别或票据录入发起任务。",
-  errorTitle: "提交未完成",
+  rehearsalTitle: "流程演练说明",
+  rehearsalMessage: "当前为流程演练，会提交预设样例请求。",
+  errorTitle: "提交失败",
+  genericErrorMessage: "请求未成功，请稍后重试。",
+  successTitle: "已提交",
+  successMessage: "正在处理中，如需复核请查看下方的待确认区域。",
+  voiceSubmitting: "正在提交语音查货请求",
+  photoSubmitting: "正在提交拍照入库请求",
+  receiptSubmitting: "正在提交票据识别请求",
   voice: "语音盘点",
   photo: "拍照识别",
   receipt: "票据录入",
 } as const;
+
+type GuidedEntryStatus =
+  | { tone: "neutral" | "success" | "error"; title: string; message: string }
+  | null;
 
 type GuidedEntryDockProps = {
   sessionId: string | null;
@@ -26,6 +39,8 @@ export function GuidedEntryDock({
   onSubmitted,
   highlightedIntent = null,
 }: GuidedEntryDockProps) {
+  const [status, setStatus] = useState<GuidedEntryStatus>(null);
+
   const voiceDemo = useSendVoiceDemoMutation(sessionId);
   const imageDemo = useSendImageDemoMutation(sessionId);
   const receiptDemo = useSendReceiptDemoMutation(sessionId);
@@ -33,27 +48,95 @@ export function GuidedEntryDock({
   const isSubmitting = voiceDemo.isSubmitting || imageDemo.isSubmitting || receiptDemo.isSubmitting;
   const error = voiceDemo.error ?? imageDemo.error ?? receiptDemo.error;
 
-  async function handleVoiceEntry() {
-    const result = await voiceDemo.submitVoiceDemo("query");
-    if (result === null) {
+  useEffect(() => {
+    if (!error) {
       return;
     }
+    setStatus({
+      tone: "error",
+      title: COPY.errorTitle,
+      message: error,
+    });
+  }, [error]);
+
+  async function handleVoiceEntry() {
+    setStatus({
+      tone: "neutral",
+      title: COPY.voiceSubmitting,
+      message: "",
+    });
+    const result = await voiceDemo.submitVoiceDemo("query");
+    if (result === null) {
+      setStatus((currentStatus) =>
+        currentStatus?.tone === "error"
+          ? currentStatus
+          : {
+              tone: "error",
+              title: COPY.errorTitle,
+              message: COPY.genericErrorMessage,
+            },
+      );
+      return;
+    }
+    setStatus({
+      tone: "success",
+      title: COPY.successTitle,
+      message: COPY.successMessage,
+    });
     onSubmitted();
   }
 
   async function handlePhotoEntry() {
+    setStatus({
+      tone: "neutral",
+      title: COPY.photoSubmitting,
+      message: "",
+    });
     const result = await imageDemo.submitImageDemo("query");
     if (result === null) {
+      setStatus((currentStatus) =>
+        currentStatus?.tone === "error"
+          ? currentStatus
+          : {
+              tone: "error",
+              title: COPY.errorTitle,
+              message: COPY.genericErrorMessage,
+            },
+      );
       return;
     }
+    setStatus({
+      tone: "success",
+      title: COPY.successTitle,
+      message: COPY.successMessage,
+    });
     onSubmitted();
   }
 
   async function handleReceiptEntry() {
+    setStatus({
+      tone: "neutral",
+      title: COPY.receiptSubmitting,
+      message: "",
+    });
     const result = await receiptDemo.submitReceiptDemo();
     if (result === null) {
+      setStatus((currentStatus) =>
+        currentStatus?.tone === "error"
+          ? currentStatus
+          : {
+              tone: "error",
+              title: COPY.errorTitle,
+              message: COPY.genericErrorMessage,
+            },
+      );
       return;
     }
+    setStatus({
+      tone: "success",
+      title: COPY.successTitle,
+      message: COPY.successMessage,
+    });
     onSubmitted();
   }
 
@@ -61,7 +144,8 @@ export function GuidedEntryDock({
     <SurfaceCard tone="muted" emphasis="outlined">
       <View style={styles.container}>
         <SectionHeader title={COPY.title} subtitle={COPY.subtitle} />
-        {error ? <InlineNotice tone="error" title={COPY.errorTitle} message={error} /> : null}
+        <InlineNotice tone="neutral" title={COPY.rehearsalTitle} message={COPY.rehearsalMessage} />
+        {status ? <InlineNotice tone={status.tone} title={status.title} message={status.message} /> : null}
         <View style={styles.pillRow}>
           <PillActionButton
             testID="guided-pill-voice"

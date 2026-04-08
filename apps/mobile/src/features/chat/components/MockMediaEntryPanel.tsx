@@ -45,7 +45,7 @@ export function MockMediaEntryPanel({
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="调试专用：历史演示入口" subtitle="仅用于开发调试，模拟旧版媒体演示动作。" />
+      <SectionHeader title="调试专用：历史样例提交" subtitle="仅供开发验证，不属于店员默认路径。" />
       {error ? <InlineNotice tone="error" title="调试动作失败" message={error} /> : null}
       <PrimaryButton
         label={voiceDemo.isSubmitting ? "调试提交中（语音）..." : "调试: 语音查询 (旧演示)"}

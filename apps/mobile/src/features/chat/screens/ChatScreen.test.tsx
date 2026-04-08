@@ -3,15 +3,22 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
 import { FRONTLINE_STATUS_COPY } from "../../../shared/copy/frontlineStatus";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
+import { InlineNotice } from "../../../shared/ui";
 import ChatScreen from "./ChatScreen";
+import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
+import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useChatPendingConfirmationsQuery } from "../hooks/useChatPendingConfirmationsQuery";
 import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
+import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 
 jest.mock("../../../shared/session/useSessionStream");
 jest.mock("../hooks/useSessionMessagesQuery");
 jest.mock("../hooks/useChatPendingConfirmationsQuery");
 jest.mock("../hooks/useSendMessageMutation");
+jest.mock("../hooks/useSendVoiceDemoMutation");
+jest.mock("../hooks/useSendImageDemoMutation");
+jest.mock("../hooks/useSendReceiptDemoMutation");
 
 const mockedUseSessionStream = useSessionStream as jest.MockedFunction<typeof useSessionStream>;
 const mockedUseSessionMessagesQuery = useSessionMessagesQuery as jest.MockedFunction<
@@ -22,6 +29,15 @@ const mockedUseChatPendingConfirmationsQuery = useChatPendingConfirmationsQuery 
 >;
 const mockedUseSendMessageMutation = useSendMessageMutation as jest.MockedFunction<
   typeof useSendMessageMutation
+>;
+const mockedUseSendVoiceDemoMutation = useSendVoiceDemoMutation as jest.MockedFunction<
+  typeof useSendVoiceDemoMutation
+>;
+const mockedUseSendImageDemoMutation = useSendImageDemoMutation as jest.MockedFunction<
+  typeof useSendImageDemoMutation
+>;
+const mockedUseSendReceiptDemoMutation = useSendReceiptDemoMutation as jest.MockedFunction<
+  typeof useSendReceiptDemoMutation
 >;
 
 describe("ChatScreen (workbench shell)", () => {
@@ -68,6 +84,21 @@ describe("ChatScreen (workbench shell)", () => {
         data: { message_id: "msg_2", task_run_id: "task_2", status: "created" },
       }),
     });
+    mockedUseSendVoiceDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitVoiceDemo: jest.fn().mockResolvedValue({ data: { task_run_id: "task_3" } }),
+    } as never);
+    mockedUseSendImageDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitImageDemo: jest.fn().mockResolvedValue({ data: { task_run_id: "task_4" } }),
+    } as never);
+    mockedUseSendReceiptDemoMutation.mockReturnValue({
+      isSubmitting: false,
+      error: null,
+      submitReceiptDemo: jest.fn().mockResolvedValue({ data: { task_run_id: "task_5" } }),
+    } as never);
   });
 
   afterEach(() => {
@@ -134,6 +165,38 @@ describe("ChatScreen (workbench shell)", () => {
     expect(screen.getByTestId("chat-bootstrap-loading")).toBeTruthy();
     expect(screen.queryByTestId("chat-workbench-header")).toBeNull();
     expect(screen.queryByTestId("chat-send-button")).toBeNull();
+  });
+
+  it("keeps guided-entry handoff feedback visible during first empty-session refetch", async () => {
+    const refreshMessages = jest.fn();
+    const messageState = {
+      data: [],
+      isLoading: false,
+      error: null,
+      refresh: refreshMessages,
+    };
+    refreshMessages.mockImplementation(() => {
+      messageState.isLoading = true;
+    });
+    mockedUseSessionMessagesQuery.mockImplementation(() => messageState);
+
+    const { rerender } = render(<ChatScreen />);
+
+    fireEvent.press(screen.getByTestId("guided-pill-voice"));
+
+    await waitFor(() => {
+      expect(
+        screen.UNSAFE_getAllByType(InlineNotice).some((notice) => notice.props.tone === "success"),
+      ).toBe(true);
+      expect(refreshMessages).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<ChatScreen />);
+
+    expect(screen.queryByTestId("chat-bootstrap-loading")).toBeNull();
+    expect(
+      screen.UNSAFE_getAllByType(InlineNotice).some((notice) => notice.props.tone === "success"),
+    ).toBe(true);
   });
 
   it("disables composer send when there is no session and bootstrap is not preparing", () => {

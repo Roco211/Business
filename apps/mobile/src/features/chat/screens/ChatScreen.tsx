@@ -102,6 +102,8 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
   const confirmations = useChatPendingConfirmationsQuery(sessionStream.sessionId);
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
+  const isMessagesInitialLoading = messages.isLoading && messages.data.length === 0;
+  const [hasShownWorkbenchShell, setHasShownWorkbenchShell] = useState(false);
   const isSessionPreparing =
     sessionStream.sessionId === null
     && sessionStream.bootstrapError === null
@@ -171,6 +173,13 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
     }
   }, [initialIntent, confirmations.data.length, pendingOffset]);
 
+  useEffect(() => {
+    if (isSessionPreparing || isMessagesInitialLoading) {
+      return;
+    }
+    setHasShownWorkbenchShell(true);
+  }, [isMessagesInitialLoading, isSessionPreparing]);
+
   async function handleSend() {
     if (!hasReadySession) {
       return;
@@ -183,7 +192,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
     refreshChat();
   }
 
-  if (isSessionPreparing || (messages.isLoading && messages.data.length === 0)) {
+  if (isSessionPreparing || (isMessagesInitialLoading && !hasShownWorkbenchShell)) {
     return (
       <AppScreen safeArea={false}>
         <View testID="chat-bootstrap-loading">

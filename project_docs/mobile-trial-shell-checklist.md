@@ -2,55 +2,56 @@
 
 ## Scope
 Phase 17B trial-shell manual verification for:
-- 登录
-- 首页（Dashboard）
-- 工作台（Workbench）
-- 台账（Ledger）
-- 调试工具（Debug Disclosure）
+- Login
+- Dashboard
+- Workbench
+- Ledger
+- Debug tools
 
 ## Environment Setup
-- [ ] Android 模拟器或真机可用（建议 Android 12+）。
-- [ ] 在 `apps/mobile` 执行 `npm install`。
-- [ ] 启动 Expo：`npx expo start --android`。
-- [ ] 确认应用可启动到登录页，无红屏、无崩溃。
+- [ ] Android emulator or device is available (recommended Android 12+).
+- [ ] In `apps/mobile`, run `npm install`.
+- [ ] Start Expo with `npx expo start --android`.
+- [ ] Confirm the app launches to login without crash/red screen.
 
-## 1. 登录流验证
-- [ ] 输入账号密码并提交，进入底部三标签页（首页 / 工作台 / 台账）。
-- [ ] 登录中按钮文案和禁用态正常。
-- [ ] 登录失败时显示友好错误提示，不暴露测试后端地址。
-- [ ] 结果记录：通过 / 不通过 + 截图。
+## 1. Login Validation
+- [ ] Submit valid credentials and enter the 3-tab shell (首页 / 工作台 / 台账).
+- [ ] Login button loading and disabled state are correct while submitting.
+- [ ] Login failure shows friendly copy and does not expose test-backend endpoints.
+- [ ] Record result: pass/fail + screenshot.
 
-## 2. 首页（Dashboard）验证
-- [ ] 首页标题、副标题、健康状态文案为可读中文。
-- [ ] 低库存与待确认卡片正常渲染（有数据时显示列表，无数据时显示空态）。
-- [ ] 点击“去工作台”类快捷入口可跳转到工作台标签。
-- [ ] 页面加载/异常状态下文案可读，且无 “Loading…” / 后端报错原文泄漏。
-- [ ] 结果记录：通过 / 不通过 + 截图。
+## 2. Dashboard Validation
+- [ ] Header, health section, and empty/error copy are readable and business-facing.
+- [ ] Low-stock and pending-confirmation cards render correctly in both data and empty states.
+- [ ] Dashboard action to go to workbench navigates correctly.
+- [ ] No raw `Loading...` placeholder or backend error leak in user-facing copy.
+- [ ] Record result: pass/fail + screenshot.
 
-## 3. 工作台（Workbench）验证
-- [ ] 消息时间线可展示历史消息与确认卡。
-- [ ] 文本发送流程可用：输入消息 -> 发送中 -> 结果刷新。
-- [ ] 引导入口（语音/票据/出库相关入口）可触发并回流到时间线。
-- [ ] 会话连接提示（已连接/重连/降级）文案可读且状态切换合理。
-- [ ] 结果记录：通过 / 不通过 + 截图。
+## 3. Workbench Validation
+- [ ] Timeline renders messages and confirmation cards.
+- [ ] Text send flow works end-to-end: input -> sending -> refreshed result.
+- [ ] Default guided entry dock shows only voice, photo, and receipt actions.
+- [ ] Do **not** fail trial QA for missing stock-out in default workbench guided entry; stock-out legacy demo lives under debug disclosure only.
+- [ ] Connection hint copy is readable and updates across connected/reconnecting/degraded states.
+- [ ] Record result: pass/fail + screenshot.
 
-## 4. 台账（Ledger）验证
-- [ ] 台账页标题与关键分区文案可读中文（搜索与筛选、操作面板、活动时间线）。
-- [ ] 搜索框输入关键词后，库存卡片能按预期过滤。
-- [ ] 从卡片进入“库存修正”与“出库登记”两类动作均可提交。
-- [ ] 空列表、加载态、错误态文案可读且不暴露测试后端细节。
-- [ ] 活动时间线能显示最近库存动作记录。
-- [ ] 结果记录：通过 / 不通过 + 截图。
+## 4. Ledger Validation
+- [ ] Ledger title and key sections are readable Chinese: 搜索与筛选 / 操作面板 / 活动时间线.
+- [ ] Search input filters inventory cards as expected.
+- [ ] Both ledger card actions work: 库存修正 and 出库登记.
+- [ ] Loading, empty, and error states are readable and do not leak test-backend internals.
+- [ ] Activity timeline displays recent inventory-related records.
+- [ ] Record result: pass/fail + screenshot.
 
-## 5. 调试工具验证（次级但可达）
-- [ ] 首页和工作台的“调试工具”默认收起。
-- [ ] “调试工具”视觉权重低于主流程区域（次级样式），但点击可展开/收起。
-- [ ] 展开后调试操作（如重置演示数据）可执行，且结果提示正常。
-- [ ] 调试工具不干扰主流程操作路径。
-- [ ] 结果记录：通过 / 不通过 + 截图。
+## 5. Debug Tool Validation (Secondary But Reachable)
+- [ ] Dashboard and workbench debug disclosure is collapsed by default.
+- [ ] Debug disclosure remains easy to open/close, but is visually secondary to primary workflow controls.
+- [ ] Debug actions (for example demo reset, legacy media demos) work after expansion and show outcome feedback.
+- [ ] Debug tools do not block primary trial-shell paths.
+- [ ] Record result: pass/fail + screenshot.
 
-## 6. Trial Shell 通过门槛
-- [ ] 五大模块（登录/首页/工作台/台账/调试工具）全部“通过”。
-- [ ] 无 P0/P1 崩溃、白屏、阻断流程问题。
-- [ ] 无明显英文占位文案、无乱码、无测试后端直出文案。
-- [ ] 验证结论与问题清单同步到当日试运行记录。
+## 6. Trial-Shell Exit Criteria
+- [ ] All five areas (Login / Dashboard / Workbench / Ledger / Debug tools) pass.
+- [ ] No P0/P1 crash, white-screen, or flow-blocking defect.
+- [ ] No unreadable copy, no mojibake, and no test-backend raw error copy in user-facing UI.
+- [ ] Validation summary and issue list are synced to the current trial run record.

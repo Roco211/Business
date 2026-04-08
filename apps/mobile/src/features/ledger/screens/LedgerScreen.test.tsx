@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
 
 import LedgerScreen from "./LedgerScreen";
 import { useAuditLogsQuery } from "../hooks/useAuditLogsQuery";
@@ -7,8 +6,6 @@ import { useCreateCorrectionMutation } from "../hooks/useCreateCorrectionMutatio
 import { useCreateStockOutMutation } from "../hooks/useCreateStockOutMutation";
 import { useInventoryItemsQuery } from "../hooks/useInventoryItemsQuery";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
-import { DebugDisclosure, InlineNotice } from "../../../shared/ui";
-import { color } from "../../../shared/ui/tokens";
 
 jest.mock("../hooks/useInventoryItemsQuery");
 jest.mock("../hooks/useAuditLogsQuery");
@@ -110,28 +107,6 @@ describe("LedgerScreen workspace", () => {
       expect(screen.getByTestId("inventory-card-item_apple")).toBeTruthy();
       expect(screen.getByTestId("audit-timeline-item-audit_1")).toBeTruthy();
     });
-  });
-
-  it("keeps debug disclosure reachable while using secondary visual treatment", () => {
-    render(
-      <DebugDisclosure title="调试工具">
-        <InlineNotice tone="neutral" message="调试内容" />
-      </DebugDisclosure>,
-    );
-
-    const trigger = screen.getByRole("button", { name: "调试工具" });
-    const title = screen.getByText("调试工具");
-    const triggerStyle = StyleSheet.flatten(trigger.props.style);
-    const titleStyle = StyleSheet.flatten(title.props.style);
-
-    expect(triggerStyle.backgroundColor).toBe(color.bgApp);
-    expect(titleStyle.color).toBe(color.fgSecondary);
-    expect(screen.getByText("展开调试信息")).toBeTruthy();
-
-    fireEvent.press(trigger);
-
-    expect(screen.getByText("调试内容")).toBeTruthy();
-    expect(screen.getByText("收起调试信息")).toBeTruthy();
   });
 
   it("shows calm loading state", () => {

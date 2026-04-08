@@ -31,6 +31,7 @@ describe("ChatScreen (workbench shell)", () => {
       sessionTitle: "Store shift session",
       connectionState: "connected",
       bootstrapError: null,
+      retryBootstrap: jest.fn(),
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -259,6 +260,7 @@ describe("ChatScreen (workbench shell)", () => {
       sessionTitle: "Store shift session",
       connectionState: "error",
       bootstrapError: "Cannot reach API at http://192.168.1.4:8001 (Network request failed)",
+      retryBootstrap: jest.fn(),
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -277,6 +279,7 @@ describe("ChatScreen (workbench shell)", () => {
       sessionTitle: "Store shift session",
       connectionState: "error",
       bootstrapError: "Failed to bootstrap session",
+      retryBootstrap: jest.fn(),
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -295,6 +298,7 @@ describe("ChatScreen (workbench shell)", () => {
       sessionTitle: "Store shift session",
       connectionState: "error",
       bootstrapError: null,
+      retryBootstrap: jest.fn(),
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -338,6 +342,9 @@ describe("ChatScreen (workbench shell)", () => {
     await waitFor(() => {
       expect(screen.getByText("从这里发起语音查货")).toBeTruthy();
       expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(true);
+      const selectedStyleProp = screen.getByTestId("guided-pill-voice").props.style;
+      const selectedStyles = Array.isArray(selectedStyleProp) ? selectedStyleProp : [selectedStyleProp];
+      expect(selectedStyles.some((entry: { borderColor?: string } | null) => entry?.borderColor === "#0071e3")).toBe(true);
     });
   });
 
@@ -347,6 +354,7 @@ describe("ChatScreen (workbench shell)", () => {
       sessionTitle: "Store shift session",
       connectionState: "disconnected",
       bootstrapError: null,
+      retryBootstrap: jest.fn(),
       lastEvent: null,
       recentEvents: [],
       dataResetVersion: 0,
@@ -359,5 +367,27 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("连接受限")).toBeTruthy();
       expect(screen.getByText("立即刷新")).toBeTruthy();
     });
+  });
+
+  it("retries bootstrap when pressing the bootstrap-error recovery action", async () => {
+    const retryBootstrap = jest.fn();
+
+    mockedUseSessionStream.mockReturnValue({
+      sessionId: "sess_1",
+      sessionTitle: "Store shift session",
+      connectionState: "error",
+      bootstrapError: "Failed to bootstrap session",
+      retryBootstrap,
+      lastEvent: null,
+      recentEvents: [],
+      dataResetVersion: 0,
+      notifyDemoDataReset: jest.fn(),
+    });
+
+    render(<ChatScreen />);
+
+    fireEvent.press(await screen.findByText("重试连接"));
+
+    expect(retryBootstrap).toHaveBeenCalledTimes(1);
   });
 });

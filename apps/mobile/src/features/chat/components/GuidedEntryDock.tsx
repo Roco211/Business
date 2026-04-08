@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { InlineNotice, PillActionButton, SectionHeader, SurfaceCard, space } from "../../../shared/ui";
+import { InlineNotice, PillActionButton, SectionHeader, SurfaceCard, color, space } from "../../../shared/ui";
 import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
 import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
@@ -67,6 +67,7 @@ export function GuidedEntryDock({
             testID="guided-pill-voice"
             label={COPY.voice}
             accessibilityState={{ selected: highlightedIntent === "voice-query" }}
+            style={highlightedIntent === "voice-query" ? styles.pillSelected : undefined}
             onPress={() => {
               void handleVoiceEntry();
             }}
@@ -76,6 +77,7 @@ export function GuidedEntryDock({
             testID="guided-pill-photo"
             label={COPY.photo}
             accessibilityState={{ selected: highlightedIntent === "photo-stock-in" }}
+            style={highlightedIntent === "photo-stock-in" ? styles.pillSelected : undefined}
             onPress={() => {
               void handlePhotoEntry();
             }}
@@ -85,6 +87,7 @@ export function GuidedEntryDock({
             testID="guided-pill-receipt"
             label={COPY.receipt}
             accessibilityState={{ selected: highlightedIntent === "receipt-entry" }}
+            style={highlightedIntent === "receipt-entry" ? styles.pillSelected : undefined}
             onPress={() => {
               void handleReceiptEntry();
             }}
@@ -104,5 +107,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: space.s8,
+  },
+  pillSelected: {
+    backgroundColor: color.focusRing,
+    borderColor: color.accentPrimary,
   },
 });

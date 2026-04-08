@@ -127,10 +127,14 @@ export default function ChatScreen({ route }: ChatScreenProps = {}) {
   }, [sessionStream.dataResetVersion]);
 
   useEffect(() => {
-    if (initialIntent === "pending-confirmations" && pendingOffset > 0) {
+    if (
+      initialIntent === "pending-confirmations"
+      && confirmations.data.length > 0
+      && pendingOffset > 0
+    ) {
       scrollViewRef.current?.scrollTo({ y: Math.max(pendingOffset - space.s12, 0), animated: false });
     }
-  }, [initialIntent, pendingOffset]);
+  }, [initialIntent, confirmations.data.length, pendingOffset]);
 
   async function handleSend() {
     const result = await sendMessage.submitMessage(draftText);
@@ -149,6 +153,8 @@ export default function ChatScreen({ route }: ChatScreenProps = {}) {
     );
   }
 
+  const headerAction = sessionStream.bootstrapError ? sessionStream.retryBootstrap : refreshChat;
+
   return (
     <AppScreen safeArea={false}>
       <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -157,7 +163,7 @@ export default function ChatScreen({ route }: ChatScreenProps = {}) {
           sessionTitle={sessionTitle}
           connectionState={sessionStream.connectionState}
           bootstrapError={sessionStream.bootstrapError}
-          onAction={refreshChat}
+          onAction={headerAction}
         />
 
         {sessionStream.bootstrapError ? (

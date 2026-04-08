@@ -20,9 +20,14 @@ type SessionBootstrapResponse = {
 export function useBootstrapSession() {
   const authStoreState = useAuthStoreState();
   const accessToken = authStoreState.session?.accessToken ?? null;
+  const [retryVersion, setRetryVersion] = useState(0);
   const [data, setData] = useState<BootstrappedSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  function retryBootstrap() {
+    setRetryVersion((current) => current + 1);
+  }
 
   useEffect(() => {
     if (accessToken === null) {
@@ -61,11 +66,12 @@ export function useBootstrapSession() {
     return () => {
       isActive = false;
     };
-  }, [accessToken]);
+  }, [accessToken, retryVersion]);
 
   return {
     data,
     isLoading,
     error,
+    retryBootstrap,
   };
 }

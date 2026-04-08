@@ -13,6 +13,7 @@ type SessionStreamContextValue = {
   sessionTitle: string | null;
   connectionState: SessionStreamConnectionState;
   bootstrapError: string | null;
+  retryBootstrap: () => void;
   lastEvent: SessionStreamEvent | null;
   recentEvents: SessionStreamEvent[];
   dataResetVersion: number;
@@ -25,6 +26,7 @@ const DEFAULT_CONTEXT_VALUE: SessionStreamContextValue = {
   sessionTitle: null,
   connectionState: "idle",
   bootstrapError: null,
+  retryBootstrap: () => undefined,
   lastEvent: null,
   recentEvents: [],
   dataResetVersion: 0,
@@ -111,6 +113,7 @@ export function SessionStreamProvider({ children }: { children: React.ReactNode 
         sessionTitle: bootstrap.data?.title ?? null,
         connectionState,
         bootstrapError: bootstrap.error,
+        retryBootstrap: bootstrap.retryBootstrap,
         lastEvent,
         recentEvents,
         dataResetVersion,

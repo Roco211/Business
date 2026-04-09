@@ -49,8 +49,8 @@ describe("ChatScreen", () => {
   async function waitForChatReady() {
     await waitFor(
       () => {
-        expect(screen.getByText("聊天工作台")).toBeTruthy();
-        expect(screen.getByText("业务快捷入口")).toBeTruthy();
+        expect(screen.getByText("门店助理")).toBeTruthy();
+        expect(screen.getByText("常用入口")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
         expect(screen.getByText("已连接")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
@@ -641,7 +641,7 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "Count chips too");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "Count chips too");
     fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
@@ -781,10 +781,10 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "   ");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "   ");
     fireEvent.press(screen.getByText("发送消息"));
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "cola restock");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "cola restock");
     fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {

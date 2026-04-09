@@ -42,9 +42,12 @@ export function MessageResultCard({
   text,
   createdAt,
 }: MessageResultCardProps) {
+  const tone = actorType === "owner" ? "muted" : "default";
+  const emphasis = actorType === "owner" ? "none" : "outlined";
+
   return (
     <View testID={`message-card-${messageId}`}>
-      <SurfaceCard tone="default" emphasis="outlined">
+      <SurfaceCard tone={tone} emphasis={emphasis}>
         <View style={styles.container}>
           <View style={styles.headerRow}>
             <StatusBadge tone={getActorTone(actorType)} label={actorLabel} />

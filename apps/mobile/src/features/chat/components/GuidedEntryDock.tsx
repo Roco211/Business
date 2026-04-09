@@ -1,17 +1,17 @@
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { InlineNotice, PillActionButton, SectionHeader, SurfaceCard, space } from "../../../shared/ui";
+import { InlineNotice, SectionHeader, SurfaceCard, color, radius, space } from "../../../shared/ui";
 import { useSendImageDemoMutation } from "../hooks/useSendImageDemoMutation";
 import { useSendReceiptDemoMutation } from "../hooks/useSendReceiptDemoMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 
 const COPY = {
-  title: "业务快捷入口",
-  subtitle: "用语音盘点、拍照识别或票据录入发起任务。",
+  title: "常用入口",
+  subtitle: "语音、拍照和票据都可以从这里发起。",
   errorTitle: "提交未完成",
-  voice: "语音盘点",
-  photo: "拍照识别",
-  receipt: "票据录入",
+  voice: "语音查货",
+  photo: "拍照入库",
+  receipt: "票据识别",
 } as const;
 
 type GuidedEntryDockProps = {
@@ -52,35 +52,47 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
   }
 
   return (
-    <SurfaceCard tone="muted" emphasis="outlined">
+    <SurfaceCard tone="muted" style={styles.shell}>
       <View style={styles.container}>
         <SectionHeader title={COPY.title} subtitle={COPY.subtitle} />
         {error ? <InlineNotice tone="error" title={COPY.errorTitle} message={error} /> : null}
-        <View style={styles.pillRow}>
-          <PillActionButton
+        <View style={styles.tileRow}>
+          <Pressable
             testID="guided-pill-voice"
-            label={COPY.voice}
+            accessibilityRole="button"
             onPress={() => {
               void handleVoiceEntry();
             }}
             disabled={isSubmitting}
-          />
-          <PillActionButton
+            style={styles.tile}
+          >
+            <Text style={styles.tileTitle}>{COPY.voice}</Text>
+            <Text style={styles.tileDetail}>一句话查看库存和缺货风险</Text>
+          </Pressable>
+          <Pressable
             testID="guided-pill-photo"
-            label={COPY.photo}
+            accessibilityRole="button"
             onPress={() => {
               void handlePhotoEntry();
             }}
             disabled={isSubmitting}
-          />
-          <PillActionButton
+            style={styles.tile}
+          >
+            <Text style={styles.tileTitle}>{COPY.photo}</Text>
+            <Text style={styles.tileDetail}>对着商品拍照后继续确认</Text>
+          </Pressable>
+          <Pressable
             testID="guided-pill-receipt"
-            label={COPY.receipt}
+            accessibilityRole="button"
             onPress={() => {
               void handleReceiptEntry();
             }}
             disabled={isSubmitting}
-          />
+            style={styles.tile}
+          >
+            <Text style={styles.tileTitle}>{COPY.receipt}</Text>
+            <Text style={styles.tileDetail}>快速整理票据条目和金额</Text>
+          </Pressable>
         </View>
       </View>
     </SurfaceCard>
@@ -88,12 +100,38 @@ export function GuidedEntryDock({ sessionId, onSubmitted }: GuidedEntryDockProps
 }
 
 const styles = StyleSheet.create({
+  shell: {
+    gap: space.s12,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
   container: {
     gap: space.s12,
   },
-  pillRow: {
+  tileRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: space.s8,
+  },
+  tile: {
+    backgroundColor: "rgba(255, 255, 255, 0.82)",
+    borderColor: "rgba(45, 33, 28, 0.06)",
+    borderRadius: radius.card,
+    borderWidth: 1,
+    flexGrow: 1,
+    gap: 4,
+    minWidth: "31%",
+    paddingHorizontal: space.s12,
+    paddingVertical: space.s12,
+  },
+  tileTitle: {
+    color: color.fgPrimary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  tileDetail: {
+    color: color.fgSecondary,
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

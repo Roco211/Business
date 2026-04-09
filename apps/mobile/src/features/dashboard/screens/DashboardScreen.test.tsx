@@ -203,6 +203,16 @@ describe("DashboardScreen layout", () => {
     expect(screen.queryByText(/手动刷新/i)).toBeNull();
   });
 
+  it("renders the overview-first hero, guidance block, and helper quick actions", () => {
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByText("今天先看店铺概览")).toBeTruthy();
+    expect(screen.getByText("店铺概览")).toBeTruthy();
+    expect(screen.getByText("推荐下一步")).toBeTruthy();
+    expect(screen.getByText("常用操作")).toBeTruthy();
+    expect(screen.getByText("一句话查看库存和缺货风险")).toBeTruthy();
+  });
+
   it("shows calm empty states when no low-stock alerts or confirmations exist", () => {
     mockAlertsData = [];
     mockPendingData = [];
@@ -218,9 +228,9 @@ describe("DashboardScreen layout", () => {
   it("keeps debug tools secondary by hiding actions until the disclosure is opened", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByText("当前健康")).toBeTruthy();
+    expect(screen.getByText("推荐下一步")).toBeTruthy();
     expect(screen.getByText("连接状态：已连接")).toBeTruthy();
-    expect(screen.getByText("下一步：前往工作台处理待确认与补货任务。")).toBeTruthy();
+    expect(screen.getByText("先去工作台处理待确认和补货提醒。")).toBeTruthy();
     expect(screen.queryByText("重置演示数据")).toBeNull();
 
     fireEvent.press(screen.getByLabelText("调试工具"));

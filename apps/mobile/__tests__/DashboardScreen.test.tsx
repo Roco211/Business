@@ -139,16 +139,19 @@ describe("DashboardScreen", () => {
     jest.resetAllMocks();
   });
 
-  it("renders 今日门店概览 with summary, quick actions, and exception lists", async () => {
+  it("renders the refreshed overview-first dashboard shell", async () => {
     render(<DashboardScreen />);
 
     expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店概览")).toBeTruthy();
-      expect(screen.getByText("聚焦门店库存与待处理事项，先看风险，再安排动作。")).toBeTruthy();
+      expect(screen.getByText("今日门店状态")).toBeTruthy();
+      expect(screen.getByText("今天先看店铺概览")).toBeTruthy();
+      expect(screen.getByText("店铺概览")).toBeTruthy();
+      expect(screen.getByText("推荐下一步")).toBeTruthy();
       expect(screen.getByText("今日入库")).toBeTruthy();
       expect(screen.getByText("已完成任务")).toBeTruthy();
+      expect(screen.getByText("常用操作")).toBeTruthy();
       expect(screen.getByText("语音查货")).toBeTruthy();
       expect(screen.getByText("拍照入库")).toBeTruthy();
       expect(screen.getByText("票据识别")).toBeTruthy();
@@ -164,7 +167,7 @@ describe("DashboardScreen", () => {
     const { rerender } = render(<DashboardScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店概览")).toBeTruthy();
+      expect(screen.getByText("店铺概览")).toBeTruthy();
       expect(summaryRequests).toBe(1);
       expect(alertRequests).toBe(1);
       expect(confirmationRequests).toBe(1);

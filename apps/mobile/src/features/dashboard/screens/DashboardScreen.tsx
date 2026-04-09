@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { DashboardExceptionCard } from "../components/DashboardExceptionCard";
 import { DashboardQuickActions } from "../components/DashboardQuickActions";
@@ -17,7 +17,9 @@ import {
   InlineNotice,
   PrimaryButton,
   SectionHeader,
+  StatusBadge,
   SurfaceCard,
+  color,
   space,
 } from "../../../shared/ui";
 
@@ -84,10 +86,38 @@ function getConnectionHealth(connectionState: string, bootstrapError: string | n
 
 function getNextActionCopy(pendingCount: number, alertCount: number) {
   if (pendingCount > 0 || alertCount > 0) {
-    return "下一步：前往工作台处理待确认与补货任务。";
+    return "先去工作台处理待确认和补货提醒。";
   }
 
-  return "下一步：前往工作台完成日常巡检。";
+  return "先做一轮语音查货或拍照入库。";
+}
+
+function getStorePulseCopy(pendingCount: number, alertCount: number) {
+  if (pendingCount > 0 && alertCount > 0) {
+    return {
+      title: "今天有几项重点要跟进",
+      subtitle: "待确认和低库存都已经浮上来，建议先处理风险，再继续日常操作。",
+    };
+  }
+
+  if (pendingCount > 0) {
+    return {
+      title: "今天先处理待确认事项",
+      subtitle: "系统已经整理出需要复核的内容，处理完会更安心。",
+    };
+  }
+
+  if (alertCount > 0) {
+    return {
+      title: "门店运行平稳，但有补货提醒",
+      subtitle: "可以先看低库存商品，再安排接下来的入库和查货。",
+    };
+  }
+
+  return {
+    title: "今天门店运行平稳",
+    subtitle: "核心指标已经同步，可以从常用操作开始安排今天的工作。",
+  };
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
@@ -182,21 +212,31 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     summary.data.pending_confirmations_count,
     summary.data.open_low_stock_alert_count,
   );
+  const storePulse = getStorePulseCopy(
+    summary.data.pending_confirmations_count,
+    summary.data.open_low_stock_alert_count,
+  );
 
   return (
-    <AppScreen title={SCREEN_TITLE} subtitle={SCREEN_SUBTITLE}>
+    <AppScreen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <DashboardSummaryHero summary={summary.data} />
-        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
-        <SurfaceCard emphasis="outlined" style={styles.healthCard}>
-          <SectionHeader title="当前健康" subtitle="先看连接状态，再安排下一步动作。" />
-          <InlineNotice tone={connectionHealth.tone} title={connectionHealth.title} message={connectionHealth.message} />
-          <InlineNotice
-            tone="neutral"
-            title={nextActionCopy}
-            message="调试工具保留在下方，排障时再展开即可。"
-          />
+        <SurfaceCard tone="muted" style={styles.statusStrip}>
+          <View style={styles.statusRow}>
+            <View style={styles.statusCopy}>
+              <Text style={styles.statusEyebrow}>今日门店状态</Text>
+              <Text style={styles.statusTitle}>{storePulse.title}</Text>
+              <Text style={styles.statusSubtitle}>{storePulse.subtitle}</Text>
+            </View>
+            <StatusBadge tone={connectionHealth.tone} label={connectionHealth.title} />
+          </View>
+          <Text style={styles.statusHint}>{connectionHealth.message}</Text>
         </SurfaceCard>
+        <DashboardSummaryHero summary={summary.data} />
+        <SurfaceCard tone="muted" style={styles.guidanceCard}>
+          <SectionHeader title="推荐下一步" subtitle={nextActionCopy} />
+          <Text style={styles.guidanceDetail}>如果需要更多上下文，可以从下方常用操作继续处理。</Text>
+        </SurfaceCard>
+        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
         <DashboardExceptionCard
           title="低库存提醒"
           subtitle="优先处理即将断货的商品，减少缺货影响。"
@@ -239,8 +279,48 @@ const styles = StyleSheet.create({
     gap: space.s12,
     paddingBottom: space.s24,
   },
-  healthCard: {
+  statusStrip: {
     gap: space.s12,
+  },
+  statusRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: space.s12,
+    justifyContent: "space-between",
+  },
+  statusCopy: {
+    flex: 1,
+    gap: 6,
+  },
+  statusEyebrow: {
+    color: color.fgTertiary,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+  },
+  statusTitle: {
+    color: color.fgPrimary,
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: -0.6,
+  },
+  statusSubtitle: {
+    color: color.fgSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  statusHint: {
+    color: color.fgSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  guidanceCard: {
+    gap: space.s8,
+  },
+  guidanceDetail: {
+    color: color.fgSecondary,
+    fontSize: 13,
+    lineHeight: 19,
   },
   debugPanel: {
     gap: space.s12,

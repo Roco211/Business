@@ -76,18 +76,19 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("聊天工作台")).toBeTruthy();
+      expect(screen.getByText("门店助理")).toBeTruthy();
       expect(screen.getByText("Store shift session")).toBeTruthy();
       expect(screen.getByText("连接状态")).toBeTruthy();
       expect(screen.getByText("已连接")).toBeTruthy();
-      expect(screen.getByText("业务快捷入口")).toBeTruthy();
-      expect(screen.getByText("语音盘点")).toBeTruthy();
-      expect(screen.getByText("拍照识别")).toBeTruthy();
-      expect(screen.getByText("票据录入")).toBeTruthy();
+      expect(screen.getByText("常用入口")).toBeTruthy();
+      expect(screen.getByText("语音查货")).toBeTruthy();
+      expect(screen.getByText("拍照入库")).toBeTruthy();
+      expect(screen.getByText("票据识别")).toBeTruthy();
+      expect(screen.getByText("发消息给门店助理")).toBeTruthy();
       expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
       expect(screen.getByText("店主")).toBeTruthy();
       expect(screen.getByText("类型：文本")).toBeTruthy();
-      expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
+      expect(screen.getByPlaceholderText("输入今天想处理的事")).toBeTruthy();
       expect(screen.getByText("发送消息")).toBeTruthy();
       expect(screen.getByText("调试工具")).toBeTruthy();
       expect(screen.getByText("展开调试信息")).toBeTruthy();

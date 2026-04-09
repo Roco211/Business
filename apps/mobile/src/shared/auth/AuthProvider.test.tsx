@@ -191,7 +191,7 @@ describe("AuthProvider", () => {
   it("shows login screen and blocks protected session bootstrap when signed out", () => {
     render(<RootNavigator />);
 
-    expect(screen.getAllByText("登录").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("进入门店助理").length).toBeGreaterThan(0);
     expect(screen.queryByTestId("session-stream-provider")).toBeNull();
     expect(screen.queryByText("Mock Dashboard Screen")).toBeNull();
     expect(global.fetch).not.toHaveBeenCalled();
@@ -243,7 +243,7 @@ describe("AuthProvider", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getAllByText("登录").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("进入门店助理").length).toBeGreaterThan(0);
       expect(screen.queryByTestId("session-stream-provider")).toBeNull();
     });
   });

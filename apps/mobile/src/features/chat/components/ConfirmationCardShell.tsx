@@ -31,6 +31,7 @@ type ConfirmationCardShellProps = PropsWithChildren<{
 const COPY = {
   pendingReview: "待复核",
   actionFailed: "操作失败",
+  intervention: "人工介入",
 } as const;
 
 export function ConfirmationCardShell({
@@ -51,8 +52,9 @@ export function ConfirmationCardShell({
   children,
 }: ConfirmationCardShellProps) {
   return (
-    <SurfaceCard emphasis="elevated">
+    <SurfaceCard emphasis="elevated" style={styles.shell}>
       <View style={styles.container}>
+        <Text style={styles.kicker}>{COPY.intervention}</Text>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{title}</Text>
           <StatusBadge tone="warning" label={COPY.pendingReview} />
@@ -83,8 +85,17 @@ export function ConfirmationCardShell({
 }
 
 const styles = StyleSheet.create({
+  shell: {
+    gap: space.s12,
+  },
   container: {
     gap: space.s12,
+  },
+  kicker: {
+    color: color.accentPrimary,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
   },
   headerRow: {
     alignItems: "center",
@@ -109,7 +120,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   fields: {
+    backgroundColor: color.bgMuted,
+    borderRadius: 20,
     gap: space.s8,
+    padding: space.s12,
   },
   actions: {
     gap: space.s8,

@@ -54,10 +54,24 @@ export default function RootNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: color.bgSurface,
-    borderTopColor: color.borderSubtle,
-    borderTopWidth: 1,
-    elevation: 0,
-    shadowOpacity: 0,
+    borderTopWidth: 0,
+    borderRadius: 28,
+    bottom: 12,
+    elevation: 6,
+    height: 72,
+    left: 16,
+    paddingBottom: 10,
+    paddingTop: 10,
+    position: "absolute",
+    right: 16,
+    shadowColor: "#2d211c",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+  },
+  tabBarItem: {
+    borderRadius: 18,
+    marginHorizontal: 4,
   },
   tabBarLabel: {
     fontSize: 12,

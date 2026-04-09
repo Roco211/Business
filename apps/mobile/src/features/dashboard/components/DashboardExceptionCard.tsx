@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { EmptyState, SectionHeader, StatusBadge, SurfaceCard, color, space } from "../../../shared/ui";
+import { EmptyState, SectionHeader, StatusBadge, SurfaceCard, color, radius, space } from "../../../shared/ui";
 
 type ExceptionTone = "warning" | "error" | "success" | "neutral";
 
@@ -57,10 +57,12 @@ const styles = StyleSheet.create({
     marginTop: space.s12,
   },
   item: {
-    borderBottomColor: color.borderSubtle,
-    borderBottomWidth: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.76)",
+    borderColor: "rgba(45, 33, 28, 0.06)",
+    borderRadius: radius.card,
+    borderWidth: 1,
     gap: space.s8,
-    paddingBottom: space.s10,
+    padding: space.s12,
   },
   itemHeading: {
     alignItems: "center",
@@ -77,5 +79,6 @@ const styles = StyleSheet.create({
   itemDetail: {
     color: color.fgSecondary,
     fontSize: 14,
+    lineHeight: 20,
   },
 });

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { Pressable, StyleSheet } from "react-native";
 
 import {
   AppScreen,
@@ -20,6 +21,23 @@ describe("shared ui primitives", () => {
     );
 
     expect(screen.getByText("Logging in...")).toBeTruthy();
+  });
+
+  it("renders the refreshed rounded shell for primary actions and elevated surfaces", () => {
+    const { UNSAFE_getByType } = render(
+      <AppScreen title="Today">
+        <PrimaryButton label="进入门店助理" onPress={() => undefined} />
+        <SurfaceCard tone="default" emphasis="elevated">
+          <SectionHeader title="店铺概览" subtitle="先看经营状态，再安排今天的处理顺序。" />
+        </SurfaceCard>
+      </AppScreen>,
+    );
+
+    const primaryButton = UNSAFE_getByType(Pressable);
+    const buttonStyle = StyleSheet.flatten(primaryButton.props.style({ pressed: false }));
+    expect(buttonStyle.backgroundColor).toBe("#3f8f63");
+    expect(buttonStyle.borderRadius).toBe(18);
+    expect(buttonStyle.minHeight).toBe(52);
   });
 
   it("renders AppTextField label and error copy", () => {

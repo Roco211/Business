@@ -36,7 +36,7 @@ const toneStyles = StyleSheet.create({
     backgroundColor: color.bgSurface,
   },
   muted: {
-    backgroundColor: color.bgApp,
+    backgroundColor: color.bgMuted,
   },
   inverse: {
     backgroundColor: color.bgInverse,
@@ -50,12 +50,12 @@ const emphasisStyles = StyleSheet.create({
     borderWidth: 1,
   },
   elevated: {
-    borderColor: color.borderSubtle,
+    borderColor: "rgba(255,255,255,0.65)",
     borderWidth: 1,
-    elevation: 2,
+    elevation: 3,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
   },
 });

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { color, radius, space } from "./tokens";
 
 type DebugDisclosureProps = PropsWithChildren<{
+  defaultOpen?: boolean;
   title: string;
 }>;
 
@@ -13,8 +14,8 @@ const COPY = {
   hide: "收起调试信息",
 } as const;
 
-export function DebugDisclosure({ title, children }: DebugDisclosureProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function DebugDisclosure({ title, children, defaultOpen = false }: DebugDisclosureProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <View style={styles.container}>

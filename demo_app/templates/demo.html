@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AI五金店大管家 - 经营概览</title>
+<style>
+/* ── Design Tokens ── */
+:root{
+  --bg-app:#f6f2ea;
+  --bg-surface:#fffdf8;
+  --bg-elevated:#ffffff;
+  --bg-muted:#f1ebdf;
+  --bg-accent-soft:#ece6ff;
+  --bg-brand-soft:#e3f1e8;
+  --bg-inverse:#2f211c;
+  --fg-primary:#2d211c;
+  --fg-secondary:rgba(45,33,28,.72);
+  --fg-tertiary:rgba(45,33,28,.48);
+  --accent:#3f8f63;
+  --accent-contrast:#fff;
+  --status-warning:#a06a22;
+  --status-error:#b54738;
+  --status-success:#317e57;
+  --border-subtle:rgba(45,33,28,.08);
+  --focus-ring:rgba(63,143,99,.18);
+  --radius-card:18px;
+  --radius-input:18px;
+  --radius-panel:28px;
+  --radius-pill:999px;
+  --s8:8px;--s10:10px;--s12:12px;--s16:16px;--s20:20px;--s24:24px;--s32:32px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg-app);color:var(--fg-primary);
+  -webkit-font-smoothing:antialiased;line-height:1.5;
+}
+
+/* ── App Shell ── */
+.app{
+  display:flex;flex-direction:column;
+  height:100vh;height:100dvh;
+  max-width:430px;margin:0 auto;
+  background:var(--bg-app);position:relative;overflow:hidden;
+}
+
+/* ── App Screen ── */
+.app-screen{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:var(--s16);padding-bottom:80px;
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+}
+.app-screen::-webkit-scrollbar{display:none}
+
+/* ── Surface Card ── */
+.surface-card{
+  background:var(--bg-surface);
+  border-radius:var(--radius-card);
+  padding:var(--s16);
+}
+.surface-card.outlined{border:1px solid var(--border-subtle)}
+.surface-card.elevated{
+  box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06);
+  border:none;
+}
+.surface-card.muted{background:var(--bg-muted)}
+
+/* ── Section Header ── */
+.section-header{margin-bottom:var(--s12)}
+.section-header .title{
+  font-size:15px;font-weight:600;color:var(--fg-primary);
+  margin-bottom:2px;
+}
+.section-header .subtitle{
+  font-size:12px;color:var(--fg-secondary);
+}
+
+/* ── Inline Notice ── */
+.inline-notice{
+  padding:var(--s12);
+  border-radius:var(--radius-card);
+  margin-bottom:var(--s8);
+}
+.inline-notice.neutral{background:var(--bg-muted)}
+.inline-notice.warning{background:#fef3e2;color:var(--status-warning)}
+.inline-notice.error{background:#fde8e6;color:var(--status-error)}
+.inline-notice.success{background:var(--bg-brand-soft);color:var(--status-success)}
+.inline-notice .notice-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.inline-notice .notice-message{font-size:12px;opacity:.85}
+
+/* ── Revenue Hero (New) ── */
+.revenue-hero{
+  background:linear-gradient(135deg,var(--bg-inverse) 0%,#4a3728 100%);
+  border-radius:var(--radius-panel);
+  padding:var(--s24) var(--s20);
+  color:#fff;
+  margin-bottom:var(--s16);
+}
+.revenue-hero .hero-title{
+  font-size:13px;
+  opacity:.7;
+  margin-bottom:var(--s8);
+}
+.revenue-hero .hero-amount{
+  font-size:36px;
+  font-weight:700;
+  margin-bottom:var(--s4);
+}
+.revenue-hero .hero-subtitle{
+  font-size:12px;
+  opacity:.6;
+  margin-bottom:var(--s16);
+}
+.revenue-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--s12);
+}
+.revenue-stat{
+  background:rgba(255,255,255,.1);
+  border-radius:var(--radius-card);
+  padding:var(--s12);
+}
+.revenue-stat .stat-label{
+  font-size:11px;
+  opacity:.7;
+  margin-bottom:2px;
+}
+.revenue-stat .stat-value{
+  font-size:18px;
+  font-weight:600;
+}
+
+/* ── Transactions List ── */
+.transaction-item{
+  display:flex;
+  align-items:center;
+  padding:var(--s12) 0;
+  border-bottom:1px solid var(--border-subtle);
+}
+.transaction-item:last-child{border-bottom:none}
+.transaction-icon{
+  width:40px;height:40px;
+  border-radius:var(--s10);
+  display:grid;place-items:center;
+  font-size:18px;
+  margin-right:var(--s12);
+  flex-shrink:0;
+}
+.transaction-icon.stock-in{background:var(--bg-brand-soft)}
+.transaction-icon.stock-out{background:#fef3e2}
+.transaction-info{flex:1;min-width:0}
+.transaction-name{
+  font-size:14px;font-weight:500;
+  margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.transaction-meta{
+  font-size:11px;
+  color:var(--fg-tertiary);
+}
+.transaction-amount{
+  font-size:14px;font-weight:600;
+  text-align:right;
+}
+.transaction-amount.in{color:var(--status-success)}
+.transaction-amount.out{color:var(--status-error)}
+
+/* ── Recommendation Cards ── */
+.recommendation-card{
+  background:var(--bg-surface);
+  border-radius:var(--radius-card);
+  padding:var(--s16);
+  margin-bottom:var(--s12);
+  border-left:4px solid var(--accent);
+}
+.recommendation-card.urgent{border-left-color:var(--status-error)}
+.recommendation-card.warning{border-left-color:var(--status-warning)}
+.recommendation-card.success{border-left-color:var(--status-success)}
+.recommendation-card.info{border-left-color:#3b82f6}
+.recommendation-title{
+  font-size:14px;font-weight:600;
+  margin-bottom:var(--s8);
+}
+.recommendation-message{
+  font-size:12px;
+  color:var(--fg-secondary);
+  margin-bottom:var(--s8);
+}
+.recommendation-action{
+  font-size:12px;
+  color:var(--accent);
+  font-weight:500;
+}
+
+/* ── Top Items ── */
+.top-item{
+  display:flex;
+  align-items:center;
+  padding:var(--s10) 0;
+  border-bottom:1px solid var(--border-subtle);
+}
+.top-item:last-child{border-bottom:none}
+.top-rank{
+  width:24px;height:24px;
+  border-radius:50%;
+  background:var(--bg-muted);
+  display:grid;place-items:center;
+  font-size:12px;font-weight:600;
+  margin-right:var(--s12);
+  flex-shrink:0;
+}
+.top-rank.gold{background:#fef3c7;color:#a06a22}
+.top-rank.silver{background:#f1f5f9;color:#64748b}
+.top-rank.bronze{background:#fed7aa;color:#9a3412}
+.top-info{flex:1}
+.top-name{font-size:14px;font-weight:500}
+.top-meta{font-size:11px;color:var(--fg-tertiary)}
+.top-revenue{font-size:14px;font-weight:600;color:var(--accent)}
+
+/* ── Chart Placeholder ── */
+.chart-container{
+  background:var(--bg-muted);
+  border-radius:var(--radius-card);
+  padding:var(--s16);
+  height:200px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.chart-bars{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-around;
+  width:100%;
+  height:150px;
+  padding:0 var(--s10);
+}
+.chart-bar{
+  width:30px;
+  background:linear-gradient(to top,var(--accent),#6bc79a);
+  border-radius:4px 4px 0 0;
+  position:relative;
+  transition:height 0.3s ease;
+}
+.chart-bar::after{
+  content:attr(data-value);
+  position:absolute;
+  top:-20px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:10px;
+  color:var(--fg-secondary);
+  white-space:nowrap;
+}
+.chart-label{
+  position:absolute;
+  bottom:8px;
+  font-size:10px;
+  color:var(--fg-tertiary);
+}
+
+/* ── Bottom Tab Bar ── */
+.bottom-tabs{
+  display:flex;
+  background:var(--bg-surface);
+  border-top:1px solid var(--border-subtle);
+  padding:0;padding-bottom:env(safe-area-inset-bottom,0);
+  position:relative;z-index:10;
+}
+.tab-item{
+  flex:1;padding:10px 0 12px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:none;background:none;
+  font-size:11px;font-weight:500;
+  color:var(--fg-tertiary);cursor:pointer;
+  transition:color .15s;position:relative;
+}
+.tab-item .tab-icon{font-size:22px;transition:transform .15s}
+.tab-item.active{color:var(--accent)}
+.tab-item.active .tab-icon{transform:scale(1.05)}
+.tab-item.active::before{
+  content:'';position:absolute;top:2px;
+  width:56px;height:28px;border-radius:14px;
+  background:var(--bg-brand-soft);
+}
+
+/* ── Page Transitions ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── Gap Helpers ── */
+.gap-12>*:not(:last-child){margin-bottom:var(--s12)}
+
+/* ── Loading Skeleton ── */
+.skeleton{
+  background:linear-gradient(90deg,var(--bg-muted) 25%,var(--bg-surface) 50%,var(--bg-muted) 75%);
+  background-size:200% 100%;
+  animation:skeleton-loading 1.5s infinite;
+  border-radius:var(--s8);
+}
+@keyframes skeleton-loading{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+/* ── Empty State ── */
+.empty-state{
+  text-align:center;
+  padding:var(--s24) var(--s16);
+}
+.empty-icon{font-size:32px;margin-bottom:var(--s8)}
+.empty-title{font-size:14px;font-weight:600;margin-bottom:var(--s4)}
+.empty-desc{font-size:12px;color:var(--fg-tertiary)}
+
+/* ── Refresh Button ── */
+.refresh-btn{
+  position:absolute;
+  top:var(--s16);
+  right:var(--s16);
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--bg-surface);
+  border:1px solid var(--border-subtle);
+  display:grid;place-items:center;
+  cursor:pointer;
+  font-size:16px;
+  transition:transform 0.3s;
+}
+.refresh-btn:active{transform:rotate(180deg)}
+
+/* ── View All Link ── */
+.view-all{
+  font-size:12px;
+  color:var(--accent);
+  font-weight:500;
+  cursor:pointer;
+  text-align:right;
+  margin-top:var(--s8);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Main Content -->
+  <div class="app-screen" id="mainContent">
+
+    <!-- ════ Dashboard Page ════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="gap-12">
+        <!-- Revenue Hero -->
+        <div class="revenue-hero">
+          <div class="hero-title">今日营业额</div>
+          <div class="hero-amount" id="todayRevenue">¥0.00</div>
+          <div class="hero-subtitle" id="revenueTrend">较昨日 <span id="trendPercent">--</span></div>
+          <div class="revenue-stats">
+            <div class="revenue-stat">
+              <div class="stat-label">本周</div>
+              <div class="stat-value" id="weekRevenue">¥0.00</div>
+            </div>
+            <div class="revenue-stat">
+              <div class="stat-label">本月</div>
+              <div class="stat-value" id="monthRevenue">¥0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Transactions Summary -->
+        <div class="surface-card elevated">
+          <div class="section-header">
+            <div class="title">今日流水</div>
+            <div class="subtitle">实时记录每一笔进出</div>
+          </div>
+          <div style="display:flex;gap:var(--s12);margin-bottom:var(--s12)">
+            <div style="flex:1;text-align:center;padding:var(--s12);background:var(--bg-brand-soft);border-radius:var(--radius-card)">
+              <div style="font-size:20px;font-weight:600;color:var(--status-success)" id="todayIn">0</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">入库笔数</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:var(--s12);background:#fef3e2;border-radius:var(--radius-card)">
+              <div style="font-size:20px;font-weight:600;color:var(--status-warning)" id="todayOut">0</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">出库笔数</div>
+            </div>
+          </div>
+          <div id="recentTransactions">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">暂无流水记录</div>
+              <div class="empty-desc">开始营业后，这里会显示交易记录</div>
+            </div>
+          </div>
+          <div class="view-all" onclick="switchTab('ledger')">查看全部流水 →</div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="surface-card outlined">
+          <div class="section-header">
+            <div class="title">近7日销售趋势</div>
+            <div class="subtitle">每日营业额变化</div>
+          </div>
+          <div class="chart-container">
+            <div class="chart-bars" id="revenueChart">
+              <!-- Chart bars will be generated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Selling Items -->
+        <div class="surface-card outlined">
+          <div class="section-header">
+            <div class="title">热销商品 TOP5</div>
+            <div class="subtitle">近30天销售排行</div>
+          </div>
+          <div id="topItems">
+            <div class="empty-state">
+              <div class="empty-icon">🏆</div>
+              <div class="empty-title">暂无销售数据</div>
+              <div class="empty-desc">完成首笔交易后，热销商品将在此展示</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="surface-card outlined">
+          <div class="section-header">
+            <div class="title">AI 经营建议</div>
+            <div class="subtitle">智能分析，助您决策</div>
+          </div>
+          <div id="recommendations">
+            <div class="empty-state">
+              <div class="empty-icon">🤖</div>
+              <div class="empty-title">AI 正在分析中</div>
+              <div class="empty-desc">积累更多数据后，将为您提供个性化建议</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="surface-card muted">
+          <div class="section-header">
+            <div class="title">库存概览</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s12)">
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:600" id="totalItems">-</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">商品种类</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:600" id="totalValue">-</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">库存总值</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:600;color:var(--status-warning)" id="lowStock">-</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">低库存预警</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:24px;font-weight:600" id="pendingConfirm">-</div>
+              <div style="font-size:11px;color:var(--fg-secondary)">待处理确认</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="surface-card elevated">
+          <div class="section-header">
+            <div class="title">快捷操作</div>
+          </div>
+          <div style="display:flex;gap:var(--s8)">
+            <button style="flex:1;padding:var(--s12);background:var(--bg-brand-soft);border:none;border-radius:var(--radius-card);font-size:13px;font-weight:500;cursor:pointer" onclick="switchTab('workbench')">
+              🎤 语音入库
+            </button>
+            <button style="flex:1;padding:var(--s12);background:var(--bg-accent-soft);border:none;border-radius:var(--radius-card);font-size:13px;font-weight:500;cursor:pointer" onclick="switchTab('ledger')">
+              📦 查看库存
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Workbench Page ════ -->
+    <div class="page" id="page-workbench">
+      <div class="gap-12">
+        <div class="surface-card elevated">
+          <div class="section-header">
+            <div class="title">AI 工作台</div>
+            <div class="subtitle">语音或文字指挥 AI 处理库存</div>
+          </div>
+          <!-- Chat interface will go here -->
+          <div id="chatMessages" style="min-height:300px;max-height:50vh;overflow-y:auto;padding:var(--s12);background:var(--bg-muted);border-radius:var(--radius-card)">
+            <div class="empty-state">
+              <div class="empty-icon">💬</div>
+              <div class="empty-title">开始对话</div>
+              <div class="empty-desc">说"今天进了3箱可乐"试试</div>
+            </div>
+          </div>
+          <div style="margin-top:var(--s12);display:flex;gap:var(--s8)">
+            <input type="text" id="chatInput" placeholder="输入指令或点击语音..." style="flex:1;padding:var(--s12);border:1px solid var(--border-subtle);border-radius:var(--radius-input);font-size:14px">
+            <button onclick="sendChat()" style="padding:var(--s12) var(--s16);background:var(--accent);color:white;border:none;border-radius:var(--radius-input);font-size:14px;cursor:pointer">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Ledger Page ════ -->
+    <div class="page" id="page-ledger">
+      <div class="gap-12">
+        <div class="surface-card elevated">
+          <div class="section-header">
+            <div class="title">库存台账</div>
+            <div class="subtitle">所有商品与库存真相</div>
+          </div>
+          <div id="inventoryList">
+            <!-- Inventory items will be loaded here -->
+          </div>
+        </div>
+
+        <div class="surface-card outlined">
+          <div class="section-header">
+            <div class="title">审计日志</div>
+            <div class="subtitle">所有操作留痕可追溯</div>
+          </div>
+          <div id="auditLogs">
+            <!-- Audit logs will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="bottom-tabs">
+    <button class="tab-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <span class="tab-icon">📊</span>
+      <span>经营</span>
+    </button>
+    <button class="tab-item" data-tab="workbench" onclick="switchTab('workbench')">
+      <span class="tab-icon">🤖</span>
+      <span>AI助手</span>
+    </button>
+    <button class="tab-item" data-tab="ledger" onclick="switchTab('ledger')">
+      <span class="tab-icon">📦</span>
+      <span>库存</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Global State ──
+let ws = null;
+
+// ── Tab Navigation ──
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'ledger') { loadInventory(); loadAuditLogs(); }
+}
+
+// ── API Helper ──
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  return r.json();
+}
+
+// ── Format Currency ──
+function formatMoney(n) {
+  return '¥' + Number(n).toFixed(2);
+}
+
+// ── Load Dashboard ──
+async function loadDashboard() {
+  try {
+    // Load revenue data
+    const revenueData = await api('GET', '/api/v1/revenue');
+    const revenue = revenueData.data;
+    
+    document.getElementById('todayRevenue').textContent = formatMoney(revenue.today_revenue);
+    document.getElementById('weekRevenue').textContent = formatMoney(revenue.week_revenue);
+    document.getElementById('monthRevenue').textContent = formatMoney(revenue.month_revenue);
+    
+    // Load transactions
+    const transData = await api('GET', '/api/v1/transactions?limit=5');
+    const trans = transData.data;
+    
+    document.getElementById('todayIn').textContent = trans.today_stats.total_events ? trans.today_stats.total_in : 0;
+    document.getElementById('todayOut').textContent = trans.today_stats.total_events ? trans.today_stats.total_out : 0;
+    
+    renderTransactions(trans.transactions);
+    
+    // Render chart
+    renderRevenueChart(revenue.daily_revenue);
+    
+    // Render top items
+    renderTopItems(revenue.top_items);
+    
+    // Load recommendations
+    const recData = await api('GET', '/api/v1/recommendations');
+    renderRecommendations(recData.data.recommendations);
+    
+    // Load dashboard stats
+    const dashData = await api('GET', '/api/v1/dashboard');
+    const m = dashData.data;
+    document.getElementById('totalItems').textContent = m.total_items;
+    document.getElementById('totalValue').textContent = formatMoney(m.total_value);
+    document.getElementById('lowStock').textContent = m.low_stock_items;
+    document.getElementById('pendingConfirm').textContent = m.pending_confirmations || 0;
+    
+  } catch (e) {
+    console.error('Dashboard load error:', e);
+  }
+}
+
+// ── Render Transactions ──
+function renderTransactions(transactions) {
+  const container = document.getElementById('recentTransactions');
+  if (!transactions || transactions.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">暂无流水记录</div>
+        <div class="empty-desc">开始营业后，这里会显示交易记录</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = transactions.map(t => {
+    const isOut = t.event_type === 'stock_out';
+    const icon = isOut ? '📤' : '📥';
+    const iconClass = isOut ? 'stock-out' : 'stock-in';
+    const amount = (t.quantity * t.unit_price).toFixed(2);
+    const amountClass = isOut ? 'out' : 'in';
+    const sign = isOut ? '-' : '+';
+    const time = t.created_at.split(' ')[1] || t.created_at;
+    
+    return `
+      <div class="transaction-item">
+        <div class="transaction-icon ${iconClass}">${icon}</div>
+        <div class="transaction-info">
+          <div class="transaction-name">${t.item_name}</div>
+          <div class="transaction-meta">${t.quantity} ${t.unit} × ¥${t.unit_price} · ${time}</div>
+        </div>
+        <div class="transaction-amount ${amountClass}">${sign}¥${amount}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Render Revenue Chart ──
+function renderRevenueChart(dailyRevenue) {
+  const container = document.getElementById('revenueChart');
+  if (!dailyRevenue || dailyRevenue.length === 0) {
+    container.innerHTML = '<div style="color:var(--fg-tertiary);font-size:12px">暂无数据</div>';
+    return;
+  }
+  
+  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
+  const days = ['日', '一', '二', '三', '四', '五', '六'];
+  
+  container.innerHTML = dailyRevenue.map(d => {
+    const date = new Date(d.date);
+    const dayName = days[date.getDay()];
+    const height = Math.max((d.revenue / maxRevenue) * 130, 10);
+    const value = d.revenue > 1000 ? (d.revenue/1000).toFixed(1) + 'k' : d.revenue.toFixed(0);
+    
+    return `
+      <div style="text-align:center">
+        <div class="chart-bar" style="height:${height}px" data-value="¥${value}"></div>
+        <div style="font-size:10px;color:var(--fg-tertiary);margin-top:4px">${dayName}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Render Top Items ──
+function renderTopItems(items) {
+  const container = document.getElementById('topItems');
+  if (!items || items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-title">暂无销售数据</div>
+        <div class="empty-desc">完成首笔交易后，热销商品将在此展示</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = items.map((item, i) => {
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return `
+      <div class="top-item">
+        <div class="top-rank ${rankClass}">${i + 1}</div>
+        <div class="top-info">
+          <div class="top-name">${item.name}</div>
+          <div class="top-meta">售出 ${item.total_sold} 件</div>
+        </div>
+        <div class="top-revenue">${formatMoney(item.total_revenue)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Render Recommendations ──
+function renderRecommendations(recommendations) {
+  const container = document.getElementById('recommendations');
+  if (!recommendations || recommendations.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🤖</div>
+        <div class="empty-title">AI 正在分析中</div>
+        <div class="empty-desc">积累更多数据后，将为您提供个性化建议</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = recommendations.map(rec => {
+    const typeClass = rec.type || 'info';
+    return `
+      <div class="recommendation-card ${typeClass}">
+        <div class="recommendation-title">${rec.title}</div>
+        ${rec.message ? `<div class="recommendation-message">${rec.message}</div>` : ''}
+        ${rec.items ? `
+          <div class="recommendation-message">
+            ${rec.items.slice(0, 3).map(item => item.name).join('、')}${rec.items.length > 3 ? '等' : ''}
+          </div>
+        ` : ''}
+        <div class="recommendation-action">💡 ${rec.action}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Load Inventory ──
+async function loadInventory() {
+  try {
+    const d = await api('GET', '/api/v1/items');
+    const container = document.getElementById('inventoryList');
+    
+    if (!d.data || d.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">暂无库存</div></div>';
+      return;
+    }
+    
+    container.innerHTML = d.data.map(item => {
+      const stockPercent = Math.min((item.current_stock / (item.low_stock_threshold * 2)) * 100, 100);
+      const stockColor = item.current_stock <= item.low_stock_threshold ? 'var(--status-error)' : 'var(--accent)';
+      
+      return `
+        <div style="padding:var(--s12) 0;border-bottom:1px solid var(--border-subtle)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-weight:500">${item.name}</span>
+            <span style="color:${stockColor};font-weight:600">${item.current_stock} ${item.default_unit}</span>
+          </div>
+          <div style="height:4px;background:var(--bg-muted);border-radius:2px">
+            <div style="height:100%;width:${stockPercent}%;background:${stockColor};border-radius:2px"></div>
+          </div>
+          <div style="font-size:11px;color:var(--fg-tertiary);margin-top:4px">
+            单价 ¥${item.unit_price} · 库存值 ${formatMoney(item.current_stock * item.unit_price)}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Load inventory error:', e);
+  }
+}
+
+// ── Load Audit Logs ──
+async function loadAuditLogs() {
+  try {
+    const d = await api('GET', '/api/v1/events?limit=10');
+    const container = document.getElementById('auditLogs');
+    
+    if (!d.data || d.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无日志</div></div>';
+      return;
+    }
+    
+    container.innerHTML = d.data.map(event => {
+      const icon = event.event_type === 'stock_in' ? '📥' : '📤';
+      return `
+        <div style="padding:var(--s10) 0;border-bottom:1px solid var(--border-subtle);font-size:13px">
+          <span>${icon}</span>
+          <span style="margin-left:4px">${event.reason || event.event_type}</span>
+          <span style="float:right;color:var(--fg-tertiary);font-size:11px">${event.created_at.split(' ')[0]}</span>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Load audit logs error:', e);
+  }
+}
+
+// ── Chat State ──
+let chatHistory = [];
+
+// ── Display Chat Message ──
+function displayMessage(message, isUser = false) {
+  const container = document.getElementById('chatMessages');
+  const emptyState = container.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.style.cssText = `
+    margin-bottom: var(--s12);
+    display: flex;
+    flex-direction: ${isUser ? 'row-reverse' : 'row'};
+    gap: var(--s8);
+  `;
+  
+  const avatar = document.createElement('div');
+  avatar.style.cssText = `
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: ${isUser ? 'var(--accent)' : 'var(--bg-accent-soft)'};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  `;
+  avatar.textContent = isUser ? '👤' : '🤖';
+  
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `
+    max-width: 80%;
+    padding: var(--s12);
+    border-radius: var(--radius-card);
+    background: ${isUser ? 'var(--accent)' : 'var(--bg-surface)'};
+    color: ${isUser ? 'white' : 'var(--fg-primary)'};
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  `;
+  bubble.textContent = message;
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(bubble);
+  container.appendChild(messageDiv);
+  
+  // Scroll to bottom
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── Display AI Response with Action ──
+function displayAIResponse(response) {
+  const container = document.getElementById('chatMessages');
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.style.cssText = `
+    margin-bottom: var(--s12);
+    display: flex;
+    gap: var(--s8);
+  `;
+  
+  const avatar = document.createElement('div');
+  avatar.style.cssText = `
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  `;
+  avatar.textContent = '🤖';
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.style.cssText = `
+    max-width: 80%;
+    flex: 1;
+  `;
+  
+  // Main reply
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `
+    padding: var(--s12);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    color: var(--fg-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    margin-bottom: var(--s8);
+  `;
+  bubble.textContent = response.reply;
+  contentDiv.appendChild(bubble);
+  
+  // Action result if any
+  if (response.data && response.action !== 'general_chat') {
+    const actionDiv = document.createElement('div');
+    actionDiv.style.cssText = `
+      padding: var(--s10);
+      border-radius: var(--radius-card);
+      background: var(--bg-brand-soft);
+      font-size: 12px;
+      color: var(--status-success);
+    `;
+    
+    let actionText = '';
+    if (response.action === 'stock_in' && response.data.items) {
+      actionText = `✅ 已入库: ${response.data.items.map(i => `${i.name} ${i.quantity}${i.unit}`).join('、')}`;
+    } else if (response.action === 'stock_out' && response.data.items) {
+      actionText = `✅ 已出库: ${response.data.items.map(i => `${i.name} ${i.quantity}${i.unit}`).join('、')}`;
+    } else if (response.action === 'item_create' && response.data.items) {
+      actionText = `✅ 已创建商品: ${response.data.items.map(i => i.name).join('、')}`;
+    } else if (response.action === 'correction') {
+      actionText = `✅ 库存已修正`;
+    }
+    
+    if (actionText) {
+      actionDiv.textContent = actionText;
+      contentDiv.appendChild(actionDiv);
+    }
+  }
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(contentDiv);
+  container.appendChild(messageDiv);
+  
+  // Scroll to bottom
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── Send Chat ──
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+  
+  // Display user message
+  displayMessage(message, true);
+  input.value = '';
+  
+  // Add to history
+  chatHistory.push({ role: 'user', content: message });
+  
+  try {
+    const d = await api('POST', '/api/v1/chat', { message });
+    
+    // Display AI response
+    displayAIResponse(d);
+    
+    // Add to history
+    chatHistory.push({ role: 'assistant', content: d.reply });
+    
+    // Reload dashboard after chat action
+    if (d.action !== 'general_chat') {
+      loadDashboard();
+    }
+  } catch (e) {
+    console.error('Chat error:', e);
+    displayMessage('抱歉，处理您的请求时出现错误。请稍后再试。', false);
+  }
+}
+
+// ── Load Chat History ──
+async function loadChatHistory() {
+  try {
+    const d = await api('GET', '/api/v1/sessions/default/messages?limit=20');
+    const container = document.getElementById('chatMessages');
+    
+    if (d.data && d.data.length > 0) {
+      // Clear empty state
+      container.innerHTML = '';
+      
+      d.data.forEach(msg => {
+        if (msg.actor_type === 'owner') {
+          displayMessage(msg.text, true);
+        } else if (msg.actor_type === 'agent' || msg.actor_type === 'system') {
+          displayMessage(msg.text, false);
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Load chat history error:', e);
+  }
+}
+
+// ── Initialize ──
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  loadChatHistory();
+});
+
+// Handle Enter key in chat
+document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendChat();
+});
+</script>
+
+</body>
+</html>

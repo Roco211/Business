@@ -11,6 +11,7 @@ import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQu
 import type { WorkbenchIntent } from "../../chat/workbenchIntent";
 import { ROOT_TABS } from "../../../app/navigation/rootTabConfig";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
+import { isDeveloperToolsEnabled } from "../../../shared/dev/isDeveloperToolsEnabled";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import {
   AppScreen,
@@ -36,7 +37,7 @@ const CONFIRMATION_LABELS: Record<string, string> = {
 };
 
 const SCREEN_TITLE = "今日门店概览";
-const SCREEN_SUBTITLE = "聚焦门店库存与待处理事项，先看风险，再安排动作。";
+const SCREEN_SUBTITLE = "先看门店风险，再安排今天的处理顺序。";
 
 type HealthTone = "neutral" | "warning" | "error" | "success";
 
@@ -86,10 +87,10 @@ function getConnectionHealth(connectionState: string, bootstrapError: string | n
 
 function getNextActionCopy(pendingCount: number, alertCount: number) {
   if (pendingCount > 0 || alertCount > 0) {
-    return "下一步：前往工作台处理待确认与补货任务。";
+    return "先去工作台处理待确认和补货提醒。";
   }
 
-  return "下一步：前往工作台完成日常巡检。";
+  return "先做一轮语音查货或拍照入库。";
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
@@ -98,6 +99,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const pendingConfirmations = usePendingConfirmationsQuery();
   const demoBootstrap = useDemoBootstrapMutation();
   const sessionStream = useSessionStream();
+  const showDeveloperTools = isDeveloperToolsEnabled();
 
   function refreshDashboard() {
     summary.refresh();
@@ -163,10 +165,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         <InlineNotice
           tone="error"
           title="今日总览暂不可用"
-          message={getFriendlyStatusMessage(
-            refreshError,
-            "请稍后再试。",
-          )}
+          message={getFriendlyStatusMessage(refreshError, "请稍后再试。")}
         />
       </AppScreen>
     );
@@ -203,21 +202,18 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           <InlineNotice
             tone="neutral"
             title={nextActionCopy}
-            message="调试工具保留在下方，排障时再展开即可。"
+            message="如果需要更多上下文，可以从下方常用操作继续处理。"
           />
           {refreshError ? (
             <InlineNotice
               tone="error"
               title="部分数据刷新失败"
-              message={getFriendlyStatusMessage(
-                refreshError,
-                "部分数据更新失败，请稍后再试。",
-              )}
+              message={getFriendlyStatusMessage(refreshError, "部分数据更新失败，请稍后再试。")}
             />
           ) : null}
         </SurfaceCard>
-        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
         <DashboardSummaryHero summary={summary.data} />
+        <DashboardQuickActions onNavigateToWorkbench={handleNavigateToWorkbench} />
         <DashboardExceptionCard
           title="低库存提醒"
           subtitle="优先处理即将断货的商品，减少缺货影响。"
@@ -232,24 +228,26 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           emptyDescription="暂无待处理确认。"
           items={pendingItems}
         />
-        <DebugDisclosure title="调试工具">
-          <View style={styles.debugPanel}>
-            <PrimaryButton
-              label="重置演示数据"
-              loading={demoBootstrap.isSubmitting}
-              loadingLabel="重置中..."
-              onPress={() => {
-                void handleDemoReset();
-              }}
-            />
-            {demoBootstrap.successMessage ? (
-              <InlineNotice tone="success" message={demoBootstrap.successMessage} />
-            ) : null}
-            {demoBootstrap.error ? (
-              <InlineNotice tone="error" title="重置失败" message={demoBootstrap.error} />
-            ) : null}
-          </View>
-        </DebugDisclosure>
+        {showDeveloperTools ? (
+          <DebugDisclosure title="开发调试">
+            <View style={styles.debugPanel}>
+              <PrimaryButton
+                label="重置演示数据"
+                loading={demoBootstrap.isSubmitting}
+                loadingLabel="重置中..."
+                onPress={() => {
+                  void handleDemoReset();
+                }}
+              />
+              {demoBootstrap.successMessage ? (
+                <InlineNotice tone="success" message={demoBootstrap.successMessage} />
+              ) : null}
+              {demoBootstrap.error ? (
+                <InlineNotice tone="error" title="重置失败" message={demoBootstrap.error} />
+              ) : null}
+            </View>
+          </DebugDisclosure>
+        ) : null}
       </ScrollView>
     </AppScreen>
   );

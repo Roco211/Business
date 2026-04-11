@@ -13,7 +13,12 @@ import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 
+let mockShowDeveloperTools = false;
+
 jest.mock("../../../shared/session/useSessionStream");
+jest.mock("../../../shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
 jest.mock("../hooks/useSessionMessagesQuery");
 jest.mock("../hooks/useChatPendingConfirmationsQuery");
 jest.mock("../hooks/useSendMessageMutation");
@@ -43,6 +48,7 @@ const mockedUseSendReceiptDemoMutation = useSendReceiptDemoMutation as jest.Mock
 
 describe("ChatScreen (workbench shell)", () => {
   beforeEach(() => {
+    mockShowDeveloperTools = false;
     mockedUseSessionStream.mockReturnValue({
       sessionId: "sess_1",
       sessionTitle: "Store shift session",
@@ -110,21 +116,21 @@ describe("ChatScreen (workbench shell)", () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("聊天工作台")).toBeTruthy();
+      expect(screen.getByText("门店助理")).toBeTruthy();
       expect(screen.getByText("Store shift session")).toBeTruthy();
       expect(screen.getByText("连接状态")).toBeTruthy();
       expect(screen.getByText("已连接")).toBeTruthy();
-      expect(screen.getByText("业务快捷入口")).toBeTruthy();
-      expect(screen.getByText("语音盘点")).toBeTruthy();
+      expect(screen.getByText("常用入口")).toBeTruthy();
+      expect(screen.getByText("语音查货")).toBeTruthy();
       expect(screen.getByText("拍照入库")).toBeTruthy();
-      expect(screen.getByText("票据录入")).toBeTruthy();
+      expect(screen.getByText("票据识别")).toBeTruthy();
       expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
       expect(screen.getByText("店主")).toBeTruthy();
       expect(screen.getByText("类型：文本")).toBeTruthy();
-      expect(screen.getByPlaceholderText("描述你的请求")).toBeTruthy();
+      expect(screen.getByPlaceholderText("输入今天想处理的事")).toBeTruthy();
       expect(screen.getByText("发送消息")).toBeTruthy();
-      expect(screen.getByText("调试工具")).toBeTruthy();
-      expect(screen.getByText("展开调试信息")).toBeTruthy();
+      expect(screen.queryByLabelText("调试工具")).toBeNull();
+      expect(screen.queryByText("展开调试信息")).toBeNull();
     });
   });
 
@@ -234,11 +240,23 @@ describe("ChatScreen (workbench shell)", () => {
     expect(submitMessage).not.toHaveBeenCalled();
   });
 
-  it("hides legacy media demos until debug disclosure is opened", async () => {
+  it("keeps developer tools out of the default workbench path", async () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
+      expect(screen.queryByLabelText("调试工具")).toBeNull();
+      expect(screen.queryByText("调试工具")).toBeNull();
       expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
+    });
+  });
+
+  it("shows developer tools only when the opt-in helper returns true", async () => {
+    mockShowDeveloperTools = true;
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("调试工具")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByLabelText("调试工具"));
@@ -414,6 +432,7 @@ describe("ChatScreen (workbench shell)", () => {
 
     expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
     expect(screen.getAllByText(FRONTLINE_STATUS_COPY.workbenchUnavailable).length).toBeGreaterThan(0);
+    expect(screen.queryByText(FRONTLINE_STATUS_COPY.networkUnavailable)).toBeNull();
   });
 
   it("shows friendly unavailable titles for shared chat states", async () => {
@@ -447,7 +466,7 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("连接受限")).toBeTruthy();
       expect(screen.getByText("消息列表暂时不可用")).toBeTruthy();
       expect(screen.getByText("待确认事项暂时不可用")).toBeTruthy();
-      expect(screen.getByText("提交仍可继续，但结果刷新可能延迟。")).toBeTruthy();
+      expect(screen.getByText(FRONTLINE_STATUS_COPY.realtimeDegraded)).toBeTruthy();
       expect(screen.getAllByText("Request failed").length).toBeGreaterThanOrEqual(2);
     });
   });
@@ -466,9 +485,6 @@ describe("ChatScreen (workbench shell)", () => {
     await waitFor(() => {
       expect(screen.getByText("从这里发起语音查货")).toBeTruthy();
       expect(screen.getByTestId("guided-pill-voice").props.accessibilityState.selected).toBe(true);
-      const selectedStyleProp = screen.getByTestId("guided-pill-voice").props.style;
-      const selectedStyles = Array.isArray(selectedStyleProp) ? selectedStyleProp : [selectedStyleProp];
-      expect(selectedStyles.some((entry: { borderColor?: string } | null) => entry?.borderColor === "#0071e3")).toBe(true);
     });
   });
 

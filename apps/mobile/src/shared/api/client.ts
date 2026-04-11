@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import { NativeModules, Platform } from "react-native";
 
 import { clearAuthSession, getAccessToken } from "../auth/authStore";
@@ -11,11 +12,18 @@ type ApiRequestOptions = {
 export function getApiBaseUrl(): string {
   const scriptURL =
     typeof NativeModules.SourceCode?.scriptURL === "string" ? NativeModules.SourceCode.scriptURL : null;
+  const runtimeHostUri =
+    typeof Constants.expoConfig?.hostUri === "string"
+      ? Constants.expoConfig.hostUri
+      : typeof (Constants.expoGoConfig as { debuggerHost?: unknown } | null)?.debuggerHost === "string"
+        ? (Constants.expoGoConfig as { debuggerHost: string }).debuggerHost
+        : null;
 
   return resolveApiBaseUrl({
     configuredBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
     platform: Platform.OS === "android" ? "android" : "ios",
     scriptURL,
+    runtimeHostUri,
   });
 }
 

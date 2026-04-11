@@ -37,7 +37,8 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: color.bgApp,
     flex: 1,
-    padding: space.s20,
+    paddingHorizontal: space.s20,
+    paddingTop: space.s24,
   },
   centered: {
     justifyContent: "center",
@@ -48,16 +49,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: color.fgPrimary,
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: "700",
+    letterSpacing: -0.6,
   },
   subtitle: {
     color: color.fgSecondary,
-    fontSize: 16,
+    fontSize: 15,
+    lineHeight: 22,
     marginTop: space.s8,
   },
   body: {
     gap: space.s12,
-    marginTop: space.s16,
+    marginTop: space.s20,
   },
 });

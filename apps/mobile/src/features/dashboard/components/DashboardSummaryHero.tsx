@@ -16,8 +16,9 @@ export function DashboardSummaryHero({ summary }: DashboardSummaryHeroProps) {
   ];
 
   return (
-    <SurfaceCard emphasis="elevated">
-      <SectionHeader title="今日概览" subtitle="四项核心指标帮助你快速判断门店状态。" />
+    <SurfaceCard emphasis="elevated" style={styles.hero}>
+      <Text style={styles.eyebrow}>今天先看店铺概览</Text>
+      <SectionHeader title="店铺概览" subtitle="先看经营状态，再安排今天的处理顺序。" />
       <View style={styles.metrics}>
         {metrics.map((metric) => (
           <View key={metric.key} style={styles.metricItem}>
@@ -31,21 +32,29 @@ export function DashboardSummaryHero({ summary }: DashboardSummaryHeroProps) {
 }
 
 const styles = StyleSheet.create({
+  hero: {
+    gap: space.s12,
+  },
+  eyebrow: {
+    color: color.accentPrimary,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+  },
   metrics: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: space.s8,
-    marginTop: space.s12,
   },
   metricItem: {
-    backgroundColor: color.bgApp,
-    borderColor: color.borderSubtle,
+    backgroundColor: "rgba(255, 255, 255, 0.76)",
+    borderColor: "rgba(45, 33, 28, 0.06)",
     borderRadius: radius.card,
     borderWidth: 1,
     flexGrow: 1,
     minWidth: "48%",
-    paddingHorizontal: space.s12,
-    paddingVertical: space.s12,
+    paddingHorizontal: space.s16,
+    paddingVertical: space.s16,
   },
   metricLabel: {
     color: color.fgSecondary,
@@ -53,7 +62,7 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     color: color.fgPrimary,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "700",
     marginTop: space.s8,
   },

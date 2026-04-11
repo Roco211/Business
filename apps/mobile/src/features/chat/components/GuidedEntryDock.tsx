@@ -8,10 +8,10 @@ import { useSendVoiceDemoMutation } from "../hooks/useSendVoiceDemoMutation";
 import type { WorkbenchIntent } from "../workbenchIntent";
 
 const COPY = {
-  title: "业务快捷入口",
-  subtitle: "用语音盘点、拍照入库或票据录入发起任务。",
-  rehearsalTitle: "流程演练说明",
-  rehearsalMessage: "当前为流程演练，会提交预设样例请求。",
+  title: "常用入口",
+  subtitle: "从语音、拍照和票据入口继续处理门店任务。",
+  rehearsalTitle: "提交后会自动同步",
+  rehearsalMessage: "系统会代你发起当前任务，并在下方返回处理结果。",
   sessionPreparingTitle: "会话正在准备",
   sessionPreparingMessage: "会话仍在同步中，请稍候再尝试提交演练请求。",
   sessionUnavailableTitle: "会话暂不可用",
@@ -23,9 +23,9 @@ const COPY = {
   voiceSubmitting: "正在提交语音查货请求",
   photoSubmitting: "正在提交拍照入库请求",
   receiptSubmitting: "正在提交票据识别请求",
-  voice: "语音盘点",
+  voice: "语音查货",
   photo: "拍照入库",
-  receipt: "票据录入",
+  receipt: "票据识别",
 } as const;
 
 type GuidedEntryStatus =

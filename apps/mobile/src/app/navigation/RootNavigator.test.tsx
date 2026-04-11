@@ -58,5 +58,8 @@ describe("RootNavigator", () => {
     expect(screen.getByText(ROOT_TAB_LABELS.dashboard)).toBeTruthy();
     expect(screen.getByText(ROOT_TAB_LABELS.workbench)).toBeTruthy();
     expect(screen.getByText(ROOT_TAB_LABELS.ledger)).toBeTruthy();
+    expect(screen.queryByText("\\u9996\\u9875")).toBeNull();
+    expect(screen.queryByText("\\u5de5\\u4f5c\\u53f0")).toBeNull();
+    expect(screen.queryByText("\\u53f0\\u8d26")).toBeNull();
   });
 });

@@ -1,11 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react-native";
-import { fireEvent } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import DashboardScreen from "../src/features/dashboard/screens/DashboardScreen";
 
 const SESSION_TITLE = "Demo Workgroup";
 
 let mockDashboardResetVersion = 0;
+let mockShowDeveloperTools = false;
 const mockNotifyDemoDataReset = jest.fn();
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -21,6 +21,10 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
   }),
 }));
 
+jest.mock("../src/shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
+
 describe("DashboardScreen", () => {
   let summaryRequests = 0;
   let alertRequests = 0;
@@ -28,6 +32,7 @@ describe("DashboardScreen", () => {
 
   beforeEach(() => {
     mockDashboardResetVersion = 0;
+    mockShowDeveloperTools = false;
     mockNotifyDemoDataReset.mockReset();
     summaryRequests = 0;
     alertRequests = 0;
@@ -139,38 +144,38 @@ describe("DashboardScreen", () => {
     jest.resetAllMocks();
   });
 
-  it("renders 今日门店概览 with summary, quick actions, and exception lists", async () => {
+  it("renders the merged overview-first dashboard shell", async () => {
     render(<DashboardScreen />);
 
     expect(screen.getByText("正在同步今日门店概览")).toBeTruthy();
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店概览")).toBeTruthy();
-      expect(screen.getByText("聚焦门店库存与待处理事项，先看风险，再安排动作。")).toBeTruthy();
-      expect(screen.getByText("今日入库")).toBeTruthy();
-      expect(screen.getByText("已完成任务")).toBeTruthy();
+      expect(screen.getByText("当前健康")).toBeTruthy();
+      expect(screen.getByText("今天先看店铺概览")).toBeTruthy();
+      expect(screen.getByText("店铺概览")).toBeTruthy();
+      expect(screen.getByText("常用操作")).toBeTruthy();
       expect(screen.getByText("语音查货")).toBeTruthy();
       expect(screen.getByText("拍照入库")).toBeTruthy();
       expect(screen.getByText("票据识别")).toBeTruthy();
-      expect(screen.getAllByText("待确认").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("低库存提醒").length).toBeGreaterThan(0);
       expect(screen.getAllByText("待处理确认").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("低库存提醒").length).toBeGreaterThan(0);
       expect(screen.getByText("Apple")).toBeTruthy();
       expect(screen.getByText("Please confirm the stock-in details before commit.")).toBeTruthy();
     });
   });
 
   it("runs demo reset from dashboard and refreshes dashboard reads", async () => {
+    mockShowDeveloperTools = true;
     const { rerender } = render(<DashboardScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("今日门店概览")).toBeTruthy();
+      expect(screen.getByText("店铺概览")).toBeTruthy();
       expect(summaryRequests).toBe(1);
       expect(alertRequests).toBe(1);
       expect(confirmationRequests).toBe(1);
     });
 
-    fireEvent.press(screen.getByLabelText("调试工具"));
+    fireEvent.press(screen.getByLabelText("开发调试"));
     fireEvent.press(screen.getByText("重置演示数据"));
 
     await waitFor(() => {

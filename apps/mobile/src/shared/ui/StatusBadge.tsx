@@ -29,11 +29,11 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     borderRadius: radius.pill,
     paddingHorizontal: space.s12,
-    paddingVertical: space.s8,
+    paddingVertical: 6,
   },
   label: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
   },
 });

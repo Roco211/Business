@@ -10,6 +10,8 @@ const mockPendingRefresh = jest.fn();
 const mockNotifyDemoDataReset = jest.fn();
 const mockRunDemoBootstrap = jest.fn(async () => null);
 
+let mockShowDeveloperTools = false;
+
 let mockSummaryState: {
   data: {
     shop_id: string;
@@ -60,6 +62,10 @@ let mockSessionStreamState: {
   bootstrapError: null,
 };
 
+jest.mock("../../../shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
+
 jest.mock("../hooks/useDashboardSummaryQuery", () => ({
   useDashboardSummaryQuery: () => ({
     ...mockSummaryState,
@@ -103,6 +109,7 @@ jest.mock("../../../shared/session/useSessionStream", () => ({
 
 describe("DashboardScreen", () => {
   beforeEach(() => {
+    mockShowDeveloperTools = false;
     mockSummaryState = {
       data: {
         shop_id: "shop_default",
@@ -158,8 +165,8 @@ describe("DashboardScreen", () => {
   it("keeps rendered overview visible during background refresh loading", () => {
     const { rerender } = render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
-    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
+    expect(screen.getByText("常用操作")).toBeTruthy();
+    expect(screen.getByText("语音查货")).toBeTruthy();
 
     mockSummaryState = {
       ...mockSummaryState,
@@ -176,9 +183,9 @@ describe("DashboardScreen", () => {
 
     rerender(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
-    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
-    expect(screen.queryByText("\u6b63\u5728\u540c\u6b65\u4eca\u65e5\u95e8\u5e97\u6982\u89c8")).toBeNull();
+    expect(screen.getByText("常用操作")).toBeTruthy();
+    expect(screen.getByText("语音查货")).toBeTruthy();
+    expect(screen.queryByText("正在同步今日门店概览")).toBeNull();
   });
 
   it("shows a friendly unavailable notice for network errors", () => {
@@ -202,20 +209,26 @@ describe("DashboardScreen", () => {
 
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByLabelText("\u8c03\u8bd5\u5de5\u5177")).toBeTruthy();
-    expect(screen.getByText("\u8bed\u97f3\u67e5\u8d27")).toBeTruthy();
-    expect(screen.getByText("\u90e8\u5206\u6570\u636e\u5237\u65b0\u5931\u8d25")).toBeTruthy();
+    expect(screen.getByText("常用操作")).toBeTruthy();
+    expect(screen.getByText("部分数据刷新失败")).toBeTruthy();
     expect(screen.queryByText("今日总览暂不可用")).toBeNull();
   });
 
-  it("keeps debug tools hidden until the disclosure is opened", () => {
+  it("keeps developer tools out of the default dashboard path", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
     expect(screen.getByText("当前健康")).toBeTruthy();
     expect(screen.getByText("连接状态：已连接")).toBeTruthy();
     expect(screen.queryByText("重置演示数据")).toBeNull();
+  });
 
-    fireEvent.press(screen.getByLabelText("调试工具"));
+  it("shows developer tools only when the opt-in helper returns true", () => {
+    mockShowDeveloperTools = true;
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByLabelText("开发调试")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("开发调试"));
     expect(screen.getByText("重置演示数据")).toBeTruthy();
   });
 
@@ -225,7 +238,7 @@ describe("DashboardScreen", () => {
     fireEvent.press(screen.getByText("语音查货"));
     fireEvent.press(screen.getByText("拍照入库"));
     fireEvent.press(screen.getByText("票据识别"));
-    fireEvent.press(screen.getByText("待确认"));
+    fireEvent.press(screen.getAllByText("待处理确认")[1]);
 
     expect(mockNavigate).toHaveBeenNthCalledWith(1, ROOT_TABS.workbench, { initialIntent: "voice-query" });
     expect(mockNavigate).toHaveBeenNthCalledWith(2, ROOT_TABS.workbench, { initialIntent: "photo-stock-in" });

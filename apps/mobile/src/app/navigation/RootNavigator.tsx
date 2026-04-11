@@ -22,8 +22,10 @@ function ProtectedTabs() {
             headerShown: false,
             tabBarActiveTintColor: color.accentPrimary,
             tabBarInactiveTintColor: color.fgTertiary,
+            tabBarItemStyle: styles.tabBarItem,
             tabBarLabel: ROOT_TAB_LABELS[route.name],
             tabBarLabelStyle: styles.tabBarLabel,
+            tabBarShowIcon: false,
             tabBarStyle: styles.tabBar,
           })}
         >
@@ -64,5 +66,8 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontSize: 12,
     fontWeight: "600",
+  },
+  tabBarItem: {
+    paddingVertical: 4,
   },
 });

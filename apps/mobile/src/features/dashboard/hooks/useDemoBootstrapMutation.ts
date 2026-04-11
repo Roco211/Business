@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { apiPostJson } from "../../../shared/api/client";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
 
-
 export type DemoBootstrapSummaryRecord = {
   shop_id: string;
   session_id: string;
@@ -17,11 +16,9 @@ export type DemoBootstrapSummaryRecord = {
   task_run_count: number;
 };
 
-
 type DemoBootstrapResponse = {
   data: DemoBootstrapSummaryRecord;
 };
-
 
 export function useDemoBootstrapMutation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +38,7 @@ export function useDemoBootstrapMutation() {
       setError(null);
       setSuccessMessage(null);
     }
+
     try {
       const response = await apiPostJson<DemoBootstrapResponse, Record<string, never>>(
         "/api/v1/system/demo/bootstrap",

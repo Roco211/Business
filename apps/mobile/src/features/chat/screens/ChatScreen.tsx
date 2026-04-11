@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import type { RootTabParamList } from "../../../app/navigation/rootTabConfig";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
+import { isDeveloperToolsEnabled } from "../../../shared/dev/isDeveloperToolsEnabled";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import {
   AppScreen,
@@ -39,22 +40,22 @@ const COPY = {
   fallbackSessionTitle: "工作台会话",
   loadingTitle: "正在同步工作台",
   loadingDescription: "请稍候，我们正在整理会话消息与待确认事项。",
-  workbenchTitle: "聊天工作台",
+  workbenchTitle: "门店助理",
   sessionUnavailable: "当前会话暂时不可用",
   messagesUnavailable: "消息列表暂时不可用",
   confirmationsUnavailable: "待确认事项暂时不可用",
   taskFirstTitle: "从这里开始",
-  taskFirstSubtitle: "先完成任务入口，再发送文字补充。",
-  pendingTitle: "待确认",
+  taskFirstSubtitle: "先从常用入口发起任务，再补充文字请求。",
+  pendingTitle: "待处理确认",
   pendingSubtitle: "优先完成需要人工复核的项目。",
-  latestResultsTitle: "最新结果",
-  latestResultsSubtitle: "完成当前任务后再向下查看。",
+  latestResultsTitle: "处理进展",
+  latestResultsSubtitle: "消息、结果和待确认事项都会汇总在这里。",
   emptyTitle: "工作台里还没有新消息",
   emptyDescription: "可以先用引导入口，也可以直接发送文字请求。",
-  composeTitle: "发送输入",
-  composeSubtitle: "可直接输入详细请求。",
+  composeTitle: "发消息给门店助理",
+  composeSubtitle: "可以直接描述需求，也可以先选上面的常用入口。",
   messageLabel: "消息",
-  messagePlaceholder: "描述你的请求",
+  messagePlaceholder: "输入今天想处理的事",
   sendFailed: "发送未完成",
   sendAction: "发送消息",
   sendLoading: "正在发送...",
@@ -104,6 +105,7 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
   const isMessagesInitialLoading = messages.isLoading && messages.data.length === 0;
   const [hasShownWorkbenchShell, setHasShownWorkbenchShell] = useState(false);
+  const showDeveloperTools = isDeveloperToolsEnabled();
   const isSessionPreparing =
     sessionStream.sessionId === null
     && sessionStream.bootstrapError === null
@@ -332,9 +334,11 @@ export default function ChatScreen({ route, navigation }: ChatScreenProps = {}) 
               }}
               disabled={isComposerDisabled}
             />
-            <DebugDisclosure title={COPY.debugTools}>
-              <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
-            </DebugDisclosure>
+            {showDeveloperTools ? (
+              <DebugDisclosure title={COPY.debugTools}>
+                <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
+              </DebugDisclosure>
+            ) : null}
           </View>
         </SurfaceCard>
       </ScrollView>

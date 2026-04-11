@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   input: {
-    backgroundColor: color.bgSurface,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderColor: color.borderSubtle,
     borderRadius: radius.input,
     borderWidth: 1,
     color: color.fgPrimary,
-    minHeight: 46,
-    paddingHorizontal: space.s12,
+    minHeight: 52,
+    paddingHorizontal: space.s16,
     paddingVertical: space.s12,
   },
   inputError: {

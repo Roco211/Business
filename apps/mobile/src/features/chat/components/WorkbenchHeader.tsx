@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { PillActionButton, SectionHeader, StatusBadge, SurfaceCard, color, space } from "../../../shared/ui";
+import { PillActionButton, StatusBadge, SurfaceCard, color, space } from "../../../shared/ui";
 import { getWorkbenchConnectionCopy } from "../../../shared/session/getWorkbenchConnectionCopy";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import { SessionStreamConnectionState } from "../../../shared/session/sessionStreamClient";
@@ -46,13 +46,21 @@ export function WorkbenchHeader({
   const resolvedHint = resolvedBootstrapError ? connectionCopy.hint : (hint ?? connectionCopy.hint);
 
   return (
-    <SurfaceCard emphasis="elevated">
+    <SurfaceCard tone="muted" emphasis="elevated" style={styles.shell}>
       <View style={styles.container} testID="chat-workbench-header">
-        <SectionHeader title={title} subtitle={sessionTitle} />
-        <View style={styles.connectionRow}>
-          <Text style={styles.connectionLabel}>连接状态</Text>
+        <View style={styles.identityRow}>
+          <View style={styles.brandBlock}>
+            <View style={styles.brandMark}>
+              <Text style={styles.brandMarkText}>S</Text>
+            </View>
+            <View style={styles.copyBlock}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.sessionTitle}>{sessionTitle}</Text>
+            </View>
+          </View>
           <StatusBadge tone={getConnectionTone(connectionState)} label={connectionCopy.title} />
         </View>
+        <Text style={styles.connectionLabel}>连接状态</Text>
         {resolvedHint ? <Text style={styles.hint}>{resolvedHint}</Text> : null}
         {connectionCopy.actionLabel && onAction ? (
           <PillActionButton label={connectionCopy.actionLabel} onPress={onAction} />
@@ -63,13 +71,50 @@ export function WorkbenchHeader({
 }
 
 const styles = StyleSheet.create({
+  shell: {
+    gap: space.s12,
+  },
   container: {
     gap: space.s12,
   },
-  connectionRow: {
+  identityRow: {
     alignItems: "center",
     flexDirection: "row",
+    gap: space.s12,
     justifyContent: "space-between",
+  },
+  brandBlock: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: space.s12,
+  },
+  brandMark: {
+    alignItems: "center",
+    backgroundColor: color.bgBrandSoft,
+    borderRadius: 18,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  brandMarkText: {
+    color: color.accentPrimary,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  copyBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  title: {
+    color: color.fgPrimary,
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: -0.4,
+  },
+  sessionTitle: {
+    color: color.fgSecondary,
+    fontSize: 13,
   },
   connectionLabel: {
     color: color.fgSecondary,
@@ -79,5 +124,6 @@ const styles = StyleSheet.create({
   hint: {
     color: color.fgSecondary,
     fontSize: 13,
+    lineHeight: 19,
   },
 });

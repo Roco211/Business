@@ -45,7 +45,8 @@ describe("GuidedEntryDock", () => {
 
     render(<GuidedEntryDock sessionId="sess_1" onSubmitted={onSubmitted} highlightedIntent="voice-query" />);
 
-    expect(screen.getByText("当前为流程演练，会提交预设样例请求。")).toBeTruthy();
+    expect(screen.getByText("提交后会自动同步")).toBeTruthy();
+    expect(screen.getByText("系统会代你发起当前任务，并在下方返回处理结果。")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("guided-pill-voice"));
 

@@ -31,6 +31,17 @@ describe("resolveApiBaseUrl", () => {
     ).toBe("http://10.0.2.2:8001");
   });
 
+  it("uses Expo runtime hostUri when SourceCode.scriptURL is unavailable", () => {
+    expect(
+      resolveApiBaseUrl({
+        configuredBaseUrl: "",
+        platform: "android",
+        scriptURL: null,
+        runtimeHostUri: "192.168.1.4:8092",
+      }),
+    ).toBe("http://192.168.1.4:8001");
+  });
+
   it("uses Android emulator fallback when the inferred host is loopback", () => {
     expect(
       resolveApiBaseUrl({
@@ -53,5 +64,9 @@ describe("resolveApiBaseUrl", () => {
     expect(inferDevServerHost("http://192.168.1.4:8081/index.bundle?platform=android")).toBe(
       "192.168.1.4",
     );
+  });
+
+  it("extracts the Metro host from Expo runtime hostUri", () => {
+    expect(inferDevServerHost("192.168.1.4:8092")).toBe("192.168.1.4");
   });
 });

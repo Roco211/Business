@@ -1,21 +1,26 @@
 export const color = {
-  bgApp: "#f5f5f7",
-  bgSurface: "#ffffff",
+  bgApp: "#f6f2ea",
+  bgSurface: "#fffdf8",
   bgElevated: "#ffffff",
-  bgInverse: "#1d1d1f",
-  fgPrimary: "#1d1d1f",
-  fgSecondary: "rgba(29, 29, 31, 0.72)",
-  fgTertiary: "rgba(29, 29, 31, 0.48)",
-  accentPrimary: "#0071e3",
-  statusWarning: "#b26b00",
-  statusError: "#c62828",
-  statusSuccess: "#1f8f4c",
-  borderSubtle: "rgba(29, 29, 31, 0.08)",
-  focusRing: "rgba(0, 113, 227, 0.22)",
+  bgMuted: "#f1ebdf",
+  bgAccentSoft: "#ece6ff",
+  bgBrandSoft: "#e3f1e8",
+  bgInverse: "#2f211c",
+  fgPrimary: "#2d211c",
+  fgSecondary: "rgba(45, 33, 28, 0.72)",
+  fgTertiary: "rgba(45, 33, 28, 0.48)",
+  accentPrimary: "#3f8f63",
+  accentContrast: "#ffffff",
+  statusWarning: "#a06a22",
+  statusError: "#b54738",
+  statusSuccess: "#317e57",
+  borderSubtle: "rgba(45, 33, 28, 0.08)",
+  focusRing: "rgba(63, 143, 99, 0.18)",
 } as const;
 
 export const space = {
   s8: 8,
+  s10: 10,
   s12: 12,
   s16: 16,
   s20: 20,
@@ -24,9 +29,9 @@ export const space = {
 } as const;
 
 export const radius = {
-  card: 12,
-  input: 12,
-  panel: 18,
+  card: 18,
+  input: 18,
+  panel: 28,
   pill: 999,
 } as const;
 

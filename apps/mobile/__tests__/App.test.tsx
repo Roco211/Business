@@ -39,7 +39,7 @@ afterEach(() => {
 test("renders login screen before auth session exists", () => {
   render(<App />);
 
-  expect(screen.getAllByText("登录").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("进入门店助理").length).toBeGreaterThan(0);
 });
 
 test("renders the three primary screen labels when already authenticated", () => {

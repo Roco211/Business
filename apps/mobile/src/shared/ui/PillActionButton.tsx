@@ -28,12 +28,12 @@ export function PillActionButton({ label, disabled, ...pressableProps }: PillAct
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    backgroundColor: color.bgSurface,
+    backgroundColor: "rgba(255, 255, 255, 0.86)",
     borderColor: color.borderSubtle,
     borderRadius: radius.pill,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 40,
+    minHeight: 44,
     paddingHorizontal: space.s16,
     paddingVertical: space.s8,
   },
@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
   label: {
     color: color.fgPrimary,
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 });

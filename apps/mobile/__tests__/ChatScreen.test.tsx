@@ -30,6 +30,7 @@ let mediaUploadRequestCount = 0;
 let mediaUploadPutCount = 0;
 let mediaUploadCompleteCount = 0;
 let mockChatResetVersion = 0;
+let mockShowDeveloperTools = false;
 const mockNotifyChatDemoDataReset = jest.fn();
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -45,12 +46,16 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
   }),
 }));
 
+jest.mock("../src/shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
+
 describe("ChatScreen", () => {
   async function waitForChatReady() {
     await waitFor(
       () => {
-        expect(screen.getByText("聊天工作台")).toBeTruthy();
-        expect(screen.getByText("业务快捷入口")).toBeTruthy();
+        expect(screen.getByText("门店助理")).toBeTruthy();
+        expect(screen.getByText("常用入口")).toBeTruthy();
         expect(screen.getByText(SESSION_TITLE)).toBeTruthy();
         expect(screen.getByText("已连接")).toBeTruthy();
         expect(screen.getAllByText("restock cola").length).toBeGreaterThan(0);
@@ -69,6 +74,7 @@ describe("ChatScreen", () => {
   beforeEach(() => {
     mockLastChatEvent = null;
     mockChatResetVersion = 0;
+    mockShowDeveloperTools = false;
     mockNotifyChatDemoDataReset.mockReset();
     approvalShouldFail = false;
     rejectShouldFail = false;
@@ -641,7 +647,7 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "Count chips too");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "Count chips too");
     fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
@@ -787,10 +793,10 @@ describe("ChatScreen", () => {
 
     await waitForChatReady();
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "   ");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "   ");
     fireEvent.press(screen.getByText("发送消息"));
 
-    fireEvent.changeText(screen.getByPlaceholderText("描述你的请求"), "cola restock");
+    fireEvent.changeText(screen.getByPlaceholderText("输入今天想处理的事"), "cola restock");
     fireEvent.press(screen.getByText("发送消息"));
 
     await waitFor(() => {
@@ -950,6 +956,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a voice stock-in demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -974,6 +981,7 @@ describe("ChatScreen", () => {
 
   it("sends a voice stock-out demo through upload request, completion, and final message post", async () => {
     includeStockOutConfirmation = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -998,6 +1006,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when voice upload request fails", async () => {
     mediaUploadCreateShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1015,6 +1024,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when voice upload PUT fails", async () => {
     mediaUploadPutShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1031,6 +1041,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a photo query demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1054,6 +1065,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a receipt OCR demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1078,6 +1090,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when photo upload request fails", async () => {
     mediaUploadCreateShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();

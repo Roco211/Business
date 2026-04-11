@@ -30,6 +30,7 @@ let mediaUploadRequestCount = 0;
 let mediaUploadPutCount = 0;
 let mediaUploadCompleteCount = 0;
 let mockChatResetVersion = 0;
+let mockShowDeveloperTools = false;
 const mockNotifyChatDemoDataReset = jest.fn();
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -43,6 +44,10 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
     dataResetVersion: mockChatResetVersion,
     notifyDemoDataReset: mockNotifyChatDemoDataReset,
   }),
+}));
+
+jest.mock("../src/shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
 }));
 
 describe("ChatScreen", () => {
@@ -69,6 +74,7 @@ describe("ChatScreen", () => {
   beforeEach(() => {
     mockLastChatEvent = null;
     mockChatResetVersion = 0;
+    mockShowDeveloperTools = false;
     mockNotifyChatDemoDataReset.mockReset();
     approvalShouldFail = false;
     rejectShouldFail = false;
@@ -944,6 +950,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a voice stock-in demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -968,6 +975,7 @@ describe("ChatScreen", () => {
 
   it("sends a voice stock-out demo through upload request, completion, and final message post", async () => {
     includeStockOutConfirmation = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -992,6 +1000,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when voice upload request fails", async () => {
     mediaUploadCreateShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1009,6 +1018,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when voice upload PUT fails", async () => {
     mediaUploadPutShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1025,6 +1035,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a photo query demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1048,6 +1059,7 @@ describe("ChatScreen", () => {
   });
 
   it("sends a receipt OCR demo through upload request, completion, and final message post", async () => {
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();
@@ -1072,6 +1084,7 @@ describe("ChatScreen", () => {
 
   it("shows a recoverable error when photo upload request fails", async () => {
     mediaUploadCreateShouldFail = true;
+    mockShowDeveloperTools = true;
     render(<ChatScreen />);
 
     await waitForChatReady();

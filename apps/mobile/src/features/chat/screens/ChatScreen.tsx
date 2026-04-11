@@ -25,6 +25,7 @@ import { useSendMessageMutation } from "../hooks/useSendMessageMutation";
 import { useSessionMessagesQuery } from "../hooks/useSessionMessagesQuery";
 import { presentRuntimeMessageText } from "../utils/presentRuntimeMessageText";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
+import { isDeveloperToolsEnabled } from "../../../shared/dev/isDeveloperToolsEnabled";
 
 const COPY = {
   fallbackSessionTitle: "工作台会话",
@@ -100,6 +101,7 @@ export default function ChatScreen() {
   const messages = useSessionMessagesQuery(sessionStream.sessionId);
   const confirmations = useChatPendingConfirmationsQuery(sessionStream.sessionId);
   const sendMessage = useSendMessageMutation(sessionStream.sessionId);
+  const showDeveloperTools = isDeveloperToolsEnabled();
 
   function refreshChat() {
     messages.refresh();
@@ -262,9 +264,11 @@ export default function ChatScreen() {
               }}
               disabled={sendMessage.isSubmitting}
             />
-            <DebugDisclosure title={COPY.debugTools}>
-              <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
-            </DebugDisclosure>
+            {showDeveloperTools ? (
+              <DebugDisclosure title={COPY.debugTools}>
+                <MockMediaEntryPanel sessionId={sessionStream.sessionId} onSubmitted={refreshChat} />
+              </DebugDisclosure>
+            ) : null}
           </View>
         </SurfaceCard>
       </ScrollView>

@@ -21,13 +21,15 @@ function ProtectedTabs() {
             headerShown: false,
             tabBarActiveTintColor: color.accentPrimary,
             tabBarInactiveTintColor: color.fgTertiary,
+            tabBarItemStyle: styles.tabBarItem,
             tabBarLabelStyle: styles.tabBarLabel,
+            tabBarShowIcon: false,
             tabBarStyle: styles.tabBar,
           }}
         >
-          <Tab.Screen name="\u9996\u9875" component={DashboardScreen} />
-          <Tab.Screen name="\u5de5\u4f5c\u53f0" component={ChatScreen} />
-          <Tab.Screen name="\u53f0\u8d26" component={LedgerScreen} />
+          <Tab.Screen name="首页" component={DashboardScreen} />
+          <Tab.Screen name="工作台" component={ChatScreen} />
+          <Tab.Screen name="台账" component={LedgerScreen} />
         </Tab.Navigator>
       </NavigationContainer>
     </SessionStreamProvider>

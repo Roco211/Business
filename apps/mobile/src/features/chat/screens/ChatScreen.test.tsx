@@ -22,9 +22,15 @@ const mockedUseChatPendingConfirmationsQuery = useChatPendingConfirmationsQuery 
 const mockedUseSendMessageMutation = useSendMessageMutation as jest.MockedFunction<
   typeof useSendMessageMutation
 >;
+let mockShowDeveloperTools = false;
+
+jest.mock("../../../shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
 
 describe("ChatScreen (workbench shell)", () => {
   beforeEach(() => {
+    mockShowDeveloperTools = false;
     mockedUseSessionStream.mockReturnValue({
       sessionId: "sess_1",
       sessionTitle: "Store shift session",
@@ -90,8 +96,8 @@ describe("ChatScreen (workbench shell)", () => {
       expect(screen.getByText("类型：文本")).toBeTruthy();
       expect(screen.getByPlaceholderText("输入今天想处理的事")).toBeTruthy();
       expect(screen.getByText("发送消息")).toBeTruthy();
-      expect(screen.getByText("调试工具")).toBeTruthy();
-      expect(screen.getByText("展开调试信息")).toBeTruthy();
+      expect(screen.queryByLabelText("调试工具")).toBeNull();
+      expect(screen.queryByText("展开调试信息")).toBeNull();
     });
   });
 
@@ -109,11 +115,23 @@ describe("ChatScreen (workbench shell)", () => {
     expect(screen.getByText("请稍候，我们正在整理会话消息与待确认事项。")).toBeTruthy();
   });
 
-  it("hides legacy media demos until debug disclosure is opened", async () => {
+  it("keeps developer tools out of the default workbench path", async () => {
     render(<ChatScreen />);
 
     await waitFor(() => {
+      expect(screen.queryByLabelText("调试工具")).toBeNull();
+      expect(screen.queryByText("调试工具")).toBeNull();
       expect(screen.queryByText("调试: 语音查询 (旧演示)")).toBeNull();
+    });
+  });
+
+  it("shows developer tools only when the opt-in helper returns true", async () => {
+    mockShowDeveloperTools = true;
+
+    render(<ChatScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("调试工具")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByLabelText("调试工具"));
@@ -285,11 +303,11 @@ describe("ChatScreen (workbench shell)", () => {
 
     render(<ChatScreen />);
 
-    expect(await screen.findByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528")).toBeTruthy();
+    expect(await screen.findByText("工作台暂时不可用")).toBeTruthy();
     expect(
-      screen.getAllByText("\u5de5\u4f5c\u53f0\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002").length,
+      screen.getAllByText("工作台暂时不可用，请稍后再试。").length,
     ).toBeGreaterThan(0);
-    expect(screen.queryByText("\u5f53\u524d\u65e0\u6cd5\u8fde\u63a5\u95e8\u5e97\u670d\u52a1\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002")).toBeNull();
+    expect(screen.queryByText("当前无法连接门店服务，请检查网络后重试。")).toBeNull();
   });
 
   it("shows friendly unavailable titles for shared chat states", async () => {

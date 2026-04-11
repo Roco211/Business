@@ -41,7 +41,7 @@ describe("RootNavigator", () => {
     });
   });
 
-  it("shows updated tab labels when auth session exists", () => {
+  it("shows stable Chinese tab labels when auth session exists", () => {
     act(() => {
       setAuthSession({
         accessToken: "token_existing",
@@ -54,8 +54,11 @@ describe("RootNavigator", () => {
 
     render(<RootNavigator />);
 
-    expect(screen.getByLabelText(/\\u9996\\u9875/)).toBeTruthy();
-    expect(screen.getByLabelText(/\\u5de5\\u4f5c\\u53f0/)).toBeTruthy();
-    expect(screen.getByLabelText(/\\u53f0\\u8d26/)).toBeTruthy();
+    expect(screen.getByLabelText(/首页/)).toBeTruthy();
+    expect(screen.getByLabelText(/工作台/)).toBeTruthy();
+    expect(screen.getByLabelText(/台账/)).toBeTruthy();
+    expect(screen.queryByText("\\u9996\\u9875")).toBeNull();
+    expect(screen.queryByText("\\u5de5\\u4f5c\\u53f0")).toBeNull();
+    expect(screen.queryByText("\\u53f0\\u8d26")).toBeNull();
   });
 });

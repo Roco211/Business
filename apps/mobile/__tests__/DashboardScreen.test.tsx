@@ -6,6 +6,7 @@ import DashboardScreen from "../src/features/dashboard/screens/DashboardScreen";
 const SESSION_TITLE = "Demo Workgroup";
 
 let mockDashboardResetVersion = 0;
+let mockShowDeveloperTools = false;
 const mockNotifyDemoDataReset = jest.fn();
 
 jest.mock("../src/shared/session/useSessionStream", () => ({
@@ -21,6 +22,10 @@ jest.mock("../src/shared/session/useSessionStream", () => ({
   }),
 }));
 
+jest.mock("../src/shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
+
 describe("DashboardScreen", () => {
   let summaryRequests = 0;
   let alertRequests = 0;
@@ -28,6 +33,7 @@ describe("DashboardScreen", () => {
 
   beforeEach(() => {
     mockDashboardResetVersion = 0;
+    mockShowDeveloperTools = false;
     mockNotifyDemoDataReset.mockReset();
     summaryRequests = 0;
     alertRequests = 0;
@@ -164,6 +170,7 @@ describe("DashboardScreen", () => {
   });
 
   it("runs demo reset from dashboard and refreshes dashboard reads", async () => {
+    mockShowDeveloperTools = true;
     const { rerender } = render(<DashboardScreen />);
 
     await waitFor(() => {
@@ -173,7 +180,7 @@ describe("DashboardScreen", () => {
       expect(confirmationRequests).toBe(1);
     });
 
-    fireEvent.press(screen.getByLabelText("调试工具"));
+    fireEvent.press(screen.getByLabelText("开发调试"));
     fireEvent.press(screen.getByText("重置演示数据"));
 
     await waitFor(() => {

@@ -9,6 +9,7 @@ import { useDashboardSummaryQuery } from "../hooks/useDashboardSummaryQuery";
 import { useLowStockAlertsQuery } from "../hooks/useLowStockAlertsQuery";
 import { usePendingConfirmationsQuery } from "../hooks/usePendingConfirmationsQuery";
 import { getFriendlyStatusMessage } from "../../../shared/copy/getFriendlyStatusMessage";
+import { isDeveloperToolsEnabled } from "../../../shared/dev/isDeveloperToolsEnabled";
 import { useSessionStream } from "../../../shared/session/useSessionStream";
 import {
   AppScreen,
@@ -36,7 +37,7 @@ const CONFIRMATION_LABELS: Record<string, string> = {
 };
 
 const SCREEN_TITLE = "今日门店概览";
-const SCREEN_SUBTITLE = "聚焦门店库存与待处理事项，先看风险，再安排动作。";
+const SCREEN_SUBTITLE = "先看门店风险，再安排今天的处理顺序。";
 
 type HealthTone = "neutral" | "warning" | "error" | "success";
 
@@ -126,6 +127,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const pendingConfirmations = usePendingConfirmationsQuery();
   const demoBootstrap = useDemoBootstrapMutation();
   const sessionStream = useSessionStream();
+  const showDeveloperTools = isDeveloperToolsEnabled();
 
   function refreshDashboard() {
     summary.refresh();
@@ -251,24 +253,26 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           emptyDescription="暂无待处理确认。"
           items={pendingItems}
         />
-        <DebugDisclosure title="调试工具">
-          <View style={styles.debugPanel}>
-            <PrimaryButton
-              label="重置演示数据"
-              loading={demoBootstrap.isSubmitting}
-              loadingLabel="重置中..."
-              onPress={() => {
-                void handleDemoReset();
-              }}
-            />
-            {demoBootstrap.successMessage ? (
-              <InlineNotice tone="success" message={demoBootstrap.successMessage} />
-            ) : null}
-            {demoBootstrap.error ? (
-              <InlineNotice tone="error" title="重置失败" message={demoBootstrap.error} />
-            ) : null}
-          </View>
-        </DebugDisclosure>
+        {showDeveloperTools ? (
+          <DebugDisclosure title="开发调试">
+            <View style={styles.debugPanel}>
+              <PrimaryButton
+                label="重置演示数据"
+                loading={demoBootstrap.isSubmitting}
+                loadingLabel="重置中..."
+                onPress={() => {
+                  void handleDemoReset();
+                }}
+              />
+              {demoBootstrap.successMessage ? (
+                <InlineNotice tone="success" message={demoBootstrap.successMessage} />
+              ) : null}
+              {demoBootstrap.error ? (
+                <InlineNotice tone="error" title="重置失败" message={demoBootstrap.error} />
+              ) : null}
+            </View>
+          </DebugDisclosure>
+        ) : null}
       </ScrollView>
     </AppScreen>
   );

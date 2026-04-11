@@ -20,6 +20,7 @@ const mockSummaryRefresh = jest.fn();
 const mockAlertsRefresh = jest.fn();
 const mockPendingRefresh = jest.fn();
 
+let mockShowDeveloperTools = false;
 let mockSummaryState = {
   data: {
     shop_id: "shop_default",
@@ -62,10 +63,14 @@ let mockPendingData = [
     confirmation_type: "voice-stock-in",
     status: "pending",
     fields: {
-      summary: "Please confirm the stock-in details before commit.",
+      summary: "请确认本次入库明细。",
     },
   },
 ];
+
+jest.mock("../../../shared/dev/isDeveloperToolsEnabled", () => ({
+  isDeveloperToolsEnabled: () => mockShowDeveloperTools,
+}));
 
 jest.mock("../hooks/useDashboardSummaryQuery", () => ({
   useDashboardSummaryQuery: () => ({
@@ -114,6 +119,7 @@ jest.mock("../../../shared/session/useSessionStream", () => ({
 
 describe("DashboardScreen layout", () => {
   beforeEach(() => {
+    mockShowDeveloperTools = false;
     mockSummaryState = {
       data: {
         shop_id: "shop_default",
@@ -152,7 +158,7 @@ describe("DashboardScreen layout", () => {
         confirmation_type: "voice-stock-in",
         status: "pending",
         fields: {
-          summary: "Please confirm the stock-in details before commit.",
+          summary: "请确认本次入库明细。",
         },
       },
     ];
@@ -206,6 +212,8 @@ describe("DashboardScreen layout", () => {
   it("renders the overview-first hero, guidance block, and helper quick actions", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
+    expect(screen.getByText("今日门店状态")).toBeTruthy();
+    expect(screen.getByText("今天有几项重点要跟进")).toBeTruthy();
     expect(screen.getByText("今天先看店铺概览")).toBeTruthy();
     expect(screen.getByText("店铺概览")).toBeTruthy();
     expect(screen.getByText("推荐下一步")).toBeTruthy();
@@ -225,38 +233,31 @@ describe("DashboardScreen layout", () => {
     expect(screen.getByText("暂无待处理确认。")).toBeTruthy();
   });
 
-  it("keeps debug tools secondary by hiding actions until the disclosure is opened", () => {
+  it("keeps developer tools out of the default dashboard path", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
-    expect(screen.getByText("推荐下一步")).toBeTruthy();
-    expect(screen.getByText("连接状态：已连接")).toBeTruthy();
-    expect(screen.getByText("先去工作台处理待确认和补货提醒。")).toBeTruthy();
+    expect(screen.queryByLabelText("调试工具")).toBeNull();
+    expect(screen.queryByLabelText("开发调试")).toBeNull();
     expect(screen.queryByText("重置演示数据")).toBeNull();
+  });
 
-    fireEvent.press(screen.getByLabelText("调试工具"));
+  it("shows developer tools only when the opt-in helper returns true", () => {
+    mockShowDeveloperTools = true;
+
+    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
+
+    expect(screen.getByLabelText("开发调试")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("开发调试"));
     expect(screen.getByText("重置演示数据")).toBeTruthy();
   });
 
-  it("shows polished demo reset success copy", () => {
-    mockDemoBootstrapState = {
-      isSubmitting: false,
-      error: null,
-      successMessage: "演示数据已刷新，可继续体验。",
-    };
-
-    render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
-    fireEvent.press(screen.getByLabelText("调试工具"));
-
-    expect(screen.getByText("演示数据已刷新，可继续体验。")).toBeTruthy();
-  });
-
-  it("sends all quick actions to the 工作台 tab", () => {
+  it("sends all quick actions to the workbench tab", () => {
     render(<DashboardScreen navigation={{ navigate: mockNavigate } as never} />);
 
     fireEvent.press(screen.getByText("语音查货"));
     fireEvent.press(screen.getByText("拍照入库"));
     fireEvent.press(screen.getByText("票据识别"));
-    fireEvent.press(screen.getAllByText("待确认")[0]);
+    fireEvent.press(screen.getAllByText("待处理确认")[1]);
 
     expect(mockNavigate).toHaveBeenCalledTimes(4);
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "工作台");

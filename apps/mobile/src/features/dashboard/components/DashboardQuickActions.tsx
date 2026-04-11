@@ -10,7 +10,7 @@ const QUICK_ACTIONS = [
   { key: "voice-inventory", label: "语音查货", detail: "一句话查看库存和缺货风险" },
   { key: "photo-stock-in", label: "拍照入库", detail: "对着商品拍照后继续确认" },
   { key: "receipt-ocr", label: "票据识别", detail: "快速整理票据条目和金额" },
-  { key: "pending-confirmations", label: "待确认", detail: "集中处理待复核事项" },
+  { key: "pending-confirmations", label: "待处理确认", detail: "集中处理待复核事项" },
 ] as const;
 
 export function DashboardQuickActions({ onNavigateToWorkbench }: DashboardQuickActionsProps) {

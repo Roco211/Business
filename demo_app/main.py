@@ -1488,21 +1488,36 @@ def approve_confirmation(confirmation_id: str, req: ApproveRequest):
         return {"data": {"confirmation_id": confirmation_id, "status": "approved"}}
 
 
-# ── HTML Pages ─────────────────────────────────────────────────────────
+# ── H5 Static Assets ──────────────────────────────────────────────────
+H5_DIR = os.path.join(BASE_DIR, "static", "h5")
+if os.path.isdir(H5_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(H5_DIR, "assets")), name="h5-assets")
+
+
+def _read_h5_index():
+    index_path = os.path.join(H5_DIR, "index.html")
+    with open(index_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+# ── HTML Pages (React H5 SPA) ─────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    with open(os.path.join(BASE_DIR, "templates", "demo.html"), "r", encoding="utf-8") as f:
-        return f.read()
+    return _read_h5_index()
 
 
 @app.get("/login", response_class=HTMLResponse)
-def login_page():
-    with open(os.path.join(BASE_DIR, "templates", "login.html"), "r", encoding="utf-8") as f:
-        return f.read()
+@app.get("/products", response_class=HTMLResponse)
+@app.get("/chat", response_class=HTMLResponse)
+@app.get("/profile", response_class=HTMLResponse)
+def spa_routes():
+    """SPA fallback - all app routes return index.html"""
+    return _read_h5_index()
 
 
-@app.get("/test", response_class=HTMLResponse)
-def test_page():
-    with open(os.path.join(BASE_DIR, "templates", "test.html"), "r", encoding="utf-8") as f:
+# Keep legacy demo accessible at /demo
+@app.get("/demo", response_class=HTMLResponse)
+def legacy_demo():
+    with open(os.path.join(BASE_DIR, "templates", "demo.html"), "r", encoding="utf-8") as f:
         return f.read()

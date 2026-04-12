@@ -8,6 +8,7 @@ interface Message {
   roleName?: string;
   roleColor?: string;
   streaming?: boolean;
+  id: number;
 }
 
 const ROLES: Record<string, { name: string; color: string }> = {
@@ -25,24 +26,21 @@ const quickActions = [
   { label: '进货建议', text: '给我一些进货建议' },
 ];
 
+let _msgId = 0;
+function nextId() { return ++_msgId; }
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: '你好！我是小雅，你的AI经营助手。\n\n我可以帮你查营业额、看热销排行、管库存、给进货建议。\n直接问我就好，我会安排对应的专业同事来回答你。' },
+    { id: nextId(), role: 'assistant', text: '你好！我是小雅，你的AI经营助手。\n\n我可以帮你查营业额、看热销排行、管库存、给进货建议。\n直接问我就好，我会安排对应的专业同事来回答你。' },
   ]);
   const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
-  };
+  }, [messages]);
 
   const detectRole = (intent: string) => {
     if (intent.includes('stock_in') || intent.includes('stock_out') || intent.includes('stock_query') || intent.includes('correction')) return ROLES.stock;
@@ -53,59 +51,46 @@ export default function Chat() {
 
   const handleSend = useCallback((text?: string) => {
     const msg = text || input.trim();
-    if (!msg || sending) return;
+    if (!msg) return;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: msg }, { role: 'assistant', text: '', streaming: true }]);
-    setSending(true);
 
-    const abort = chatApi.streamMessage(
+    const userId = nextId();
+    const aiId = nextId();
+    setMessages(prev => [
+      ...prev,
+      { id: userId, role: 'user', text: msg },
+      { id: aiId, role: 'assistant', text: '', streaming: true },
+    ]);
+
+    chatApi.streamMessage(
       msg,
-      // onToken - 流式追加文字
+      // onToken
       (token) => {
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last && last.role === 'assistant' && last.streaming) {
-            updated[updated.length - 1] = { ...last, text: last.text + token };
-          }
-          return updated;
-        });
+        setMessages(prev => prev.map(m =>
+          m.id === aiId ? { ...m, text: m.text + token } : m
+        ));
       },
-      // onDone - 流式结束
+      // onDone
       (data) => {
         const role = detectRole(data.intent || '');
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last && last.role === 'assistant') {
-            updated[updated.length - 1] = {
-              ...last,
-              streaming: false,
-              roleName: role.name,
-              roleColor: role.color,
-              text: last.text || '操作完成',
-            };
-          }
-          return updated;
-        });
-        setSending(false);
+        setMessages(prev => prev.map(m =>
+          m.id === aiId ? {
+            ...m,
+            streaming: false,
+            roleName: role.name,
+            roleColor: role.color,
+            text: m.text || '操作完成',
+          } : m
+        ));
       },
       // onError
-      (err) => {
-        console.error('Stream error:', err);
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last && last.role === 'assistant' && last.streaming) {
-            updated[updated.length - 1] = { ...last, text: last.text || '网络错误，请重试', streaming: false };
-          }
-          return updated;
-        });
-        setSending(false);
+      () => {
+        setMessages(prev => prev.map(m =>
+          m.id === aiId ? { ...m, text: m.text || '网络错误，请重试', streaming: false } : m
+        ));
       }
     );
-    abortRef.current = abort;
-  }, [input, sending]);
+  }, [input]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -124,8 +109,8 @@ export default function Chat() {
       </div>
 
       <div className="chat-body" ref={bodyRef}>
-        {messages.map((msg, i) => (
-          <div key={i}>
+        {messages.map((msg) => (
+          <div key={msg.id}>
             {msg.role === 'assistant' && msg.roleName && msg.roleName !== '小雅' && !msg.streaming && (
               <div className="chat-emp-tag">
                 <span className="dot" style={{ background: msg.roleColor }} />
@@ -134,7 +119,7 @@ export default function Chat() {
             )}
             <div className={`chat-msg ${msg.role === 'user' ? 'self' : ''}`}>
               <div className="chat-bubble">
-                {msg.text || (msg.streaming ? '' : '')}
+                {msg.text}
                 {msg.streaming && <span className="stream-cursor" />}
               </div>
             </div>
@@ -171,11 +156,10 @@ export default function Chat() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             maxLength={500}
-            disabled={sending}
           />
         </div>
-        <button className="chat-send-btn" onClick={() => handleSend()} disabled={sending || !input.trim()}>
-          {sending ? '生成中' : '发送'}
+        <button className="chat-send-btn" onClick={() => handleSend()} disabled={!input.trim()}>
+          发送
         </button>
       </div>
     </div>

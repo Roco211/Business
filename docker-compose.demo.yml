@@ -5,6 +5,7 @@ services:
       dockerfile: demo_app/Dockerfile
     ports:
       - "8081:8081"
+      - "8082:8082"
     environment:
       - VOLCENGINE_API_KEY=5dda09ff-2b12-49d9-9528-c19fb769e483
       - VOLCENGINE_BASE_URL=https://ark.cn-beijing.volces.com/api/v3

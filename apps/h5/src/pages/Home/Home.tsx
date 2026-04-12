@@ -343,8 +343,7 @@ export default function Home() {
       {/* Top nav */}
       <div className="top-nav">
         <div className="top-nav-center">
-          <button className="top-tab active">关注</button>
-          <button className="top-tab">推荐</button>
+          <span className="top-title">AI五金店大管家</span>
         </div>
       </div>
 

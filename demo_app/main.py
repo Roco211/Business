@@ -4,13 +4,16 @@ AI五金店大管家 - 后端服务
 """
 import json
 import os
+import time
+import threading
+from collections import deque
 from datetime import datetime
 from contextlib import asynccontextmanager
 
 import asyncio
 import json as json_lib
 from typing import List
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -156,6 +159,128 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Request Logging Middleware + Debug Server on 8082 ──────────────────
+
+REQUEST_LOGS = deque(maxlen=200)  # ring buffer of recent requests
+LOG_LOCK = threading.Lock()
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    # Read body for logging (non-streaming only)
+    body_bytes = await request.body()
+    body_text = ""
+    if body_bytes and len(body_bytes) < 4096:
+        try:
+            body_text = body_bytes.decode("utf-8", errors="replace")
+        except Exception:
+            body_text = "<binary>"
+
+    response = await call_next(request)
+    duration_ms = round((time.time() - start) * 1000, 1)
+
+    entry = {
+        "time": datetime.now().strftime("%H:%M:%S.%f")[:-3],
+        "method": request.method,
+        "path": request.url.path,
+        "status": response.status_code,
+        "duration_ms": duration_ms,
+        "query": str(request.query_params) if request.query_params else "",
+        "body": body_text[:500] if body_text else "",
+    }
+    with LOG_LOCK:
+        REQUEST_LOGS.appendleft(entry)
+
+    return response
+
+
+def _run_debug_server():
+    """Separate debug server on port 8082 showing request logs."""
+    import uvicorn
+    from fastapi import FastAPI as DebugApp
+
+    debug_app = DebugApp(title="Debug Inspector")
+
+    DEBUG_HTML = """<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Debug Inspector - 8082</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#0d1117;color:#c9d1d9;padding:16px}
+h1{font-size:18px;color:#58a6ff;margin-bottom:12px}
+h1 span{font-size:12px;color:#8b949e;font-weight:400;margin-left:8px}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#c9d1d9;font-size:13px;cursor:pointer}
+.btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.stats{font-size:12px;color:#8b949e;margin-left:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;border-bottom:1px solid #30363d;color:#8b949e;font-weight:500;position:sticky;top:0;background:#0d1117}
+td{padding:7px 10px;border-bottom:1px solid #21262d;word-break:break-all}
+tr:hover td{background:#161b22}
+.method{font-weight:600;min-width:50px}
+.method.GET{color:#3fb950}.method.POST{color:#d29922}.method.PUT{color:#58a6ff}.method.DELETE{color:#f85149}
+.status{font-weight:600}
+.status.s2xx{color:#3fb950}.status.s4xx{color:#d29922}.status.s5xx{color:#f85149}
+.path{color:#c9d1d9}
+.duration{color:#8b949e;text-align:right}
+.body-preview{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b949e;font-size:12px}
+</style></head><body>
+<h1>Debug Inspector <span>port 8082</span></h1>
+<div class="toolbar">
+  <button class="btn active" onclick="toggleAuto(this)">Auto Refresh</button>
+  <button class="btn" onclick="clearLogs()">Clear</button>
+  <div class="stats" id="stats"></div>
+</div>
+<table><thead><tr><th>Time</th><th>Method</th><th>Path</th><th>Status</th><th>Duration</th><th>Body</th></tr></thead>
+<tbody id="tbody"></tbody></table>
+<script>
+let autoRefresh=true;let timer=setInterval(fetchLogs,1000);
+function toggleAuto(btn){autoRefresh=!autoRefresh;btn.classList.toggle('active');if(autoRefresh)timer=setInterval(fetchLogs,1000);else clearInterval(timer)}
+function clearLogs(){fetch('/clear',{method:'POST'}).then(()=>{document.getElementById('tbody').innerHTML='';document.getElementById('stats').textContent=''})}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function fetchLogs(){fetch('/logs?limit=100').then(r=>r.json()).then(data=>{
+  const tbody=document.getElementById('tbody');let html='';
+  data.forEach(l=>{
+    const mc=l.method;const sc='s'+String(l.status)[0]+'xx';
+    html+='<tr><td>'+esc(l.time)+'</td><td class="method '+mc+'">'+mc+'</td><td class="path">'+esc(l.path)+(l.query?' <span style="color:#8b949e">?'+esc(l.query)+'</span>':'')+'</td><td class="status '+sc+'">'+l.status+'</td><td class="duration">'+l.duration_ms+'ms</td><td class="body-preview">'+esc(l.body)+'</td></tr>'
+  });
+  tbody.innerHTML=html;
+  document.getElementById('stats').textContent=data.length+' requests';
+})}
+fetchLogs();
+</script></body></html>"""
+
+    @debug_app.get("/")
+    def debug_dashboard():
+        return HTMLResponse(content=DEBUG_HTML)
+
+    @debug_app.get("/logs")
+    def get_logs(limit: int = 100):
+        with LOG_LOCK:
+            return list(REQUEST_LOGS)[:limit]
+
+    @debug_app.post("/clear")
+    def clear_logs():
+        with LOG_LOCK:
+            REQUEST_LOGS.clear()
+        return {"ok": True}
+
+    uvicorn.run(debug_app, host="0.0.0.0", port=8082, log_level="warning")
+
+
+# Start debug server in background thread with its own event loop
+def _start_debug():
+    import asyncio as _aio
+    loop = _aio.new_event_loop()
+    _aio.set_event_loop(loop)
+    _run_debug_server()
+
+_debug_thread = threading.Thread(target=_start_debug, daemon=True)
+_debug_thread.start()
+print("[Debug] Inspector starting on http://0.0.0.0:8082")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")

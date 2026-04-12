@@ -239,11 +239,11 @@ tr:hover td{background:var(--g50)}
       <div class="pn"><div class="pn-h"><span class="pn-t">营收趋势</span></div><div class="pn-b"><div class="bc" id="billingChart"></div></div></div>
     </div>
 
-    <!-- ===== LLM Usage ===== -->
+    <!-- ===== LLM Token Usage ===== -->
     <div class="pg" id="pg-llm">
       <div class="kpi" id="llmKpi"></div>
-      <div class="pn"><div class="pn-h"><span class="pn-t">AI调用明细</span></div><div class="pn-b" style="padding:0">
-        <div class="tw"><table><thead><tr><th>时间</th><th>店铺</th><th>端点</th><th>意图</th><th>耗时</th><th>状态</th></tr></thead>
+      <div class="pn"><div class="pn-h"><span class="pn-t">Token使用量统计</span></div><div class="pn-b" style="padding:0">
+        <div class="tw"><table><thead><tr><th>分类</th><th>调用次数</th><th>Token总量</th><th>平均延迟</th></tr></thead>
         <tbody id="llmTbl"></tbody></table></div>
       </div></div>
     </div>
@@ -458,24 +458,58 @@ async function loadBilling() {
   ).join('') || '<div class="em">暂无数据</div>';
 }
 
-// ========== LLM ==========
+// ========== LLM Token Usage ==========
 async function loadLLM() {
-  const logs = await fetch(A+'/logs?limit=50').then(r=>r.json()).catch(()=>[]);
-  const llmLogs = logs.filter(l => l.path.includes('/chat'));
-  document.getElementById('llmKpi').innerHTML = [
-    kpi('AI总调用', fn(llmLogs.length), 'pri', 'ri-robot-line', '累计请求'),
-    kpi('平均耗时', llmLogs.length ? fn(llmLogs.reduce((s,l)=>s+l.duration_ms,0)/llmLogs.length)+'ms' : '0ms', 'info', 'ri-timer-line', 'LLM推理'),
-    kpi('成功调用', fn(llmLogs.filter(l=>l.status<400).length), 'ok', 'ri-check-double-line', '成功率 '+(llmLogs.length?Math.round(llmLogs.filter(l=>l.status<400).length/llmLogs.length*100):100)+'%'),
-    kpi('失败调用', fn(llmLogs.filter(l=>l.status>=400).length), 'err', 'ri-error-warning-line', '需要关注'),
-  ].join('');
-  document.getElementById('llmTbl').innerHTML = llmLogs.length ? llmLogs.map(l => `<tr>
-    <td style="font-size:11px;color:var(--g400)">${l.time}</td>
-    <td><span class="bd bd-g">${l.method}</span></td>
-    <td style="font-size:12px">${l.path}</td>
-    <td style="font-size:12px">${(l.body||'').slice(0,40)}</td>
-    <td style="font-variant-numeric:tabular-nums">${l.duration_ms}ms</td>
-    <td><span class="bd ${l.status<400?'bd-ok':'bd-err'}">${l.status}</span></td>
-  </tr>`).join('') : '<tr><td colspan="6" class="em"><i class="ri-robot-line"></i>暂无AI调用记录</td></tr>';
+  try {
+    const res = await pj('/v1/token-usage?days=7');
+    const d = res.data || {};
+    const s = d.summary || {};
+    const byModel = d.by_model || [];
+    const byUser = d.by_user || [];
+    const daily = d.daily || [];
+
+    document.getElementById('llmKpi').innerHTML = [
+      kpi('总Token消耗', fn(s.total_tokens || 0), 'pri', 'ri-coin-line', fn(s.call_count || 0) + ' 次调用'),
+      kpi('Prompt Tokens', fn(s.total_prompt_tokens || 0), 'info', 'ri-input-field', '输入token'),
+      kpi('Completion Tokens', fn(s.total_completion_tokens || 0), 'ok', 'ri-output-field', '输出token'),
+      kpi('平均延迟', (s.avg_latency_ms || 0) + 'ms', 'warn', 'ri-timer-line', 'LLM推理耗时'),
+    ].join('');
+
+    // By model table
+    let modelRows = byModel.map(m => `<tr>
+      <td style="font-weight:600">${esc(m.model || '-')}</td>
+      <td style="font-weight:600">${fn(m.calls)}</td>
+      <td style="font-weight:700;color:var(--pri)">${fn(m.tokens)}</td>
+      <td>${m.avg_latency_ms}ms</td>
+    </tr>`).join('');
+
+    // By user table
+    let userRows = byUser.map(u => `<tr>
+      <td style="font-size:11px;color:var(--g400)">${esc(u.user_id || '-')}</td>
+      <td style="font-weight:600">${fn(u.calls)}</td>
+      <td style="font-weight:700;color:var(--pri)">${fn(u.tokens)}</td>
+      <td>${u.avg_latency_ms}ms</td>
+    </tr>`).join('');
+
+    // Daily chart
+    const mx = Math.max(...daily.map(x => x.tokens), 1);
+    const chartHtml = daily.length ? daily.map(x =>
+      `<div class="bi"><div class="bv">${fn(x.tokens)}</div><div class="br" style="height:${Math.max(x.tokens/mx*100,2)}%"></div><div class="bl">${x.date.slice(5)}</div></div>`
+    ).join('') : '<div class="em">暂无token消耗数据</div>';
+
+    document.getElementById('llmTbl').innerHTML = `
+      <tr><td colspan="4" style="padding:12px 0;font-weight:700;font-size:13px;color:var(--g900);border-bottom:2px solid var(--g200)">按模型统计</td></tr>
+      <tr><th>模型</th><th>调用次数</th><th>Token总量</th><th>平均延迟</th></tr>
+      ${modelRows || '<tr><td colspan="4" class="em">暂无数据</td></tr>'}
+      <tr><td colspan="4" style="padding:16px 0 12px;font-weight:700;font-size:13px;color:var(--g900);border-bottom:2px solid var(--g200)">按用户统计</td></tr>
+      <tr><th>用户ID</th><th>调用次数</th><th>Token总量</th><th>平均延迟</th></tr>
+      ${userRows || '<tr><td colspan="4" class="em">暂无数据</td></tr>'}
+      <tr><td colspan="4" style="padding:16px 0 12px;font-weight:700;font-size:13px;color:var(--g900);border-bottom:2px solid var(--g200)">每日趋势</td></tr>
+      <tr><td colspan="4"><div class="bc" style="height:120px">${chartHtml}</div></td></tr>
+    `;
+  } catch(e) {
+    document.getElementById('llmTbl').innerHTML = '<tr><td colspan="4" class="em">加载失败</td></tr>';
+  }
 }
 
 // ========== Logs ==========

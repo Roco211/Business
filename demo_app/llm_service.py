@@ -25,7 +25,14 @@ def _get_client() -> OpenAI:
 
 
 def _chat(system: str, user: str, *, temperature: float = 0.1, json_mode: bool = False) -> str:
-    """Call Volcano Engine chat completion."""
+    """Call Volcano Engine chat completion. Returns content string."""
+    content, _ = _chat_with_usage(system, user, temperature=temperature, json_mode=json_mode)
+    return content
+
+
+def _chat_with_usage(system: str, user: str, *, temperature: float = 0.1, json_mode: bool = False):
+    """Call Volcano Engine chat completion. Returns (content, usage_dict)."""
+    import time
     client = _get_client()
     kwargs = {
         "model": VOLCENGINE_MODEL,
@@ -38,8 +45,18 @@ def _chat(system: str, user: str, *, temperature: float = 0.1, json_mode: bool =
     }
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
+    t0 = time.time()
     resp = client.chat.completions.create(**kwargs)
-    return resp.choices[0].message.content.strip()
+    latency_ms = int((time.time() - t0) * 1000)
+    content = resp.choices[0].message.content.strip()
+    usage = {
+        "prompt_tokens": getattr(resp.usage, "prompt_tokens", 0) if resp.usage else 0,
+        "completion_tokens": getattr(resp.usage, "completion_tokens", 0) if resp.usage else 0,
+        "total_tokens": getattr(resp.usage, "total_tokens", 0) if resp.usage else 0,
+        "latency_ms": latency_ms,
+        "model": VOLCENGINE_MODEL,
+    }
+    return content, usage
 
 
 # ── Intent Classification ──────────────────────────────────────────────
@@ -375,19 +392,36 @@ def _chat_fallback_reply(user_message: str) -> str:
 
 def chat_reply(user_message: str, history: list[dict] | None = None) -> str:
     """General conversational reply."""
+    reply, _ = chat_reply_with_usage(user_message, history)
+    return reply
+
+
+def chat_reply_with_usage(user_message: str, history: list[dict] | None = None):
+    """General conversational reply with token usage tracking."""
+    import time
     try:
         client = _get_client()
         messages = [{"role": "system", "content": CHAT_SYSTEM}]
         if history:
             messages.extend(history[-10:])  # Keep last 10 messages for context
         messages.append({"role": "user", "content": user_message})
+        t0 = time.time()
         resp = client.chat.completions.create(
             model=VOLCENGINE_MODEL,
             messages=messages,
             temperature=0.8,
             max_tokens=1024,
         )
-        return resp.choices[0].message.content.strip()
+        latency_ms = int((time.time() - t0) * 1000)
+        reply = resp.choices[0].message.content.strip()
+        usage = {
+            "prompt_tokens": getattr(resp.usage, "prompt_tokens", 0) if resp.usage else 0,
+            "completion_tokens": getattr(resp.usage, "completion_tokens", 0) if resp.usage else 0,
+            "total_tokens": getattr(resp.usage, "total_tokens", 0) if resp.usage else 0,
+            "latency_ms": latency_ms,
+            "model": VOLCENGINE_MODEL,
+        }
+        return reply, usage
     except Exception as e:
         import traceback
         print(f"[LLM Error] {type(e).__name__}: {e}")

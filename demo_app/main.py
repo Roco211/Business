@@ -23,9 +23,10 @@ from demo_app.database import (
     db, init_db, seed_default_shop, _new_id, _now,
     create_user, get_user_by_username, get_user_by_phone, get_user_by_email,
     update_user_login, create_verification_code, verify_code,
-    create_session, get_session, delete_session, hash_password, verify_password
+    create_session, get_session, delete_session, hash_password, verify_password,
+    log_token_usage
 )
-from demo_app.llm_service import classify_intent, extract_entities, generate_response, chat_reply, chat_stream
+from demo_app.llm_service import classify_intent, extract_entities, generate_response, chat_reply, chat_reply_with_usage, chat_stream, _chat_with_usage
 
 
 # ── Pydantic Models ────────────────────────────────────────────────────
@@ -887,7 +888,15 @@ def _handle_general_chat(user_msg: str, session_id: str) -> ChatResponse:
             if row["text"]:
                 history.append({"role": role, "content": row["text"]})
 
-    reply = chat_reply(user_msg, history)
+    reply, usage = chat_reply_with_usage(user_msg, history)
+
+    # Log token usage
+    try:
+        log_token_usage(SHOP_ID, "unknown", usage.get("model", ""), "chat",
+                        usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0),
+                        usage.get("latency_ms", 0))
+    except Exception:
+        pass
 
     # Save message
     with db() as conn:
@@ -1259,6 +1268,86 @@ def get_messages(session_id: str, limit: int = Query(default=50, le=200)):
                 "actor_id": r["actor_id"], "message_type": r["message_type"],
                 "text": r["text"], "created_at": r["created_at"],
             } for r in reversed(rows)]
+        }
+
+
+# ── REST API: Token Usage ─────────────────────────────────────────────
+
+@app.get("/api/v1/token-usage")
+def get_token_usage(
+    model: str | None = None,
+    user_id: str | None = None,
+    days: int = Query(default=7, ge=1, le=90),
+):
+    """Get token usage statistics, filterable by model and user."""
+    with db() as conn:
+        # Summary stats
+        query = """SELECT
+            COUNT(*) as call_count,
+            COALESCE(SUM(prompt_tokens), 0) as total_prompt,
+            COALESCE(SUM(completion_tokens), 0) as total_completion,
+            COALESCE(SUM(total_tokens), 0) as total_tokens,
+            COALESCE(AVG(latency_ms), 0) as avg_latency
+            FROM token_usage WHERE shop_id = ? AND created_at >= date('now', ?)"""
+        params = [SHOP_ID, f"-{days} days"]
+        if model:
+            query += " AND model = ?"
+            params.append(model)
+        if user_id:
+            query += " AND user_id = ?"
+            params.append(user_id)
+        summary = conn.execute(query, params).fetchone()
+
+        # Per-model breakdown
+        models = conn.execute(
+            """SELECT model, COUNT(*) as calls, SUM(total_tokens) as tokens,
+               AVG(latency_ms) as avg_latency
+               FROM token_usage WHERE shop_id = ? AND created_at >= date('now', ?)
+               GROUP BY model ORDER BY tokens DESC""",
+            (SHOP_ID, f"-{days} days")
+        ).fetchall()
+
+        # Per-user breakdown
+        users = conn.execute(
+            """SELECT user_id, COUNT(*) as calls, SUM(total_tokens) as tokens,
+               AVG(latency_ms) as avg_latency
+               FROM token_usage WHERE shop_id = ? AND created_at >= date('now', ?)
+               GROUP BY user_id ORDER BY tokens DESC LIMIT 20""",
+            (SHOP_ID, f"-{days} days")
+        ).fetchall()
+
+        # Daily trend
+        daily = conn.execute(
+            """SELECT date(created_at) as date, SUM(total_tokens) as tokens,
+               COUNT(*) as calls
+               FROM token_usage WHERE shop_id = ? AND created_at >= date('now', ?)
+               GROUP BY date(created_at) ORDER BY date(created_at)""",
+            (SHOP_ID, f"-{days} days")
+        ).fetchall()
+
+        return {
+            "data": {
+                "summary": {
+                    "call_count": summary["call_count"],
+                    "total_prompt_tokens": summary["total_prompt"],
+                    "total_completion_tokens": summary["total_completion"],
+                    "total_tokens": summary["total_tokens"],
+                    "avg_latency_ms": round(summary["avg_latency"], 1),
+                },
+                "by_model": [{
+                    "model": r["model"], "calls": r["calls"],
+                    "tokens": r["tokens"],
+                    "avg_latency_ms": round(r["avg_latency"], 1),
+                } for r in models],
+                "by_user": [{
+                    "user_id": r["user_id"], "calls": r["calls"],
+                    "tokens": r["tokens"],
+                    "avg_latency_ms": round(r["avg_latency"], 1),
+                } for r in users],
+                "daily": [{
+                    "date": r["date"], "tokens": r["tokens"], "calls": r["calls"],
+                } for r in daily],
+            }
         }
 
 

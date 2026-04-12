@@ -183,6 +183,22 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_verification_codes_code ON verification_codes(code);
         CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
         CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+
+        CREATE TABLE IF NOT EXISTS token_usage (
+            id TEXT PRIMARY KEY,
+            shop_id TEXT,
+            user_id TEXT,
+            model TEXT,
+            endpoint TEXT,
+            prompt_tokens INTEGER DEFAULT 0,
+            completion_tokens INTEGER DEFAULT 0,
+            total_tokens INTEGER DEFAULT 0,
+            latency_ms INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_token_usage_shop ON token_usage(shop_id);
+        CREATE INDEX IF NOT EXISTS idx_token_usage_user ON token_usage(user_id);
+        CREATE INDEX IF NOT EXISTS idx_token_usage_created ON token_usage(created_at);
         """)
 
 
@@ -376,3 +392,17 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
     return hash_password(password) == hashed
+
+
+def log_token_usage(shop_id: str, user_id: str, model: str, endpoint: str,
+                    prompt_tokens: int, completion_tokens: int, latency_ms: int):
+    """Log LLM token usage for billing and monitoring."""
+    with db() as conn:
+        conn.execute(
+            """INSERT INTO token_usage (id, shop_id, user_id, model, endpoint,
+               prompt_tokens, completion_tokens, total_tokens, latency_ms, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (_new_id("tok"), shop_id, user_id, model, endpoint,
+             prompt_tokens, completion_tokens, prompt_tokens + completion_tokens,
+             latency_ms, _now())
+        )

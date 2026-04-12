@@ -2,25 +2,15 @@ import { API_BASE } from './client';
 import type { ChatResponse } from '../types';
 
 export const chatApi = {
-  async sendMessage(message: string): Promise<ChatResponse> {
-    const res = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, session_id: 'default' }),
-    });
-    return res.json();
-  },
-
-  // SSE流式聊天
+  // SSE流式聊天（主要调用方式）
   streamMessage(
     message: string,
     onToken: (token: string) => void,
     onDone: (data: ChatResponse) => void,
     onError: (error: Error) => void
-  ) {
+  ): () => void {
     const token = localStorage.getItem('authToken');
     const url = `${API_BASE}/chat/stream?token=${token || ''}`;
-
     const controller = new AbortController();
 
     fetch(url, {

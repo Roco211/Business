@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { chatApi } from '../../api/chat';
 import './Chat.css';
 
@@ -7,6 +7,7 @@ interface Message {
   text: string;
   roleName?: string;
   roleColor?: string;
+  streaming?: boolean;
 }
 
 const ROLES: Record<string, { name: string; color: string }> = {
@@ -18,10 +19,10 @@ const ROLES: Record<string, { name: string; color: string }> = {
 };
 
 const quickActions = [
-  { label: '查营业额', text: '今天营业额怎么样？', icon: 'zap' },
-  { label: '热销排行', text: '哪些商品卖得最好？', icon: 'star' },
-  { label: '库存预警', text: '有没有库存预警？', icon: 'bell' },
-  { label: '进货建议', text: '给我一些进货建议', icon: 'gift' },
+  { label: '查营业额', text: '今天营业额怎么样？' },
+  { label: '热销排行', text: '哪些商品卖得最好？' },
+  { label: '库存预警', text: '有没有库存预警？' },
+  { label: '进货建议', text: '给我一些进货建议' },
 ];
 
 export default function Chat() {
@@ -30,12 +31,12 @@ export default function Chat() {
   ]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [typing, setTyping] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, typing]);
+  }, [messages]);
 
   const scrollToBottom = () => {
     if (bodyRef.current) {
@@ -50,31 +51,61 @@ export default function Chat() {
     return ROLES.xiaoya;
   };
 
-  const handleSend = async (text?: string) => {
+  const handleSend = useCallback((text?: string) => {
     const msg = text || input.trim();
     if (!msg || sending) return;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: msg }]);
+    setMessages(prev => [...prev, { role: 'user', text: msg }, { role: 'assistant', text: '', streaming: true }]);
     setSending(true);
-    setTyping(true);
 
-    try {
-      const res = await chatApi.sendMessage(msg);
-      setTyping(false);
-      const role = detectRole(res.intent || '');
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        text: res.reply || '抱歉，暂时无法回答',
-        roleName: role.name,
-        roleColor: role.color,
-      }]);
-    } catch {
-      setTyping(false);
-      setMessages(prev => [...prev, { role: 'assistant', text: '网络错误，请重试' }]);
-    } finally {
-      setSending(false);
-    }
-  };
+    const abort = chatApi.streamMessage(
+      msg,
+      // onToken - 流式追加文字
+      (token) => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === 'assistant' && last.streaming) {
+            updated[updated.length - 1] = { ...last, text: last.text + token };
+          }
+          return updated;
+        });
+      },
+      // onDone - 流式结束
+      (data) => {
+        const role = detectRole(data.intent || '');
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === 'assistant') {
+            updated[updated.length - 1] = {
+              ...last,
+              streaming: false,
+              roleName: role.name,
+              roleColor: role.color,
+              text: last.text || '操作完成',
+            };
+          }
+          return updated;
+        });
+        setSending(false);
+      },
+      // onError
+      (err) => {
+        console.error('Stream error:', err);
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === 'assistant' && last.streaming) {
+            updated[updated.length - 1] = { ...last, text: last.text || '网络错误，请重试', streaming: false };
+          }
+          return updated;
+        });
+        setSending(false);
+      }
+    );
+    abortRef.current = abort;
+  }, [input, sending]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -95,16 +126,19 @@ export default function Chat() {
       <div className="chat-body" ref={bodyRef}>
         {messages.map((msg, i) => (
           <div key={i}>
-            {msg.role === 'assistant' && msg.roleName && msg.roleName !== '小雅' && (
+            {msg.role === 'assistant' && msg.roleName && msg.roleName !== '小雅' && !msg.streaming && (
               <div className="chat-emp-tag">
                 <span className="dot" style={{ background: msg.roleColor }} />
                 {msg.roleName}
               </div>
             )}
             <div className={`chat-msg ${msg.role === 'user' ? 'self' : ''}`}>
-              <div className="chat-bubble">{msg.text}</div>
+              <div className="chat-bubble">
+                {msg.text || (msg.streaming ? '' : '')}
+                {msg.streaming && <span className="stream-cursor" />}
+              </div>
             </div>
-            {msg.role === 'assistant' && (
+            {msg.role === 'assistant' && !msg.streaming && msg.text && (
               <div className="chat-actions">
                 <button className="chat-act-btn" onClick={() => navigator.clipboard.writeText(msg.text)} title="复制">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a90e2" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
@@ -116,13 +150,6 @@ export default function Chat() {
             )}
           </div>
         ))}
-        {typing && (
-          <div className="chat-typing">
-            <div className="chat-bubble">
-              <div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="chat-func-bar">
@@ -148,7 +175,7 @@ export default function Chat() {
           />
         </div>
         <button className="chat-send-btn" onClick={() => handleSend()} disabled={sending || !input.trim()}>
-          发送
+          {sending ? '生成中' : '发送'}
         </button>
       </div>
     </div>

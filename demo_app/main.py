@@ -196,91 +196,100 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-def _run_debug_server():
-    """Separate debug server on port 8082 showing request logs."""
+def _run_admin_server():
+    """Admin dashboard server on port 8082 with full management UI."""
     import uvicorn
-    from fastapi import FastAPI as DebugApp
+    from fastapi import FastAPI as AdminApp
+    from fastapi.staticfiles import StaticFiles as AdminStatic
+    from fastapi.responses import HTMLResponse as AdminHTML
 
-    debug_app = DebugApp(title="Debug Inspector")
+    admin_app = AdminApp(title="AI Store Manager Admin")
 
-    DEBUG_HTML = """<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Debug Inspector - 8082</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#0d1117;color:#c9d1d9;padding:16px}
-h1{font-size:18px;color:#58a6ff;margin-bottom:12px}
-h1 span{font-size:12px;color:#8b949e;font-weight:400;margin-left:8px}
-.toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
-.btn{padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#c9d1d9;font-size:13px;cursor:pointer}
-.btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
-.stats{font-size:12px;color:#8b949e;margin-left:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:8px 10px;border-bottom:1px solid #30363d;color:#8b949e;font-weight:500;position:sticky;top:0;background:#0d1117}
-td{padding:7px 10px;border-bottom:1px solid #21262d;word-break:break-all}
-tr:hover td{background:#161b22}
-.method{font-weight:600;min-width:50px}
-.method.GET{color:#3fb950}.method.POST{color:#d29922}.method.PUT{color:#58a6ff}.method.DELETE{color:#f85149}
-.status{font-weight:600}
-.status.s2xx{color:#3fb950}.status.s4xx{color:#d29922}.status.s5xx{color:#f85149}
-.path{color:#c9d1d9}
-.duration{color:#8b949e;text-align:right}
-.body-preview{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b949e;font-size:12px}
-</style></head><body>
-<h1>Debug Inspector <span>port 8082</span></h1>
-<div class="toolbar">
-  <button class="btn active" onclick="toggleAuto(this)">Auto Refresh</button>
-  <button class="btn" onclick="clearLogs()">Clear</button>
-  <div class="stats" id="stats"></div>
-</div>
-<table><thead><tr><th>Time</th><th>Method</th><th>Path</th><th>Status</th><th>Duration</th><th>Body</th></tr></thead>
-<tbody id="tbody"></tbody></table>
-<script>
-let autoRefresh=true;let timer=setInterval(fetchLogs,1000);
-function toggleAuto(btn){autoRefresh=!autoRefresh;btn.classList.toggle('active');if(autoRefresh)timer=setInterval(fetchLogs,1000);else clearInterval(timer)}
-function clearLogs(){fetch('/clear',{method:'POST'}).then(()=>{document.getElementById('tbody').innerHTML='';document.getElementById('stats').textContent=''})}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function fetchLogs(){fetch('/logs?limit=100').then(r=>r.json()).then(data=>{
-  const tbody=document.getElementById('tbody');let html='';
-  data.forEach(l=>{
-    const mc=l.method;const sc='s'+String(l.status)[0]+'xx';
-    html+='<tr><td>'+esc(l.time)+'</td><td class="method '+mc+'">'+mc+'</td><td class="path">'+esc(l.path)+(l.query?' <span style="color:#8b949e">?'+esc(l.query)+'</span>':'')+'</td><td class="status '+sc+'">'+l.status+'</td><td class="duration">'+l.duration_ms+'ms</td><td class="body-preview">'+esc(l.body)+'</td></tr>'
-  });
-  tbody.innerHTML=html;
-  document.getElementById('stats').textContent=data.length+' requests';
-})}
-fetchLogs();
-</script></body></html>"""
+    # Load admin HTML
+    _admin_html_path = os.path.join(BASE_DIR, "admin", "index.html")
+    _admin_html = ""
+    if os.path.isfile(_admin_html_path):
+        with open(_admin_html_path, "r", encoding="utf-8") as f:
+            _admin_html = f.read()
 
-    @debug_app.get("/")
-    def debug_dashboard():
-        return HTMLResponse(content=DEBUG_HTML)
+    # Admin static assets (if any)
+    _admin_static_dir = os.path.join(BASE_DIR, "admin", "static")
+    if os.path.isdir(_admin_static_dir):
+        admin_app.mount("/static", AdminStatic(directory=_admin_static_dir), name="admin-static")
 
-    @debug_app.get("/logs")
+    @admin_app.get("/")
+    def admin_dashboard():
+        if _admin_html:
+            return AdminHTML(content=_admin_html)
+        return AdminHTML(content="<h1>Admin dashboard not found</h1>")
+
+    @admin_app.get("/api/logs")
     def get_logs(limit: int = 100):
         with LOG_LOCK:
             return list(REQUEST_LOGS)[:limit]
 
-    @debug_app.post("/clear")
+    @admin_app.post("/api/clear")
     def clear_logs():
         with LOG_LOCK:
             REQUEST_LOGS.clear()
         return {"ok": True}
 
-    uvicorn.run(debug_app, host="0.0.0.0", port=8082, log_level="warning")
+    @admin_app.get("/api/admin/users")
+    def admin_list_users():
+        """List all registered users."""
+        try:
+            with db() as conn:
+                rows = conn.execute(
+                    "SELECT user_id, shop_id, username, phone, email, nickname, status, created_at, last_login_at FROM users ORDER BY created_at DESC LIMIT 200"
+                ).fetchall()
+                return {
+                    "data": [{
+                        "user_id": r["user_id"],
+                        "shop_id": r["shop_id"],
+                        "username": r["username"],
+                        "phone": r["phone"],
+                        "email": r["email"],
+                        "nickname": r["nickname"],
+                        "status": r["status"] or "active",
+                        "created_at": r["created_at"],
+                        "last_login_at": r["last_login_at"],
+                    } for r in rows]
+                }
+        except Exception as e:
+            return {"data": [], "error": str(e)}
+
+    # Proxy endpoints for admin dashboard to call main app APIs
+    @admin_app.get("/api/v1/{path:path}")
+    async def proxy_get(path: str, request: Request):
+        """Proxy GET requests to main app."""
+        import httpx
+        params = dict(request.query_params)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"http://127.0.0.1:8081/api/v1/{path}", params=params)
+            return resp.json()
+
+    @admin_app.post("/api/v1/{path:path}")
+    async def proxy_post(path: str, request: Request):
+        """Proxy POST requests to main app."""
+        import httpx
+        body = await request.json()
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(f"http://127.0.0.1:8081/api/v1/{path}", json=body)
+            return resp.json()
+
+    uvicorn.run(admin_app, host="0.0.0.0", port=8082, log_level="warning")
 
 
-# Start debug server in background thread with its own event loop
-def _start_debug():
+# Start admin server in background thread with its own event loop
+def _start_admin():
     import asyncio as _aio
     loop = _aio.new_event_loop()
     _aio.set_event_loop(loop)
-    _run_debug_server()
+    _run_admin_server()
 
-_debug_thread = threading.Thread(target=_start_debug, daemon=True)
-_debug_thread.start()
-print("[Debug] Inspector starting on http://0.0.0.0:8082")
+_admin_thread = threading.Thread(target=_start_admin, daemon=True)
+_admin_thread.start()
+print("[Admin] Dashboard starting on http://0.0.0.0:8082")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")

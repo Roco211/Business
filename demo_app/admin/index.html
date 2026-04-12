@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI五金店 - 管理后台</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+/* ========== Reset & Base ========== */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --sidebar-w:240px;
+  --primary:#4f46e5;
+  --primary-light:#818cf8;
+  --primary-bg:#eef2ff;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --info:#3b82f6;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;
+  --gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;
+  --gray-900:#111827;
+  --radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;overflow:hidden}
+
+/* ========== Sidebar ========== */
+.sidebar{width:var(--sidebar-w);background:var(--gray-900);color:#fff;display:flex;flex-direction:column;flex-shrink:0;height:100vh;position:fixed;left:0;top:0;z-index:50}
+.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand h1{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+.sidebar-brand h1 i{font-size:20px;color:var(--primary-light)}
+.sidebar-brand .sub{font-size:11px;color:var(--gray-400);margin-top:4px}
+.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gray-500);padding:16px 12px 6px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--gray-400);cursor:pointer;transition:all .15s;font-size:13.5px;font-weight:500;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.06);color:var(--gray-200)}
+.nav-item.active{background:var(--primary);color:#fff}
+.nav-item i{font-size:18px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;font-size:10px;background:var(--danger);color:#fff;padding:1px 6px;border-radius:10px;font-weight:600}
+.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--gray-500)}
+
+/* ========== Main ========== */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-left h2{font-size:18px;font-weight:700;color:var(--gray-900)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--gray-200);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-500);transition:all .15s}
+.topbar-btn:hover{border-color:var(--primary);color:var(--primary)}
+.topbar-time{font-size:12px;color:var(--gray-400);font-variant-numeric:tabular-nums}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ========== Pages ========== */
+.page{display:none}
+.page.active{display:block}
+
+/* ========== Stats Cards ========== */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--gray-100);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.primary::before{background:var(--primary)}
+.stat-card.success::before{background:var(--success)}
+.stat-card.warning::before{background:var(--warning)}
+.stat-card.info::before{background:var(--info)}
+.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-label{font-size:13px;color:var(--gray-500);font-weight:500}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.stat-icon.primary{background:var(--primary-bg);color:var(--primary)}
+.stat-icon.success{background:#d1fae5;color:var(--success)}
+.stat-icon.warning{background:#fef3c7;color:var(--warning)}
+.stat-icon.info{background:#dbeafe;color:var(--info)}
+.stat-value{font-size:28px;font-weight:800;color:var(--gray-900);letter-spacing:-.5px}
+.stat-change{font-size:12px;margin-top:4px;display:flex;align-items:center;gap:4px}
+.stat-change.up{color:var(--success)}
+.stat-change.down{color:var(--danger)}
+
+/* ========== Panel / Card ========== */
+.panel{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--gray-100);margin-bottom:24px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
+.panel-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+.panel-body{padding:20px}
+.panel-actions{display:flex;gap:8px}
+
+/* ========== Data Table ========== */
+.table-wrapper{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 14px;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);white-space:nowrap}
+td{padding:12px 14px;font-size:13.5px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+tr:hover td{background:var(--gray-50)}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;gap:4px}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-danger{background:#fee2e2;color:#991b1b}
+.badge-warning{background:#fef3c7;color:#92400e}
+.badge-info{background:#dbeafe;color:#1e40af}
+.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+
+/* ========== Buttons ========== */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#4338ca}
+.btn-outline{background:#fff;color:var(--gray-700);border-color:var(--gray-300)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+
+/* ========== Search / Input ========== */
+.search-box{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;min-width:240px}
+.search-box i{color:var(--gray-400);font-size:16px}
+.search-box input{border:none;outline:none;font-size:13px;flex:1;background:transparent;color:var(--gray-800)}
+.search-box input::placeholder{color:var(--gray-400)}
+
+/* ========== Request Log ========== */
+.log-table th{position:sticky;top:0;z-index:2}
+.log-method{font-weight:700;font-size:12px;min-width:50px}
+.log-method.GET{color:var(--success)}.log-method.POST{color:var(--warning)}.log-method.PUT{color:var(--info)}.log-method.DELETE{color:var(--danger)}
+.log-status{font-weight:700}
+.log-status.s2xx{color:var(--success)}.log-status.s4xx{color:var(--warning)}.log-status.s5xx{color:var(--danger)}
+.log-body{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-500);font-size:12px}
+
+/* ========== Charts (CSS-based) ========== */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;background:var(--primary);min-height:2px;transition:height .5s}
+.bar-label{font-size:10px;color:var(--gray-400);white-space:nowrap}
+.bar-value{font-size:10px;color:var(--gray-600);font-weight:600}
+
+/* ========== Donut (SVG) ========== */
+.donut-wrap{display:flex;align-items:center;gap:24px}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-600)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ========== Chat Log ========== */
+.chat-log-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100)}
+.chat-log-item:last-child{border-bottom:none}
+.chat-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff}
+.chat-avatar.user{background:var(--info)}
+.chat-avatar.ai{background:var(--primary)}
+.chat-content{flex:1}
+.chat-meta{font-size:11px;color:var(--gray-400);margin-bottom:4px}
+.chat-text{font-size:13px;color:var(--gray-700);line-height:1.5}
+
+/* ========== Grid layouts ========== */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+
+/* ========== Empty state ========== */
+.empty{text-align:center;padding:40px;color:var(--gray-400)}
+.empty i{font-size:40px;margin-bottom:8px;display:block}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+
+/* ========== Responsive ========== */
+@media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h1><i class="ri-store-2-line"></i>AI五金店管理后台</h1>
+    <div class="sub">AI Store Manager Admin</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">概览</div>
+    <div class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i>仪表盘</div>
+    <div class="nav-item" data-page="logs"><i class="ri-terminal-box-line"></i>请求日志</div>
+    <div class="nav-section">业务管理</div>
+    <div class="nav-item" data-page="users"><i class="ri-user-line"></i>用户管理</div>
+    <div class="nav-item" data-page="inventory"><i class="ri-archive-line"></i>库存商品</div>
+    <div class="nav-item" data-page="events"><i class="ri-exchange-line"></i>出入库流水</div>
+    <div class="nav-section">AI系统</div>
+    <div class="nav-item" data-page="chat"><i class="ri-robot-line"></i>AI对话记录</div>
+    <div class="nav-item" data-page="audit"><i class="ri-file-list-3-line"></i>审计日志</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div>v1.0.0 · 火山引擎LLM</div>
+  </div>
+</aside>
+
+<!-- ===== Main ===== -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2 id="pageTitle">仪表盘</h2>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-time" id="clock"></span>
+      <button class="topbar-btn" onclick="refreshPage()" title="刷新"><i class="ri-refresh-line"></i></button>
+      <button class="topbar-btn" onclick="window.open('http://'+location.hostname+':8081')" title="前台"><i class="ri-external-link-line"></i></button>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- ===== Dashboard Page ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statCards"></div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">近7天营收趋势</span>
+          </div>
+          <div class="panel-body">
+            <div class="bar-chart" id="revenueChart"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">热销商品 TOP 5</span>
+          </div>
+          <div class="panel-body" id="topItemsPanel"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">库存状态分布</span>
+          </div>
+          <div class="panel-body" id="stockDonut"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">最近操作</span>
+          </div>
+          <div class="panel-body" id="recentEvents"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Request Logs Page ===== -->
+    <div class="page" id="page-logs">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">实时请求日志</span>
+          <div class="panel-actions">
+            <button class="btn btn-outline btn-sm" onclick="clearLogs()"><i class="ri-delete-bin-line"></i>清空</button>
+            <button class="btn btn-primary btn-sm" id="autoRefreshBtn" onclick="toggleAutoRefresh()"><i class="ri-pause-line"></i>自动刷新</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0;max-height:calc(100vh - 200px);overflow-y:auto">
+          <div class="table-wrapper">
+            <table class="log-table">
+              <thead><tr><th>时间</th><th>方法</th><th>路径</th><th>状态</th><th>耗时</th><th>请求体</th></tr></thead>
+              <tbody id="logTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Users Page ===== -->
+    <div class="page" id="page-users">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">用户管理</span>
+          <div class="panel-actions">
+            <div class="search-box"><i class="ri-search-line"></i><input placeholder="搜索用户名/手机号..." oninput="filterUsers(this.value)"></div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="table-wrapper">
+            <table><thead><tr><th>用户ID</th><th>用户名</th><th>手机</th><th>邮箱</th><th>状态</th><th>注册时间</th><th>最后登录</th></tr></thead>
+            <tbody id="usersTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Inventory Page ===== -->
+    <div class="page" id="page-inventory">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">库存商品</span>
+          <div class="panel-actions">
+            <div class="search-box"><i class="ri-search-line"></i><input placeholder="搜索商品名称..." oninput="filterInventory(this.value)"></div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="table-wrapper">
+            <table><thead><tr><th>商品ID</th><th>名称</th><th>分类</th><th>单位</th><th>库存</th><th>单价</th><th>阈值</th><th>状态</th><th>更新时间</th></tr></thead>
+            <tbody id="inventoryTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Events Page ===== -->
+    <div class="page" id="page-events">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">出入库流水</span>
+          <div class="panel-actions">
+            <button class="btn btn-outline btn-sm" onclick="loadEvents()"><i class="ri-refresh-line"></i>刷新</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="table-wrapper">
+            <table><thead><tr><th>时间</th><th>商品</th><th>类型</th><th>数量</th><th>单价</th><th>金额</th><th>原因</th><th>来源</th></tr></thead>
+            <tbody id="eventsTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Chat Log Page ===== -->
+    <div class="page" id="page-chat">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">AI对话记录</span>
+          <div class="panel-actions">
+            <button class="btn btn-outline btn-sm" onclick="loadChatLogs()"><i class="ri-refresh-line"></i>刷新</button>
+          </div>
+        </div>
+        <div class="panel-body" id="chatLogBody" style="max-height:calc(100vh - 200px);overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ===== Audit Log Page ===== -->
+    <div class="page" id="page-audit">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">审计日志</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="table-wrapper">
+            <table><thead><tr><th>时间</th><th>事件类型</th><th>实体类型</th><th>实体ID</th><th>详情</th></tr></thead>
+            <tbody id="auditTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let autoRefresh = true;
+let logTimer = null;
+let allUsers = [];
+let allInventory = [];
+
+// ========== Navigation ==========
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const page = el.dataset.page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.getElementById('pageTitle').textContent = el.textContent.trim();
+    loadPage(page);
+  });
+});
+
+function loadPage(page) {
+  switch(page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'logs': startLogRefresh(); break;
+    case 'users': loadUsers(); break;
+    case 'inventory': loadInventory(); break;
+    case 'events': loadEvents(); break;
+    case 'chat': loadChatLogs(); break;
+    case 'audit': loadAuditLogs(); break;
+  }
+}
+
+function refreshPage() {
+  const active = document.querySelector('.nav-item.active');
+  if (active) loadPage(active.dataset.page);
+}
+
+// ========== Clock ==========
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ========== Dashboard ==========
+async function loadDashboard() {
+  try {
+    const [dashR, revR, itemsR, transR] = await Promise.all([
+      fetch(API + '/v1/dashboard').then(r=>r.json()),
+      fetch(API + '/v1/revenue').then(r=>r.json()),
+      fetch(API + '/v1/items').then(r=>r.json()),
+      fetch(API + '/v1/transactions?limit=10').then(r=>r.json()),
+    ]);
+    const dash = dashR.data || {};
+    const rev = revR.data || {};
+    const items = itemsR.data || [];
+    const trans = transR.data || {};
+    const stats = trans.today_stats || {};
+
+    // Stat cards
+    document.getElementById('statCards').innerHTML = [
+      statCard('今日营业额', '¥' + fmtNum(rev.today_revenue || 0), 'primary', 'ri-money-cny-circle-line', '较昨日持平'),
+      statCard('库存总值', '¥' + fmtNum(dash.total_value || 0), 'success', 'ri-archive-stack-line', dash.total_items + ' 种商品'),
+      statCard('今日出库', (stats.stock_out_count || 0) + ' 笔', 'warning', 'ri-upload-2-line', '¥' + fmtNum(stats.total_out_value || 0)),
+      statCard('预警商品', (dash.low_stock_items || 0) + ' 个', 'info', 'ri-alert-line', dash.low_stock_items > 0 ? '需要补货' : '库存正常'),
+    ].join('');
+
+    // Revenue chart
+    const daily = rev.daily_revenue || [];
+    const maxRev = Math.max(...daily.map(d => d.revenue), 1);
+    document.getElementById('revenueChart').innerHTML = daily.map(d => {
+      const h = Math.round((d.revenue / maxRev) * 100);
+      return `<div class="bar-item"><div class="bar-value">${fmtNum(d.revenue)}</div><div class="bar" style="height:${Math.max(h,2)}%"></div><div class="bar-label">${d.date.slice(5)}</div></div>`;
+    }).join('') || '<div class="empty">暂无数据</div>';
+
+    // Top items
+    const topItems = rev.top_items || [];
+    document.getElementById('topItemsPanel').innerHTML = topItems.length ? topItems.map((item, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i < topItems.length-1 ? 'border-bottom:1px solid var(--gray-100)' : ''}">
+        <span style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid ${i===0?'var(--danger)':i===1?'var(--gray-400)':'#cd7f32'};color:${i===0?'var(--danger)':i===1?'var(--gray-400)':'#cd7f32'}">${i+1}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${item.name}</div><div style="font-size:11px;color:var(--gray-400)">销量 ${fmtNum(item.total_sold)}</div></div>
+        <div style="font-size:14px;font-weight:700;color:var(--gray-900)">¥${fmtNum(item.total_revenue)}</div>
+      </div>`).join('') : '<div class="empty"><i class="ri-bar-chart-grouped-line"></i>暂无销售数据</div>';
+
+    // Stock donut
+    const normal = items.filter(i => !i.is_low_stock).length;
+    const low = items.filter(i => i.is_low_stock).length;
+    const total = normal + low || 1;
+    document.getElementById('stockDonut').innerHTML = `
+      <div class="donut-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gray-100)" stroke-width="16"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--success)" stroke-width="16" stroke-dasharray="${normal/total*314} 314" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+          ${low > 0 ? `<circle cx="60" cy="60" r="50" fill="none" stroke="var(--danger)" stroke-width="16" stroke-dasharray="${low/total*314} 314" stroke-linecap="round" transform="rotate(${(normal/total*360)-90} 60 60)"/>` : ''}
+          <text x="60" y="56" text-anchor="middle" font-size="20" font-weight="800" fill="var(--gray-900)">${total}</text>
+          <text x="60" y="72" text-anchor="middle" font-size="10" fill="var(--gray-400)">总SKU</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>正常 ${normal}</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>预警 ${low}</div>
+        </div>
+      </div>`;
+
+    // Recent events
+    const events = trans.transactions || [];
+    document.getElementById('recentEvents').innerHTML = events.length ? events.slice(0, 8).map(ev => {
+      const isOut = ev.event_type === 'stock_out';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--gray-50)">
+        <span class="badge ${isOut ? 'badge-danger' : 'badge-success'}" style="min-width:36px;justify-content:center">${isOut ? '出' : '入'}</span>
+        <span style="flex:1;color:var(--gray-700)">${ev.item_name}</span>
+        <span style="font-weight:600;color:${isOut ? 'var(--danger)' : 'var(--success)'}">${isOut ? '-' : '+'}${ev.quantity} ${ev.unit}</span>
+        <span style="color:var(--gray-400);font-size:11px">${(ev.created_at || '').slice(5, 16)}</span>
+      </div>`;
+    }).join('') : '<div class="empty"><i class="ri-exchange-line"></i>暂无操作记录</div>';
+
+  } catch(e) { console.error('Dashboard load error:', e); }
+}
+
+function statCard(label, value, color, icon, sub) {
+  return `<div class="stat-card ${color}">
+    <div class="stat-header"><span class="stat-label">${label}</span><div class="stat-icon ${color}"><i class="${icon}"></i></div></div>
+    <div class="stat-value">${value}</div>
+    <div class="stat-change">${sub}</div>
+  </div>`;
+}
+
+// ========== Request Logs ==========
+function startLogRefresh() {
+  if (logTimer) clearInterval(logTimer);
+  fetchLogs();
+  if (autoRefresh) logTimer = setInterval(fetchLogs, 1000);
+}
+
+async function fetchLogs() {
+  try {
+    const logs = await fetch(API + '/logs?limit=100').then(r => r.json());
+    document.getElementById('logTableBody').innerHTML = logs.map(l => {
+      const sc = 's' + String(l.status)[0] + 'xx';
+      return `<tr>
+        <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);font-size:12px">${esc(l.time)}</td>
+        <td><span class="log-method ${l.method}">${l.method}</span></td>
+        <td style="font-size:13px">${esc(l.path)}${l.query ? ' <span style="color:var(--gray-400);font-size:11px">?' + esc(l.query) + '</span>' : ''}</td>
+        <td><span class="log-status ${sc}">${l.status}</span></td>
+        <td style="color:var(--gray-500);font-variant-numeric:tabular-nums">${l.duration_ms}ms</td>
+        <td class="log-body">${esc(l.body)}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {}
+}
+
+function toggleAutoRefresh() {
+  autoRefresh = !autoRefresh;
+  const btn = document.getElementById('autoRefreshBtn');
+  if (autoRefresh) {
+    btn.innerHTML = '<i class="ri-pause-line"></i>自动刷新';
+    startLogRefresh();
+  } else {
+    btn.innerHTML = '<i class="ri-play-line"></i>已暂停';
+    if (logTimer) clearInterval(logTimer);
+  }
+}
+
+async function clearLogs() {
+  await fetch(API + '/clear', { method: 'POST' });
+  fetchLogs();
+}
+
+// ========== Users ==========
+async function loadUsers() {
+  try {
+    const data = await fetch(API + '/v1/audit-logs?limit=200').then(r => r.json());
+    // Users are stored in DB, we show them from the audit context
+    // Since there's no direct "list users" API, we show session data
+    const res = await fetch(API + '/admin/users').then(r => r.json()).catch(() => ({data:[]}));
+    allUsers = res.data || [];
+    renderUsers(allUsers);
+  } catch(e) {}
+}
+
+function renderUsers(users) {
+  document.getElementById('usersTable').innerHTML = users.length ? users.map(u => `
+    <tr>
+      <td style="font-size:12px;color:var(--gray-500)">${(u.user_id||'').slice(0,12)}...</td>
+      <td style="font-weight:600">${esc(u.username||'-')}</td>
+      <td>${esc(u.phone||'-')}</td>
+      <td>${esc(u.email||'-')}</td>
+      <td><span class="badge ${u.status==='active'?'badge-success':'badge-gray'}">${u.status||'active'}</span></td>
+      <td style="font-size:12px;color:var(--gray-500)">${(u.created_at||'').slice(0,16)}</td>
+      <td style="font-size:12px;color:var(--gray-500)">${(u.last_login_at||'从未').slice(0,16)}</td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">暂无用户数据</td></tr>';
+}
+
+function filterUsers(q) {
+  const filtered = allUsers.filter(u => (u.username||'').includes(q) || (u.phone||'').includes(q));
+  renderUsers(filtered);
+}
+
+// ========== Inventory ==========
+async function loadInventory() {
+  try {
+    const res = await fetch(API + '/v1/items').then(r => r.json());
+    allInventory = res.data || [];
+    renderInventory(allInventory);
+  } catch(e) {}
+}
+
+function renderInventory(items) {
+  document.getElementById('inventoryTable').innerHTML = items.length ? items.map(item => `
+    <tr>
+      <td style="font-size:11px;color:var(--gray-400)">${(item.item_id||'').slice(0,10)}...</td>
+      <td style="font-weight:600">${esc(item.name)}</td>
+      <td><span class="badge badge-gray">${esc(item.category||'未分类')}</span></td>
+      <td>${esc(item.default_unit)}</td>
+      <td style="font-weight:700;color:${item.is_low_stock?'var(--danger)':'var(--gray-900)'}">${item.current_stock}</td>
+      <td>¥${item.unit_price}</td>
+      <td>${item.low_stock_threshold}</td>
+      <td><span class="badge ${item.is_low_stock?'badge-danger':'badge-success'}">${item.is_low_stock?'需补货':'正常'}</span></td>
+      <td style="font-size:11px;color:var(--gray-500)">${(item.updated_at||'').slice(0,16)}</td>
+    </tr>`).join('') : '<tr><td colspan="9" class="empty"><i class="ri-archive-line"></i>暂无商品数据</td></tr>';
+}
+
+function filterInventory(q) {
+  const filtered = allInventory.filter(i => (i.name||'').includes(q) || (i.category||'').includes(q));
+  renderInventory(filtered);
+}
+
+// ========== Events ==========
+async function loadEvents() {
+  try {
+    const res = await fetch(API + '/v1/events?limit=50').then(r => r.json());
+    const events = res.data || [];
+    document.getElementById('eventsTable').innerHTML = events.length ? events.map(ev => {
+      const isOut = ev.event_type === 'stock_out';
+      const isIn = ev.event_type === 'stock_in';
+      return `<tr>
+        <td style="font-size:12px;color:var(--gray-500)">${(ev.created_at||'').slice(0,16)}</td>
+        <td style="font-weight:500">${esc(ev.item_name)}</td>
+        <td><span class="badge ${isOut?'badge-danger':isIn?'badge-success':'badge-warning'}">${isOut?'出库':isIn?'入库':'修正'}</span></td>
+        <td style="font-weight:600">${isOut?'-':'+'}${ev.quantity} ${ev.unit}</td>
+        <td>¥${ev.unit_price || 0}</td>
+        <td style="font-weight:600">¥${((ev.quantity||0)*(ev.unit_price||0)).toFixed(2)}</td>
+        <td>${esc(ev.reason||'-')}</td>
+        <td><span class="badge badge-gray">${esc(ev.source||'-')}</span></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="8" class="empty"><i class="ri-exchange-line"></i>暂无流水记录</td></tr>';
+  } catch(e) {}
+}
+
+// ========== Chat Logs ==========
+async function loadChatLogs() {
+  try {
+    const sessions = await fetch(API + '/v1/dashboard').then(r => r.json());
+    const sessionId = 'sess_default';
+    const res = await fetch(API + '/v1/sessions/' + sessionId + '/messages?limit=50').then(r => r.json());
+    const messages = res.data || [];
+    document.getElementById('chatLogBody').innerHTML = messages.length ? messages.map(m => {
+      const isUser = m.actor_type === 'owner';
+      return `<div class="chat-log-item">
+        <div class="chat-avatar ${isUser ? 'user' : 'ai'}">${isUser ? '<i class="ri-user-line"></i>' : '<i class="ri-robot-line"></i>'}</div>
+        <div class="chat-content">
+          <div class="chat-meta">${isUser ? '用户' : 'AI助手'} · ${(m.created_at||'').slice(0,16)}</div>
+          <div class="chat-text">${esc(m.text||'')}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty"><i class="ri-chat-3-line"></i>暂无对话记录</div>';
+  } catch(e) {}
+}
+
+// ========== Audit Logs ==========
+async function loadAuditLogs() {
+  try {
+    const res = await fetch(API + '/v1/audit-logs?limit=50').then(r => r.json());
+    const logs = res.data || [];
+    document.getElementById('auditTable').innerHTML = logs.length ? logs.map(l => {
+      let details = '';
+      try { details = typeof l.details === 'string' ? JSON.stringify(JSON.parse(l.details), null, 0) : JSON.stringify(l.details); } catch { details = l.details || ''; }
+      return `<tr>
+        <td style="font-size:12px;color:var(--gray-500)">${(l.created_at||'').slice(0,16)}</td>
+        <td><span class="badge badge-info">${esc(l.event_type)}</span></td>
+        <td>${esc(l.entity_type||'-')}</td>
+        <td style="font-size:11px;color:var(--gray-400)">${(l.entity_id||'').slice(0,12)}...</td>
+        <td class="log-body">${esc(details.slice(0,100))}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="5" class="empty"><i class="ri-file-list-3-line"></i>暂无审计记录</td></tr>';
+  } catch(e) {}
+}
+
+// ========== Utils ==========
+function fmtNum(n) {
+  n = Number(n) || 0;
+  if (n >= 10000) return (n/10000).toFixed(1) + 'w';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  if (n === 0) return '0';
+  return n.toFixed(n % 1 === 0 ? 0 : 2);
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ========== Init ==========
+loadDashboard();
+startLogRefresh();
+</script>
+</body>
+</html>

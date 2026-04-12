@@ -1,0 +1,356 @@
+.home-page {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f5f6fa;
+}
+
+/* ===== 状态栏 ===== */
+.status-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #fff;
+  border-bottom: 1px solid #eef0f4;
+  color: #1a1a2e;
+}
+
+/* ===== 顶部导航 ===== */
+.top-nav {
+  position: fixed;
+  top: 44px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.top-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-tab {
+  font-size: 16px;
+  color: #999;
+  font-weight: 400;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 4px;
+  position: relative;
+}
+
+.top-tab.active {
+  color: #1a1a2e;
+  font-weight: 600;
+}
+
+.top-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: #4d6bfe;
+  border-radius: 2px;
+}
+
+/* ===== 全屏卡片流 ===== */
+.card-feed {
+  width: 100%;
+  height: 100%;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-feed::-webkit-scrollbar {
+  display: none;
+}
+
+.video-card {
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.video-bg {
+  position: absolute;
+  inset: 0;
+  background: #f5f6fa;
+}
+
+.card-content {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 20px 90px;
+  text-align: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-content::-webkit-scrollbar {
+  display: none;
+}
+
+.card-icon {
+  margin-bottom: 8px;
+}
+
+.card-content .title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #1a1a2e;
+}
+
+.card-content .sub {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+/* ===== AI员工标识 ===== */
+.employee-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #eef1ff;
+  color: #4d6bfe;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  border: 1px solid rgba(77, 107, 254, 0.15);
+}
+
+.employee-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* 数据展示 */
+.data-hero {
+  text-align: center;
+  padding: 20px 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  max-width: 360px;
+  width: 100%;
+}
+
+.data-hero .label {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.data-hero .value {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #1a1a2e;
+}
+
+.data-hero .change {
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.data-hero .change.up {
+  color: #00b96b;
+  background: rgba(0, 185, 107, 0.1);
+}
+
+.data-hero .change.down {
+  color: #fe2c55;
+  background: rgba(254, 44, 85, 0.1);
+}
+
+.data-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.data-mini {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.data-mini .label {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.data-mini .value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* 进度条 */
+.progress-item {
+  margin-bottom: 10px;
+  max-width: 320px;
+  width: 100%;
+}
+
+.progress-item .row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.progress-item .row .name {
+  color: #333;
+}
+
+.progress-item .row .stat {
+  color: #999;
+}
+
+.progress-track {
+  height: 5px;
+  background: #eef0f4;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+/* 商品列表 */
+.product-list {
+  margin-bottom: 10px;
+  max-width: 340px;
+  width: 100%;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1.5px solid #ddd;
+  color: #999;
+}
+
+.product-rank.gold {
+  border-color: #fe2c55;
+  color: #fe2c55;
+}
+
+.product-rank.silver {
+  border-color: #bbb;
+  color: #999;
+}
+
+.product-rank.bronze {
+  border-color: #cd7f32;
+  color: #cd7f32;
+}
+
+.product-info {
+  flex: 1;
+  text-align: left;
+}
+
+.product-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 1px;
+  color: #1a1a2e;
+}
+
+.product-stat {
+  font-size: 10px;
+  color: #999;
+}
+
+.product-bar {
+  width: 40px;
+  height: 4px;
+  background: #eef0f4;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.product-bar-fill {
+  height: 100%;
+  background: #4d6bfe;
+  border-radius: 3px;
+}
+
+/* 可点击 */
+.clickable {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.clickable:active {
+  transform: scale(0.96);
+}

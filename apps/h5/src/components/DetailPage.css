@@ -1,0 +1,250 @@
+.detail-page {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #f5f6fa;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detail-page.open {
+  transform: translateX(0);
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 50px 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid #eef0f4;
+  flex-shrink: 0;
+}
+
+.detail-back {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0f1f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  color: #1a1a2e;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.detail-back:active {
+  background: #e5e6ea;
+}
+
+.detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.detail-subtitle {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
+}
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+}
+
+.detail-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* 详情页内组件 */
+.detail-stat-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.detail-stat {
+  flex: 1;
+  padding: 14px 10px;
+  text-align: center;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.detail-stat .label {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.detail-stat .value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.detail-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.detail-list-item:active {
+  background: #f5f6fa;
+}
+
+.detail-list-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.detail-list-info {
+  flex: 1;
+}
+
+.detail-list-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  color: #1a1a2e;
+}
+
+.detail-list-desc {
+  font-size: 12px;
+  color: #999;
+}
+
+.detail-list-right {
+  text-align: right;
+}
+
+.detail-list-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.detail-list-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-top: 2px;
+  display: inline-block;
+}
+
+.detail-list-tag.danger {
+  color: #fe2c55;
+  background: rgba(254, 44, 85, 0.1);
+}
+
+.detail-list-tag.success {
+  color: #00b96b;
+  background: rgba(0, 185, 107, 0.1);
+}
+
+.detail-list-tag.info {
+  color: #4d6bfe;
+  background: rgba(77, 107, 254, 0.1);
+}
+
+/* 操作按钮 */
+.detail-action-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 12px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.detail-action-btn:active {
+  opacity: 0.8;
+}
+
+.detail-action-btn.primary {
+  background: #4d6bfe;
+  color: #fff;
+}
+
+.detail-action-btn.secondary {
+  background: #fff;
+  color: #1a1a2e;
+  border: 1px solid #e0e0e0;
+}
+
+/* 库存操作表单 */
+.stock-form {
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+  margin-top: 12px;
+}
+
+.stock-form .form-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1a1a2e;
+}
+
+.stock-form .form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stock-form .form-label {
+  font-size: 13px;
+  color: #666;
+  min-width: 50px;
+}
+
+.stock-form .form-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #f8f9fb;
+  color: #1a1a2e;
+  font-size: 14px;
+  outline: none;
+}
+
+.stock-form .form-input:focus {
+  border-color: #4d6bfe;
+  background: #fff;
+}
+
+.stock-form .form-input::placeholder {
+  color: #ccc;
+}

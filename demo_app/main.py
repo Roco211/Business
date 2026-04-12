@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
     print(f"[Startup] Shop: {info['shop_id']}, Session: {info['session_id']}")
     yield
 
-SHOP_ID = "shop_hardware"
+SHOP_ID = "shop_default"
 
 app = FastAPI(
     title="AI五金店大管家",

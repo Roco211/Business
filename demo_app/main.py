@@ -287,11 +287,12 @@ def _start_admin():
     _aio.set_event_loop(loop)
     _run_admin_server()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 _admin_thread = threading.Thread(target=_start_admin, daemon=True)
 _admin_thread.start()
 print("[Admin] Dashboard starting on http://0.0.0.0:8082")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 

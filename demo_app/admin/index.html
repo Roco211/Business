@@ -3,652 +3,531 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI五金店 - 管理后台</title>
+<title>AI五金店 - 平台管理后台</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 <style>
-/* ========== Reset & Base ========== */
+/* ===== Reset & Variables ===== */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --sidebar-w:240px;
-  --primary:#4f46e5;
-  --primary-light:#818cf8;
-  --primary-bg:#eef2ff;
-  --success:#10b981;
-  --warning:#f59e0b;
-  --danger:#ef4444;
-  --info:#3b82f6;
-  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
-  --gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;
-  --gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;
-  --gray-900:#111827;
-  --radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
-  --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+  --sw:250px;
+  --pri:#6366f1;--pri-light:#818cf8;--pri-bg:#eef2ff;
+  --ok:#10b981;--warn:#f59e0b;--err:#ef4444;--info:#3b82f6;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;--g800:#1e293b;--g900:#0f172a;
+  --r:10px;--r-sm:6px;
+  --sh:0 1px 2px rgba(0,0,0,.05);--sh-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.05);
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
 }
-body{font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;background:var(--gray-50);color:var(--gray-800);display:flex;min-height:100vh;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;background:var(--g50);color:var(--g800);display:flex;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
 
-/* ========== Sidebar ========== */
-.sidebar{width:var(--sidebar-w);background:var(--gray-900);color:#fff;display:flex;flex-direction:column;flex-shrink:0;height:100vh;position:fixed;left:0;top:0;z-index:50}
-.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-brand h1{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
-.sidebar-brand h1 i{font-size:20px;color:var(--primary-light)}
-.sidebar-brand .sub{font-size:11px;color:var(--gray-400);margin-top:4px}
-.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto}
-.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gray-500);padding:16px 12px 6px;font-weight:600}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--gray-400);cursor:pointer;transition:all .15s;font-size:13.5px;font-weight:500;user-select:none}
-.nav-item:hover{background:rgba(255,255,255,.06);color:var(--gray-200)}
-.nav-item.active{background:var(--primary);color:#fff}
-.nav-item i{font-size:18px;width:20px;text-align:center}
-.nav-badge{margin-left:auto;font-size:10px;background:var(--danger);color:#fff;padding:1px 6px;border-radius:10px;font-weight:600}
-.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--gray-500)}
+/* ===== Sidebar ===== */
+.sb{width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:50}
+.sb-head{padding:20px 20px 16px;border-bottom:1px solid var(--g100)}
+.sb-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--g900)}
+.sb-logo i{font-size:22px;color:var(--pri)}
+.sb-ver{font-size:11px;color:var(--g400);margin-top:3px;padding-left:32px}
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--g400);padding:16px 12px 6px;font-weight:600}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);color:var(--g500);cursor:pointer;font-size:13px;font-weight:500;transition:var(--tr);user-select:none}
+.sb-item:hover{background:var(--g50);color:var(--g700)}
+.sb-item.on{background:var(--pri-bg);color:var(--pri);font-weight:600}
+.sb-item i{font-size:17px;width:20px;text-align:center}
+.sb-badge{margin-left:auto;font-size:10px;background:var(--err);color:#fff;padding:1px 7px;border-radius:10px;font-weight:600}
+.sb-foot{padding:14px 16px;border-top:1px solid var(--g100);font-size:11px;color:var(--g400);line-height:1.6}
+.sb-status{display:flex;align-items:center;gap:6px;margin-top:4px}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
 
-/* ========== Main ========== */
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
-.topbar{height:56px;background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
-.topbar-left{display:flex;align-items:center;gap:12px}
-.topbar-left h2{font-size:18px;font-weight:700;color:var(--gray-900)}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.topbar-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--gray-200);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-500);transition:all .15s}
-.topbar-btn:hover{border-color:var(--primary);color:var(--primary)}
-.topbar-time{font-size:12px;color:var(--gray-400);font-variant-numeric:tabular-nums}
+/* ===== Main ===== */
+.mn{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.top{height:52px;background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.top h2{font-size:16px;font-weight:700;color:var(--g900)}
+.top-r{display:flex;align-items:center;gap:12px}
+.top-clock{font-size:12px;color:var(--g400);font-variant-numeric:tabular-nums}
+.top-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--g200);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g400);transition:var(--tr);font-size:16px}
+.top-btn:hover{border-color:var(--pri);color:var(--pri)}
 
-.content{flex:1;overflow-y:auto;padding:24px}
+.ct{flex:1;overflow-y:auto;padding:20px 24px}
 
-/* ========== Pages ========== */
-.page{display:none}
-.page.active{display:block}
+/* ===== Pages ===== */
+.pg{display:none}.pg.on{display:block}
 
-/* ========== Stats Cards ========== */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--gray-100);position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.stat-card.primary::before{background:var(--primary)}
-.stat-card.success::before{background:var(--success)}
-.stat-card.warning::before{background:var(--warning)}
-.stat-card.info::before{background:var(--info)}
-.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.stat-label{font-size:13px;color:var(--gray-500);font-weight:500}
-.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.stat-icon.primary{background:var(--primary-bg);color:var(--primary)}
-.stat-icon.success{background:#d1fae5;color:var(--success)}
-.stat-icon.warning{background:#fef3c7;color:var(--warning)}
-.stat-icon.info{background:#dbeafe;color:var(--info)}
-.stat-value{font-size:28px;font-weight:800;color:var(--gray-900);letter-spacing:-.5px}
-.stat-change{font-size:12px;margin-top:4px;display:flex;align-items:center;gap:4px}
-.stat-change.up{color:var(--success)}
-.stat-change.down{color:var(--danger)}
+/* ===== KPI Row ===== */
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-c{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:18px 20px;position:relative}
+.kpi-c::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.kpi-c.pri::after{background:var(--pri)}.kpi-c.ok::after{background:var(--ok)}.kpi-c.warn::after{background:var(--warn)}.kpi-c.info::after{background:var(--info)}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.kpi-l{font-size:12px;color:var(--g500);font-weight:500}
+.kpi-i{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.kpi-i.pri{background:var(--pri-bg);color:var(--pri)}.kpi-i.ok{background:#d1fae5;color:var(--ok)}.kpi-i.warn{background:#fef3c7;color:var(--warn)}.kpi-i.info{background:#dbeafe;color:var(--info)}
+.kpi-v{font-size:26px;font-weight:800;color:var(--g900);letter-spacing:-.5px}
+.kpi-s{font-size:11px;color:var(--g400);margin-top:3px}
 
-/* ========== Panel / Card ========== */
-.panel{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--gray-100);margin-bottom:24px}
-.panel-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
-.panel-title{font-size:15px;font-weight:700;color:var(--gray-900)}
-.panel-body{padding:20px}
-.panel-actions{display:flex;gap:8px}
+/* ===== Panel ===== */
+.pn{background:#fff;border:1px solid var(--g200);border-radius:var(--r);margin-bottom:18px}
+.pn-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--g100)}
+.pn-t{font-size:14px;font-weight:700;color:var(--g900)}
+.pn-b{padding:18px}
+.pn-acts{display:flex;gap:6px}
 
-/* ========== Data Table ========== */
-.table-wrapper{overflow-x:auto}
+/* ===== Table ===== */
+.tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);white-space:nowrap}
-td{padding:12px 14px;font-size:13.5px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
-tr:hover td{background:var(--gray-50)}
-.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;gap:4px}
-.badge-success{background:#d1fae5;color:#065f46}
-.badge-danger{background:#fee2e2;color:#991b1b}
-.badge-warning{background:#fef3c7;color:#92400e}
-.badge-info{background:#dbeafe;color:#1e40af}
-.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--g100);color:var(--g700)}
+tr:hover td{background:var(--g50)}
+.bd{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;gap:4px;white-space:nowrap}
+.bd-ok{background:#d1fae5;color:#065f46}.bd-err{background:#fee2e2;color:#991b1b}.bd-warn{background:#fef3c7;color:#92400e}.bd-info{background:#dbeafe;color:#1e40af}.bd-g{background:var(--g100);color:var(--g600)}
 
-/* ========== Buttons ========== */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-primary:hover{background:#4338ca}
-.btn-outline{background:#fff;color:var(--gray-700);border-color:var(--gray-300)}
-.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
-.btn-sm{padding:5px 10px;font-size:12px}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-success{background:var(--success);color:#fff}
+/* ===== Button ===== */
+.bt{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:var(--tr)}
+.bt-p{background:var(--pri);color:#fff}.bt-p:hover{background:#4f46e5}
+.bt-o{background:#fff;color:var(--g700);border-color:var(--g300)}.bt-o:hover{border-color:var(--pri);color:var(--pri)}
+.bt-d{background:var(--err);color:#fff}
+.bt-s{padding:4px 10px;font-size:11px}
 
-/* ========== Search / Input ========== */
-.search-box{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;min-width:240px}
-.search-box i{color:var(--gray-400);font-size:16px}
-.search-box input{border:none;outline:none;font-size:13px;flex:1;background:transparent;color:var(--gray-800)}
-.search-box input::placeholder{color:var(--gray-400)}
+/* ===== Search ===== */
+.sb{display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--g200);border-radius:var(--r-sm);background:#fff;min-width:200px}
+.sb i{color:var(--g400);font-size:15px}
+.sb input{border:none;outline:none;font-size:12px;flex:1;background:transparent;color:var(--g800)}
+.sb input::placeholder{color:var(--g400)}
 
-/* ========== Request Log ========== */
-.log-table th{position:sticky;top:0;z-index:2}
-.log-method{font-weight:700;font-size:12px;min-width:50px}
-.log-method.GET{color:var(--success)}.log-method.POST{color:var(--warning)}.log-method.PUT{color:var(--info)}.log-method.DELETE{color:var(--danger)}
-.log-status{font-weight:700}
-.log-status.s2xx{color:var(--success)}.log-status.s4xx{color:var(--warning)}.log-status.s5xx{color:var(--danger)}
-.log-body{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-500);font-size:12px}
+/* ===== Bar chart ===== */
+.bc{display:flex;align-items:flex-end;gap:8px;height:140px;padding:0}
+.bi{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bv{font-size:10px;color:var(--g500);font-weight:600}
+.br{width:100%;border-radius:4px 4px 0 0;background:var(--pri);min-height:2px;transition:height .4s}
+.bl{font-size:10px;color:var(--g400);white-space:nowrap}
 
-/* ========== Charts (CSS-based) ========== */
-.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px}
-.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.bar{width:100%;border-radius:4px 4px 0 0;background:var(--primary);min-height:2px;transition:height .5s}
-.bar-label{font-size:10px;color:var(--gray-400);white-space:nowrap}
-.bar-value{font-size:10px;color:var(--gray-600);font-weight:600}
+/* ===== Donut ===== */
+.dn{display:flex;align-items:center;gap:28px}
+.dn-l{display:flex;flex-direction:column;gap:10px}
+.dn-i{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g600)}
+.dn-d{width:10px;height:10px;border-radius:50%}
 
-/* ========== Donut (SVG) ========== */
-.donut-wrap{display:flex;align-items:center;gap:24px}
-.donut-legend{display:flex;flex-direction:column;gap:8px}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-600)}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* ===== Log table ===== */
+.lm{font-weight:700;font-size:11px}.lm.GET{color:var(--ok)}.lm.POST{color:var(--warn)}.lm.PUT{color:var(--info)}.lm.DELETE{color:var(--err)}
+.ls{font-weight:700}.ls.s2{color:var(--ok)}.ls.s4{color:var(--warn)}.ls.s5{color:var(--err)}
+.lb{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--g400);font-size:11px}
 
-/* ========== Chat Log ========== */
-.chat-log-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100)}
-.chat-log-item:last-child{border-bottom:none}
-.chat-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff}
-.chat-avatar.user{background:var(--info)}
-.chat-avatar.ai{background:var(--primary)}
-.chat-content{flex:1}
-.chat-meta{font-size:11px;color:var(--gray-400);margin-bottom:4px}
-.chat-text{font-size:13px;color:var(--gray-700);line-height:1.5}
+/* ===== Plan cards ===== */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plan{border:1px solid var(--g200);border-radius:var(--r);padding:20px;position:relative}
+.plan.pop{border-color:var(--pri)}
+.plan-tag{position:absolute;top:-10px;right:16px;background:var(--pri);color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px}
+.plan-nm{font-size:16px;font-weight:700;color:var(--g900);margin-bottom:4px}
+.plan-pr{font-size:28px;font-weight:800;color:var(--g900)}.plan-pr span{font-size:13px;font-weight:400;color:var(--g400)}
+.plan-fs{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.plan-f{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--g600)}
+.plan-f i{color:var(--ok);font-size:14px}
 
-/* ========== Grid layouts ========== */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+/* ===== Empty ===== */
+.em{text-align:center;padding:36px;color:var(--g400);font-size:13px}
+.em i{font-size:36px;margin-bottom:6px;display:block;color:var(--g300)}
 
-/* ========== Empty state ========== */
-.empty{text-align:center;padding:40px;color:var(--gray-400)}
-.empty i{font-size:40px;margin-bottom:8px;display:block}
+/* ===== Grids ===== */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 
-/* ========== Scrollbar ========== */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+/* ===== Modal ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;border-radius:12px;padding:24px;width:480px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal .fg{margin-bottom:12px}
+.modal .fg label{display:block;font-size:12px;font-weight:600;color:var(--g500);margin-bottom:4px}
+.modal .fg input,.modal .fg select{width:100%;padding:9px 12px;border:1px solid var(--g200);border-radius:var(--r-sm);font-size:13px;outline:none;transition:var(--tr)}
+.modal .fg input:focus,.modal .fg select:focus{border-color:var(--pri)}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
-/* ========== Responsive ========== */
-@media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}}
-@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--g300);border-radius:3px}
+@media(max-width:1200px){.kpi{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.plans{grid-template-columns:1fr}}
+@media(max-width:768px){.sb{display:none}.mn{margin-left:0}.kpi{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <!-- ===== Sidebar ===== -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <h1><i class="ri-store-2-line"></i>AI五金店管理后台</h1>
-    <div class="sub">AI Store Manager Admin</div>
+<aside class="sb">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="ri-store-3-line"></i>AI五金店平台</div>
+    <div class="sb-ver">SaaS Platform Admin v1.0</div>
   </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">概览</div>
-    <div class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i>仪表盘</div>
-    <div class="nav-item" data-page="logs"><i class="ri-terminal-box-line"></i>请求日志</div>
-    <div class="nav-section">业务管理</div>
-    <div class="nav-item" data-page="users"><i class="ri-user-line"></i>用户管理</div>
-    <div class="nav-item" data-page="inventory"><i class="ri-archive-line"></i>库存商品</div>
-    <div class="nav-item" data-page="events"><i class="ri-exchange-line"></i>出入库流水</div>
-    <div class="nav-section">AI系统</div>
-    <div class="nav-item" data-page="chat"><i class="ri-robot-line"></i>AI对话记录</div>
-    <div class="nav-item" data-page="audit"><i class="ri-file-list-3-line"></i>审计日志</div>
+  <nav class="sb-nav">
+    <div class="sb-sec">概览</div>
+    <div class="sb-item on" data-p="dashboard"><i class="ri-dashboard-3-line"></i>平台概览</div>
+    <div class="sb-item" data-p="logs"><i class="ri-terminal-box-line"></i>请求日志</div>
+    <div class="sb-sec">租户管理</div>
+    <div class="sb-item" data-p="shops"><i class="ri-building-2-line"></i>店铺管理</div>
+    <div class="sb-item" data-p="tenants"><i class="ri-group-line"></i>租户用户</div>
+    <div class="sb-sec">商业化</div>
+    <div class="sb-item" data-p="plans"><i class="ri-vip-crown-2-line"></i>订阅方案</div>
+    <div class="sb-item" data-p="billing"><i class="ri-money-cny-circle-line"></i>账单营收</div>
+    <div class="sb-sec">系统</div>
+    <div class="sb-item" data-p="llm"><i class="ri-robot-line"></i>AI用量监控</div>
+    <div class="sb-item" data-p="audit"><i class="ri-shield-check-line"></i>审计日志</div>
   </nav>
-  <div class="sidebar-footer">
-    <div>v1.0.0 · 火山引擎LLM</div>
+  <div class="sb-foot">
+    <div class="sb-status"><div class="sb-dot"></div>所有服务正常运行</div>
   </div>
 </aside>
 
 <!-- ===== Main ===== -->
-<div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <h2 id="pageTitle">仪表盘</h2>
-    </div>
-    <div class="topbar-right">
-      <span class="topbar-time" id="clock"></span>
-      <button class="topbar-btn" onclick="refreshPage()" title="刷新"><i class="ri-refresh-line"></i></button>
-      <button class="topbar-btn" onclick="window.open('http://'+location.hostname+':8081')" title="前台"><i class="ri-external-link-line"></i></button>
+<div class="mn">
+  <header class="top">
+    <h2 id="pgTitle">平台概览</h2>
+    <div class="top-r">
+      <span class="top-clock" id="clk"></span>
+      <button class="top-btn" onclick="refresh()" title="刷新"><i class="ri-refresh-line"></i></button>
+      <button class="top-btn" onclick="window.open('http://'+location.hostname+':8081')" title="前台H5"><i class="ri-smartphone-line"></i></button>
     </div>
   </header>
+  <div class="ct">
 
-  <div class="content">
-    <!-- ===== Dashboard Page ===== -->
-    <div class="page active" id="page-dashboard">
-      <div class="stats-grid" id="statCards"></div>
-      <div class="grid-2">
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">近7天营收趋势</span>
-          </div>
-          <div class="panel-body">
-            <div class="bar-chart" id="revenueChart"></div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">热销商品 TOP 5</span>
-          </div>
-          <div class="panel-body" id="topItemsPanel"></div>
-        </div>
+    <!-- ===== Dashboard ===== -->
+    <div class="pg on" id="pg-dashboard">
+      <div class="kpi" id="kpiRow"></div>
+      <div class="g2">
+        <div class="pn"><div class="pn-h"><span class="pn-t">近7天平台GMV</span></div><div class="pn-b"><div class="bc" id="gmvChart"></div></div></div>
+        <div class="pn"><div class="pn-h"><span class="pn-t">店铺状态分布</span></div><div class="pn-b"><div class="dn" id="shopDonut"></div></div></div>
       </div>
-      <div class="grid-2">
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">库存状态分布</span>
+      <div class="g2">
+        <div class="pn"><div class="pn-h"><span class="pn-t">活跃店铺 TOP 5</span></div><div class="pn-b" id="activeShops"></div></div>
+        <div class="pn"><div class="pn-h"><span class="pn-t">最近平台事件</span></div><div class="pn-b" id="recentPlatform"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== Shops ===== -->
+    <div class="pg" id="pg-shops">
+      <div class="pn">
+        <div class="pn-h">
+          <span class="pn-t">店铺管理</span>
+          <div class="pn-acts">
+            <div class="sb"><i class="ri-search-line"></i><input placeholder="搜索店铺名称..." oninput="filterShops(this.value)"></div>
+            <button class="bt bt-p bt-s" onclick="showCreateShop()"><i class="ri-add-line"></i>新建店铺</button>
           </div>
-          <div class="panel-body" id="stockDonut"></div>
         </div>
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">最近操作</span>
-          </div>
-          <div class="panel-body" id="recentEvents"></div>
+        <div class="pn-b" style="padding:0">
+          <div class="tw"><table><thead><tr><th>店铺ID</th><th>店铺名称</th><th>所有者</th><th>订阅方案</th><th>商品数</th><th>用户数</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody id="shopsTbl"></tbody></table></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== Request Logs Page ===== -->
-    <div class="page" id="page-logs">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">实时请求日志</span>
-          <div class="panel-actions">
-            <button class="btn btn-outline btn-sm" onclick="clearLogs()"><i class="ri-delete-bin-line"></i>清空</button>
-            <button class="btn btn-primary btn-sm" id="autoRefreshBtn" onclick="toggleAutoRefresh()"><i class="ri-pause-line"></i>自动刷新</button>
-          </div>
+    <!-- ===== Tenants ===== -->
+    <div class="pg" id="pg-tenants">
+      <div class="pn">
+        <div class="pn-h">
+          <span class="pn-t">租户用户</span>
+          <div class="pn-acts"><div class="sb"><i class="ri-search-line"></i><input placeholder="搜索用户名/手机..." oninput="filterTenants(this.value)"></div></div>
         </div>
-        <div class="panel-body" style="padding:0;max-height:calc(100vh - 200px);overflow-y:auto">
-          <div class="table-wrapper">
-            <table class="log-table">
-              <thead><tr><th>时间</th><th>方法</th><th>路径</th><th>状态</th><th>耗时</th><th>请求体</th></tr></thead>
-              <tbody id="logTableBody"></tbody>
-            </table>
-          </div>
+        <div class="pn-b" style="padding:0">
+          <div class="tw"><table><thead><tr><th>用户ID</th><th>用户名</th><th>所属店铺</th><th>手机</th><th>邮箱</th><th>角色</th><th>状态</th><th>最后登录</th></tr></thead>
+          <tbody id="tenantsTbl"></tbody></table></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== Users Page ===== -->
-    <div class="page" id="page-users">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">用户管理</span>
-          <div class="panel-actions">
-            <div class="search-box"><i class="ri-search-line"></i><input placeholder="搜索用户名/手机号..." oninput="filterUsers(this.value)"></div>
+    <!-- ===== Plans ===== -->
+    <div class="pg" id="pg-plans">
+      <div class="pn"><div class="pn-h"><span class="pn-t">订阅方案管理</span></div><div class="pn-b">
+        <div class="plans" id="plansGrid"></div>
+      </div></div>
+    </div>
+
+    <!-- ===== Billing ===== -->
+    <div class="pg" id="pg-billing">
+      <div class="kpi" id="billingKpi"></div>
+      <div class="pn"><div class="pn-h"><span class="pn-t">营收趋势</span></div><div class="pn-b"><div class="bc" id="billingChart"></div></div></div>
+    </div>
+
+    <!-- ===== LLM Usage ===== -->
+    <div class="pg" id="pg-llm">
+      <div class="kpi" id="llmKpi"></div>
+      <div class="pn"><div class="pn-h"><span class="pn-t">AI调用明细</span></div><div class="pn-b" style="padding:0">
+        <div class="tw"><table><thead><tr><th>时间</th><th>店铺</th><th>端点</th><th>意图</th><th>耗时</th><th>状态</th></tr></thead>
+        <tbody id="llmTbl"></tbody></table></div>
+      </div></div>
+    </div>
+
+    <!-- ===== Logs ===== -->
+    <div class="pg" id="pg-logs">
+      <div class="pn">
+        <div class="pn-h">
+          <span class="pn-t">实时请求日志</span>
+          <div class="pn-acts">
+            <button class="bt bt-o bt-s" onclick="clearLogs()"><i class="ri-delete-bin-line"></i>清空</button>
+            <button class="bt bt-p bt-s" id="arBtn" onclick="toggleAR()"><i class="ri-pause-line"></i>自动刷新</button>
           </div>
         </div>
-        <div class="panel-body" style="padding:0">
-          <div class="table-wrapper">
-            <table><thead><tr><th>用户ID</th><th>用户名</th><th>手机</th><th>邮箱</th><th>状态</th><th>注册时间</th><th>最后登录</th></tr></thead>
-            <tbody id="usersTable"></tbody></table>
-          </div>
+        <div class="pn-b" style="padding:0;max-height:calc(100vh - 180px);overflow-y:auto">
+          <div class="tw"><table><thead><tr><th>时间</th><th>方法</th><th>路径</th><th>状态</th><th>耗时</th><th>请求体</th></tr></thead>
+          <tbody id="logTbl"></tbody></table></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== Inventory Page ===== -->
-    <div class="page" id="page-inventory">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">库存商品</span>
-          <div class="panel-actions">
-            <div class="search-box"><i class="ri-search-line"></i><input placeholder="搜索商品名称..." oninput="filterInventory(this.value)"></div>
-          </div>
-        </div>
-        <div class="panel-body" style="padding:0">
-          <div class="table-wrapper">
-            <table><thead><tr><th>商品ID</th><th>名称</th><th>分类</th><th>单位</th><th>库存</th><th>单价</th><th>阈值</th><th>状态</th><th>更新时间</th></tr></thead>
-            <tbody id="inventoryTable"></tbody></table>
-          </div>
-        </div>
-      </div>
+    <!-- ===== Audit ===== -->
+    <div class="pg" id="pg-audit">
+      <div class="pn"><div class="pn-h"><span class="pn-t">审计日志</span></div><div class="pn-b" style="padding:0">
+        <div class="tw"><table><thead><tr><th>时间</th><th>事件</th><th>店铺</th><th>实体</th><th>详情</th></tr></thead>
+          <tbody id="auditTbl"></tbody></table></div>
+      </div></div>
     </div>
 
-    <!-- ===== Events Page ===== -->
-    <div class="page" id="page-events">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">出入库流水</span>
-          <div class="panel-actions">
-            <button class="btn btn-outline btn-sm" onclick="loadEvents()"><i class="ri-refresh-line"></i>刷新</button>
-          </div>
-        </div>
-        <div class="panel-body" style="padding:0">
-          <div class="table-wrapper">
-            <table><thead><tr><th>时间</th><th>商品</th><th>类型</th><th>数量</th><th>单价</th><th>金额</th><th>原因</th><th>来源</th></tr></thead>
-            <tbody id="eventsTable"></tbody></table>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
+</div>
 
-    <!-- ===== Chat Log Page ===== -->
-    <div class="page" id="page-chat">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">AI对话记录</span>
-          <div class="panel-actions">
-            <button class="btn btn-outline btn-sm" onclick="loadChatLogs()"><i class="ri-refresh-line"></i>刷新</button>
-          </div>
-        </div>
-        <div class="panel-body" id="chatLogBody" style="max-height:calc(100vh - 200px);overflow-y:auto"></div>
-      </div>
+<!-- ===== Create Shop Modal ===== -->
+<div class="modal-bg" id="shopModal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>新建店铺</h3>
+    <div class="fg"><label>店铺名称</label><input id="newShopName" placeholder="如：张三五金店"></div>
+    <div class="fg"><label>所有者姓名</label><input id="newShopOwner" placeholder="如：张三"></div>
+    <div class="fg"><label>订阅方案</label>
+      <select id="newShopPlan"><option value="free">免费版</option><option value="basic">基础版</option><option value="professional">专业版</option></select>
     </div>
-
-    <!-- ===== Audit Log Page ===== -->
-    <div class="page" id="page-audit">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">审计日志</span>
-        </div>
-        <div class="panel-body" style="padding:0">
-          <div class="table-wrapper">
-            <table><thead><tr><th>时间</th><th>事件类型</th><th>实体类型</th><th>实体ID</th><th>详情</th></tr></thead>
-            <tbody id="auditTable"></tbody></table>
-          </div>
-        </div>
-      </div>
+    <div class="modal-acts">
+      <button class="bt bt-o" onclick="closeModal()">取消</button>
+      <button class="bt bt-p" onclick="createShop()">创建</button>
     </div>
   </div>
 </div>
 
 <script>
-const API = '/api';
-let autoRefresh = true;
-let logTimer = null;
-let allUsers = [];
-let allInventory = [];
+const A = '/api';
+let ar = true, lt = null, allShops = [], allTenants = [];
 
-// ========== Navigation ==========
-document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+// ========== Nav ==========
+document.querySelectorAll('.sb-item[data-p]').forEach(el => {
   el.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    el.classList.add('active');
-    const page = el.dataset.page;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-    document.getElementById('pageTitle').textContent = el.textContent.trim();
-    loadPage(page);
+    document.querySelectorAll('.sb-item').forEach(n => n.classList.remove('on'));
+    el.classList.add('on');
+    document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+    document.getElementById('pg-' + el.dataset.p).classList.add('on');
+    document.getElementById('pgTitle').textContent = el.textContent.trim();
+    load(el.dataset.p);
   });
 });
-
-function loadPage(page) {
-  switch(page) {
-    case 'dashboard': loadDashboard(); break;
-    case 'logs': startLogRefresh(); break;
-    case 'users': loadUsers(); break;
-    case 'inventory': loadInventory(); break;
-    case 'events': loadEvents(); break;
-    case 'chat': loadChatLogs(); break;
-    case 'audit': loadAuditLogs(); break;
-  }
-}
-
-function refreshPage() {
-  const active = document.querySelector('.nav-item.active');
-  if (active) loadPage(active.dataset.page);
-}
+function refresh() { const a = document.querySelector('.sb-item.on'); if (a) load(a.dataset.p); }
+function load(p) { ({dashboard:loadDash,shops:loadShops,tenants:loadTenants,plans:loadPlans,billing:loadBilling,llm:loadLLM,logs:startLogs,audit:loadAudit})[p]?.(); }
 
 // ========== Clock ==========
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(() => {
+  const d = new Date();
+  document.getElementById('clk').textContent = d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
 
 // ========== Dashboard ==========
-async function loadDashboard() {
-  try {
-    const [dashR, revR, itemsR, transR] = await Promise.all([
-      fetch(API + '/v1/dashboard').then(r=>r.json()),
-      fetch(API + '/v1/revenue').then(r=>r.json()),
-      fetch(API + '/v1/items').then(r=>r.json()),
-      fetch(API + '/v1/transactions?limit=10').then(r=>r.json()),
-    ]);
-    const dash = dashR.data || {};
-    const rev = revR.data || {};
-    const items = itemsR.data || [];
-    const trans = transR.data || {};
-    const stats = trans.today_stats || {};
+async function loadDash() {
+  const [dash, rev, items, trans] = await Promise.all([
+    pj('/v1/dashboard'), pj('/v1/revenue'), pj('/v1/items'), pj('/v1/transactions?limit=8'),
+  ]);
+  const d = dash.data||{}, r = rev.data||{}, its = items.data||[], t = trans.data||{}, s = t.today_stats||{};
 
-    // Stat cards
-    document.getElementById('statCards').innerHTML = [
-      statCard('今日营业额', '¥' + fmtNum(rev.today_revenue || 0), 'primary', 'ri-money-cny-circle-line', '较昨日持平'),
-      statCard('库存总值', '¥' + fmtNum(dash.total_value || 0), 'success', 'ri-archive-stack-line', dash.total_items + ' 种商品'),
-      statCard('今日出库', (stats.stock_out_count || 0) + ' 笔', 'warning', 'ri-upload-2-line', '¥' + fmtNum(stats.total_out_value || 0)),
-      statCard('预警商品', (dash.low_stock_items || 0) + ' 个', 'info', 'ri-alert-line', dash.low_stock_items > 0 ? '需要补货' : '库存正常'),
-    ].join('');
+  document.getElementById('kpiRow').innerHTML = [
+    kpi('已注册店铺', '1', 'pri', 'ri-building-2-line', '活跃租户'),
+    kpi('平台GMV(今日)', '¥'+fn(r.today_revenue||0), 'ok', 'ri-line-chart-line', '出库 '+fn(s.stock_out_count||0)+' 笔'),
+    kpi('平台总商品', fn(d.total_items||0), 'warn', 'ri-archive-stack-line', '库存总值 ¥'+fn(d.total_value||0)),
+    kpi('AI调用(今日)', fn(d.today_events||0)+' 次', 'info', 'ri-robot-line', '火山引擎 豆包'),
+  ].join('');
 
-    // Revenue chart
-    const daily = rev.daily_revenue || [];
-    const maxRev = Math.max(...daily.map(d => d.revenue), 1);
-    document.getElementById('revenueChart').innerHTML = daily.map(d => {
-      const h = Math.round((d.revenue / maxRev) * 100);
-      return `<div class="bar-item"><div class="bar-value">${fmtNum(d.revenue)}</div><div class="bar" style="height:${Math.max(h,2)}%"></div><div class="bar-label">${d.date.slice(5)}</div></div>`;
-    }).join('') || '<div class="empty">暂无数据</div>';
+  const daily = r.daily_revenue||[];
+  const mx = Math.max(...daily.map(x=>x.revenue),1);
+  document.getElementById('gmvChart').innerHTML = daily.map(x =>
+    `<div class="bi"><div class="bv">${fn(x.revenue)}</div><div class="br" style="height:${Math.max(x.revenue/mx*100,2)}%"></div><div class="bl">${x.date.slice(5)}</div></div>`
+  ).join('') || '<div class="em">暂无数据</div>';
 
-    // Top items
-    const topItems = rev.top_items || [];
-    document.getElementById('topItemsPanel').innerHTML = topItems.length ? topItems.map((item, i) => `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i < topItems.length-1 ? 'border-bottom:1px solid var(--gray-100)' : ''}">
-        <span style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid ${i===0?'var(--danger)':i===1?'var(--gray-400)':'#cd7f32'};color:${i===0?'var(--danger)':i===1?'var(--gray-400)':'#cd7f32'}">${i+1}</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${item.name}</div><div style="font-size:11px;color:var(--gray-400)">销量 ${fmtNum(item.total_sold)}</div></div>
-        <div style="font-size:14px;font-weight:700;color:var(--gray-900)">¥${fmtNum(item.total_revenue)}</div>
-      </div>`).join('') : '<div class="empty"><i class="ri-bar-chart-grouped-line"></i>暂无销售数据</div>';
+  const norm = its.filter(x=>!x.is_low_stock).length, low = its.filter(x=>x.is_low_stock).length, tot = norm+low||1;
+  document.getElementById('shopDonut').innerHTML = `<div class="dn">
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--g100)" stroke-width="16"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--ok)" stroke-width="16" stroke-dasharray="${norm/tot*314} 314" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+      ${low?`<circle cx="60" cy="60" r="50" fill="none" stroke="var(--err)" stroke-width="16" stroke-dasharray="${low/tot*314} 314" stroke-linecap="round" transform="rotate(${norm/tot*360-90} 60 60)"/>`:''}
+      <text x="60" y="56" text-anchor="middle" font-size="20" font-weight="800" fill="var(--g900)">${tot}</text>
+      <text x="60" y="72" text-anchor="middle" font-size="10" fill="var(--g400)">总SKU</text>
+    </svg>
+    <div class="dn-l">
+      <div class="dn-i"><div class="dn-d" style="background:var(--ok)"></div>正常 ${norm}</div>
+      <div class="dn-i"><div class="dn-d" style="background:var(--err)"></div>预警 ${low}</div>
+    </div></div>`;
 
-    // Stock donut
-    const normal = items.filter(i => !i.is_low_stock).length;
-    const low = items.filter(i => i.is_low_stock).length;
-    const total = normal + low || 1;
-    document.getElementById('stockDonut').innerHTML = `
-      <div class="donut-wrap">
-        <svg width="120" height="120" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--gray-100)" stroke-width="16"/>
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--success)" stroke-width="16" stroke-dasharray="${normal/total*314} 314" stroke-linecap="round" transform="rotate(-90 60 60)"/>
-          ${low > 0 ? `<circle cx="60" cy="60" r="50" fill="none" stroke="var(--danger)" stroke-width="16" stroke-dasharray="${low/total*314} 314" stroke-linecap="round" transform="rotate(${(normal/total*360)-90} 60 60)"/>` : ''}
-          <text x="60" y="56" text-anchor="middle" font-size="20" font-weight="800" fill="var(--gray-900)">${total}</text>
-          <text x="60" y="72" text-anchor="middle" font-size="10" fill="var(--gray-400)">总SKU</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>正常 ${normal}</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>预警 ${low}</div>
-        </div>
-      </div>`;
+  const evts = t.transactions||[];
+  document.getElementById('recentPlatform').innerHTML = evts.length ? evts.slice(0,6).map(e => {
+    const o = e.event_type==='stock_out';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--g50)">
+      <span class="bd ${o?'bd-err':'bd-ok'}" style="min-width:30px;justify-content:center">${o?'出':'入'}</span>
+      <span style="flex:1">${e.item_name}</span>
+      <span style="font-weight:600;color:${o?'var(--err)':'var(--ok)'}">${o?'-':'+'}${e.quantity}</span>
+      <span style="color:var(--g400);font-size:11px">${(e.created_at||'').slice(5,16)}</span>
+    </div>`;
+  }).join('') : '<div class="em"><i class="ri-exchange-line"></i>暂无操作记录</div>';
 
-    // Recent events
-    const events = trans.transactions || [];
-    document.getElementById('recentEvents').innerHTML = events.length ? events.slice(0, 8).map(ev => {
-      const isOut = ev.event_type === 'stock_out';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--gray-50)">
-        <span class="badge ${isOut ? 'badge-danger' : 'badge-success'}" style="min-width:36px;justify-content:center">${isOut ? '出' : '入'}</span>
-        <span style="flex:1;color:var(--gray-700)">${ev.item_name}</span>
-        <span style="font-weight:600;color:${isOut ? 'var(--danger)' : 'var(--success)'}">${isOut ? '-' : '+'}${ev.quantity} ${ev.unit}</span>
-        <span style="color:var(--gray-400);font-size:11px">${(ev.created_at || '').slice(5, 16)}</span>
-      </div>`;
-    }).join('') : '<div class="empty"><i class="ri-exchange-line"></i>暂无操作记录</div>';
-
-  } catch(e) { console.error('Dashboard load error:', e); }
-}
-
-function statCard(label, value, color, icon, sub) {
-  return `<div class="stat-card ${color}">
-    <div class="stat-header"><span class="stat-label">${label}</span><div class="stat-icon ${color}"><i class="${icon}"></i></div></div>
-    <div class="stat-value">${value}</div>
-    <div class="stat-change">${sub}</div>
+  document.getElementById('activeShops').innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:8px 0">
+    <div style="width:36px;height:36px;border-radius:8px;background:var(--pri-bg);display:flex;align-items:center;justify-content:center"><i class="ri-building-2-line" style="color:var(--pri)"></i></div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">五金店 Demo</div><div style="font-size:11px;color:var(--g400)">shop_hardware · 免费版</div></div>
+    <span class="bd bd-ok">运行中</span>
   </div>`;
 }
 
-// ========== Request Logs ==========
-function startLogRefresh() {
-  if (logTimer) clearInterval(logTimer);
-  fetchLogs();
-  if (autoRefresh) logTimer = setInterval(fetchLogs, 1000);
+function kpi(l,v,c,i,s) { return `<div class="kpi-c ${c}"><div class="kpi-top"><span class="kpi-l">${l}</span><div class="kpi-i ${c}"><i class="${i}"></i></div></div><div class="kpi-v">${v}</div><div class="kpi-s">${s}</div></div>`; }
+
+// ========== Shops ==========
+async function loadShops() {
+  // Currently single demo shop, show as management view
+  const [dash, items] = await Promise.all([pj('/v1/dashboard'), pj('/v1/items')]);
+  const d = dash.data||{}, its = items.data||[];
+  allShops = [{
+    shop_id: 'shop_hardware', name: '五金店 Demo', owner_name: '管理员',
+    plan: 'free', item_count: its.length, user_count: 0, status: 'active', created_at: '2026-04-11',
+  }];
+  renderShops(allShops);
+}
+function renderShops(shops) {
+  document.getElementById('shopsTbl').innerHTML = shops.map(s => `<tr>
+    <td style="font-size:11px;color:var(--g400)">${s.shop_id}</td>
+    <td style="font-weight:600">${s.name}</td>
+    <td>${s.owner_name}</td>
+    <td><span class="bd ${s.plan==='professional'?'bd-info':s.plan==='basic'?'bd-warn':'bd-g'}">${({free:'免费版',basic:'基础版',professional:'专业版'})[s.plan]||s.plan}</span></td>
+    <td style="font-weight:600">${s.item_count}</td>
+    <td>${s.user_count}</td>
+    <td><span class="bd ${s.status==='active'?'bd-ok':'bd-err'}">${s.status==='active'?'运行中':'已停用'}</span></td>
+    <td style="font-size:11px;color:var(--g400)">${s.created_at}</td>
+    <td><button class="bt bt-o bt-s">编辑</button></td>
+  </tr>`).join('') || '<tr><td colspan="9" class="em">暂无店铺</td></tr>';
+}
+function filterShops(q) { renderShops(allShops.filter(s => s.name.includes(q) || s.shop_id.includes(q))); }
+
+function showCreateShop() { document.getElementById('shopModal').style.display = 'flex'; }
+function closeModal() { document.getElementById('shopModal').style.display = 'none'; }
+async function createShop() {
+  const name = document.getElementById('newShopName').value;
+  const owner = document.getElementById('newShopOwner').value;
+  if (!name) return alert('请输入店铺名称');
+  alert('店铺创建功能 - 需后端API支持\n\n名称: ' + name + '\n所有者: ' + owner);
+  closeModal();
 }
 
+// ========== Tenants ==========
+async function loadTenants() {
+  const res = await pj('/admin/users');
+  allTenants = res.data || [];
+  renderTenants(allTenants);
+}
+function renderTenants(users) {
+  document.getElementById('tenantsTbl').innerHTML = users.length ? users.map(u => `<tr>
+    <td style="font-size:11px;color:var(--g400)">${(u.user_id||'').slice(0,12)}...</td>
+    <td style="font-weight:600">${u.username||'-'}</td>
+    <td><span class="bd bd-g">${u.shop_id||'-'}</span></td>
+    <td>${u.phone||'-'}</td>
+    <td>${u.email||'-'}</td>
+    <td><span class="bd bd-info">成员</span></td>
+    <td><span class="bd ${u.status==='active'?'bd-ok':'bd-g'}">${u.status||'active'}</span></td>
+    <td style="font-size:11px;color:var(--g400)">${(u.last_login_at||'从未').slice(0,16)}</td>
+  </tr>`).join('') : '<tr><td colspan="8" class="em"><i class="ri-group-line"></i>暂无租户用户</td></tr>';
+}
+function filterTenants(q) { renderTenants(allTenants.filter(u => (u.username||'').includes(q) || (u.phone||'').includes(q))); }
+
+// ========== Plans ==========
+function loadPlans() {
+  const plans = [
+    {nm:'免费版',pr:'0',un:'/月',tag:'',fs:['最多 3 名员工','100 个商品','基础库存管理','AI 智能助手 (100次/日)','社区支持']},
+    {nm:'基础版',pr:'99',un:'/月/店铺',tag:'推荐',fs:['最多 10 名员工','1,000 个商品','进销存全流程','AI 智能助手 (1,000次/日)','数据导出','专属客服']},
+    {nm:'专业版',pr:'299',un:'/月/店铺',tag:'',fs:['无限员工','无限商品','多仓库管理','AI 智能助手 (无限)','API 接口','数据分析报表','优先技术支持','定制开发']},
+  ];
+  document.getElementById('plansGrid').innerHTML = plans.map(p => `<div class="plan ${p.tag?'pop':''}">
+    ${p.tag?`<div class="plan-tag">${p.tag}</div>`:''}
+    <div class="plan-nm">${p.nm}</div>
+    <div class="plan-pr">${p.pr}<span>${p.un}</span></div>
+    <div class="plan-fs">${p.fs.map(f=>`<div class="plan-f"><i class="ri-check-line"></i>${f}</div>`).join('')}</div>
+    <button class="bt ${p.tag?'bt-p':'bt-o'}" style="width:100%;margin-top:16px;justify-content:center">${p.tag?'立即开通':'选择方案'}</button>
+  </div>`).join('');
+}
+
+// ========== Billing ==========
+async function loadBilling() {
+  const rev = await pj('/v1/revenue');
+  const r = rev.data||{};
+  document.getElementById('billingKpi').innerHTML = [
+    kpi('今日营收', '¥'+fn(r.today_revenue||0), 'ok', 'ri-money-cny-circle-line', '平台GMV'),
+    kpi('本周营收', '¥'+fn(r.week_revenue||0), 'pri', 'ri-calendar-line', '7日累计'),
+    kpi('本月营收', '¥'+fn(r.month_revenue||0), 'warn', 'ri-bar-chart-box-line', '当月累计'),
+    kpi('订阅收入', '¥0', 'info', 'ri-vip-crown-2-line', '付费店铺 0 个'),
+  ].join('');
+  const daily = r.daily_revenue||[], mx = Math.max(...daily.map(x=>x.revenue),1);
+  document.getElementById('billingChart').innerHTML = daily.map(x =>
+    `<div class="bi"><div class="bv">${fn(x.revenue)}</div><div class="br" style="height:${Math.max(x.revenue/mx*100,2)}%"></div><div class="bl">${x.date.slice(5)}</div></div>`
+  ).join('') || '<div class="em">暂无数据</div>';
+}
+
+// ========== LLM ==========
+async function loadLLM() {
+  const logs = await fetch(A+'/logs?limit=50').then(r=>r.json()).catch(()=>[]);
+  const llmLogs = logs.filter(l => l.path.includes('/chat'));
+  document.getElementById('llmKpi').innerHTML = [
+    kpi('AI总调用', fn(llmLogs.length), 'pri', 'ri-robot-line', '累计请求'),
+    kpi('平均耗时', llmLogs.length ? fn(llmLogs.reduce((s,l)=>s+l.duration_ms,0)/llmLogs.length)+'ms' : '0ms', 'info', 'ri-timer-line', 'LLM推理'),
+    kpi('成功调用', fn(llmLogs.filter(l=>l.status<400).length), 'ok', 'ri-check-double-line', '成功率 '+(llmLogs.length?Math.round(llmLogs.filter(l=>l.status<400).length/llmLogs.length*100):100)+'%'),
+    kpi('失败调用', fn(llmLogs.filter(l=>l.status>=400).length), 'err', 'ri-error-warning-line', '需要关注'),
+  ].join('');
+  document.getElementById('llmTbl').innerHTML = llmLogs.length ? llmLogs.map(l => `<tr>
+    <td style="font-size:11px;color:var(--g400)">${l.time}</td>
+    <td><span class="bd bd-g">${l.method}</span></td>
+    <td style="font-size:12px">${l.path}</td>
+    <td style="font-size:12px">${(l.body||'').slice(0,40)}</td>
+    <td style="font-variant-numeric:tabular-nums">${l.duration_ms}ms</td>
+    <td><span class="bd ${l.status<400?'bd-ok':'bd-err'}">${l.status}</span></td>
+  </tr>`).join('') : '<tr><td colspan="6" class="em"><i class="ri-robot-line"></i>暂无AI调用记录</td></tr>';
+}
+
+// ========== Logs ==========
+function startLogs() { if(lt) clearInterval(lt); fetchLogs(); if(ar) lt=setInterval(fetchLogs,1000); }
 async function fetchLogs() {
   try {
-    const logs = await fetch(API + '/logs?limit=100').then(r => r.json());
-    document.getElementById('logTableBody').innerHTML = logs.map(l => {
-      const sc = 's' + String(l.status)[0] + 'xx';
+    const logs = await fetch(A+'/logs?limit=100').then(r=>r.json());
+    document.getElementById('logTbl').innerHTML = logs.map(l => {
+      const sc = 's'+String(l.status)[0];
       return `<tr>
-        <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);font-size:12px">${esc(l.time)}</td>
-        <td><span class="log-method ${l.method}">${l.method}</span></td>
-        <td style="font-size:13px">${esc(l.path)}${l.query ? ' <span style="color:var(--gray-400);font-size:11px">?' + esc(l.query) + '</span>' : ''}</td>
-        <td><span class="log-status ${sc}">${l.status}</span></td>
-        <td style="color:var(--gray-500);font-variant-numeric:tabular-nums">${l.duration_ms}ms</td>
-        <td class="log-body">${esc(l.body)}</td>
+        <td style="font-variant-numeric:tabular-nums;color:var(--g400);font-size:11px">${esc(l.time)}</td>
+        <td><span class="lm ${l.method}">${l.method}</span></td>
+        <td style="font-size:12px">${esc(l.path)}${l.query?' <span style="color:var(--g400);font-size:10px">?'+esc(l.query)+'</span>':''}</td>
+        <td><span class="ls ${sc}">${l.status}</span></td>
+        <td style="font-variant-numeric:tabular-nums;color:var(--g500)">${l.duration_ms}ms</td>
+        <td class="lb">${esc(l.body)}</td>
       </tr>`;
     }).join('');
   } catch(e) {}
 }
-
-function toggleAutoRefresh() {
-  autoRefresh = !autoRefresh;
-  const btn = document.getElementById('autoRefreshBtn');
-  if (autoRefresh) {
-    btn.innerHTML = '<i class="ri-pause-line"></i>自动刷新';
-    startLogRefresh();
-  } else {
-    btn.innerHTML = '<i class="ri-play-line"></i>已暂停';
-    if (logTimer) clearInterval(logTimer);
-  }
+function toggleAR() {
+  ar = !ar;
+  const b = document.getElementById('arBtn');
+  if(ar){b.innerHTML='<i class="ri-pause-line"></i>自动刷新';startLogs();}
+  else{b.innerHTML='<i class="ri-play-line"></i>已暂停';if(lt)clearInterval(lt);}
 }
+async function clearLogs() { await fetch(A+'/clear',{method:'POST'}); fetchLogs(); }
 
-async function clearLogs() {
-  await fetch(API + '/clear', { method: 'POST' });
-  fetchLogs();
-}
-
-// ========== Users ==========
-async function loadUsers() {
-  try {
-    const data = await fetch(API + '/v1/audit-logs?limit=200').then(r => r.json());
-    // Users are stored in DB, we show them from the audit context
-    // Since there's no direct "list users" API, we show session data
-    const res = await fetch(API + '/admin/users').then(r => r.json()).catch(() => ({data:[]}));
-    allUsers = res.data || [];
-    renderUsers(allUsers);
-  } catch(e) {}
-}
-
-function renderUsers(users) {
-  document.getElementById('usersTable').innerHTML = users.length ? users.map(u => `
-    <tr>
-      <td style="font-size:12px;color:var(--gray-500)">${(u.user_id||'').slice(0,12)}...</td>
-      <td style="font-weight:600">${esc(u.username||'-')}</td>
-      <td>${esc(u.phone||'-')}</td>
-      <td>${esc(u.email||'-')}</td>
-      <td><span class="badge ${u.status==='active'?'badge-success':'badge-gray'}">${u.status||'active'}</span></td>
-      <td style="font-size:12px;color:var(--gray-500)">${(u.created_at||'').slice(0,16)}</td>
-      <td style="font-size:12px;color:var(--gray-500)">${(u.last_login_at||'从未').slice(0,16)}</td>
-    </tr>`).join('') : '<tr><td colspan="7" class="empty">暂无用户数据</td></tr>';
-}
-
-function filterUsers(q) {
-  const filtered = allUsers.filter(u => (u.username||'').includes(q) || (u.phone||'').includes(q));
-  renderUsers(filtered);
-}
-
-// ========== Inventory ==========
-async function loadInventory() {
-  try {
-    const res = await fetch(API + '/v1/items').then(r => r.json());
-    allInventory = res.data || [];
-    renderInventory(allInventory);
-  } catch(e) {}
-}
-
-function renderInventory(items) {
-  document.getElementById('inventoryTable').innerHTML = items.length ? items.map(item => `
-    <tr>
-      <td style="font-size:11px;color:var(--gray-400)">${(item.item_id||'').slice(0,10)}...</td>
-      <td style="font-weight:600">${esc(item.name)}</td>
-      <td><span class="badge badge-gray">${esc(item.category||'未分类')}</span></td>
-      <td>${esc(item.default_unit)}</td>
-      <td style="font-weight:700;color:${item.is_low_stock?'var(--danger)':'var(--gray-900)'}">${item.current_stock}</td>
-      <td>¥${item.unit_price}</td>
-      <td>${item.low_stock_threshold}</td>
-      <td><span class="badge ${item.is_low_stock?'badge-danger':'badge-success'}">${item.is_low_stock?'需补货':'正常'}</span></td>
-      <td style="font-size:11px;color:var(--gray-500)">${(item.updated_at||'').slice(0,16)}</td>
-    </tr>`).join('') : '<tr><td colspan="9" class="empty"><i class="ri-archive-line"></i>暂无商品数据</td></tr>';
-}
-
-function filterInventory(q) {
-  const filtered = allInventory.filter(i => (i.name||'').includes(q) || (i.category||'').includes(q));
-  renderInventory(filtered);
-}
-
-// ========== Events ==========
-async function loadEvents() {
-  try {
-    const res = await fetch(API + '/v1/events?limit=50').then(r => r.json());
-    const events = res.data || [];
-    document.getElementById('eventsTable').innerHTML = events.length ? events.map(ev => {
-      const isOut = ev.event_type === 'stock_out';
-      const isIn = ev.event_type === 'stock_in';
-      return `<tr>
-        <td style="font-size:12px;color:var(--gray-500)">${(ev.created_at||'').slice(0,16)}</td>
-        <td style="font-weight:500">${esc(ev.item_name)}</td>
-        <td><span class="badge ${isOut?'badge-danger':isIn?'badge-success':'badge-warning'}">${isOut?'出库':isIn?'入库':'修正'}</span></td>
-        <td style="font-weight:600">${isOut?'-':'+'}${ev.quantity} ${ev.unit}</td>
-        <td>¥${ev.unit_price || 0}</td>
-        <td style="font-weight:600">¥${((ev.quantity||0)*(ev.unit_price||0)).toFixed(2)}</td>
-        <td>${esc(ev.reason||'-')}</td>
-        <td><span class="badge badge-gray">${esc(ev.source||'-')}</span></td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="8" class="empty"><i class="ri-exchange-line"></i>暂无流水记录</td></tr>';
-  } catch(e) {}
-}
-
-// ========== Chat Logs ==========
-async function loadChatLogs() {
-  try {
-    const sessions = await fetch(API + '/v1/dashboard').then(r => r.json());
-    const sessionId = 'sess_default';
-    const res = await fetch(API + '/v1/sessions/' + sessionId + '/messages?limit=50').then(r => r.json());
-    const messages = res.data || [];
-    document.getElementById('chatLogBody').innerHTML = messages.length ? messages.map(m => {
-      const isUser = m.actor_type === 'owner';
-      return `<div class="chat-log-item">
-        <div class="chat-avatar ${isUser ? 'user' : 'ai'}">${isUser ? '<i class="ri-user-line"></i>' : '<i class="ri-robot-line"></i>'}</div>
-        <div class="chat-content">
-          <div class="chat-meta">${isUser ? '用户' : 'AI助手'} · ${(m.created_at||'').slice(0,16)}</div>
-          <div class="chat-text">${esc(m.text||'')}</div>
-        </div>
-      </div>`;
-    }).join('') : '<div class="empty"><i class="ri-chat-3-line"></i>暂无对话记录</div>';
-  } catch(e) {}
-}
-
-// ========== Audit Logs ==========
-async function loadAuditLogs() {
-  try {
-    const res = await fetch(API + '/v1/audit-logs?limit=50').then(r => r.json());
-    const logs = res.data || [];
-    document.getElementById('auditTable').innerHTML = logs.length ? logs.map(l => {
-      let details = '';
-      try { details = typeof l.details === 'string' ? JSON.stringify(JSON.parse(l.details), null, 0) : JSON.stringify(l.details); } catch { details = l.details || ''; }
-      return `<tr>
-        <td style="font-size:12px;color:var(--gray-500)">${(l.created_at||'').slice(0,16)}</td>
-        <td><span class="badge badge-info">${esc(l.event_type)}</span></td>
-        <td>${esc(l.entity_type||'-')}</td>
-        <td style="font-size:11px;color:var(--gray-400)">${(l.entity_id||'').slice(0,12)}...</td>
-        <td class="log-body">${esc(details.slice(0,100))}</td>
-      </tr>`;
-    }).join('') : '<tr><td colspan="5" class="empty"><i class="ri-file-list-3-line"></i>暂无审计记录</td></tr>';
-  } catch(e) {}
+// ========== Audit ==========
+async function loadAudit() {
+  const res = await pj('/v1/audit-logs?limit=50');
+  const logs = res.data||[];
+  document.getElementById('auditTbl').innerHTML = logs.length ? logs.map(l => {
+    let d=''; try{d=typeof l.details==='string'?l.details:JSON.stringify(l.details)}catch{d=l.details||''}
+    return `<tr>
+      <td style="font-size:11px;color:var(--g400)">${(l.created_at||'').slice(0,16)}</td>
+      <td><span class="bd bd-info">${l.event_type}</span></td>
+      <td style="font-size:11px">${l.entity_type||'-'}</td>
+      <td style="font-size:10px;color:var(--g400)">${(l.entity_id||'').slice(0,12)}...</td>
+      <td class="lb">${esc(d.slice(0,80))}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="5" class="em"><i class="ri-shield-check-line"></i>暂无审计记录</td></tr>';
 }
 
 // ========== Utils ==========
-function fmtNum(n) {
-  n = Number(n) || 0;
-  if (n >= 10000) return (n/10000).toFixed(1) + 'w';
-  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
-  if (n === 0) return '0';
-  return n.toFixed(n % 1 === 0 ? 0 : 2);
-}
-
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
-}
+async function pj(p) { return fetch(A+p).then(r=>r.json()).catch(()=>({})); }
+function fn(n) { n=Number(n)||0; if(n>=10000) return (n/10000).toFixed(1)+'w'; if(n>=1000) return (n/1000).toFixed(1)+'k'; return n===0?'0':n.toFixed(n%1===0?0:2); }
+function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 
 // ========== Init ==========
-loadDashboard();
-startLogRefresh();
+loadDash();
+startLogs();
 </script>
 </body>
 </html>

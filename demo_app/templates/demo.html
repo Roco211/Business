@@ -2,1010 +2,1607 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>AI五金店大管家 - 经营概览</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>AI五金店大管家</title>
 <style>
-/* ── Design Tokens ── */
-:root{
-  --bg-app:#f6f2ea;
-  --bg-surface:#fffdf8;
-  --bg-elevated:#ffffff;
-  --bg-muted:#f1ebdf;
-  --bg-accent-soft:#ece6ff;
-  --bg-brand-soft:#e3f1e8;
-  --bg-inverse:#2f211c;
-  --fg-primary:#2d211c;
-  --fg-secondary:rgba(45,33,28,.72);
-  --fg-tertiary:rgba(45,33,28,.48);
-  --accent:#3f8f63;
-  --accent-contrast:#fff;
-  --status-warning:#a06a22;
-  --status-error:#b54738;
-  --status-success:#317e57;
-  --border-subtle:rgba(45,33,28,.08);
-  --focus-ring:rgba(63,143,99,.18);
-  --radius-card:18px;
-  --radius-input:18px;
-  --radius-panel:28px;
-  --radius-pill:999px;
-  --s8:8px;--s10:10px;--s12:12px;--s16:16px;--s20:20px;--s24:24px;--s32:32px;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#f5f6fa;color:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+
+/* ===== 状态栏 ===== */
+.status-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:44px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;font-size:15px;font-weight:600;
+  background:#fff;
+  border-bottom:1px solid #eef0f4;
+  color:#1a1a2e;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
-  background:var(--bg-app);color:var(--fg-primary);
-  -webkit-font-smoothing:antialiased;line-height:1.5;
+/* ===== 顶部导航 ===== */
+.top-nav{
+  position:fixed;top:44px;left:0;right:0;z-index:100;height:44px;
+  display:flex;align-items:center;padding:0 12px;
+  background:#fff;
+  border-bottom:1px solid #eef0f4;
+}
+.top-nav-left{flex:1}
+.top-nav-center{flex:2;display:flex;align-items:center;gap:16px;justify-content:center}
+.top-nav-right{flex:1;display:flex;justify-content:flex-end}
+.top-tab{
+  font-size:16px;color:#999;font-weight:400;
+  background:none;border:none;cursor:pointer;padding:6px 4px;position:relative;
+}
+.top-tab.active{color:#1a1a2e;font-weight:600}
+.top-tab.active::after{
+  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:24px;height:3px;background:#4d6bfe;border-radius:2px;
+}
+.top-tab .live-dot{
+  display:inline-block;width:6px;height:6px;background:#fe2c55;
+  border-radius:50%;margin-left:3px;vertical-align:top;
+}
+.search-icon{
+  font-size:20px;cursor:pointer;background:none;border:none;color:#666;
 }
 
-/* ── App Shell ── */
-.app{
-  display:flex;flex-direction:column;
-  height:100vh;height:100dvh;
-  max-width:430px;margin:0 auto;
-  background:var(--bg-app);position:relative;overflow:hidden;
+/* ===== 全屏卡片流 ===== */
+.card-feed{
+  width:100%;height:100%;
+  scroll-snap-type:y mandatory;
+  overflow-y:scroll;
+  -webkit-overflow-scrolling:touch;
 }
+.card-feed::-webkit-scrollbar{display:none}
 
-/* ── App Screen ── */
-.app-screen{
-  flex:1;overflow-y:auto;overflow-x:hidden;
-  padding:var(--s16);padding-bottom:80px;
-  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
-}
-.app-screen::-webkit-scrollbar{display:none}
-
-/* ── Surface Card ── */
-.surface-card{
-  background:var(--bg-surface);
-  border-radius:var(--radius-card);
-  padding:var(--s16);
-}
-.surface-card.outlined{border:1px solid var(--border-subtle)}
-.surface-card.elevated{
-  box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06);
-  border:none;
-}
-.surface-card.muted{background:var(--bg-muted)}
-
-/* ── Section Header ── */
-.section-header{margin-bottom:var(--s12)}
-.section-header .title{
-  font-size:15px;font-weight:600;color:var(--fg-primary);
-  margin-bottom:2px;
-}
-.section-header .subtitle{
-  font-size:12px;color:var(--fg-secondary);
-}
-
-/* ── Inline Notice ── */
-.inline-notice{
-  padding:var(--s12);
-  border-radius:var(--radius-card);
-  margin-bottom:var(--s8);
-}
-.inline-notice.neutral{background:var(--bg-muted)}
-.inline-notice.warning{background:#fef3e2;color:var(--status-warning)}
-.inline-notice.error{background:#fde8e6;color:var(--status-error)}
-.inline-notice.success{background:var(--bg-brand-soft);color:var(--status-success)}
-.inline-notice .notice-title{font-size:13px;font-weight:600;margin-bottom:2px}
-.inline-notice .notice-message{font-size:12px;opacity:.85}
-
-/* ── Revenue Hero (New) ── */
-.revenue-hero{
-  background:linear-gradient(135deg,var(--bg-inverse) 0%,#4a3728 100%);
-  border-radius:var(--radius-panel);
-  padding:var(--s24) var(--s20);
-  color:#fff;
-  margin-bottom:var(--s16);
-}
-.revenue-hero .hero-title{
-  font-size:13px;
-  opacity:.7;
-  margin-bottom:var(--s8);
-}
-.revenue-hero .hero-amount{
-  font-size:36px;
-  font-weight:700;
-  margin-bottom:var(--s4);
-}
-.revenue-hero .hero-subtitle{
-  font-size:12px;
-  opacity:.6;
-  margin-bottom:var(--s16);
-}
-.revenue-stats{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:var(--s12);
-}
-.revenue-stat{
-  background:rgba(255,255,255,.1);
-  border-radius:var(--radius-card);
-  padding:var(--s12);
-}
-.revenue-stat .stat-label{
-  font-size:11px;
-  opacity:.7;
-  margin-bottom:2px;
-}
-.revenue-stat .stat-value{
-  font-size:18px;
-  font-weight:600;
-}
-
-/* ── Transactions List ── */
-.transaction-item{
-  display:flex;
-  align-items:center;
-  padding:var(--s12) 0;
-  border-bottom:1px solid var(--border-subtle);
-}
-.transaction-item:last-child{border-bottom:none}
-.transaction-icon{
-  width:40px;height:40px;
-  border-radius:var(--s10);
-  display:grid;place-items:center;
-  font-size:18px;
-  margin-right:var(--s12);
-  flex-shrink:0;
-}
-.transaction-icon.stock-in{background:var(--bg-brand-soft)}
-.transaction-icon.stock-out{background:#fef3e2}
-.transaction-info{flex:1;min-width:0}
-.transaction-name{
-  font-size:14px;font-weight:500;
-  margin-bottom:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.transaction-meta{
-  font-size:11px;
-  color:var(--fg-tertiary);
-}
-.transaction-amount{
-  font-size:14px;font-weight:600;
-  text-align:right;
-}
-.transaction-amount.in{color:var(--status-success)}
-.transaction-amount.out{color:var(--status-error)}
-
-/* ── Recommendation Cards ── */
-.recommendation-card{
-  background:var(--bg-surface);
-  border-radius:var(--radius-card);
-  padding:var(--s16);
-  margin-bottom:var(--s12);
-  border-left:4px solid var(--accent);
-}
-.recommendation-card.urgent{border-left-color:var(--status-error)}
-.recommendation-card.warning{border-left-color:var(--status-warning)}
-.recommendation-card.success{border-left-color:var(--status-success)}
-.recommendation-card.info{border-left-color:#3b82f6}
-.recommendation-title{
-  font-size:14px;font-weight:600;
-  margin-bottom:var(--s8);
-}
-.recommendation-message{
-  font-size:12px;
-  color:var(--fg-secondary);
-  margin-bottom:var(--s8);
-}
-.recommendation-action{
-  font-size:12px;
-  color:var(--accent);
-  font-weight:500;
-}
-
-/* ── Top Items ── */
-.top-item{
-  display:flex;
-  align-items:center;
-  padding:var(--s10) 0;
-  border-bottom:1px solid var(--border-subtle);
-}
-.top-item:last-child{border-bottom:none}
-.top-rank{
-  width:24px;height:24px;
-  border-radius:50%;
-  background:var(--bg-muted);
-  display:grid;place-items:center;
-  font-size:12px;font-weight:600;
-  margin-right:var(--s12);
-  flex-shrink:0;
-}
-.top-rank.gold{background:#fef3c7;color:#a06a22}
-.top-rank.silver{background:#f1f5f9;color:#64748b}
-.top-rank.bronze{background:#fed7aa;color:#9a3412}
-.top-info{flex:1}
-.top-name{font-size:14px;font-weight:500}
-.top-meta{font-size:11px;color:var(--fg-tertiary)}
-.top-revenue{font-size:14px;font-weight:600;color:var(--accent)}
-
-/* ── Chart Placeholder ── */
-.chart-container{
-  background:var(--bg-muted);
-  border-radius:var(--radius-card);
-  padding:var(--s16);
-  height:200px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+/* 每张卡片 = 全屏 */
+.video-card{
+  width:100%;height:100%;
+  scroll-snap-align:start;
   position:relative;
   overflow:hidden;
 }
-.chart-bars{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-around;
-  width:100%;
-  height:150px;
-  padding:0 var(--s10);
-}
-.chart-bar{
-  width:30px;
-  background:linear-gradient(to top,var(--accent),#6bc79a);
-  border-radius:4px 4px 0 0;
-  position:relative;
-  transition:height 0.3s ease;
-}
-.chart-bar::after{
-  content:attr(data-value);
-  position:absolute;
-  top:-20px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:10px;
-  color:var(--fg-secondary);
-  white-space:nowrap;
-}
-.chart-label{
-  position:absolute;
-  bottom:8px;
-  font-size:10px;
-  color:var(--fg-tertiary);
+
+/* 渐变背景层 */
+.video-bg{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:#f5f6fa;
 }
 
-/* ── Bottom Tab Bar ── */
-.bottom-tabs{
-  display:flex;
-  background:var(--bg-surface);
-  border-top:1px solid var(--border-subtle);
-  padding:0;padding-bottom:env(safe-area-inset-bottom,0);
-  position:relative;z-index:10;
-}
-.tab-item{
-  flex:1;padding:10px 0 12px;
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  border:none;background:none;
-  font-size:11px;font-weight:500;
-  color:var(--fg-tertiary);cursor:pointer;
-  transition:color .15s;position:relative;
-}
-.tab-item .tab-icon{font-size:22px;transition:transform .15s}
-.tab-item.active{color:var(--accent)}
-.tab-item.active .tab-icon{transform:scale(1.05)}
-.tab-item.active::before{
-  content:'';position:absolute;top:2px;
-  width:56px;height:28px;border-radius:14px;
-  background:var(--bg-brand-soft);
-}
-
-/* ── Page Transitions ── */
-.page{display:none}
-.page.active{display:block}
-
-/* ── Gap Helpers ── */
-.gap-12>*:not(:last-child){margin-bottom:var(--s12)}
-
-/* ── Loading Skeleton ── */
-.skeleton{
-  background:linear-gradient(90deg,var(--bg-muted) 25%,var(--bg-surface) 50%,var(--bg-muted) 75%);
-  background-size:200% 100%;
-  animation:skeleton-loading 1.5s infinite;
-  border-radius:var(--s8);
-}
-@keyframes skeleton-loading{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-
-/* ── Empty State ── */
-.empty-state{
+/* 卡片内容区域 */
+.card-content{
+  position:relative;z-index:3;
+  width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;
+  padding:100px 20px 30px;
   text-align:center;
-  padding:var(--s24) var(--s16);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
-.empty-icon{font-size:32px;margin-bottom:var(--s8)}
-.empty-title{font-size:14px;font-weight:600;margin-bottom:var(--s4)}
-.empty-desc{font-size:12px;color:var(--fg-tertiary)}
+.card-content::-webkit-scrollbar{display:none}
+.card-content .emoji{font-size:48px;margin-bottom:8px}
+.card-content .title{font-size:20px;font-weight:700;margin-bottom:4px;color:#1a1a2e}
+.card-content .sub{font-size:13px;color:#999;margin-bottom:16px}
 
-/* ── Refresh Button ── */
-.refresh-btn{
-  position:absolute;
-  top:var(--s16);
-  right:var(--s16);
+/* ===== AI员工标识 ===== */
+.employee-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  background:#eef1ff;color:#4d6bfe;
+  font-size:12px;font-weight:600;
+  margin-bottom:14px;
+  border:1px solid rgba(77,107,254,0.15);
+}
+.employee-badge .dot{
+  width:6px;height:6px;border-radius:50%;background:#4d6bfe;
+}
+
+/* 数据展示样式 */
+.data-hero{
+  text-align:center;padding:20px 16px;
+  border-radius:14px;margin-bottom:12px;
+  background:#fff;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  max-width:360px;width:100%;
+}
+.data-hero .label{font-size:13px;color:#999;margin-bottom:6px}
+.data-hero .value{font-size:40px;font-weight:800;letter-spacing:-1px;color:#1a1a2e}
+.data-hero .change{font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;margin-top:4px}
+.data-hero .change.up{color:#00b96b;background:rgba(0,185,107,0.1)}
+.data-hero .change.down{color:#fe2c55;background:rgba(254,44,85,0.1)}
+
+.data-row{display:flex;gap:8px;margin-bottom:10px;max-width:360px;width:100%}
+.data-mini{
+  flex:1;padding:10px 6px;text-align:center;
+  border-radius:10px;background:#fff;
+  box-shadow:0 1px 6px rgba(0,0,0,0.04);
+}
+.data-mini .label{font-size:10px;color:#999;margin-bottom:4px}
+.data-mini .value{font-size:18px;font-weight:700;color:#1a1a2e}
+.data-mini .change{font-size:9px;margin-top:2px}
+.data-mini .change.up{color:#00b96b}
+.data-mini .change.down{color:#fe2c55}
+
+/* 进度条 */
+.progress-item{margin-bottom:10px;max-width:320px;width:100%}
+.progress-item .row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}
+.progress-item .row .name{color:#333}
+.progress-item .row .stat{color:#999}
+.progress-track{height:5px;background:#eef0f4;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* 商品列表 */
+.product-list{margin-bottom:10px;max-width:340px;width:100%}
+.product-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;border-bottom:1px solid #f0f0f0;
+}
+.product-item:last-child{border-bottom:none}
+.product-rank{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+  border:1.5px solid #ddd;color:#999;
+}
+.product-rank.gold{border-color:#fe2c55;color:#fe2c55}
+.product-rank.silver{border-color:#bbb;color:#999}
+.product-rank.bronze{border-color:#cd7f32;color:#cd7f32}
+.product-info{flex:1;text-align:left}
+.product-name{font-size:13px;font-weight:500;margin-bottom:1px;color:#1a1a2e}
+.product-stat{font-size:10px;color:#999}
+.product-bar{width:40px;height:4px;background:#eef0f4;border-radius:3px;overflow:hidden;flex-shrink:0}
+.product-bar-fill{height:100%;background:#4d6bfe;border-radius:3px}
+
+/* ===== 底部导航 ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:70px;padding-bottom:env(safe-area-inset-bottom,0);
+  display:flex;align-items:flex-start;justify-content:space-around;
+  background:#fff;
+  border-top:1px solid #eef0f4;
+  padding-top:8px;
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;min-width:48px;
+}
+.nav-icon{font-size:22px;height:26px;display:flex;align-items:center;justify-content:center}
+.nav-label{font-size:10px;color:#bbb}
+.nav-item.active .nav-label{color:#4d6bfe;font-weight:600}
+.nav-item.active .nav-icon{filter:none}
+
+/* 中间按钮 */
+.nav-center{
+  width:46px;height:30px;border-radius:8px;overflow:hidden;
+  position:relative;cursor:pointer;
+  background:linear-gradient(135deg,#4d6bfe,#7c5cfc);
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-center .inner{
+  font-size:22px;color:#fff;font-weight:300;
+}
+
+/* ===== 用户信息浮层 ===== */
+.user-bar{
+  position:fixed;top:44px;right:12px;z-index:110;
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:#666;
+}
+.user-bar .logout{
+  padding:4px 10px;border-radius:12px;
+  background:#f0f1f5;font-size:12px;cursor:pointer;color:#999;
+}
+
+/* ===== 加载态 ===== */
+.loading{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;color:#bbb;font-size:14px;
+}
+.loading::after{content:'';width:20px;height:20px;border:2px solid #e0e0e0;border-top-color:#4d6bfe;border-radius:50%;animation:spin .8s linear infinite;margin-left:10px}
+
+/* ===== 点赞动画 ===== */
+.like-anim{
+  animation:likePop .4s ease;
+}
+@keyframes likePop{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.3)}
+  100%{transform:scale(1)}
+}
+
+/* ===== 可点击元素 ===== */
+.clickable{
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;
+}
+.clickable:active{
+  transform:scale(0.96);
+}
+.clickable::after{
+  content:'›';position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-size:16px;color:rgba(255,255,255,0.25);font-weight:300;
+}
+.data-mini.clickable:hover{
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+.data-hero.clickable:hover{
+  box-shadow:0 4px 16px rgba(0,0,0,0.1);
+}
+.product-item.clickable{
+  cursor:pointer;
+  padding:10px 6px;border-radius:8px;
+  transition:background .15s;
+}
+.product-item.clickable:active{
+  background:#f5f6fa;
+}
+.progress-item.clickable{
+  cursor:pointer;
+  padding:8px;border-radius:8px;
+  transition:background .15s;
+}
+.progress-item.clickable:active{
+  background:#f5f6fa;
+}
+
+/* ===== 详情页（右侧滑入） ===== */
+.detail-page{
+  position:fixed;inset:0;z-index:150;
+  background:#f5f6fa;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.detail-page.open{transform:translateX(0)}
+
+.detail-header{
+  display:flex;align-items:center;gap:12px;
+  padding:50px 16px 12px;
+  background:#fff;
+  border-bottom:1px solid #eef0f4;
+  flex-shrink:0;
+}
+.detail-back{
+  width:32px;height:32px;border-radius:50%;
+  background:#f0f1f5;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;border:none;color:#1a1a2e;
+  transition:background .15s;
+}
+.detail-back:active{background:#e5e6ea}
+.detail-title{font-size:17px;font-weight:600;color:#1a1a2e}
+.detail-subtitle{font-size:12px;color:#999;margin-left:auto}
+
+.detail-body{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:16px;
+}
+.detail-body::-webkit-scrollbar{display:none}
+
+/* 详情页内组件 */
+.detail-stat-row{
+  display:flex;gap:10px;margin-bottom:16px;
+}
+.detail-stat{
+  flex:1;padding:14px 10px;text-align:center;
+  border-radius:12px;background:#fff;
+  box-shadow:0 1px 6px rgba(0,0,0,0.04);
+}
+.detail-stat .label{font-size:11px;color:#999;margin-bottom:6px}
+.detail-stat .value{font-size:22px;font-weight:700;color:#1a1a2e}
+
+.detail-list-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 12px;
+  border-bottom:1px solid #f0f0f0;
+  background:#fff;
+  cursor:pointer;
+  transition:background .15s;
+  border-radius:10px;
+  margin-bottom:4px;
+}
+.detail-list-item:active{background:#f5f6fa}
+.detail-list-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.detail-list-info{flex:1}
+.detail-list-name{font-size:14px;font-weight:500;margin-bottom:2px;color:#1a1a2e}
+.detail-list-desc{font-size:12px;color:#999}
+.detail-list-right{text-align:right}
+.detail-list-value{font-size:15px;font-weight:600;color:#1a1a2e}
+.detail-list-tag{font-size:10px;padding:2px 8px;border-radius:8px;margin-top:2px;display:inline-block}
+.detail-list-tag.danger{color:#fe2c55;background:rgba(254,44,85,0.1)}
+.detail-list-tag.success{color:#00b96b;background:rgba(0,185,107,0.1)}
+.detail-list-tag.info{color:#4d6bfe;background:rgba(77,107,254,0.1)}
+
+/* 操作按钮 */
+.detail-action-btn{
+  width:100%;padding:14px;border-radius:12px;border:none;
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;
+  margin-top:12px;
+}
+.detail-action-btn:active{opacity:0.8}
+.detail-action-btn.primary{background:#fe2c55;color:#fff}
+.detail-action-btn.secondary{background:#fff;color:#1a1a2e;border:1px solid #e0e0e0}
+.detail-action-btn.blue{background:#4d6bfe;color:#fff}
+
+/* 库存操作表单 */
+.stock-form{
+  padding:16px;border-radius:12px;background:#fff;
+  box-shadow:0 1px 6px rgba(0,0,0,0.04);
+  margin-top:12px;
+}
+.stock-form .form-title{font-size:14px;font-weight:600;margin-bottom:12px;color:#1a1a2e}
+.stock-form .form-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.stock-form .form-label{font-size:13px;color:#666;min-width:50px}
+.stock-form .form-input{
+  flex:1;padding:10px 12px;border-radius:8px;
+  border:1px solid #e0e0e0;
+  background:#f8f9fb;color:#1a1a2e;
+  font-size:14px;outline:none;
+}
+.stock-form .form-input:focus{border-color:#4d6bfe;background:#fff}
+.stock-form .form-input::placeholder{color:#ccc}
+
+/* Toast 提示 */
+.toast{
+  position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);
+  z-index:300;padding:10px 20px;border-radius:10px;
+  background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.12);
+  font-size:14px;opacity:0;transition:all .3s;pointer-events:none;
+  border:1px solid #eef0f4;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{color:#00b96b;border-color:rgba(0,185,107,0.2)}
+.toast.error{color:#fe2c55;border-color:rgba(254,44,85,0.2)}
+
+/* ===== AI助手聊天（豆包风格） ===== */
+.gc-page{
+  position:fixed;inset:0;z-index:150;
+  background:#fff;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+.gc-page.open{transform:translateY(0)}
+
+/* 顶栏 */
+.gc-header{
+  display:flex;align-items:center;gap:10px;
+  padding:50px 14px 10px;
+  background:#fff;
+  flex-shrink:0;
+}
+.gc-back{
+  width:32px;height:32px;
+  background:transparent;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;color:#1a1a2e;
+}
+.gc-title{flex:1}
+.gc-title .name{font-size:17px;font-weight:600;color:#1a1a2e}
+.gc-title .sub{font-size:11px;color:#aaa;margin-top:1px}
+.gc-header-actions{display:flex;gap:14px}
+.gc-header-actions span{
+  font-size:18px;cursor:pointer;
+  filter:grayscale(0.3);
+}
+
+/* 消息区 */
+.gc-body{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 16px;
+}
+.gc-body::-webkit-scrollbar{display:none}
+
+/* 消息气泡 */
+.gc-msg{
+  margin-bottom:14px;
+  max-width:80%;
+}
+.gc-msg.self{margin-left:auto}
+.gc-bubble{
+  padding:12px 16px;
+  border-radius:16px;
+  font-size:16px;
+  line-height:1.5;
+  word-break:break-word;
+}
+.gc-msg:not(.self) .gc-bubble{
+  background:#f5f5f5;
+  color:#1a1a1a;
+  border-top-left-radius:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.gc-msg.self .gc-bubble{
+  background:#4a90e2;
+  color:#fff;
+  border-top-right-radius:4px;
+}
+
+/* AI消息下方操作条 */
+.gc-actions{
+  display:flex;gap:8px;margin-top:8px;
+  padding-left:4px;
+}
+.gc-act-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;
+  border-radius:8px;
+  background:#f0f0f0;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+  transition:all .15s;
+  color:#4a90e2;
+}
+.gc-act-btn:active{
+  background:#e0e0e0;
+}
+
+/* 正在输入 */
+.gc-typing{margin-bottom:14px;max-width:80%}
+.gc-typing .gc-bubble{
+  background:#f5f5f5;
+  display:flex;gap:5px;align-items:center;
+  border-top-left-radius:4px;
+  border-radius:16px;
+  padding:14px 20px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.gc-typing .dot{
+  width:7px;height:7px;border-radius:50%;background:#bbb;
+  animation:typeDot 1.2s infinite;
+}
+.gc-typing .dot:nth-child(2){animation-delay:.2s}
+.gc-typing .dot:nth-child(3){animation-delay:.4s}
+@keyframes typeDot{
+  0%,60%,100%{opacity:.3;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-3px)}
+}
+
+/* 快捷功能行 */
+.gc-func-bar{
+  display:flex;gap:12px;padding:0 16px 12px;
+  flex-shrink:0;overflow-x:auto;
+}
+.gc-func-bar::-webkit-scrollbar{display:none}
+.gc-func-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  height:44px;
+  padding:0 16px;
+  border-radius:8px;
+  background:#fff;
+  border:1px solid #e5e5e5;
+  font-size:14px;color:#1a1a1a;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:all .15s;
+  flex-shrink:0;
+}
+.gc-func-chip:active{
+  background:#f5f5f5;
+}
+.gc-func-chip .icon{font-size:18px}
+.gc-func-chip .arrow{font-size:12px;color:#999;margin-left:2px}
+
+/* 输入栏 */
+.gc-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px 8px;
+  background:#fff;
+  border-top:1px solid #f0f0f0;
+  flex-shrink:0;
+}
+.gc-input-wrap{
+  flex:1;display:flex;align-items:center;
+  min-height:48px;
+  border-radius:12px;
+  border:1px solid #e0e0e0;
+  background:#fff;
+  padding:0 10px 0 16px;
+  gap:6px;
+}
+.gc-input{
+  flex:1;height:100%;
+  border:none;background:transparent;
+  font-size:16px;color:#1a1a1a;
+  outline:none;
+  min-width:0;
+}
+.gc-input::placeholder{color:#999}
+.gc-bar-btns{
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;
+}
+.gc-round-btn{
   width:32px;height:32px;
   border-radius:50%;
-  background:var(--bg-surface);
-  border:1px solid var(--border-subtle);
-  display:grid;place-items:center;
-  cursor:pointer;
+  background:#fff;
+  border:1.5px solid #e0e0e0;
+  display:flex;align-items:center;justify-content:center;
   font-size:16px;
-  transition:transform 0.3s;
-}
-.refresh-btn:active{transform:rotate(180deg)}
-
-/* ── View All Link ── */
-.view-all{
-  font-size:12px;
-  color:var(--accent);
-  font-weight:500;
   cursor:pointer;
-  text-align:right;
-  margin-top:var(--s8);
+  color:#1a1a1a;
+  transition:all .15s;
+}
+.gc-round-btn:active{
+  background:#f5f5f5;
+  border-color:#ccc;
+}
+.gc-send-btn{
+  height:48px;
+  padding:0 20px;
+  border-radius:12px;
+  background:#4a90e2;
+  color:#fff;
+  font-size:15px;font-weight:500;
+  border:none;cursor:pointer;
+  flex-shrink:0;
+}
+.gc-send-btn:active{opacity:.75}
+
+/* 底部附件栏（常驻） */
+.gc-attach-bar{
+  display:none;
+  padding:12px 16px max(12px, env(safe-area-inset-bottom));
+  background:#fff;
+  flex-shrink:0;
+  animation:slideUp .2s ease;
+}
+.gc-attach-bar.show{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.gc-attach-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:10px 0;cursor:pointer;
+  border-radius:10px;
+  transition:background .12s;
+}
+.gc-attach-item:active{background:#f7f8fa}
+.gc-attach-icon{
+  width:44px;height:44px;
+  border-radius:12px;
+  background:#f5f5f5;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+}
+.gc-attach-item span{font-size:12px;color:#666}
+
+/* 员工标记（在气泡上方小字） */
+.gc-emp-tag{
+  font-size:11px;color:#8c8c8c;
+  margin-bottom:3px;padding-left:2px;
+  display:flex;align-items:center;gap:4px;
+}
+.gc-emp-tag .dot{
+  width:4px;height:4px;border-radius:50%;
+  display:inline-block;
 }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- Main Content -->
-  <div class="app-screen" id="mainContent">
+<!-- 状态栏 -->
+<div class="status-bar">
+  <span>9:41</span>
+  <span></span>
+</div>
 
-    <!-- ════ Dashboard Page ════ -->
-    <div class="page active" id="page-dashboard">
-      <div class="gap-12">
-        <!-- Revenue Hero -->
-        <div class="revenue-hero">
-          <div class="hero-title">今日营业额</div>
-          <div class="hero-amount" id="todayRevenue">¥0.00</div>
-          <div class="hero-subtitle" id="revenueTrend">较昨日 <span id="trendPercent">--</span></div>
-          <div class="revenue-stats">
-            <div class="revenue-stat">
-              <div class="stat-label">本周</div>
-              <div class="stat-value" id="weekRevenue">¥0.00</div>
-            </div>
-            <div class="revenue-stat">
-              <div class="stat-label">本月</div>
-              <div class="stat-value" id="monthRevenue">¥0.00</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Today's Transactions Summary -->
-        <div class="surface-card elevated">
-          <div class="section-header">
-            <div class="title">今日流水</div>
-            <div class="subtitle">实时记录每一笔进出</div>
-          </div>
-          <div style="display:flex;gap:var(--s12);margin-bottom:var(--s12)">
-            <div style="flex:1;text-align:center;padding:var(--s12);background:var(--bg-brand-soft);border-radius:var(--radius-card)">
-              <div style="font-size:20px;font-weight:600;color:var(--status-success)" id="todayIn">0</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">入库笔数</div>
-            </div>
-            <div style="flex:1;text-align:center;padding:var(--s12);background:#fef3e2;border-radius:var(--radius-card)">
-              <div style="font-size:20px;font-weight:600;color:var(--status-warning)" id="todayOut">0</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">出库笔数</div>
-            </div>
-          </div>
-          <div id="recentTransactions">
-            <div class="empty-state">
-              <div class="empty-icon">📋</div>
-              <div class="empty-title">暂无流水记录</div>
-              <div class="empty-desc">开始营业后，这里会显示交易记录</div>
-            </div>
-          </div>
-          <div class="view-all" onclick="switchTab('ledger')">查看全部流水 →</div>
-        </div>
-
-        <!-- Revenue Chart -->
-        <div class="surface-card outlined">
-          <div class="section-header">
-            <div class="title">近7日销售趋势</div>
-            <div class="subtitle">每日营业额变化</div>
-          </div>
-          <div class="chart-container">
-            <div class="chart-bars" id="revenueChart">
-              <!-- Chart bars will be generated by JS -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Top Selling Items -->
-        <div class="surface-card outlined">
-          <div class="section-header">
-            <div class="title">热销商品 TOP5</div>
-            <div class="subtitle">近30天销售排行</div>
-          </div>
-          <div id="topItems">
-            <div class="empty-state">
-              <div class="empty-icon">🏆</div>
-              <div class="empty-title">暂无销售数据</div>
-              <div class="empty-desc">完成首笔交易后，热销商品将在此展示</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- AI Recommendations -->
-        <div class="surface-card outlined">
-          <div class="section-header">
-            <div class="title">AI 经营建议</div>
-            <div class="subtitle">智能分析，助您决策</div>
-          </div>
-          <div id="recommendations">
-            <div class="empty-state">
-              <div class="empty-icon">🤖</div>
-              <div class="empty-title">AI 正在分析中</div>
-              <div class="empty-desc">积累更多数据后，将为您提供个性化建议</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="surface-card muted">
-          <div class="section-header">
-            <div class="title">库存概览</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s12)">
-            <div style="text-align:center">
-              <div style="font-size:24px;font-weight:600" id="totalItems">-</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">商品种类</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:24px;font-weight:600" id="totalValue">-</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">库存总值</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:24px;font-weight:600;color:var(--status-warning)" id="lowStock">-</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">低库存预警</div>
-            </div>
-            <div style="text-align:center">
-              <div style="font-size:24px;font-weight:600" id="pendingConfirm">-</div>
-              <div style="font-size:11px;color:var(--fg-secondary)">待处理确认</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="surface-card elevated">
-          <div class="section-header">
-            <div class="title">快捷操作</div>
-          </div>
-          <div style="display:flex;gap:var(--s8)">
-            <button style="flex:1;padding:var(--s12);background:var(--bg-brand-soft);border:none;border-radius:var(--radius-card);font-size:13px;font-weight:500;cursor:pointer" onclick="switchTab('workbench')">
-              🎤 语音入库
-            </button>
-            <button style="flex:1;padding:var(--s12);background:var(--bg-accent-soft);border:none;border-radius:var(--radius-card);font-size:13px;font-weight:500;cursor:pointer" onclick="switchTab('ledger')">
-              📦 查看库存
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Workbench Page ════ -->
-    <div class="page" id="page-workbench">
-      <div class="gap-12">
-        <div class="surface-card elevated">
-          <div class="section-header">
-            <div class="title">AI 工作台</div>
-            <div class="subtitle">语音或文字指挥 AI 处理库存</div>
-          </div>
-          <!-- Chat interface will go here -->
-          <div id="chatMessages" style="min-height:300px;max-height:50vh;overflow-y:auto;padding:var(--s12);background:var(--bg-muted);border-radius:var(--radius-card)">
-            <div class="empty-state">
-              <div class="empty-icon">💬</div>
-              <div class="empty-title">开始对话</div>
-              <div class="empty-desc">说"今天进了3箱可乐"试试</div>
-            </div>
-          </div>
-          <div style="margin-top:var(--s12);display:flex;gap:var(--s8)">
-            <input type="text" id="chatInput" placeholder="输入指令或点击语音..." style="flex:1;padding:var(--s12);border:1px solid var(--border-subtle);border-radius:var(--radius-input);font-size:14px">
-            <button onclick="sendChat()" style="padding:var(--s12) var(--s16);background:var(--accent);color:white;border:none;border-radius:var(--radius-input);font-size:14px;cursor:pointer">发送</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════ Ledger Page ════ -->
-    <div class="page" id="page-ledger">
-      <div class="gap-12">
-        <div class="surface-card elevated">
-          <div class="section-header">
-            <div class="title">库存台账</div>
-            <div class="subtitle">所有商品与库存真相</div>
-          </div>
-          <div id="inventoryList">
-            <!-- Inventory items will be loaded here -->
-          </div>
-        </div>
-
-        <div class="surface-card outlined">
-          <div class="section-header">
-            <div class="title">审计日志</div>
-            <div class="subtitle">所有操作留痕可追溯</div>
-          </div>
-          <div id="auditLogs">
-            <!-- Audit logs will be loaded here -->
-          </div>
-        </div>
-      </div>
-    </div>
-
+<!-- 顶部导航 -->
+<div class="top-nav">
+  <div class="top-nav-left">
+    <button class="top-tab">直播<span class="live-dot"></span></button>
   </div>
-
-  <!-- Bottom Tab Bar -->
-  <div class="bottom-tabs">
-    <button class="tab-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
-      <span class="tab-icon">📊</span>
-      <span>经营</span>
-    </button>
-    <button class="tab-item" data-tab="workbench" onclick="switchTab('workbench')">
-      <span class="tab-icon">🤖</span>
-      <span>AI助手</span>
-    </button>
-    <button class="tab-item" data-tab="ledger" onclick="switchTab('ledger')">
-      <span class="tab-icon">📦</span>
-      <span>库存</span>
-    </button>
+  <div class="top-nav-center">
+    <button class="top-tab active" onclick="switchTab(this,'follow')">关注</button>
+    <button class="top-tab" onclick="switchTab(this,'recommend')">推荐</button>
+  </div>
+  <div class="top-nav-right">
+    <button class="search-icon" onclick="alert('搜索功能开发中')">🔍</button>
   </div>
 </div>
 
+<!-- 用户信息 -->
+<div class="user-bar" id="userBar" style="display:none">
+  <span id="userName"></span>
+  <span class="logout" onclick="doLogout()">退出</span>
+</div>
+
+<!-- 全屏卡片流 -->
+<div class="card-feed" id="cardFeed">
+  <div class="loading" id="loading">加载中</div>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">首页</div>
+  </div>
+  <div class="nav-item" onclick="alert('商品管理开发中')">
+    <div class="nav-icon">📦</div>
+    <div class="nav-label">商品</div>
+  </div>
+  <div class="nav-center" onclick="openGroupChat()">+</div>
+  <div class="nav-item" onclick="openChat()">
+    <div class="nav-icon">🤖</div>
+    <div class="nav-label">AI助手</div>
+  </div>
+  <div class="nav-item" onclick="alert('个人中心开发中')">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">我的</div>
+  </div>
+</div>
+
+<!-- ===== 聊天浮层 ===== -->
+<div class="panel-overlay" id="chatPanel" onclick="if(event.target===this)closeChat()" style="position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:none;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;width:100%;max-width:420px;height:60vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column">
+    <div style="padding:16px;border-bottom:1px solid #eef0f4;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:16px;font-weight:600;color:#1a1a2e">🤖 AI 经营助手</span>
+      <button onclick="closeChat()" style="background:none;border:none;color:#999;font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px;font-size:14px;line-height:1.6;color:#333"></div>
+    <div style="padding:12px;border-top:1px solid #eef0f4;display:flex;gap:8px">
+      <input id="chatInput" type="text" placeholder="输入经营问题..." style="flex:1;padding:10px 14px;border-radius:20px;border:1px solid #e0e0e0;background:#f8f9fb;color:#1a1a2e;font-size:14px;outline:none">
+      <button onclick="sendChat()" style="padding:10px 16px;border-radius:20px;border:none;background:#4d6bfe;color:#fff;font-size:14px;cursor:pointer">发送</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ===== AI助手（豆包风格） ===== -->
+<div class="gc-page" id="groupChatPage">
+  <div class="gc-header">
+    <button class="gc-back" onclick="closeGroupChat()">←</button>
+    <div class="gc-title">
+      <div class="name">小雅 · AI经营助手 <span style="font-size:12px;color:#ccc">›</span></div>
+      <div class="sub">内容由 AI 生成</div>
+    </div>
+    <div class="gc-header-actions">
+      <span>☎</span>
+      <span style="text-decoration:line-through;opacity:.4">⊘</span>
+    </div>
+  </div>
+
+  <div class="gc-body" id="gcMessages">
+    <!-- 欢迎语 -->
+    <div class="gc-msg">
+      <div class="gc-bubble">
+        你好！我是小雅，你的AI经营助手。<br><br>
+        我可以帮你查营业额、看热销排行、管库存、给进货建议。<br>
+        直接问我就好，我会安排对应的专业同事来回答你。
+      </div>
+    </div>
+    <div class="gc-actions">
+      <button class="gc-act-btn" title="复制">⊞</button>
+      <button class="gc-act-btn" title="朗读">♪</button>
+      <button class="gc-act-btn" title="收藏">⊟</button>
+    </div>
+  </div>
+
+  <!-- 快捷功能行 -->
+  <div class="gc-func-bar">
+    <div class="gc-func-chip" onclick="gcQuick('今天营业额怎么样？')">
+      <span class="icon">⚡</span>查营业额<span class="arrow">›</span>
+    </div>
+    <div class="gc-func-chip" onclick="gcQuick('哪些商品卖得最好？')">
+      <span class="icon">☆</span>热销排行<span class="arrow">›</span>
+    </div>
+    <div class="gc-func-chip" onclick="gcQuick('有没有库存预警？')">
+      <span class="icon">☎</span>库存预警<span class="arrow">›</span>
+    </div>
+    <div class="gc-func-chip" onclick="gcQuick('给我一些进货建议')">
+      <span class="icon">◇</span>进货建议<span class="arrow">›</span>
+    </div>
+  </div>
+
+  <div class="gc-bar">
+    <div class="gc-input-wrap">
+      <input class="gc-input" id="gcInput" type="text" placeholder="发消息或按住说话..." maxlength="500" onfocus="closeAttach()">
+      <div class="gc-bar-btns">
+        <span class="gc-round-btn" onclick="alert('语音功能开发中')">⌾</span>
+        <span class="gc-round-btn" id="gcPlusBtn" onclick="toggleAttachPanel()">＋</span>
+      </div>
+    </div>
+    <button class="gc-send-btn" id="gcSendBtn" onclick="gcSend()" style="display:none">发送</button>
+  </div>
+  <!-- 底部附件栏（点击+展开） -->
+  <div class="gc-attach-bar">
+    <div class="gc-attach-item" onclick="alert('相机功能开发中');closeAttach()"><div class="gc-attach-icon">⊙</div><span>相机</span></div>
+    <div class="gc-attach-item" onclick="alert('相册功能开发中');closeAttach()"><div class="gc-attach-icon">□</div><span>相册</span></div>
+    <div class="gc-attach-item" onclick="alert('文件功能开发中');closeAttach()"><div class="gc-attach-icon">◇</div><span>文件</span></div>
+    <div class="gc-attach-item" onclick="alert('电话功能开发中');closeAttach()"><div class="gc-attach-icon">☎</div><span>打电话</span></div>
+  </div>
+</div>
+
+<!-- 详情页容器 -->
+<div class="detail-page" id="detailPage">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail()">←</button>
+    <span class="detail-title" id="detailTitle"></span>
+    <span class="detail-subtitle" id="detailSubtitle"></span>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
 <script>
-// ── Global State ──
-let ws = null;
+const API = '/api/v1';
+let authToken = localStorage.getItem('authToken');
+let currentUser = null;
 
-// ── Tab Navigation ──
-function switchTab(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + tab).classList.add('active');
-  document.querySelectorAll('.tab-item').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === tab);
-  });
-  if (tab === 'dashboard') loadDashboard();
-  if (tab === 'ledger') { loadInventory(); loadAuditLogs(); }
-}
 
-// ── API Helper ──
-async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(path, opts);
-  return r.json();
-}
-
-// ── Format Currency ──
-function formatMoney(n) {
-  return '¥' + Number(n).toFixed(2);
-}
-
-// ── Load Dashboard ──
-async function loadDashboard() {
-  try {
-    // Load revenue data
-    const revenueData = await api('GET', '/api/v1/revenue');
-    const revenue = revenueData.data;
-    
-    document.getElementById('todayRevenue').textContent = formatMoney(revenue.today_revenue);
-    document.getElementById('weekRevenue').textContent = formatMoney(revenue.week_revenue);
-    document.getElementById('monthRevenue').textContent = formatMoney(revenue.month_revenue);
-    
-    // Load transactions
-    const transData = await api('GET', '/api/v1/transactions?limit=5');
-    const trans = transData.data;
-    
-    document.getElementById('todayIn').textContent = trans.today_stats.total_events ? trans.today_stats.total_in : 0;
-    document.getElementById('todayOut').textContent = trans.today_stats.total_events ? trans.today_stats.total_out : 0;
-    
-    renderTransactions(trans.transactions);
-    
-    // Render chart
-    renderRevenueChart(revenue.daily_revenue);
-    
-    // Render top items
-    renderTopItems(revenue.top_items);
-    
-    // Load recommendations
-    const recData = await api('GET', '/api/v1/recommendations');
-    renderRecommendations(recData.data.recommendations);
-    
-    // Load dashboard stats
-    const dashData = await api('GET', '/api/v1/dashboard');
-    const m = dashData.data;
-    document.getElementById('totalItems').textContent = m.total_items;
-    document.getElementById('totalValue').textContent = formatMoney(m.total_value);
-    document.getElementById('lowStock').textContent = m.low_stock_items;
-    document.getElementById('pendingConfirm').textContent = m.pending_confirmations || 0;
-    
-  } catch (e) {
-    console.error('Dashboard load error:', e);
+// ===== 初始化 =====
+async function init(){
+  const urlToken = new URLSearchParams(location.search).get('token');
+  if(urlToken){
+    authToken = urlToken;
+    localStorage.setItem('authToken', authToken);
   }
+  if(authToken){
+    try{
+      const r = await fetch(`${API}/auth/me?token=${authToken}`);
+      const d = await r.json();
+      if(d.user_id){
+        currentUser = d;
+        document.getElementById('userBar').style.display='flex';
+        document.getElementById('userName').textContent=d.nickname||d.username||'用户';
+      }
+    }catch(e){}
+  }
+  loadCards();
 }
 
-// ── Render Transactions ──
-function renderTransactions(transactions) {
-  const container = document.getElementById('recentTransactions');
-  if (!transactions || transactions.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-title">暂无流水记录</div>
-        <div class="empty-desc">开始营业后，这里会显示交易记录</div>
+// ===== 加载所有卡片 =====
+async function loadCards(){
+  const feed = document.getElementById('cardFeed');
+  document.getElementById('loading').style.display='flex';
+
+  try{
+    const [dashR, revR, itemsR, transR, recR] = await Promise.all([
+      fetch(`${API}/dashboard`,{headers:{'Authorization':`Bearer ${authToken}`}}),
+      fetch(`${API}/revenue`,{headers:{'Authorization':`Bearer ${authToken}`}}),
+      fetch(`${API}/items`,{headers:{'Authorization':`Bearer ${authToken}`}}),
+      fetch(`${API}/transactions`,{headers:{'Authorization':`Bearer ${authToken}`}}),
+      fetch(`${API}/recommendations`,{headers:{'Authorization':`Bearer ${authToken}`}}),
+    ]);
+
+    const dash = (await dashR.json()).data||{};
+    const rev = (await revR.json()).data||{};
+    const items = (await itemsR.json()).data||[];
+    const trans = (await transR.json()).data||{};
+    const rec = (await recR.json()).data||{};
+
+    const todayStats = trans.today_stats||{};
+    const todayRevenue = rev.today_revenue||0;
+    const weekRevenue = rev.week_revenue||0;
+    const orderCount = todayStats.stock_out_count||0;
+    const lowStock = items.filter(i=>i.is_low_stock || i.current_stock <= (i.low_stock_threshold||5));
+    const topItems = rev.top_items||[];
+    const recs = rec.recommendations||[];
+
+    // 保存原始数据供详情页使用
+    window._rawData = {dash, rev, items, trans, rec, todayStats, todayRevenue, weekRevenue, orderCount, lowStock, topItems, recs};
+
+    // 重置
+    let html = '';
+
+    // === 卡片1：今日营业概览 ===
+    html += buildVideoCard(0,
+      '🏪','今日营业数据',
+      `上滑查看热销排行 ↑`,
+      '📊 营业数据员',
+      `
+      <div class="data-hero clickable" onclick="openDetailRevenue()">
+        <div class="label">今日营业额</div>
+        <div class="value">¥${formatNum(todayRevenue)}</div>
+        <div class="change ${todayRevenue>0?'up':'down'}">${todayRevenue>0?'↑ 较昨日增长':'— 持平'}</div>
       </div>
-    `;
-    return;
-  }
-  
-  container.innerHTML = transactions.map(t => {
-    const isOut = t.event_type === 'stock_out';
-    const icon = isOut ? '📤' : '📥';
-    const iconClass = isOut ? 'stock-out' : 'stock-in';
-    const amount = (t.quantity * t.unit_price).toFixed(2);
-    const amountClass = isOut ? 'out' : 'in';
-    const sign = isOut ? '-' : '+';
-    const time = t.created_at.split(' ')[1] || t.created_at;
-    
-    return `
-      <div class="transaction-item">
-        <div class="transaction-icon ${iconClass}">${icon}</div>
-        <div class="transaction-info">
-          <div class="transaction-name">${t.item_name}</div>
-          <div class="transaction-meta">${t.quantity} ${t.unit} × ¥${t.unit_price} · ${time}</div>
+      <div class="data-row">
+        <div class="data-mini clickable" onclick="openDetailStockOut()">
+          <div class="label">出库笔数</div>
+          <div class="value">${orderCount}</div>
         </div>
-        <div class="transaction-amount ${amountClass}">${sign}¥${amount}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── Render Revenue Chart ──
-function renderRevenueChart(dailyRevenue) {
-  const container = document.getElementById('revenueChart');
-  if (!dailyRevenue || dailyRevenue.length === 0) {
-    container.innerHTML = '<div style="color:var(--fg-tertiary);font-size:12px">暂无数据</div>';
-    return;
-  }
-  
-  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
-  const days = ['日', '一', '二', '三', '四', '五', '六'];
-  
-  container.innerHTML = dailyRevenue.map(d => {
-    const date = new Date(d.date);
-    const dayName = days[date.getDay()];
-    const height = Math.max((d.revenue / maxRevenue) * 130, 10);
-    const value = d.revenue > 1000 ? (d.revenue/1000).toFixed(1) + 'k' : d.revenue.toFixed(0);
-    
-    return `
-      <div style="text-align:center">
-        <div class="chart-bar" style="height:${height}px" data-value="¥${value}"></div>
-        <div style="font-size:10px;color:var(--fg-tertiary);margin-top:4px">${dayName}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── Render Top Items ──
-function renderTopItems(items) {
-  const container = document.getElementById('topItems');
-  if (!items || items.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🏆</div>
-        <div class="empty-title">暂无销售数据</div>
-        <div class="empty-desc">完成首笔交易后，热销商品将在此展示</div>
-      </div>
-    `;
-    return;
-  }
-  
-  container.innerHTML = items.map((item, i) => {
-    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    return `
-      <div class="top-item">
-        <div class="top-rank ${rankClass}">${i + 1}</div>
-        <div class="top-info">
-          <div class="top-name">${item.name}</div>
-          <div class="top-meta">售出 ${item.total_sold} 件</div>
+        <div class="data-mini clickable" onclick="openDetailStockIn()">
+          <div class="label">入库笔数</div>
+          <div class="value">${todayStats.stock_in_count||0}</div>
         </div>
-        <div class="top-revenue">${formatMoney(item.total_revenue)}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── Render Recommendations ──
-function renderRecommendations(recommendations) {
-  const container = document.getElementById('recommendations');
-  if (!recommendations || recommendations.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🤖</div>
-        <div class="empty-title">AI 正在分析中</div>
-        <div class="empty-desc">积累更多数据后，将为您提供个性化建议</div>
-      </div>
-    `;
-    return;
-  }
-  
-  container.innerHTML = recommendations.map(rec => {
-    const typeClass = rec.type || 'info';
-    return `
-      <div class="recommendation-card ${typeClass}">
-        <div class="recommendation-title">${rec.title}</div>
-        ${rec.message ? `<div class="recommendation-message">${rec.message}</div>` : ''}
-        ${rec.items ? `
-          <div class="recommendation-message">
-            ${rec.items.slice(0, 3).map(item => item.name).join('、')}${rec.items.length > 3 ? '等' : ''}
-          </div>
-        ` : ''}
-        <div class="recommendation-action">💡 ${rec.action}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── Load Inventory ──
-async function loadInventory() {
-  try {
-    const d = await api('GET', '/api/v1/items');
-    const container = document.getElementById('inventoryList');
-    
-    if (!d.data || d.data.length === 0) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">暂无库存</div></div>';
-      return;
-    }
-    
-    container.innerHTML = d.data.map(item => {
-      const stockPercent = Math.min((item.current_stock / (item.low_stock_threshold * 2)) * 100, 100);
-      const stockColor = item.current_stock <= item.low_stock_threshold ? 'var(--status-error)' : 'var(--accent)';
-      
-      return `
-        <div style="padding:var(--s12) 0;border-bottom:1px solid var(--border-subtle)">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-weight:500">${item.name}</span>
-            <span style="color:${stockColor};font-weight:600">${item.current_stock} ${item.default_unit}</span>
-          </div>
-          <div style="height:4px;background:var(--bg-muted);border-radius:2px">
-            <div style="height:100%;width:${stockPercent}%;background:${stockColor};border-radius:2px"></div>
-          </div>
-          <div style="font-size:11px;color:var(--fg-tertiary);margin-top:4px">
-            单价 ¥${item.unit_price} · 库存值 ${formatMoney(item.current_stock * item.unit_price)}
-          </div>
+        <div class="data-mini clickable" onclick="openDetailInventory()">
+          <div class="label">库存总值</div>
+          <div class="value">¥${formatNum(dash.total_value||0)}</div>
         </div>
-      `;
-    }).join('');
-  } catch (e) {
-    console.error('Load inventory error:', e);
-  }
-}
-
-// ── Load Audit Logs ──
-async function loadAuditLogs() {
-  try {
-    const d = await api('GET', '/api/v1/events?limit=10');
-    const container = document.getElementById('auditLogs');
-    
-    if (!d.data || d.data.length === 0) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无日志</div></div>';
-      return;
-    }
-    
-    container.innerHTML = d.data.map(event => {
-      const icon = event.event_type === 'stock_in' ? '📥' : '📤';
-      return `
-        <div style="padding:var(--s10) 0;border-bottom:1px solid var(--border-subtle);font-size:13px">
-          <span>${icon}</span>
-          <span style="margin-left:4px">${event.reason || event.event_type}</span>
-          <span style="float:right;color:var(--fg-tertiary);font-size:11px">${event.created_at.split(' ')[0]}</span>
+      </div>
+      <div class="data-row">
+        <div class="data-mini clickable" onclick="openDetailRevenue()">
+          <div class="label">本周营收</div>
+          <div class="value">¥${formatNum(weekRevenue)}</div>
         </div>
-      `;
-    }).join('');
-  } catch (e) {
-    console.error('Load audit logs error:', e);
+        <div class="data-mini clickable" onclick="openDetailInventory()">
+          <div class="label">SKU数</div>
+          <div class="value">${dash.total_items||0}</div>
+        </div>
+        <div class="data-mini clickable" onclick="openDetailInventory()">
+          <div class="label">商品种类</div>
+          <div class="value">${(dash.categories||[]).length}</div>
+        </div>
+      </div>
+      `
+    );
+
+
+    // === 卡片2：热销排行 ===
+    const maxSold = topItems.length>0 ? Math.max(...topItems.map(i=>i.total_sold||0),1) : 1;
+    let productHtml = '';
+    topItems.slice(0,6).forEach((item,i)=>{
+      const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const pct = Math.round((item.total_sold||0)/maxSold*100);
+      productHtml += `
+        <div class="product-item clickable" onclick="openDetailProduct('${item.item_id||''}','${item.name}')">
+          <div class="product-rank ${rankClass}">${i+1}</div>
+          <div class="product-info">
+            <div class="product-name">${item.name}</div>
+            <div class="product-stat">销量 ${formatNum(item.total_sold||0)} · ¥${formatNum(item.total_revenue||0)}</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    });
+
+    html += buildVideoCard(1,
+      '🔥','热销排行榜',
+      `本周 · 按销量排序`,
+      '📈 销售分析员',
+      `
+      <div class="data-hero clickable" onclick="openDetailTransactions()">
+        <div class="label">本周热销 TOP</div>
+        <div class="value" style="font-size:24px">累计 ¥${formatNum(weekRevenue)}</div>
+      </div>
+      <div class="product-list">${productHtml||'<div style="text-align:center;color:#bbb;padding:20px">暂无销售数据</div>'}</div>
+      `
+    );
+
+
+    // === 卡片3：库存预警 ===
+    let warningHtml = '';
+    lowStock.slice(0,5).forEach(item=>{
+      const maxStock = Math.max(item.low_stock_threshold||5, item.current_stock||0);
+      const pct = Math.round((item.current_stock||0)/maxStock*100);
+      const color = pct<20?'#fe2c55':pct<50?'#faad14':'#25f4ee';
+      warningHtml += `
+        <div class="progress-item clickable" onclick="openDetailStockInItem('${item.item_id||''}','${item.name}',${item.current_stock||0},'${item.default_unit||'个'}')">
+          <div class="row">
+            <span class="name">${item.name}</span>
+            <span class="stat" style="color:${color}">剩余 ${item.current_stock} ${item.default_unit||''}</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>`;
+    });
+
+    html += buildVideoCard(2,
+      '⚠️','库存预警中心',
+      lowStock.length>0?`${lowStock.length}个商品需要补货`:'所有库存正常',
+      '🛡️ 库存守护员',
+      `
+      <div class="data-hero clickable" onclick="openDetailInventory()">
+        <div class="label">库存预警商品</div>
+        <div class="value" style="font-size:48px;color:${lowStock.length>0?'#fe2c55':'#25f4ee'}">${lowStock.length}</div>
+        <div class="sub" style="color:#999">${lowStock.length>0?'低于安全库存':'库存状态良好 ✓'}</div>
+      </div>
+      ${warningHtml||'<div style="text-align:center;color:#bbb;padding:16px">所有商品库存充足 ✓</div>'}
+      <div class="data-row" style="margin-top:12px">
+        <div class="data-mini clickable" onclick="openDetailInventory()"><div class="label">库存总值</div><div class="value">¥${formatNum(dash.total_value||0)}</div></div>
+        <div class="data-mini clickable" onclick="openDetailInventory()"><div class="label">SKU数</div><div class="value">${dash.total_items||0}</div></div>
+        <div class="data-mini clickable" onclick="openDetailTransactions()"><div class="label">今日事件</div><div class="value">${dash.today_events||0}</div></div>
+      </div>
+      `
+    );
+
+
+    // === 卡片4：AI 经营建议 ===
+    let recHtml = '';
+    recs.slice(0,3).forEach(r=>{
+      const rName = r.name||r.item_name||'建议项';
+      const rReason = r.suggestion||r.reason||JSON.stringify(r).slice(0,50);
+      recHtml += `
+        <div class="product-item clickable" onclick="openDetailAIRec('${rName.replace(/'/g,"\\'")}','${rReason.replace(/'/g,"\\'")}','${r.item_id||''}')">
+          <div class="product-rank" style="border-color:#4d6bfe;color:#4d6bfe;font-size:9px">AI</div>
+          <div class="product-info">
+            <div class="product-name">${rName}</div>
+            <div class="product-stat">${rReason}</div>
+          </div>
+        </div>`;
+    });
+
+    html += buildVideoCard(3,
+      '🤖','AI 经营建议',
+      '根据销售数据为你推荐进货方案',
+      '🧠 AI 经营参谋',
+      `
+      <div class="data-hero clickable" onclick="openDetailAIRec('AI综合建议','点击查看所有AI分析建议','')">
+        <div class="label">AI 经营建议</div>
+        <div class="value" style="font-size:18px;line-height:1.6">${recs.length>0?(recs[0].suggestion||recs[0].name||'暂无特别建议'):'正在分析经营数据...'}</div>
+      </div>
+      <div class="data-row">
+        <div class="data-mini clickable" onclick="openDetailInventory()"><div class="label">商品总数</div><div class="value">${dash.total_items||0}</div></div>
+        <div class="data-mini clickable" onclick="openDetailInventory()"><div class="label">预警商品</div><div class="value" style="color:${lowStock.length>0?'#fe2c55':'inherit'}">${lowStock.length}</div></div>
+        <div class="data-mini clickable" onclick="openDetailInventory()"><div class="label">品类数</div><div class="value">${(dash.categories||[]).length}</div></div>
+      </div>
+      ${recHtml||'<div style="text-align:center;color:#bbb;padding:12px;max-width:320px">添加更多经营数据后，AI 将提供个性化建议</div>'}
+      `
+    );
+    feed.innerHTML = html;
+
+  }catch(e){
+    console.error('Load error:', e);
+    feed.innerHTML = '<div class="loading">加载失败，请刷新重试</div>';
   }
 }
 
-// ── Chat State ──
-let chatHistory = [];
-
-// ── Display Chat Message ──
-function displayMessage(message, isUser = false) {
-  const container = document.getElementById('chatMessages');
-  const emptyState = container.querySelector('.empty-state');
-  if (emptyState) {
-    emptyState.remove();
-  }
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText = `
-    margin-bottom: var(--s12);
-    display: flex;
-    flex-direction: ${isUser ? 'row-reverse' : 'row'};
-    gap: var(--s8);
-  `;
-  
-  const avatar = document.createElement('div');
-  avatar.style.cssText = `
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: ${isUser ? 'var(--accent)' : 'var(--bg-accent-soft)'};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  `;
-  avatar.textContent = isUser ? '👤' : '🤖';
-  
-  const bubble = document.createElement('div');
-  bubble.style.cssText = `
-    max-width: 80%;
-    padding: var(--s12);
-    border-radius: var(--radius-card);
-    background: ${isUser ? 'var(--accent)' : 'var(--bg-surface)'};
-    color: ${isUser ? 'white' : 'var(--fg-primary)'};
-    font-size: 14px;
-    line-height: 1.5;
-    box-shadow: 0 1px 2px rgba(0,0,0,.05);
-  `;
-  bubble.textContent = message;
-  
-  messageDiv.appendChild(avatar);
-  messageDiv.appendChild(bubble);
-  container.appendChild(messageDiv);
-  
-  // Scroll to bottom
-  container.scrollTop = container.scrollHeight;
+// ===== 构建全屏视频卡片 =====
+function buildVideoCard(index, emoji, title, sub, employee, body){
+  return `
+  <div class="video-card" data-index="${index}">
+    <div class="video-bg"></div>
+    <div class="card-content">
+      <div class="employee-badge"><span class="dot"></span>${employee}</div>
+      <div class="emoji">${emoji}</div>
+      <div class="title">${title}</div>
+      <div class="sub">${sub}</div>
+      ${body}
+    </div>
+  </div>`;
 }
 
-// ── Display AI Response with Action ──
-function displayAIResponse(response) {
-  const container = document.getElementById('chatMessages');
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText = `
-    margin-bottom: var(--s12);
-    display: flex;
-    gap: var(--s8);
-  `;
-  
-  const avatar = document.createElement('div');
-  avatar.style.cssText = `
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--bg-accent-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  `;
-  avatar.textContent = '🤖';
-  
-  const contentDiv = document.createElement('div');
-  contentDiv.style.cssText = `
-    max-width: 80%;
-    flex: 1;
-  `;
-  
-  // Main reply
-  const bubble = document.createElement('div');
-  bubble.style.cssText = `
-    padding: var(--s12);
-    border-radius: var(--radius-card);
-    background: var(--bg-surface);
-    color: var(--fg-primary);
-    font-size: 14px;
-    line-height: 1.5;
-    box-shadow: 0 1px 2px rgba(0,0,0,.05);
-    margin-bottom: var(--s8);
-  `;
-  bubble.textContent = response.reply;
-  contentDiv.appendChild(bubble);
-  
-  // Action result if any
-  if (response.data && response.action !== 'general_chat') {
-    const actionDiv = document.createElement('div');
-    actionDiv.style.cssText = `
-      padding: var(--s10);
-      border-radius: var(--radius-card);
-      background: var(--bg-brand-soft);
-      font-size: 12px;
-      color: var(--status-success);
-    `;
-    
-    let actionText = '';
-    if (response.action === 'stock_in' && response.data.items) {
-      actionText = `✅ 已入库: ${response.data.items.map(i => `${i.name} ${i.quantity}${i.unit}`).join('、')}`;
-    } else if (response.action === 'stock_out' && response.data.items) {
-      actionText = `✅ 已出库: ${response.data.items.map(i => `${i.name} ${i.quantity}${i.unit}`).join('、')}`;
-    } else if (response.action === 'item_create' && response.data.items) {
-      actionText = `✅ 已创建商品: ${response.data.items.map(i => i.name).join('、')}`;
-    } else if (response.action === 'correction') {
-      actionText = `✅ 库存已修正`;
-    }
-    
-    if (actionText) {
-      actionDiv.textContent = actionText;
-      contentDiv.appendChild(actionDiv);
-    }
-  }
-  
-  messageDiv.appendChild(avatar);
-  messageDiv.appendChild(contentDiv);
-  container.appendChild(messageDiv);
-  
-  // Scroll to bottom
-  container.scrollTop = container.scrollHeight;
+// ===== 工具函数 =====
+function formatNum(n){
+  n = Number(n)||0;
+  if(n>=10000) return (n/10000).toFixed(1)+'w';
+  if(n>=1000) return (n/1000).toFixed(1)+'k';
+  if(n===0) return '0';
+  return n.toFixed(n%1===0?0:2).replace(/\.?0+$/,'');
 }
 
-// ── Send Chat ──
-async function sendChat() {
+function switchTab(el, type){
+  document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ===== 登出 =====
+function doLogout(){
+  if(!confirm('确定退出？')) return;
+  fetch(`${API}/auth/logout?token=${authToken}`,{method:'POST'}).catch(()=>{});
+  localStorage.removeItem('authToken');localStorage.removeItem('currentUser');
+  location.href='/login';
+}
+
+// ===== 聊天 =====
+function openChat(){document.getElementById('chatPanel').style.display='flex'}
+function closeChat(){document.getElementById('chatPanel').style.display='none'}
+async function sendChat(){
   const input = document.getElementById('chatInput');
-  const message = input.value.trim();
-  if (!message) return;
-  
-  // Display user message
-  displayMessage(message, true);
-  input.value = '';
-  
-  // Add to history
-  chatHistory.push({ role: 'user', content: message });
-  
-  try {
-    const d = await api('POST', '/api/v1/chat', { message });
-    
-    // Display AI response
-    displayAIResponse(d);
-    
-    // Add to history
-    chatHistory.push({ role: 'assistant', content: d.reply });
-    
-    // Reload dashboard after chat action
-    if (d.action !== 'general_chat') {
-      loadDashboard();
-    }
-  } catch (e) {
-    console.error('Chat error:', e);
-    displayMessage('抱歉，处理您的请求时出现错误。请稍后再试。', false);
+  const msg = input.value.trim();if(!msg) return;
+  input.value='';
+  const box = document.getElementById('chatMessages');
+  box.innerHTML += `<div style="text-align:right;margin-bottom:10px"><span style="background:#4d6bfe;color:#fff;padding:8px 12px;border-radius:12px;display:inline-block">${msg}</span></div>`;
+  box.innerHTML += `<div style="margin-bottom:10px;color:#999">思考中...</div>`;
+  box.scrollTop = box.scrollHeight;
+  try{
+    const r = await fetch(`${API}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const d = await r.json();
+    const reply = d.response||d.message||'抱歉，暂时无法回答';
+    box.lastElementChild.innerHTML = `<span style="background:#f0f1f5;color:#333;padding:8px 12px;border-radius:12px;display:inline-block">${reply}</span>`;
+  }catch(e){box.lastElementChild.innerHTML='<span style="color:#fe2c55">网络错误</span>'}
+}
+document.getElementById('chatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+
+// ===== 详情页框架 =====
+function openDetail(title, subtitle, bodyHtml){
+  document.getElementById('detailTitle').textContent = title;
+  document.getElementById('detailSubtitle').textContent = subtitle||'';
+  document.getElementById('detailBody').innerHTML = bodyHtml;
+  document.getElementById('detailPage').classList.add('open');
+}
+function closeDetail(){
+  document.getElementById('detailPage').classList.remove('open');
+}
+
+// ===== Toast 提示 =====
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast', 2500);
+}
+
+// ===== 详情页：营收详情 =====
+function openDetailRevenue(){
+  const d = window._rawData;
+  const todayEvents = d.trans.today_events||[];
+  let eventHtml = '';
+  todayEvents.slice(0,10).forEach(ev=>{
+    const isOut = ev.event_type==='stock_out';
+    eventHtml += `
+      <div class="detail-list-item">
+        <div class="detail-list-icon" style="background:${isOut?'rgba(254,44,85,0.15)':'rgba(37,244,238,0.15)'}">
+          ${isOut?'📤':'📥'}
+        </div>
+        <div class="detail-list-info">
+          <div class="detail-list-name">${ev.item_name||'未知商品'}</div>
+          <div class="detail-list-desc">${ev.quantity||0} ${ev.unit||''} · ${ev.created_at?.slice(11,16)||''}</div>
+        </div>
+        <div class="detail-list-right">
+          <div class="detail-list-value" style="color:${isOut?'#fe2c55':'#25f4ee'}">${isOut?'+':'-'}${ev.quantity||0}</div>
+        </div>
+      </div>`;
+  });
+
+  openDetail('营收详情', '今日', `
+    <div class="detail-stat-row">
+      <div class="detail-stat">
+        <div class="label">今日营业额</div>
+        <div class="value">¥${formatNum(d.todayRevenue)}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="label">本周营收</div>
+        <div class="value">¥${formatNum(d.weekRevenue)}</div>
+      </div>
+    </div>
+    <div class="detail-stat-row">
+      <div class="detail-stat">
+        <div class="label">出库笔数</div>
+        <div class="value">${d.orderCount}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="label">入库笔数</div>
+        <div class="value">${d.todayStats.stock_in_count||0}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="label">客单价</div>
+        <div class="value">¥${formatNum(d.orderCount>0?d.todayRevenue/d.orderCount:0)}</div>
+      </div>
+    </div>
+    <div style="font-size:14px;font-weight:600;margin:16px 0 8px">今日流水</div>
+    ${eventHtml||'<div style="text-align:center;color:#bbb;padding:20px">暂无今日流水</div>'}
+    <button class="detail-action-btn secondary" onclick="openDetailTransactions()">查看全部流水 →</button>
+  `);
+}
+
+// ===== 详情页：出库明细 =====
+function openDetailStockOut(){
+  const d = window._rawData;
+  const events = (d.trans.today_events||[]).filter(e=>e.event_type==='stock_out');
+  let listHtml = '';
+  events.forEach(ev=>{
+    listHtml += `
+      <div class="detail-list-item" onclick="openDetailProduct('${ev.item_id||''}','${ev.item_name||''}')">
+        <div class="detail-list-icon" style="background:rgba(254,44,85,0.15)">📤</div>
+        <div class="detail-list-info">
+          <div class="detail-list-name">${ev.item_name||'未知商品'}</div>
+          <div class="detail-list-desc">${ev.created_at?.slice(11,16)||''} · ${ev.note||'销售出库'}</div>
+        </div>
+        <div class="detail-list-right">
+          <div class="detail-list-value">-${ev.quantity||0} ${ev.unit||''}</div>
+          ${ev.total_price?`<div class="detail-list-tag info">¥${ev.total_price}</div>`:''}
+        </div>
+      </div>`;
+  });
+  openDetail('今日出库', `${events.length}笔`, `
+    <div class="detail-stat-row">
+      <div class="detail-stat">
+        <div class="label">出库笔数</div>
+        <div class="value">${events.length}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="label">出库总额</div>
+        <div class="value">¥${formatNum(events.reduce((s,e)=>s+(e.total_price||0),0))}</div>
+      </div>
+    </div>
+    ${listHtml||'<div style="text-align:center;color:#bbb;padding:30px">今日暂无出库记录</div>'}
+  `);
+}
+
+// ===== 详情页：入库明细 =====
+function openDetailStockIn(){
+  const d = window._rawData;
+  const events = (d.trans.today_events||[]).filter(e=>e.event_type==='stock_in');
+  let listHtml = '';
+  events.forEach(ev=>{
+    listHtml += `
+      <div class="detail-list-item" onclick="openDetailProduct('${ev.item_id||''}','${ev.item_name||''}')">
+        <div class="detail-list-icon" style="background:rgba(37,244,238,0.15)">📥</div>
+        <div class="detail-list-info">
+          <div class="detail-list-name">${ev.item_name||'未知商品'}</div>
+          <div class="detail-list-desc">${ev.created_at?.slice(11,16)||''} · ${ev.note||'采购入库'}</div>
+        </div>
+        <div class="detail-list-right">
+          <div class="detail-list-value" style="color:#25f4ee">+${ev.quantity||0} ${ev.unit||''}</div>
+        </div>
+      </div>`;
+  });
+  openDetail('今日入库', `${events.length}笔`, `
+    <div class="detail-stat-row">
+      <div class="detail-stat">
+        <div class="label">入库笔数</div>
+        <div class="value">${events.length}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="label">入库总量</div>
+        <div class="value">${events.reduce((s,e)=>s+(e.quantity||0),0)}</div>
+      </div>
+    </div>
+    <button class="detail-action-btn primary" onclick="openDetailStockInItem('','快速入库',0,'')">📥 快速入库</button>
+    ${listHtml||'<div style="text-align:center;color:#bbb;padding:30px">今日暂无入库记录</div>'}
+  `);
+}
+
+// ===== 详情页：库存全量 =====
+async function openDetailInventory(){
+  openDetail('库存管理', '全部商品', '<div class="loading">加载中</div>');
+  try{
+    const r = await fetch(`${API}/items`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    const items = (await r.json()).data||[];
+    let listHtml = '';
+    items.sort((a,b)=>(a.current_stock||0)-(b.current_stock||0));
+    items.forEach(item=>{
+      const stock = item.current_stock||0;
+      const threshold = item.low_stock_threshold||5;
+      const isLow = stock <= threshold;
+      listHtml += `
+        <div class="detail-list-item" onclick="openDetailStockInItem('${item.item_id}','${item.name}',${stock},'${item.default_unit||'个'}')">
+          <div class="detail-list-icon" style="background:${isLow?'rgba(254,44,85,0.15)':'rgba(255,255,255,0.06)'}">
+            ${isLow?'⚠️':'📦'}
+          </div>
+          <div class="detail-list-info">
+            <div class="detail-list-name">${item.name}</div>
+            <div class="detail-list-desc">${item.category||'未分类'} · 阈值 ${threshold} ${item.default_unit||''}</div>
+          </div>
+          <div class="detail-list-right">
+            <div class="detail-list-value">${stock} ${item.default_unit||''}</div>
+            <div class="detail-list-tag ${isLow?'danger':'success'}">${isLow?'需补货':'正常'}</div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-stat-row">
+        <div class="detail-stat"><div class="label">总SKU</div><div class="value">${items.length}</div></div>
+        <div class="detail-stat"><div class="label">预警商品</div><div class="value" style="color:#fe2c55">${items.filter(i=>(i.current_stock||0)<=(i.low_stock_threshold||5)).length}</div></div>
+      </div>
+      ${listHtml||'<div style="text-align:center;color:#bbb;padding:30px">暂无商品</div>'}
+    `;
+  }catch(e){
+    document.getElementById('detailBody').innerHTML = '<div class="loading">加载失败</div>';
   }
 }
 
-// ── Load Chat History ──
-async function loadChatHistory() {
-  try {
-    const d = await api('GET', '/api/v1/sessions/default/messages?limit=20');
-    const container = document.getElementById('chatMessages');
-    
-    if (d.data && d.data.length > 0) {
-      // Clear empty state
-      container.innerHTML = '';
-      
-      d.data.forEach(msg => {
-        if (msg.actor_type === 'owner') {
-          displayMessage(msg.text, true);
-        } else if (msg.actor_type === 'agent' || msg.actor_type === 'system') {
-          displayMessage(msg.text, false);
-        }
+// ===== 详情页：商品详情 + 操作 =====
+async function openDetailProduct(itemId, itemName){
+  if(!itemId){
+    openDetail(itemName||'商品详情', '', '<div style="text-align:center;color:#bbb;padding:30px">商品ID缺失</div>');
+    return;
+  }
+  openDetail(itemName||'商品详情', '加载中...', '<div class="loading">加载中</div>');
+  try{
+    const r = await fetch(`${API}/items/${itemId}`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    const item = (await r.json()).data||{};
+    const stock = item.current_stock||0;
+    const threshold = item.low_stock_threshold||5;
+    const isLow = stock <= threshold;
+    openDetail(item.name, item.category||'未分类', `
+      <div class="detail-stat-row">
+        <div class="detail-stat">
+          <div class="label">当前库存</div>
+          <div class="value" style="color:${isLow?'#fe2c55':'inherit'}">${stock} ${item.default_unit||''}</div>
+        </div>
+        <div class="detail-stat">
+          <div class="label">安全阈值</div>
+          <div class="value">${threshold}</div>
+        </div>
+        <div class="detail-stat">
+          <div class="label">单价</div>
+          <div class="value">¥${item.selling_price||0}</div>
+        </div>
+      </div>
+      <div class="detail-stat-row">
+        <div class="detail-stat">
+          <div class="label">库存价值</div>
+          <div class="value">¥${formatNum(stock*(item.selling_price||0))}</div>
+        </div>
+        <div class="detail-stat">
+          <div class="label">状态</div>
+          <div class="value" style="color:${isLow?'#fe2c55':'#25f4ee'}">${isLow?'⚠️ 需补货':'✅ 正常'}</div>
+        </div>
+      </div>
+
+      <!-- 快速入库表单 -->
+      <div class="stock-form">
+        <div class="form-title">📥 快速入库</div>
+        <div class="form-row">
+          <span class="form-label">数量</span>
+          <input class="form-input" type="number" id="stockInQty" placeholder="输入入库数量" min="1">
+        </div>
+        <div class="form-row">
+          <span class="form-label">备注</span>
+          <input class="form-input" type="text" id="stockInNote" placeholder="采购入库（可选）">
+        </div>
+        <button class="detail-action-btn primary" onclick="doStockIn('${itemId}','${item.name}','${item.default_unit||'个'}')">确认入库</button>
+      </div>
+
+      <!-- 快速出库表单 -->
+      <div class="stock-form" style="margin-top:8px">
+        <div class="form-title">📤 快速出库</div>
+        <div class="form-row">
+          <span class="form-label">数量</span>
+          <input class="form-input" type="number" id="stockOutQty" placeholder="输入出库数量" min="1" max="${stock}">
+        </div>
+        <div class="form-row">
+          <span class="form-label">备注</span>
+          <input class="form-input" type="text" id="stockOutNote" placeholder="销售出库（可选）">
+        </div>
+        <button class="detail-action-btn secondary" onclick="doStockOut('${itemId}','${item.name}','${item.default_unit||'个'}')">确认出库</button>
+      </div>
+    `);
+  }catch(e){
+    openDetail(itemName||'商品详情', '', '<div class="loading">加载失败</div>');
+  }
+}
+
+// ===== 详情页：库存预警 → 直接补货 =====
+function openDetailStockInItem(itemId, itemName, currentStock, unit){
+  if(!itemId){
+    openDetail(itemName||'快速入库', '', `
+      <div class="stock-form">
+        <div class="form-title">📥 快速入库</div>
+        <div class="form-row">
+          <span class="form-label">商品</span>
+          <input class="form-input" type="text" id="quickItemName" placeholder="输入商品名称" value="${itemName||''}">
+        </div>
+        <div class="form-row">
+          <span class="form-label">数量</span>
+          <input class="form-input" type="number" id="quickInQty" placeholder="入库数量" min="1">
+        </div>
+        <button class="detail-action-btn primary" onclick="doQuickStockIn()">确认入库</button>
+      </div>
+    `);
+    return;
+  }
+  openDetail(itemName, `当前库存: ${currentStock} ${unit}`, `
+    <div class="detail-stat-row">
+      <div class="detail-stat">
+        <div class="label">当前库存</div>
+        <div class="value" style="color:${currentStock<=5?'#fe2c55':'inherit'}">${currentStock} ${unit}</div>
+      </div>
+    </div>
+    <div class="stock-form">
+      <div class="form-title">📥 快速补货</div>
+      <div class="form-row">
+        <span class="form-label">数量</span>
+        <input class="form-input" type="number" id="stockInQty" placeholder="输入补货数量" min="1" autofocus>
+      </div>
+      <div class="form-row">
+        <span class="form-label">备注</span>
+        <input class="form-input" type="text" id="stockInNote" placeholder="补货入库（可选）">
+      </div>
+      <button class="detail-action-btn primary" onclick="doStockIn('${itemId}','${itemName}','${unit}')">确认补货入库</button>
+    </div>
+    <button class="detail-action-btn secondary" onclick="openDetailProduct('${itemId}','${itemName}')">查看商品详情 →</button>
+  `);
+}
+
+// ===== 详情页：全部流水 =====
+async function openDetailTransactions(){
+  openDetail('交易流水', '全部记录', '<div class="loading">加载中</div>');
+  try{
+    const r = await fetch(`${API}/events?limit=30`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    const events = (await r.json()).data||[];
+    let listHtml = '';
+    events.forEach(ev=>{
+      const isOut = ev.event_type==='stock_out';
+      listHtml += `
+        <div class="detail-list-item">
+          <div class="detail-list-icon" style="background:${isOut?'rgba(254,44,85,0.15)':'rgba(37,244,238,0.15)'}">
+            ${isOut?'📤':'📥'}
+          </div>
+          <div class="detail-list-info">
+            <div class="detail-list-name">${ev.item_name||'未知商品'}</div>
+            <div class="detail-list-desc">${ev.created_at?.slice(5,16)||''} · ${ev.note||''}</div>
+          </div>
+          <div class="detail-list-right">
+            <div class="detail-list-value" style="color:${isOut?'#fe2c55':'#25f4ee'}">${isOut?'-':'+'}${ev.quantity||0} ${ev.unit||''}</div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('detailBody').innerHTML = `
+      ${listHtml||'<div style="text-align:center;color:#bbb;padding:30px">暂无交易记录</div>'}
+    `;
+  }catch(e){
+    document.getElementById('detailBody').innerHTML = '<div class="loading">加载失败</div>';
+  }
+}
+
+// ===== 详情页：AI 建议详情 + 操作 =====
+function openDetailAIRec(name, reason, itemId){
+  const d = window._rawData;
+  const recs = d.recs||[];
+  let allRecHtml = '';
+  recs.forEach(r=>{
+    allRecHtml += `
+      <div class="detail-list-item">
+        <div class="detail-list-icon" style="background:rgba(77,107,254,0.15)">🤖</div>
+        <div class="detail-list-info">
+          <div class="detail-list-name">${r.name||r.item_name||'建议项'}</div>
+          <div class="detail-list-desc">${r.suggestion||r.reason||''}</div>
+        </div>
+        ${r.item_id?`<div class="detail-list-tag info" onclick="openDetailStockInItem('${r.item_id}','${r.name||''}',0,'')" style="cursor:pointer">去补货 →</div>`:''}
+      </div>`;
+  });
+
+  openDetail(name||'AI建议', '智能分析', `
+    <div style="padding:16px;background:#eef1ff;border:1px solid rgba(77,107,254,0.15);border-radius:12px;margin-bottom:16px">
+      <div style="font-size:13px;color:#999;margin-bottom:6px">💡 AI 分析结论</div>
+      <div style="font-size:15px;line-height:1.6">${reason||'暂无详细建议'}</div>
+    </div>
+    ${itemId?`<button class="detail-action-btn primary" onclick="openDetailStockInItem('${itemId}','${name}',0,'')">📥 立即补货</button>`:''}
+    <button class="detail-action-btn blue" onclick="openChat()">🤖 问AI更多</button>
+    ${allRecHtml?`<div style="font-size:14px;font-weight:600;margin:20px 0 8px">全部建议</div>${allRecHtml}`:''}
+  `);
+}
+
+// ===== 执行入库 =====
+async function doStockIn(itemId, itemName, unit){
+  const qtyEl = document.getElementById('stockInQty');
+  const noteEl = document.getElementById('stockInNote');
+  const qty = parseInt(qtyEl?.value);
+  if(!qty || qty<=0){ showToast('请输入有效数量','error'); return; }
+  try{
+    const r = await fetch(`${API}/stock-in`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},
+      body:JSON.stringify({item_id:itemId, quantity:qty, note:noteEl?.value||'补货入库'})
+    });
+    const d = await r.json();
+    if(r.ok){
+      showToast(`✅ ${itemName} 入库 +${qty} ${unit}`,'success');
+      qtyEl.value='';
+      // 刷新数据
+      setTimeout(()=>location.reload(), 1200);
+    }else{
+      showToast(d.detail||'入库失败','error');
+    }
+  }catch(e){showToast('网络错误','error')}
+}
+
+// ===== 执行出库 =====
+async function doStockOut(itemId, itemName, unit){
+  const qtyEl = document.getElementById('stockOutQty');
+  const noteEl = document.getElementById('stockOutNote');
+  const qty = parseInt(qtyEl?.value);
+  if(!qty || qty<=0){ showToast('请输入有效数量','error'); return; }
+  try{
+    const r = await fetch(`${API}/stock-out`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},
+      body:JSON.stringify({item_id:itemId, quantity:qty, note:noteEl?.value||'销售出库'})
+    });
+    const d = await r.json();
+    if(r.ok){
+      showToast(`✅ ${itemName} 出库 -${qty} ${unit}`,'success');
+      qtyEl.value='';
+      setTimeout(()=>location.reload(), 1200);
+    }else{
+      showToast(d.detail||'出库失败','error');
+    }
+  }catch(e){showToast('网络错误','error')}
+}
+
+// ===== 快速入库（通过名称） =====
+async function doQuickStockIn(){
+  const nameEl = document.getElementById('quickItemName');
+  const qtyEl = document.getElementById('quickInQty');
+  const name = nameEl?.value?.trim();
+  const qty = parseInt(qtyEl?.value);
+  if(!name){showToast('请输入商品名称','error');return;}
+  if(!qty||qty<=0){showToast('请输入有效数量','error');return;}
+  try{
+    // 先查找到商品ID
+    const r1 = await fetch(`${API}/items`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    const items = (await r1.json()).data||[];
+    const item = items.find(i=>i.name===name);
+    if(item){
+      const r2 = await fetch(`${API}/stock-in`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},
+        body:JSON.stringify({item_id:item.item_id, quantity:qty, note:'快速补货'})
       });
+      if(r2.ok){
+        showToast(`✅ ${name} 入库 +${qty}`,'success');
+        setTimeout(()=>location.reload(),1200);
+      }else{
+        const d = await r2.json();
+        showToast(d.detail||'入库失败','error');
+      }
+    }else{
+      showToast('未找到商品: '+name,'error');
     }
-  } catch (e) {
-    console.error('Load chat history error:', e);
+  }catch(e){showToast('网络错误','error')}
+}
+
+// ===== AI助手聊天（豆包风格） =====
+const GC_ROLES = {
+  xiaoya: {name:'小雅', color:'#ff9500'},
+  data:   {name:'营业数据员', color:'#3370ff'},
+  sales:  {name:'销售分析员', color:'#e91e63'},
+  stock:  {name:'库存守护员', color:'#00b96b'},
+  ai:     {name:'AI参谋', color:'#9c27b0'},
+};
+
+function openGroupChat(){
+  document.getElementById('groupChatPage').classList.add('open');
+  const box = document.getElementById('gcMessages');
+  setTimeout(()=>box.scrollTop = box.scrollHeight, 350);
+}
+function closeGroupChat(){
+  document.getElementById('groupChatPage').classList.remove('open');
+}
+
+// 快捷功能
+function gcQuick(text){
+  document.getElementById('gcInput').value = text;
+  gcSend();
+}
+
+// 添加消息
+function gcAppendMsg(role, text, isSelf=false){
+  const box = document.getElementById('gcMessages');
+  if(isSelf){
+    box.innerHTML += `
+      <div class="gc-msg self">
+        <div class="gc-bubble">${escHtml(text)}</div>
+      </div>`;
+  } else {
+    const r = GC_ROLES[role]||GC_ROLES.xiaoya;
+    const showTag = role && role !== 'xiaoya';
+    box.innerHTML += `
+      ${showTag ? `<div class="gc-emp-tag"><span class="dot" style="background:${r.color}"></span>${r.name}</div>` : ''}
+      <div class="gc-msg">
+        <div class="gc-bubble">${text}</div>
+      </div>
+      <div class="gc-actions">
+        <button class="gc-act-btn" onclick="gcCopy(this)" title="复制">📋</button>
+        <button class="gc-act-btn" title="朗读">🔊</button>
+        <button class="gc-act-btn" title="收藏">🔖</button>
+      </div>`;
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+// 正在输入
+function gcShowTyping(role){
+  const box = document.getElementById('gcMessages');
+  const r = GC_ROLES[role]||GC_ROLES.xiaoya;
+  const showTag = role && role !== 'xiaoya';
+  box.innerHTML += `
+    ${showTag ? `<div class="gc-emp-tag"><span class="dot" style="background:${r.color}"></span>${r.name}</div>` : ''}
+    <div class="gc-typing" id="gcTyping">
+      <div class="gc-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  box.scrollTop = box.scrollHeight;
+}
+function gcHideTyping(){
+  const el = document.getElementById('gcTyping');
+  if(el) el.remove();
+  // 也移除多余的 emp-tag
+  const tags = document.querySelectorAll('.gc-emp-tag');
+  const last = tags[tags.length-1];
+  if(last && !last.nextElementSibling?.classList.contains('gc-msg')){
+    last.remove();
   }
 }
 
-// ── Initialize ──
-document.addEventListener('DOMContentLoaded', () => {
-  loadDashboard();
-  loadChatHistory();
+// 复制
+function gcCopy(btn){
+  const bubble = btn.closest('.gc-msg')?.previousElementSibling;
+  if(bubble?.classList.contains('gc-msg')){
+    const text = bubble.querySelector('.gc-bubble')?.textContent;
+    if(text) navigator.clipboard?.writeText(text).then(()=>showToast('已复制'));
+  }
+}
+
+// 意图识别
+function detectIntent(msg){
+  const m = msg;
+  if(/库存|补货|入库|出库|缺货|预警|安全库存|进销存|还有多少|还剩|库存多少/.test(m))
+    return {role:'stock', ack:'好的，让库存守护员来帮你查一下。'};
+  if(/热销|排行|卖得好|销量|销售|趋势|哪个好卖|卖了|TOP|排名|畅销/.test(m))
+    return {role:'sales', ack:'好的，销售分析员来帮你分析。'};
+  if(/营业|营收|收入|流水|赚了|今日|本周|本月|营业额|多少钱|交易|收入多少/.test(m))
+    return {role:'data', ack:'好的，营业数据员来帮你查。'};
+  if(/建议|策略|该进什么|进货|采购|怎么经营|怎么办|推荐|计划|进货建议/.test(m))
+    return {role:'ai', ack:'好的，AI参谋来给你出出主意。'};
+  return {role:'xiaoya', ack:''};
+}
+
+// AI回复
+async function gcGetAIReply(msg){
+  try{
+    const r = await fetch(`${API}/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg})
+    });
+    const d = await r.json();
+    return d.response || d.message || '抱歉，我暂时无法回答这个问题';
+  }catch(e){ return '⚠️ 网络繁忙，请稍后再试'; }
+}
+
+// 发送
+async function gcSend(){
+  const input = document.getElementById('gcInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value='';
+
+  gcAppendMsg(null, msg, true);
+  document.getElementById('gcPlusBtn').style.display='flex';
+  document.getElementById('gcSendBtn').style.display='none';
+  const intent = detectIntent(msg);
+
+  // 小雅接话
+  if(intent.role !== 'xiaoya' && intent.ack){
+    await gcDelay(500);
+    gcAppendMsg('xiaoya', intent.ack);
+  }
+
+  // 正在输入
+  await gcDelay(400);
+  gcShowTyping(intent.role);
+
+  // 获取回复
+  const reply = await gcGetAIReply(msg);
+  gcHideTyping();
+  gcAppendMsg(intent.role, escHtml(reply).replace(/\n/g,'<br>'));
+
+  // 问候类小雅回复
+  if(intent.role === 'xiaoya' && !intent.ack){
+    await gcDelay(300);
+    gcAppendMsg('xiaoya', '有什么可以帮你的吗？可以问我营业额、库存、热销排行等等。');
+  }
+}
+
+function gcDelay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('gcInput')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); gcSend(); }
 });
 
-// Handle Enter key in chat
-document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendChat();
+// 输入时切换 发送/+ 按钮
+document.getElementById('gcInput')?.addEventListener('input',function(){
+  const has = this.value.trim().length > 0;
+  document.getElementById('gcPlusBtn').style.display = has ? 'none' : 'flex';
+  document.getElementById('gcSendBtn').style.display = has ? 'block' : 'none';
 });
+
+// + 按钮（暂无面板，预留）
+function toggleAttachPanel(){
+  const bar=document.querySelector('.gc-attach-bar');
+  bar.classList.toggle('show');
+}
+function closeAttach(){
+  document.querySelector('.gc-attach-bar').classList.remove('show');
+}
+
+// ===== 启动 =====
+init();
 </script>
-
 </body>
 </html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AI五金店大管家 - 登录</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:#fff;min-height:100vh;display:flex;flex-direction:column;color:#333;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== 上方留白 ===== */
+.top-area{
+  flex:1;min-height:35vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:0 24px;
+}
+.brand-logo{
+  font-size:48px;margin-bottom:16px;
+  width:72px;height:72px;
+  background:linear-gradient(135deg,#4d6bfe,#7c3aed);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:32px;box-shadow:0 8px 24px rgba(77,107,254,0.3);
+}
+.brand-name{font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:1px}
+
+/* ===== 功能区域 ===== */
+.action-area{padding:0 24px 32px;max-width:420px;width:100%;margin:0 auto}
+
+/* 手机号显示 */
+.phone-section{text-align:center;margin-bottom:28px}
+.phone-row{display:flex;align-items:center;justify-content:center;gap:10px}
+.phone-number{font-size:22px;font-weight:600;color:#1a1a1a;letter-spacing:1px}
+.change-btn{
+  font-size:13px;color:#999;border:1px solid #ddd;border-radius:16px;
+  padding:3px 14px;background:#fff;cursor:pointer;transition:all .2s;
+}
+.change-btn:hover{border-color:#bbb;color:#666}
+.carrier-text{font-size:13px;color:#b0b0b0;margin-top:8px}
+
+/* 按钮组 */
+.btn-group{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.btn-login{
+  width:100%;padding:15px 0;font-size:16px;font-weight:500;
+  border-radius:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+}
+.btn-primary{background:#4d6bfe;color:#fff;border:none}
+.btn-primary:hover{background:#3b5de7;box-shadow:0 4px 12px rgba(77,107,254,0.35)}
+.btn-outline{background:#fff;color:#1a1a1a;border:1px solid #e5e5e5}
+.btn-outline:hover{background:#f9f9f9;border-color:#ccc}
+
+/* 图标 */
+.btn-icon{width:22px;height:22px;flex-shrink:0}
+
+/* 协议 */
+.agreement{
+  display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:0 8px;
+}
+.checkbox{
+  width:16px;height:16px;border:1.5px solid #ccc;border-radius:50%;
+  flex-shrink:0;margin-top:2px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.checkbox.checked{border-color:#4d6bfe;background:#4d6bfe}
+.checkbox.checked::after{content:"✓";color:#fff;font-size:10px;font-weight:700}
+.agreement-text{font-size:12px;color:#b0b0b0;line-height:1.6}
+.agreement-text a{color:#666;text-decoration:none}
+.agreement-text a:hover{text-decoration:underline}
+
+/* ===== 密码登录面板 ===== */
+.panel-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.panel-overlay.show{display:flex}
+.panel{
+  background:#fff;width:100%;max-width:420px;
+  border-radius:20px 20px 0 0;padding:24px 24px 32px;
+  animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.panel-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px}
+.panel-title{font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px}
+
+/* Tab 切换 */
+.panel-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid #f0f0f0}
+.panel-tab{
+  flex:1;text-align:center;padding:10px 0;font-size:15px;font-weight:500;
+  color:#999;background:none;border:none;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
+}
+.panel-tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+
+/* 输入框 */
+.form-group{margin-bottom:14px}
+.form-input{
+  width:100%;padding:14px 16px;font-size:15px;
+  border:1px solid #e5e5e5;border-radius:12px;outline:none;
+  transition:border-color .2s;background:#fff;color:#1a1a1a;
+}
+.form-input:focus{border-color:#4d6bfe}
+.form-input::placeholder{color:#bbb}
+.password-wrap{position:relative}
+.password-toggle{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:18px;color:#999;padding:4px;
+}
+
+/* 验证码行 */
+.code-row{display:flex;gap:10px}
+.code-row .form-input{flex:1}
+.code-send-btn{
+  padding:14px 16px;font-size:14px;border:1px solid #e5e5e5;border-radius:12px;
+  background:#fff;cursor:pointer;white-space:nowrap;color:#4d6bfe;transition:all .2s;
+}
+.code-send-btn:hover{background:#f5f8ff}
+.code-send-btn:disabled{color:#ccc;border-color:#eee;cursor:not-allowed}
+
+/* 提交按钮 */
+.panel-submit{
+  width:100%;padding:15px;font-size:16px;font-weight:600;
+  border:none;border-radius:24px;cursor:pointer;margin-top:8px;
+  background:#1a1a1a;color:#fff;transition:opacity .2s;
+}
+.panel-submit:hover{opacity:.85}
+.panel-submit:disabled{opacity:.4;cursor:not-allowed}
+
+/* 底部链接 */
+.panel-links{display:flex;justify-content:space-between;margin-top:16px}
+.panel-links a{font-size:13px;color:#4d6bfe;text-decoration:none}
+.panel-links a:hover{text-decoration:underline}
+
+/* Demo 提示 */
+.demo-hint{
+  text-align:center;margin-top:16px;font-size:12px;color:#b0b0b0;
+  background:#f8f8ff;padding:8px 12px;border-radius:8px;
+}
+.demo-hint strong{color:#4d6bfe}
+
+/* 关闭按钮 */
+.panel-close{
+  position:absolute;top:20px;right:20px;background:none;border:none;
+  font-size:20px;color:#999;cursor:pointer;padding:4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 主页面 ===== -->
+<div class="top-area">
+  <div class="brand-logo">🏪</div>
+  <div class="brand-name">AI五金店大管家</div>
+</div>
+
+<div class="action-area">
+  <!-- 手机号显示 -->
+  <div class="phone-section">
+    <div class="phone-row">
+      <span class="phone-number" id="displayPhone">138****8888</span>
+      <button class="change-btn" onclick="changePhone()">更换</button>
+    </div>
+    <div class="carrier-text">运营商认证服务</div>
+  </div>
+
+  <!-- 按钮组 -->
+  <div class="btn-group">
+        <button class="btn-login btn-primary" onclick="oneClickLogin(this)">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+        <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="3"/>
+      </svg>
+      手机号一键登录
+    </button>
+    <button class="btn-login btn-outline" onclick="wechatLogin()">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="#07c160">
+        <path d="M9.5 4C5.91 4 3 6.46 3 9.5c0 1.7.91 3.2 2.31 4.18L4.5 16l2.76-1.38c.65.18 1.33.28 2.04.28h.2c.07 0 .14 0 .2-.02-.14-.42-.2-.86-.2-1.31C9.5 10.24 11.74 8 14.5 8c.34 0 .67.03 1 .08C14.54 5.66 12.25 4 9.5 4z"/>
+        <path d="M21 13.5c0-2.49-2.24-4.5-5-4.5s-5 2.01-5 4.5 2.24 4.5 5 4.5c.58 0 1.14-.08 1.67-.23L19.5 19l-.72-2.16C20.32 15.78 21 14.7 21 13.5z"/>
+        <circle cx="12" cy="13.5" r=".8"/>
+        <circle cx="16" cy="13.5" r=".8"/>
+      </svg>
+      微信登录
+    </button>
+    <button class="btn-login btn-outline" onclick="showPasswordPanel()">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      密码登录
+    </button>
+  </div>
+
+  <!-- 协议 -->
+  <div class="agreement">
+    <div class="checkbox checked" id="agreeCheck" onclick="toggleAgree()"></div>
+    <div class="agreement-text">
+      我已阅读并同意 <a href="#" onclick="event.preventDefault()">用户协议</a> 与 <a href="#" onclick="event.preventDefault()">隐私政策</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 密码登录面板（底部弹出） ===== -->
+<div class="panel-overlay" id="passwordPanel" onclick="if(event.target===this)closePasswordPanel()">
+  <div class="panel" style="position:relative">
+    <button class="panel-close" onclick="closePasswordPanel()">✕</button>
+    <div class="panel-handle"></div>
+    <div class="panel-title">账户登录</div>
+
+    <!-- Tab 切换 -->
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchPanelTab(this,'login')">登录</button>
+      <button class="panel-tab" onclick="switchPanelTab(this,'register')">注册</button>
+    </div>
+
+    <!-- 登录表单 -->
+    <div id="loginForm">
+      <div class="form-group">
+        <input class="form-input" type="text" id="loginUsername" placeholder="手机号 / 邮箱 / 用户名">
+      </div>
+      <div class="form-group">
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="loginPassword" placeholder="密码">
+          <button type="button" class="password-toggle" onclick="togglePwd(this)">👁</button>
+        </div>
+      </div>
+      <button class="panel-submit" id="loginBtn" onclick="doLogin()">登录</button>
+      <div class="panel-links">
+        <a href="#" onclick="event.preventDefault();switchPanelTabByName('forgot')">忘记密码？</a>
+        <a href="#" onclick="event.preventDefault();switchPanelTabByName('register')">没有账户？去注册</a>
+      </div>
+      <div class="demo-hint">演示验证码：<strong>888888</strong></div>
+    </div>
+
+    <!-- 注册表单 -->
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <input class="form-input" type="text" id="regUsername" placeholder="用户名（3-50字符）">
+      </div>
+      <div class="form-group">
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="regPassword" placeholder="设置密码（6位以上）">
+          <button type="button" class="password-toggle" onclick="togglePwd(this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <input class="form-input" type="text" id="regPhone" placeholder="手机号（可选）">
+      </div>
+      <div class="form-group">
+        <input class="form-input" type="email" id="regEmail" placeholder="邮箱（可选）">
+      </div>
+      <div class="form-group">
+        <div class="code-row">
+          <input class="form-input" type="text" id="regCode" placeholder="验证码" maxlength="6">
+          <button class="code-send-btn" id="regCodeBtn" onclick="sendCode('register')">获取验证码</button>
+        </div>
+      </div>
+      <button class="panel-submit" id="regBtn" onclick="doRegister()">注册</button>
+      <div class="panel-links">
+        <a href="#" onclick="event.preventDefault();switchPanelTabByName('login')">已有账户？去登录</a>
+      </div>
+      <div class="demo-hint">演示验证码：<strong>888888</strong></div>
+    </div>
+
+    <!-- 忘记密码表单 -->
+    <div id="forgotForm" style="display:none">
+      <div class="form-group">
+        <input class="form-input" type="text" id="forgotPhone" placeholder="手机号 / 邮箱">
+      </div>
+      <div class="form-group">
+        <div class="code-row">
+          <input class="form-input" type="text" id="forgotCode" placeholder="验证码" maxlength="6">
+          <button class="code-send-btn" id="forgotCodeBtn" onclick="sendCode('forgot')">获取验证码</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="forgotNewPwd" placeholder="设置新密码">
+          <button type="button" class="password-toggle" onclick="togglePwd(this)">👁</button>
+        </div>
+      </div>
+      <button class="panel-submit" onclick="doResetPassword()">重置密码</button>
+      <div class="panel-links">
+        <a href="#" onclick="event.preventDefault();switchPanelTabByName('login')">返回登录</a>
+      </div>
+      <div class="demo-hint">演示验证码：<strong>888888</strong></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 状态 =====
+let agreed = true;
+let phoneNum = '138****8888';
+const API = '/api/v1/auth';
+
+// ===== 协议勾选 =====
+function toggleAgree(){
+  agreed = !agreed;
+  document.getElementById('agreeCheck').classList.toggle('checked', agreed);
+}
+
+// ===== 检查协议 =====
+function checkAgree(){
+  if(!agreed){
+    alert('请先阅读并同意用户协议与隐私政策');
+    return false;
+  }
+  return true;
+}
+
+// ===== 手机号一键登录 =====
+async function oneClickLogin(btn){
+  if(!checkAgree()) return;
+  const phone = '13888888888';
+  const username = 'user_8888';
+  const password = '888888';
+  btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
+
+  try {
+    // 1️⃣ 先触发验证码（后端需要）
+    await fetch(API + '/send-code', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ phone, code_type: 'register' })
+    });
+
+    // 2️⃣ 尝试注册（新用户）
+    const regRes = await fetch(API + '/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password, phone, code: '888888' })
+    });
+    const regData = await regRes.json();
+    if(regData.token){
+      localStorage.setItem('authToken', regData.token);
+      localStorage.setItem('currentUser', JSON.stringify(regData.user));
+      location.href = '/?token=' + encodeURIComponent(regData.token);
+      return;
+    }
+
+    // 3️⃣ 用户已存在 → 直接登录
+    const loginRes = await fetch(API + '/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const loginData = await loginRes.json();
+    if(loginData.token){
+      localStorage.setItem('authToken', loginData.token);
+      localStorage.setItem('currentUser', JSON.stringify(loginData.user));
+      location.href = '/?token=' + encodeURIComponent(loginData.token);
+      return;
+    }
+
+    alert(loginData.detail || '登录失败，请重试');
+  } catch(e){
+    alert('网络错误，请重试');
+  } finally {
+    btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+  }
+}
+
+// ===== 微信登录 =====
+function wechatLogin(){
+  if(!checkAgree()) return;
+  alert('微信登录功能开发中，敬请期待');
+}
+
+// ===== 自动注册并登录 =====
+async function autoRegisterAndLogin(phone){
+  try{
+    const regRes = await fetch(API + '/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        username: 'user_' + phone.slice(-4),
+        password: '888888',
+        phone: phone,
+        code: '888888'
+      })
+    });
+    const regData = await regRes.json();
+    if(regData.token){
+      localStorage.setItem('authToken', regData.token);
+      localStorage.setItem('currentUser', JSON.stringify(regData.user));
+      location.href = '/';
+    } else {
+      alert(regData.detail || '注册失败');
+    }
+  }catch(e){ alert('网络错误'); }
+}
+
+// ===== 更换手机号 =====
+function changePhone(){
+  const newPhone = prompt('请输入手机号：', '13888888888');
+  if(newPhone){
+    phoneNum = newPhone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+    document.getElementById('displayPhone').textContent = phoneNum;
+  }
+}
+
+// ===== 密码面板 =====
+function showPasswordPanel(){
+  document.getElementById('passwordPanel').classList.add('show');
+}
+function closePasswordPanel(){
+  document.getElementById('passwordPanel').classList.remove('show');
+}
+
+// ===== 面板 Tab 切换 =====
+function switchPanelTab(el, type){
+  document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('loginForm').style.display = type==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = type==='register'?'block':'none';
+  document.getElementById('forgotForm').style.display = 'none';
+}
+function switchPanelTabByName(name){
+  const tabs = document.querySelectorAll('.panel-tab');
+  tabs.forEach(t=>t.classList.remove('active'));
+  if(name==='login'){
+    tabs[0].classList.add('active');
+    document.getElementById('loginForm').style.display='block';
+    document.getElementById('registerForm').style.display='none';
+    document.getElementById('forgotForm').style.display='none';
+  }else if(name==='register'){
+    tabs[1].classList.add('active');
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('registerForm').style.display='block';
+    document.getElementById('forgotForm').style.display='none';
+  }else if(name==='forgot'){
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('registerForm').style.display='none';
+    document.getElementById('forgotForm').style.display='block';
+  }
+}
+
+// ===== 密码显示切换 =====
+function togglePwd(btn){
+  const inp = btn.previousElementSibling;
+  inp.type = inp.type==='password'?'text':'password';
+}
+
+// ===== 发送验证码 =====
+function sendCode(type){
+  if(!checkAgree()) return;
+  let phone = '', email = '';
+  if(type==='register'){
+    phone = document.getElementById('regPhone').value;
+    email = document.getElementById('regEmail').value;
+  }else if(type==='forgot'){
+    const v = document.getElementById('forgotPhone').value;
+    if(v.includes('@')) email=v; else phone=v;
+  }
+  if(!phone && !email){ alert('请输入手机号或邮箱'); return; }
+
+  const btnId = type==='register'?'regCodeBtn':'forgotCodeBtn';
+  const btn = document.getElementById(btnId);
+
+  fetch(API + '/send-code',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({phone,email,code_type:type})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.message){
+      alert('验证码已发送（演示验证码：888888）');
+      // 倒计时
+      let s=60;
+      btn.disabled=true;
+      const timer=setInterval(()=>{
+        btn.textContent=s+'秒后重试';
+        s--;
+        if(s<0){clearInterval(timer);btn.disabled=false;btn.textContent='获取验证码';}
+      },1000);
+    }else{
+      alert(data.detail||'发送失败');
+    }
+  })
+  .catch(()=>alert('网络错误'));
+}
+
+// ===== 登录 =====
+function doLogin(){
+  if(!checkAgree()) return;
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!username){ alert('请输入账号'); return; }
+  if(!password){ alert('请输入密码'); return; }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled=true; btn.textContent='登录中...';
+
+  fetch(API + '/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username, password})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.token){
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      location.href='/?token='+encodeURIComponent(data.token)
+    }else{
+      alert(data.detail||'登录失败');
+      btn.disabled=false; btn.textContent='登录';
+    }
+  })
+  .catch(()=>{alert('网络错误');btn.disabled=false;btn.textContent='登录';});
+}
+
+// ===== 注册 =====
+function doRegister(){
+  if(!checkAgree()) return;
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const phone = document.getElementById('regPhone').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const code = document.getElementById('regCode').value.trim();
+
+  if(!username){ alert('请输入用户名'); return; }
+  if(username.length<3){ alert('用户名至少3个字符'); return; }
+  if(!password||password.length<6){ alert('密码至少6位'); return; }
+  if(!phone&&!email){ alert('请输入手机号或邮箱'); return; }
+  if(!code){ alert('请输入验证码'); return; }
+
+  const btn = document.getElementById('regBtn');
+  btn.disabled=true; btn.textContent='注册中...';
+
+  fetch(API + '/register',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username, password, phone, email, code})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.token){
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      location.href='/?token='+encodeURIComponent(data.token)
+    }else{
+      alert(data.detail||'注册失败');
+      btn.disabled=false; btn.textContent='注册';
+    }
+  })
+  .catch(()=>{alert('网络错误');btn.disabled=false;btn.textContent='注册';});
+}
+
+// ===== 重置密码 =====
+function doResetPassword(){
+  alert('重置密码功能开发中');
+}
+
+// ===== 回车提交 =====
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(document.getElementById('loginForm').style.display!=='none') doLogin();
+    else if(document.getElementById('registerForm').style.display!=='none') doRegister();
+  }
+});
+</script>
+</body>
+</html>

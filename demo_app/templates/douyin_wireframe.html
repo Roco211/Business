@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>抖音风格 - 线稿</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#fff;color:#333;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.app{position:relative;width:100%;height:100%;overflow:hidden;background:#fff;border:2px solid #333}
+
+/* ===== 线条通用 ===== */
+.wire{border:1.5px dashed #999;border-radius:8px;background:rgba(0,0,0,0.02)}
+.wire-solid{border:1.5px solid #333;border-radius:8px}
+.wire-circle{border:1.5px solid #333;border-radius:50%}
+.label{position:absolute;font-size:10px;color:#666;white-space:nowrap}
+.label-dark{color:#333;font-weight:600}
+
+/* ===== 状态栏 ===== */
+.status-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:36px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;font-size:12px;color:#999;
+  border-bottom:1px solid #eee;
+}
+
+/* ===== 顶部导航 ===== */
+.top-nav{
+  position:fixed;top:36px;left:0;right:0;z-index:100;height:40px;
+  display:flex;align-items:center;
+  padding:0 12px;
+  border-bottom:1px solid #eee;
+}
+.top-nav-left{flex:1}
+.top-nav-center{flex:2;display:flex;align-items:center;gap:20px;justify-content:center}
+.top-nav-right{flex:1;display:flex;justify-content:flex-end}
+.top-tab{
+  font-size:14px;color:#aaa;background:none;border:none;
+  cursor:pointer;padding:4px;position:relative;
+}
+.top-tab.active{color:#333;font-weight:700}
+.top-tab.active::after{
+  content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
+  width:20px;height:2px;background:#333;border-radius:1px;
+}
+.top-tab .live-dot{
+  display:inline-block;width:5px;height:5px;background:#fe2c55;
+  border-radius:50%;margin-left:2px;vertical-align:top;
+}
+.search-icon{font-size:16px;background:none;border:none;color:#999}
+
+/* ===== 视频区域 ===== */
+.video-card{
+  width:100%;height:100%;position:relative;
+  background:#fafafa;
+}
+
+/* ===== 右侧操作栏 ===== */
+.action-bar{
+  position:absolute;right:10px;bottom:220px;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+}
+.action-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.action-icon{
+  width:36px;height:36px;
+  border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;background:#fff;
+}
+.action-icon-lg{
+  width:42px;height:42px;
+}
+.action-count{font-size:10px;color:#999}
+.action-follow{
+  width:18px;height:18px;
+  border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;background:#fff;
+  margin-top:-4px;
+}
+
+/* 音乐唱片 */
+.music-disc{
+  width:38px;height:38px;border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.music-disc-inner{
+  width:14px;height:14px;border:1.5px solid #333;border-radius:50%;
+}
+
+/* ===== 底部信息 ===== */
+.video-info{
+  position:absolute;left:14px;right:70px;bottom:90px;
+}
+.info-row{
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:6px;font-size:14px;font-weight:700;color:#333;
+}
+.info-row-sm{
+  font-size:12px;color:#999;margin-bottom:5px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.info-row-sm .expand{
+  color:#666;font-weight:500;border:1px solid #ccc;border-radius:3px;
+  padding:0 4px;font-size:10px;margin-left:2px;
+}
+.music-info{
+  display:flex;align-items:center;gap:4px;font-size:11px;color:#aaa;
+}
+
+/* ===== 底部导航 ===== */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;
+  height:72px;padding-bottom:10px;padding-top:8px;
+  display:flex;align-items:flex-start;justify-content:space-around;
+  border-top:1px solid #eee;background:#fff;
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.nav-icon{
+  width:24px;height:24px;
+  border:1.5px solid #ccc;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+}
+.nav-icon-circle{
+  border-radius:50%;
+}
+.nav-label{font-size:10px;color:#aaa}
+.nav-item.active .nav-label{color:#333;font-weight:600}
+.nav-item.active .nav-icon{border-color:#333}
+
+/* 中间 + */
+.nav-center{
+  width:42px;height:28px;position:relative;
+  border:1.5px solid #333;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:300;color:#333;
+}
+
+/* ===== 尺寸标注线 ===== */
+.measure{position:absolute;z-index:200;pointer-events:none}
+.measure-h{border-top:1px solid #ccc;height:0}
+.measure-v{border-left:1px solid #ccc;width:0}
+.measure-label{
+  position:absolute;font-size:9px;color:#aaa;
+  background:#fff;padding:0 2px;
+}
+
+/* ===== 页面内容占位 ===== */
+.placeholder-area{
+  position:absolute;top:76px;left:0;right:0;bottom:72px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#ccc;
+}
+.placeholder-area .icon{font-size:48px;margin-bottom:8px;opacity:0.3}
+.placeholder-area .text{font-size:13px;opacity:0.4}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>5G &nbsp; ▮▮▮ &nbsp; 🔋</span>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="top-nav">
+    <div class="top-nav-left">
+      <button class="top-tab">直播<span class="live-dot"></span></button>
+    </div>
+    <div class="top-nav-center">
+      <button class="top-tab">关注</button>
+      <button class="top-tab active">推荐</button>
+    </div>
+    <div class="top-nav-right">
+      <button class="search-icon">🔍</button>
+    </div>
+  </div>
+
+  <!-- 视频区域（空） -->
+  <div class="video-card">
+    <div class="placeholder-area">
+      <div class="icon">▶</div>
+      <div class="text">视频内容区域</div>
+    </div>
+
+    <!-- 右侧操作栏 -->
+    <div class="action-bar">
+      <div class="action-item">
+        <div class="action-icon action-icon-lg">头</div>
+        <div class="action-follow">+</div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">♥</div>
+        <div class="action-count">数</div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">💬</div>
+        <div class="action-count">数</div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">☆</div>
+        <div class="action-count">收藏</div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">↗</div>
+        <div class="action-count">转发</div>
+      </div>
+      <div class="action-item">
+        <div class="music-disc"><div class="music-disc-inner"></div></div>
+      </div>
+    </div>
+
+    <!-- 底部信息 -->
+    <div class="video-info">
+      <div class="info-row">@用户名</div>
+      <div class="info-row-sm">视频描述文字 #话题标签 <span class="expand">展开</span></div>
+      <div class="music-info">♪ 音乐名称 - 创作者</div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <div class="nav-icon">□</div>
+      <div class="nav-label">首页</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon nav-icon-circle">○</div>
+      <div class="nav-label">朋友</div>
+    </div>
+    <div class="nav-center">+</div>
+    <div class="nav-item">
+      <div class="nav-icon nav-icon-circle">○</div>
+      <div class="nav-label">消息</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon nav-icon-circle">○</div>
+      <div class="nav-label">我</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

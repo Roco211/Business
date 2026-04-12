@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>店铺运营 - 线稿</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#fff;color:#333;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+.app{position:relative;width:100%;height:100%;overflow:hidden}
+
+/* ===== 状态栏 ===== */
+.status-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:36px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;font-size:12px;color:#999;
+}
+
+/* ===== 顶部导航 ===== */
+.top-nav{
+  position:fixed;top:36px;left:0;right:0;z-index:100;height:44px;
+  display:flex;align-items:center;
+  padding:0 12px;
+  border-bottom:1px solid #eee;background:#fff;
+}
+.top-nav-left{flex:1}
+.top-nav-center{flex:2;display:flex;align-items:center;gap:20px;justify-content:center}
+.top-nav-right{flex:1;display:flex;justify-content:flex-end}
+.top-tab{
+  font-size:15px;color:#aaa;background:none;border:none;
+  cursor:pointer;padding:4px;position:relative;
+}
+.top-tab.active{color:#333;font-weight:700}
+.top-tab.active::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  width:20px;height:2.5px;background:#333;border-radius:2px;
+}
+.top-tab .live-dot{
+  display:inline-block;width:5px;height:5px;background:#fe2c55;
+  border-radius:50%;margin-left:2px;vertical-align:top;
+}
+.search-icon{font-size:18px;background:none;border:none;color:#999}
+
+/* ===== 卡片流 ===== */
+.card-feed{
+  position:fixed;top:80px;left:0;right:0;bottom:72px;
+  overflow-y:scroll;-webkit-overflow-scrolling:touch;
+  scroll-snap-type:y mandatory;
+}
+.card-feed::-webkit-scrollbar{display:none}
+
+.card{
+  scroll-snap-align:start;
+  width:100%;min-height:calc(100vh - 152px);
+  padding:16px;
+  display:flex;flex-direction:column;
+  position:relative;
+  border-bottom:1px solid #f0f0f0;
+}
+
+/* ===== 卡片类型：营业额 ===== */
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.card-author{display:flex;align-items:center;gap:8px}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  border:1.5px solid #333;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;background:#fff;
+}
+.author-name{font-size:14px;font-weight:600;color:#333}
+.author-time{font-size:11px;color:#aaa}
+.follow-badge{
+  width:20px;height:20px;border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+}
+
+/* 数据大卡 */
+.data-hero{
+  border:1.5px solid #333;border-radius:12px;
+  padding:20px;margin-bottom:16px;
+  text-align:center;
+}
+.data-hero .label{font-size:13px;color:#999;margin-bottom:8px}
+.data-hero .value{font-size:36px;font-weight:800;color:#333;margin-bottom:4px}
+.data-hero .sub{font-size:12px;color:#aaa}
+
+/* 数据小卡组 */
+.data-row{display:flex;gap:10px;margin-bottom:16px}
+.data-mini{
+  flex:1;border:1.5px solid #333;border-radius:10px;
+  padding:12px;text-align:center;
+}
+.data-mini .label{font-size:11px;color:#999;margin-bottom:6px}
+.data-mini .value{font-size:18px;font-weight:700;color:#333}
+.data-mini .change{font-size:10px;margin-top:4px}
+.data-mini .change.up{color:#fe2c55}
+.data-mini .change.down{color:#25f4ee}
+
+/* 进度条 */
+.progress-bar{
+  border:1.5px solid #333;border-radius:8px;
+  padding:12px;margin-bottom:16px;
+}
+.progress-bar .label{font-size:12px;color:#999;margin-bottom:8px;display:flex;justify-content:space-between}
+.progress-track{height:8px;background:#eee;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:#333;border-radius:4px}
+
+/* 迷你图表占位 */
+.chart-placeholder{
+  border:1.5px dashed #ccc;border-radius:10px;
+  height:100px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;
+  color:#ccc;font-size:13px;
+}
+
+/* 商品列表 */
+.product-list{
+  border:1.5px solid #333;border-radius:10px;
+  overflow:hidden;margin-bottom:16px;
+}
+.product-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  border-bottom:1px solid #eee;
+}
+.product-item:last-child{border-bottom:none}
+.product-rank{
+  width:22px;height:22px;border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+}
+.product-rank.gold{border-color:#fe2c55;color:#fe2c55}
+.product-info{flex:1}
+.product-name{font-size:13px;font-weight:600;color:#333}
+.product-stat{font-size:11px;color:#aaa}
+.product-bar{
+  width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden;
+}
+.product-bar-fill{height:100%;background:#333;border-radius:3px}
+
+/* 底部操作 */
+.card-actions{
+  display:flex;align-items:center;justify-content:space-around;
+  padding:12px 0 8px;
+  border-top:1px solid #f0f0f0;
+  margin-top:auto;
+}
+.card-action{
+  display:flex;align-items:center;gap:4px;
+  font-size:13px;color:#999;
+}
+.card-action .icon{
+  width:28px;height:28px;
+  border:1.5px solid #ccc;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+
+/* ===== 底部导航 ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:72px;padding-bottom:10px;padding-top:8px;
+  display:flex;align-items:flex-start;justify-content:space-around;
+  border-top:1px solid #eee;background:#fff;
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.nav-icon{
+  width:24px;height:24px;
+  border:1.5px solid #ccc;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;
+}
+.nav-label{font-size:10px;color:#aaa}
+.nav-item.active .nav-label{color:#333;font-weight:600}
+.nav-item.active .nav-icon{border-color:#333}
+.nav-center{
+  width:42px;height:28px;
+  border:1.5px solid #333;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:300;color:#333;
+}
+
+/* ===== 右侧浮动操作 ===== */
+.float-action{
+  position:fixed;right:10px;z-index:50;
+  display:flex;flex-direction:column;gap:14px;
+}
+.float-btn{
+  width:40px;height:40px;
+  border:1.5px solid #333;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;background:#fff;cursor:pointer;
+}
+.float-btn-sm{
+  width:32px;height:32px;font-size:12px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>5G &nbsp; ▮▮▮ &nbsp; 🔋</span>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="top-nav">
+    <div class="top-nav-left">
+      <button class="top-tab">直播<span class="live-dot"></span></button>
+    </div>
+    <div class="top-nav-center">
+      <button class="top-tab">关注</button>
+      <button class="top-tab active">推荐</button>
+    </div>
+    <div class="top-nav-right">
+      <button class="search-icon">🔍</button>
+    </div>
+  </div>
+
+  <!-- 卡片流 -->
+  <div class="card-feed">
+
+    <!-- 卡片1：今日营业概览 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-author">
+          <div class="avatar">🏪</div>
+          <div>
+            <div class="author-name">我的店铺</div>
+            <div class="author-time">今日 · 实时更新</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-hero">
+        <div class="label">今日营业额</div>
+        <div class="value">¥8,560.00</div>
+        <div class="sub">较昨日 +12.3%</div>
+      </div>
+
+      <div class="data-row">
+        <div class="data-mini">
+          <div class="label">订单数</div>
+          <div class="value">47</div>
+          <div class="change up">↑ 8</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">客单价</div>
+          <div class="value">¥182</div>
+          <div class="change up">↑ ¥15</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">毛利</div>
+          <div class="value">32%</div>
+          <div class="change down">↓ 1.2%</div>
+        </div>
+      </div>
+
+      <div class="chart-placeholder">[ 今日销售趋势折线图 ]</div>
+
+      <div class="card-actions">
+        <div class="card-action"><div class="icon">♥</div> 128</div>
+        <div class="card-action"><div class="icon">💬</div> 评论</div>
+        <div class="card-action"><div class="icon">☆</div> 收藏</div>
+        <div class="card-action"><div class="icon">↗</div> 分享</div>
+      </div>
+    </div>
+
+    <!-- 卡片2：热销排行榜 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-author">
+          <div class="avatar">🔥</div>
+          <div>
+            <div class="author-name">热销排行</div>
+            <div class="author-time">本周 · 按销量排序</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-hero">
+        <div class="label">本周热销 TOP 5</div>
+        <div class="value" style="font-size:24px">累计销售 ¥32,180</div>
+        <div class="sub">共 213 笔订单</div>
+      </div>
+
+      <div class="product-list">
+        <div class="product-item">
+          <div class="product-rank gold">1</div>
+          <div class="product-info">
+            <div class="product-name">M8×40 不锈钢螺丝</div>
+            <div class="product-stat">销量 1,280 件 · ¥4,480</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="product-item">
+          <div class="product-rank">2</div>
+          <div class="product-info">
+            <div class="product-name">博世电钻 GBM 10 RE</div>
+            <div class="product-stat">销量 32 台 · ¥8,960</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:72%"></div></div>
+        </div>
+        <div class="product-item">
+          <div class="product-rank">3</div>
+          <div class="product-info">
+            <div class="product-name">PVC电工胶带 (红/蓝/黄)</div>
+            <div class="product-stat">销量 560 卷 · ¥1,680</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:55%"></div></div>
+        </div>
+        <div class="product-item">
+          <div class="product-rank">4</div>
+          <div class="product-info">
+            <div class="product-name">角磨机 100mm</div>
+            <div class="product-stat">销量 28 台 · ¥6,720</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:40%"></div></div>
+        </div>
+        <div class="product-item">
+          <div class="product-rank">5</div>
+          <div class="product-info">
+            <div class="product-name">水龙头 304不锈钢</div>
+            <div class="product-stat">销量 185 个 · ¥5,550</div>
+          </div>
+          <div class="product-bar"><div class="product-bar-fill" style="width:30%"></div></div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <div class="card-action"><div class="icon">♥</div> 86</div>
+        <div class="card-action"><div class="icon">💬</div> 评论</div>
+        <div class="card-action"><div class="icon">☆</div> 收藏</div>
+        <div class="card-action"><div class="icon">↗</div> 分享</div>
+      </div>
+    </div>
+
+    <!-- 卡片3：库存预警 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-author">
+          <div class="avatar">⚠️</div>
+          <div>
+            <div class="author-name">库存预警</div>
+            <div class="author-time">需立即处理</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-hero">
+        <div class="label">库存预警商品</div>
+        <div class="value" style="font-size:48px;color:#fe2c55">3</div>
+        <div class="sub">低于安全库存</div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="label"><span>博世电钻 GBM 10 RE</span><span style="color:#fe2c55">剩余 2 台</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:8%;background:#fe2c55"></div></div>
+      </div>
+      <div class="progress-bar">
+        <div class="label"><span>角磨机 100mm</span><span style="color:#fe2c55">剩余 5 台</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:15%;background:#fe2c55"></div></div>
+      </div>
+      <div class="progress-bar">
+        <div class="label"><span>M8×40 不锈钢螺丝</span><span style="color:#faad14">剩余 120 件</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:25%;background:#faad14"></div></div>
+      </div>
+
+      <div class="data-row">
+        <div class="data-mini">
+          <div class="label">库存总值</div>
+          <div class="value">¥186K</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">SKU数</div>
+          <div class="value">328</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">周转天数</div>
+          <div class="value">18天</div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <div class="card-action"><div class="icon">♥</div> 256</div>
+        <div class="card-action"><div class="icon">💬</div> 评论</div>
+        <div class="card-action"><div class="icon">☆</div> 收藏</div>
+        <div class="card-action"><div class="icon">↗</div> 分享</div>
+      </div>
+    </div>
+
+    <!-- 卡片4：AI 分析建议 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-author">
+          <div class="avatar">🤖</div>
+          <div>
+            <div class="author-name">AI 经营助手</div>
+            <div class="author-time">基于本周数据分析</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-hero">
+        <div class="label">AI 经营建议</div>
+        <div class="value" style="font-size:20px;line-height:1.4">
+          建议补货电钻类目<br>预计可提升 15% 营收
+        </div>
+      </div>
+
+      <div class="data-row">
+        <div class="data-mini">
+          <div class="label">本周营收</div>
+          <div class="value">¥42.8K</div>
+          <div class="change up">↑ 18%</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">预计下周</div>
+          <div class="value">¥49.2K</div>
+          <div class="change up">↑ 15%</div>
+        </div>
+        <div class="data-mini">
+          <div class="label">建议补货</div>
+          <div class="value">5种</div>
+        </div>
+      </div>
+
+      <div class="chart-placeholder">[ 近7日销售趋势 + 预测 ]</div>
+
+      <div class="product-list">
+        <div class="product-item">
+          <div class="product-rank gold">建</div>
+          <div class="product-info">
+            <div class="product-name">博世电钻 GBM 10 RE</div>
+            <div class="product-stat">建议补货 10 台 · 预计收益 +¥2,800</div>
+          </div>
+        </div>
+        <div class="product-item">
+          <div class="product-rank">建</div>
+          <div class="product-info">
+            <div class="product-name">角磨机 100mm</div>
+            <div class="product-stat">建议补货 8 台 · 预计收益 +¥1,920</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <div class="card-action"><div class="icon">♥</div> 5.2K</div>
+        <div class="card-action"><div class="icon">💬</div> 评论</div>
+        <div class="card-action"><div class="icon">☆</div> 收藏</div>
+        <div class="card-action"><div class="icon">↗</div> 分享</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 右侧浮动 -->
+  <div class="float-action" style="top:50%;transform:translateY(-50%)">
+    <div class="float-btn float-btn-sm">📊</div>
+    <div class="float-btn float-btn-sm">📝</div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <div class="nav-icon" style="border-radius:4px">□</div>
+      <div class="nav-label">首页</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">○</div>
+      <div class="nav-label">朋友</div>
+    </div>
+    <div class="nav-center">+</div>
+    <div class="nav-item">
+      <div class="nav-icon">○</div>
+      <div class="nav-label">消息</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">○</div>
+      <div class="nav-label">我</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

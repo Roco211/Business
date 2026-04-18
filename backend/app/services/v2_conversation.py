@@ -12,7 +12,7 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
-from app.services.v2_inventory import commit_v2_inventory_stock_in
+from app.services.v2_inventory import commit_v2_inventory_stock_in, commit_v2_inventory_stock_out
 from app.services.v2_time import utc_now_naive
 
 CAPTURED_STATUS = "captured"
@@ -608,6 +608,21 @@ def approve_v2_confirmation(
                 task_run_id=task_run.task_run_id,
                 created_by_account_id=approved_by_account_id,
                 payload=resolved_fields,
+            )
+            task_run.status = COMMITTED_STATUS
+            task_run.result_summary = "Confirmation approved and inventory committed."
+            task_run.completed_at = now
+        elif confirmation.confirmation_type == "inventory.stock_out":
+            resolved_fields = dict(resolution_payload.get("fields") or {})
+            commit_v2_inventory_stock_out(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                inventory_item_id=str(resolved_fields.get("inventory_item_id") or ""),
+                expected_quantity=resolved_fields.get("expected_quantity"),
+                stock_out_quantity=resolved_fields.get("stock_out_quantity"),
+                reason=str(resolved_fields.get("reason") or ""),
+                created_by_account_id=approved_by_account_id,
             )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."

@@ -44,6 +44,14 @@ from app.services.v2_conversation import (
     reject_v2_confirmation,
     request_v2_confirmation_from_task_draft,
 )
+from app.services.v2_inventory import (
+    V2InventoryItemNotFoundError,
+    V2InventoryPayloadValidationError,
+    V2InventoryStockOutConflictError,
+    V2InventoryStockOutItemNotFoundError,
+    V2InventoryStockOutValidationError,
+    V2InventoryUnitMismatchError,
+)
 
 router = APIRouter(prefix="/api/v2", tags=["v2-conversation"])
 
@@ -432,6 +440,31 @@ def approve_confirmation_v2(
             confirmation_id=confirmation_id,
             resolution_payload=payload.resolution_payload,
             approved_by_account_id=account.account_id,
+        )
+    except (V2InventoryItemNotFoundError, V2InventoryStockOutItemNotFoundError):
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="inventory_item_not_found", message="Inventory item not found")
+            ).model_dump(),
+        )
+    except V2InventoryStockOutConflictError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="inventory_conflict", message="Inventory stock-out conflicts with current stock")
+            ).model_dump(),
+        )
+    except (
+        V2InventoryPayloadValidationError,
+        V2InventoryUnitMismatchError,
+        V2InventoryStockOutValidationError,
+    ) as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="validation_error", message=str(exc))
+            ).model_dump(),
         )
     except LookupError:
         return JSONResponse(

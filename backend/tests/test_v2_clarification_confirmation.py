@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from decimal import Decimal
 
 
 def _utc_now_naive() -> datetime:
@@ -206,6 +207,65 @@ def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
     assert message_response.status_code == 201
     task_run_id = message_response.json()["data"]["task_run_id"]
     return token, context_token, task_run_id
+
+
+def _seed_v2_inventory_task_run_in_existing_context(
+    db_session,
+    *,
+    task_run_id: str,
+    intent_type: str = "inventory.stock_in",
+) -> None:
+    from app.models import V2ConversationSession, V2Message, V2TaskRun
+
+    now = _utc_now_naive()
+    session_id = f"vsess_{task_run_id}"[:40]
+    message_id = f"vmsg_{task_run_id}"[:40]
+    db_session.add(
+        V2ConversationSession(
+            session_id=session_id,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_type="workgroup",
+            title="Inventory Seed",
+            status="active",
+            initiated_by_account_id="acct_001",
+            created_at=now,
+            updated_at=now,
+        )
+    )
+    db_session.add(
+        V2Message(
+            message_id=message_id,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_id=session_id,
+            actor_type="account",
+            actor_id="acct_001",
+            message_kind="text",
+            payload_json={"text": "seed inventory"},
+            client_request_id=f"req_{task_run_id}"[:64],
+            created_at=now,
+        )
+    )
+    db_session.add(
+        V2TaskRun(
+            task_run_id=task_run_id,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_id=session_id,
+            source_message_id=message_id,
+            intent_type=intent_type,
+            status="captured",
+            risk_level="medium",
+            trace_id=f"trace_{task_run_id}"[:64],
+            result_summary=None,
+            error_code=None,
+            created_at=now,
+            updated_at=now,
+            completed_at=None,
+        )
+    )
+    db_session.commit()
 
 
 def test_v2_clarification_and_confirmation_schema_persist_context_boundaries(db_session) -> None:
@@ -427,6 +487,140 @@ def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(clie
     assert snapshots[0].current_quantity == 2
     assert events[0].shop_id == "shop_a1"
     assert events[0].quantity_after == 2
+
+
+def test_v2_approve_stock_out_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
+    from app.models import V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+    from app.services.v2_inventory import commit_v2_inventory_stock_in
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    seed_task_run_id = "vtask_seed_stock_out_confirm"
+    _seed_v2_inventory_task_run_in_existing_context(db_session, task_run_id=seed_task_run_id)
+    seeded = commit_v2_inventory_stock_in(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=seed_task_run_id,
+        created_by_account_id="acct_001",
+        payload={"item_name": "Cola", "quantity": 5, "unit": "box", "price": 18.5},
+    )
+    db_session.commit()
+
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_out",
+        draft_payload={
+            "inventory_item_id": seeded.item.inventory_item_id,
+            "expected_quantity": 5,
+            "stock_out_quantity": 2,
+            "reason": "counter sale",
+        },
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {
+                    "inventory_item_id": seeded.item.inventory_item_id,
+                    "expected_quantity": 5,
+                    "stock_out_quantity": 2,
+                    "reason": "counter sale",
+                }
+            }
+        },
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    snapshot = db_session.query(V2InventoryStockSnapshot).filter_by(
+        inventory_item_id=seeded.item.inventory_item_id,
+        shop_id="shop_a1",
+    ).one()
+    event = db_session.query(V2InventoryLedgerEvent).filter_by(
+        inventory_item_id=seeded.item.inventory_item_id,
+        event_type="stock_out",
+    ).one()
+
+    assert response.status_code == 200
+    assert response.json()["data"]["status"] == "approved"
+    assert task_run is not None
+    assert task_run.status == "committed"
+    assert task_run.completed_at is not None
+    assert snapshot.current_quantity == Decimal("3")
+    assert event.quantity_after == Decimal("3")
+    assert event.reason == "counter sale"
+
+
+def test_v2_approve_stock_out_confirmation_rejects_insufficient_stock_and_rolls_back(client, db_session) -> None:
+    from app.models import V2Confirmation, V2InventoryStockSnapshot, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+    from app.services.v2_inventory import commit_v2_inventory_stock_in
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    seed_task_run_id = "vtask_seed_stock_out_insufficient"
+    _seed_v2_inventory_task_run_in_existing_context(db_session, task_run_id=seed_task_run_id)
+    seeded = commit_v2_inventory_stock_in(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=seed_task_run_id,
+        created_by_account_id="acct_001",
+        payload={"item_name": "Cola", "quantity": 1, "unit": "box", "price": 18.5},
+    )
+    db_session.commit()
+
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_out",
+        draft_payload={
+            "inventory_item_id": seeded.item.inventory_item_id,
+            "expected_quantity": 1,
+            "stock_out_quantity": 2,
+            "reason": "counter sale",
+        },
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {
+                    "inventory_item_id": seeded.item.inventory_item_id,
+                    "expected_quantity": 1,
+                    "stock_out_quantity": 2,
+                    "reason": "counter sale",
+                }
+            }
+        },
+    )
+
+    db_session.expire_all()
+    persisted_confirmation = db_session.get(V2Confirmation, confirmation.confirmation_id)
+    persisted_task_run = db_session.get(V2TaskRun, task_run_id)
+    snapshot = db_session.query(V2InventoryStockSnapshot).filter_by(
+        inventory_item_id=seeded.item.inventory_item_id,
+        shop_id="shop_a1",
+    ).one()
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+    assert persisted_confirmation is not None
+    assert persisted_confirmation.status == "pending"
+    assert persisted_confirmation.approved_by_account_id is None
+    assert persisted_task_run is not None
+    assert persisted_task_run.status == "awaiting_confirmation"
+    assert persisted_task_run.completed_at is None
+    assert snapshot.current_quantity == Decimal("1")
 
 
 def test_v2_approve_confirmation_rolls_back_when_inventory_commit_fails(db_session, monkeypatch) -> None:

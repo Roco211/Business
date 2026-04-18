@@ -606,6 +606,76 @@ def test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event(cli
     assert outbox_event.payload_json["task_run_id"] == task_run_id
 
 
+def test_v2_approve_receipt_derived_stock_in_confirmation_appends_receipt_provenance_to_audit_log_and_outbox_event(
+    client, db_session
+) -> None:
+    from sqlalchemy import select
+
+    from app.models import V2AuditLog, V2OutboxEvent, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={
+            "item_name": "Cola",
+            "quantity": 2,
+            "unit": "box",
+            "price": 18.5,
+            "source_type": "receipt-document",
+            "source_document_id": "vdoc_receipt_001",
+            "source_media_asset_id": "vmedia_receipt_001",
+        },
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+            }
+        },
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    audit_log = db_session.scalar(
+        select(V2AuditLog)
+        .where(V2AuditLog.task_run_id == task_run_id)
+        .order_by(V2AuditLog.created_at.desc(), V2AuditLog.audit_log_id.desc())
+    )
+    outbox_event = db_session.scalar(
+        select(V2OutboxEvent)
+        .where(
+            V2OutboxEvent.aggregate_type == "task_run",
+            V2OutboxEvent.aggregate_id == task_run_id,
+        )
+        .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+    )
+
+    assert response.status_code == 200
+    assert task_run is not None
+    assert audit_log is not None
+    assert audit_log.metadata_json["source_type"] == "receipt-document"
+    assert audit_log.metadata_json["source_id"] == "vdoc_receipt_001"
+    assert audit_log.metadata_json["source_document_id"] == "vdoc_receipt_001"
+    assert audit_log.metadata_json["source_media_asset_id"] == "vmedia_receipt_001"
+    assert audit_log.metadata_json["ledger_source_type"] == "task_run"
+    assert audit_log.metadata_json["ledger_source_id"] == task_run_id
+    assert outbox_event is not None
+    assert outbox_event.payload_json["source_type"] == "receipt-document"
+    assert outbox_event.payload_json["source_id"] == "vdoc_receipt_001"
+    assert outbox_event.payload_json["source_document_id"] == "vdoc_receipt_001"
+    assert outbox_event.payload_json["source_media_asset_id"] == "vmedia_receipt_001"
+    assert outbox_event.payload_json["ledger_source_type"] == "task_run"
+    assert outbox_event.payload_json["ledger_source_id"] == task_run_id
+
+
 def test_v2_approve_inventory_confirmation_enqueues_outbox_drain_after_commit(
     db_session, monkeypatch
 ) -> None:

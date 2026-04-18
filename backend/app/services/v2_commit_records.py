@@ -45,6 +45,51 @@ def _build_inventory_commit_event_type(confirmation_type: str) -> str:
     raise ValueError(f"Unsupported inventory confirmation_type '{confirmation_type}'.")
 
 
+def _coerce_object_dict(value: object) -> dict[str, object]:
+    if isinstance(value, dict):
+        return value
+    return {}
+
+
+def _normalize_optional_string(value: object) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _build_inventory_commit_provenance(
+    confirmation: V2Confirmation,
+    ledger_event: V2InventoryLedgerEvent,
+) -> dict[str, str | None]:
+    resolution_payload = _coerce_object_dict(confirmation.resolution_payload)
+    resolved_fields = _coerce_object_dict(resolution_payload.get("fields"))
+    draft_payload = _coerce_object_dict(confirmation.draft_payload)
+
+    source_type = (
+        _normalize_optional_string(resolved_fields.get("source_type"))
+        or _normalize_optional_string(draft_payload.get("source_type"))
+        or ledger_event.source_type
+    )
+    source_document_id = (
+        _normalize_optional_string(resolved_fields.get("source_document_id"))
+        or _normalize_optional_string(draft_payload.get("source_document_id"))
+    )
+    source_media_asset_id = (
+        _normalize_optional_string(resolved_fields.get("source_media_asset_id"))
+        or _normalize_optional_string(draft_payload.get("source_media_asset_id"))
+    )
+
+    return {
+        "source_type": source_type,
+        "source_id": source_document_id or ledger_event.source_id,
+        "source_document_id": source_document_id,
+        "source_media_asset_id": source_media_asset_id,
+        "ledger_source_type": ledger_event.source_type,
+        "ledger_source_id": ledger_event.source_id,
+    }
+
+
 def append_v2_inventory_commit_records(
     db_session: Session,
     *,
@@ -56,6 +101,7 @@ def append_v2_inventory_commit_records(
     ledger_event: V2InventoryLedgerEvent,
 ) -> V2InventoryCommitRecords:
     now = utc_now_naive()
+    provenance = _build_inventory_commit_provenance(confirmation, ledger_event)
     audit_log = V2AuditLog(
         audit_log_id=f"vaudit_{uuid.uuid4().hex}"[:40],
         tenant_id=task_run.tenant_id,
@@ -79,8 +125,7 @@ def append_v2_inventory_commit_records(
             "quantity_after": _serialize_decimal(ledger_event.quantity_after),
             "unit": ledger_event.unit,
             "price": _serialize_decimal(ledger_event.price),
-            "source_type": ledger_event.source_type,
-            "source_id": ledger_event.source_id,
+            **provenance,
             "reason": ledger_event.reason,
         },
         created_at=now,
@@ -104,6 +149,7 @@ def append_v2_inventory_commit_records(
             "quantity_after": _serialize_decimal(ledger_event.quantity_after),
             "unit": ledger_event.unit,
             "price": _serialize_decimal(ledger_event.price),
+            **provenance,
             "reason": ledger_event.reason,
         },
         status=PENDING_OUTBOX_STATUS,

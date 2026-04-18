@@ -14,6 +14,7 @@ from app.api.routes.ocr_documents import router as ocr_documents_router
 from app.api.routes.session_stream import router as session_stream_router
 from app.api.routes.sessions import router as sessions_router
 from app.api.routes.task_runs import router as task_runs_router
+from app.api.v2.router import v2_router
 
 api_router = APIRouter()
 api_router.include_router(health_router)
@@ -30,3 +31,4 @@ api_router.include_router(ocr_documents_router)
 api_router.include_router(session_stream_router)
 api_router.include_router(sessions_router)
 api_router.include_router(task_runs_router)
+api_router.include_router(v2_router)

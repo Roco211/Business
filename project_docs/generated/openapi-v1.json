@@ -3008,6 +3008,343 @@
         "title": "TaskRunData",
         "type": "object"
       },
+      "V2ContextData": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "context_session_id": {
+            "title": "Context Session Id",
+            "type": "string"
+          },
+          "context_token": {
+            "title": "Context Token",
+            "type": "string"
+          },
+          "membership_id": {
+            "title": "Membership Id",
+            "type": "string"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Permissions",
+            "type": "array"
+          },
+          "role_key": {
+            "title": "Role Key",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "context_token",
+          "context_session_id",
+          "account_id",
+          "tenant_id",
+          "shop_id",
+          "membership_id",
+          "role_key",
+          "permissions"
+        ],
+        "title": "V2ContextData",
+        "type": "object"
+      },
+      "V2ContextSelectRequest": {
+        "properties": {
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "shop_id"
+        ],
+        "title": "V2ContextSelectRequest",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ContextData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ContextData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ContextData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2HealthData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2HealthData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2HealthData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2LoginData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2LoginData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2LoginData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ShopListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ShopListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ShopListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2TenantListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2TenantListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2TenantListData]",
+        "type": "object"
+      },
+      "V2ErrorBody": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "items": {
+              "$ref": "#/components/schemas/V2ErrorDetail"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "V2ErrorBody",
+        "type": "object"
+      },
+      "V2ErrorDetail": {
+        "properties": {
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "V2ErrorDetail",
+        "type": "object"
+      },
+      "V2ErrorEnvelope": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/V2ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "V2ErrorEnvelope",
+        "type": "object"
+      },
+      "V2HealthData": {
+        "properties": {
+          "api_version": {
+            "title": "Api Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "api_version"
+        ],
+        "title": "V2HealthData",
+        "type": "object"
+      },
+      "V2LoginData": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "token_type": {
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "account_id"
+        ],
+        "title": "V2LoginData",
+        "type": "object"
+      },
+      "V2LoginRequest": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "V2LoginRequest",
+        "type": "object"
+      },
+      "V2ShopData": {
+        "properties": {
+          "access_level": {
+            "title": "Access Level",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shop_id",
+          "tenant_id",
+          "code",
+          "name",
+          "access_level"
+        ],
+        "title": "V2ShopData",
+        "type": "object"
+      },
+      "V2ShopListData": {
+        "properties": {
+          "shops": {
+            "items": {
+              "$ref": "#/components/schemas/V2ShopData"
+            },
+            "title": "Shops",
+            "type": "array"
+          }
+        },
+        "required": [
+          "shops"
+        ],
+        "title": "V2ShopListData",
+        "type": "object"
+      },
+      "V2TenantData": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role_key": {
+            "title": "Role Key",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "name",
+          "role_key"
+        ],
+        "title": "V2TenantData",
+        "type": "object"
+      },
+      "V2TenantListData": {
+        "properties": {
+          "tenants": {
+            "items": {
+              "$ref": "#/components/schemas/V2TenantData"
+            },
+            "title": "Tenants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tenants"
+        ],
+        "title": "V2TenantListData",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -5156,6 +5493,329 @@
         "summary": "Get Task Run",
         "tags": [
           "task-runs"
+        ]
+      }
+    },
+    "/api/v2/auth/login": {
+      "post": {
+        "operationId": "login_v2_api_v2_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2LoginData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/context/current": {
+      "get": {
+        "operationId": "current_context_v2_api_v2_context_current_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ContextData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Current Context V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/context/select": {
+      "post": {
+        "operationId": "select_context_v2_api_v2_context_select_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2ContextSelectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ContextData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select Context V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/health": {
+      "get": {
+        "operationId": "v2_health_api_v2_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2HealthData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "V2 Health",
+        "tags": [
+          "v2-system"
+        ]
+      }
+    },
+    "/api/v2/me/tenants": {
+      "get": {
+        "operationId": "me_tenants_v2_api_v2_me_tenants_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2TenantListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me Tenants V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/tenants/{tenant_id}/shops": {
+      "get": {
+        "operationId": "tenant_shops_v2_api_v2_tenants__tenant_id__shops_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ShopListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tenant Shops V2",
+        "tags": [
+          "v2-identity"
         ]
       }
     },

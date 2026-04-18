@@ -1017,6 +1017,29 @@ def test_v2_create_typed_task_draft_rejects_non_draftable_task_status(client, db
     assert response.json()["error"]["code"] == "task_run_not_draftable"
 
 
+def test_v2_create_typed_task_draft_specializes_generic_task_intent(client, db_session) -> None:
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+        },
+    )
+    confirm_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["intent_type"] == "inventory.stock_in"
+    assert response.json()["data"]["status"] == "drafted"
+    assert confirm_response.status_code == 201
+
+
 def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
     from app.services.v2_conversation import create_v2_clarification
 

@@ -274,12 +274,15 @@ def upsert_v2_task_draft(
         raise V2TaskRunTransitionError(
             f"Task run {task_run_id} cannot accept draft updates from status '{task_run.status}'."
         )
-    if task_run.intent_type != normalized_draft_type:
+    should_specialize_generic_task = task_run.intent_type in GENERIC_DRAFT_TYPES
+    if not should_specialize_generic_task and task_run.intent_type != normalized_draft_type:
         raise V2TaskDraftTypeMismatchError(
             f"Task run {task_run_id} intent type '{task_run.intent_type}' does not match draft type '{normalized_draft_type}'."
         )
 
     now = utc_now_naive()
+    if should_specialize_generic_task:
+        task_run.intent_type = normalized_draft_type
     _upsert_v2_task_draft(
         db_session,
         tenant_id=tenant_id,

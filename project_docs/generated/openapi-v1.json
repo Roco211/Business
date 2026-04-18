@@ -4029,6 +4029,19 @@
         "title": "V2ErrorEnvelope",
         "type": "object"
       },
+      "V2ExtractReceiptDocumentRequest": {
+        "properties": {
+          "media_asset_id": {
+            "title": "Media Asset Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "media_asset_id"
+        ],
+        "title": "V2ExtractReceiptDocumentRequest",
+        "type": "object"
+      },
       "V2HealthData": {
         "properties": {
           "api_version": {
@@ -8122,6 +8135,81 @@
           }
         },
         "summary": "Create Document V2",
+        "tags": [
+          "v2-media-ai"
+        ]
+      }
+    },
+    "/api/v2/documents/receipt-extractions": {
+      "post": {
+        "operationId": "extract_receipt_document_v2_api_v2_documents_receipt_extractions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2ExtractReceiptDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2DocumentData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract Receipt Document V2",
         "tags": [
           "v2-media-ai"
         ]

@@ -13,6 +13,7 @@ from app.contracts.v2.media_ai import (
     V2CompleteMediaAssetData,
     V2CompleteMediaAssetRequest,
     V2CreateDocumentRequest,
+    V2ExtractReceiptDocumentRequest,
     V2CreateMediaAssetData,
     V2CreateMediaAssetRequest,
     V2DocumentData,
@@ -34,6 +35,8 @@ from app.services.v2_media_assets import (
     create_v2_media_asset_upload,
     mark_v2_media_asset_uploaded,
 )
+from app.services.v2_receipt_documents import extract_v2_receipt_document
+from app.services.ocr_types import OcrProviderError
 
 router = APIRouter(prefix="/api/v2/media-assets", tags=["v2-media-ai"])
 documents_router = APIRouter(prefix="/api/v2/documents", tags=["v2-media-ai"])
@@ -204,6 +207,48 @@ def create_document_v2(
         return JSONResponse(
             status_code=422,
             content=V2ErrorEnvelope(error=V2ErrorBody(code="validation_error", message=str(exc))).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_v2_document_data(document))
+
+
+@documents_router.post("/receipt-extractions", response_model=V2DataEnvelope[V2DocumentData], status_code=status.HTTP_201_CREATED)
+def extract_receipt_document_v2(
+    payload: V2ExtractReceiptDocumentRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2DocumentData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        document = extract_v2_receipt_document(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            context_session_id=context.context_session_id,
+            requested_by_account_id=account.account_id,
+            media_asset_id=payload.media_asset_id,
+        )
+    except V2DocumentDependencyNotFoundError as exc:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code=exc.dependency_code, message="Document dependency not found")
+            ).model_dump(),
+        )
+    except V2DocumentConflictError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="document_conflict", message="Document conflicts with current media state")
+            ).model_dump(),
+        )
+    except OcrProviderError as exc:
+        return JSONResponse(
+            status_code=503,
+            content=V2ErrorEnvelope(error=V2ErrorBody(code=exc.code, message=exc.message)).model_dump(),
         )
 
     return V2DataEnvelope(data=_to_v2_document_data(document))

@@ -153,6 +153,36 @@ class _StubObjectStorage:
         }
 
 
+class _StubOcrGateway:
+    def __init__(self, *, error=None) -> None:
+        self.error = error
+        self.media_inputs = []
+
+    def extract_purchase_receipt(self, media_input):
+        from app.services.ocr_types import OcrExtractedLineItem, OcrExtraction
+
+        self.media_inputs.append(media_input)
+        if self.error is not None:
+            raise self.error
+        return OcrExtraction(
+            document_type="purchase-receipt",
+            provider_name="stub-ocr",
+            raw_text="Red Bull 250ml x 2",
+            line_items=[
+                OcrExtractedLineItem(
+                    item_name="Red Bull 250ml",
+                    quantity=2.0,
+                    unit="can",
+                    price=6.5,
+                )
+            ],
+            total_amount=13.0,
+            low_confidence_fields=[],
+            used_fallback=False,
+            raw_payload={"provider": "stub"},
+        )
+
+
 def _seed_v2_uploaded_media_asset(
     db_session,
     *,
@@ -489,6 +519,78 @@ def test_get_v2_document_requires_current_context_scope(db_session) -> None:
     assert loaded.media_asset_id == uploaded_asset_id
 
 
+def test_extract_v2_receipt_document_creates_document_and_model_call_log(db_session, monkeypatch) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    _seed_v2_media_context(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    gateway = _StubOcrGateway()
+    monkeypatch.setattr(receipt_documents_service, "get_default_ocr_gateway", lambda: gateway)
+
+    document = receipt_documents_service.extract_v2_receipt_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        requested_by_account_id="acct_001",
+        media_asset_id=media_asset_id,
+    )
+
+    from app.models import V2ModelCallLog
+
+    log = db_session.get(V2ModelCallLog, document.model_call_log_id)
+    assert document.media_asset_id == media_asset_id
+    assert document.document_type == "purchase-receipt"
+    assert document.extraction_status == "completed"
+    assert document.extracted_fields["items"][0]["name"] == "Red Bull 250ml"
+    assert document.confidence_summary["overall"] > 0.8
+    assert log is not None
+    assert log.operation_type == "document.receipt.extract"
+    assert log.prompt_version == "receipt-extract@v1"
+    assert log.schema_version == "purchase-receipt@v1"
+    assert log.used_fallback is False
+    assert gateway.media_inputs[0].media_id == media_asset_id
+
+
+def test_extract_v2_receipt_document_persists_failed_model_call_log_on_provider_error(
+    db_session,
+    monkeypatch,
+) -> None:
+    import pytest
+    from sqlalchemy import select
+
+    import app.services.v2_receipt_documents as receipt_documents_service
+    from app.models import V2ModelCallLog
+    from app.services.ocr_types import OcrProviderError
+
+    _seed_v2_media_context(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    monkeypatch.setattr(
+        receipt_documents_service,
+        "get_default_ocr_gateway",
+        lambda: _StubOcrGateway(error=OcrProviderError("ocr_unavailable", "provider down", retryable=False)),
+    )
+
+    with pytest.raises(OcrProviderError):
+        receipt_documents_service.extract_v2_receipt_document(
+            db_session,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            context_session_id="vctx_001",
+            requested_by_account_id="acct_001",
+            media_asset_id=media_asset_id,
+        )
+
+    log = db_session.scalars(
+        select(V2ModelCallLog).where(
+            V2ModelCallLog.media_asset_id == media_asset_id,
+            V2ModelCallLog.status == "failed",
+        )
+    ).one()
+    assert log.error_code == "ocr_unavailable"
+    assert log.operation_type == "document.receipt.extract"
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -521,6 +623,20 @@ def test_v2_create_document_requires_context(client, db_session) -> None:
             "extracted_fields": {"total_amount": 18.5},
             "confidence_summary": {"overall": 0.91},
         },
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "context_required"
+
+
+def test_v2_extract_receipt_document_requires_context(client, db_session) -> None:
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+
+    response = client.post(
+        "/api/v2/documents/receipt-extractions",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"media_asset_id": media_asset_id},
     )
 
     assert response.status_code == 401
@@ -586,3 +702,24 @@ def test_v2_create_and_get_document_uses_current_context(client, db_session) -> 
     assert detail_response.status_code == 200
     assert detail_response.json()["data"]["document_id"] == document_id
     assert detail_response.json()["data"]["media_asset_id"] == media_asset_id
+
+
+def test_v2_extract_receipt_document_uses_current_context(client, db_session, monkeypatch) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+    monkeypatch.setattr(receipt_documents_service, "get_default_ocr_gateway", lambda: _StubOcrGateway())
+
+    response = client.post(
+        "/api/v2/documents/receipt-extractions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"media_asset_id": media_asset_id},
+    )
+
+    assert response.status_code == 201
+    payload = response.json()["data"]
+    assert payload["media_asset_id"] == media_asset_id
+    assert payload["document_type"] == "purchase-receipt"
+    assert payload["extraction_status"] == "completed"
+    assert payload["model_call_log_id"] is not None

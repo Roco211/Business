@@ -56,6 +56,10 @@ class V2CreateDocumentRequest(BaseModel):
     confidence_summary: dict[str, object]
 
 
+class V2ExtractReceiptDocumentRequest(BaseModel):
+    media_asset_id: str
+
+
 class V2DocumentData(BaseModel):
     document_id: str
     media_asset_id: str

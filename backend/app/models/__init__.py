@@ -22,6 +22,7 @@ from app.models.v2_conversation import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.models.v2_governance import V2AuditLog, V2OutboxEvent
 from app.models.v2_inventory import (
     V2InventoryItem,
     V2InventoryLedgerEvent,
@@ -57,10 +58,12 @@ __all__ = [
     "V2Clarification",
     "V2Confirmation",
     "V2ConversationSession",
+    "V2AuditLog",
     "V2InventoryItem",
     "V2InventoryLedgerEvent",
     "V2InventoryStockSnapshot",
     "V2Message",
+    "V2OutboxEvent",
     "V2TaskDraft",
     "V2TaskRun",
     "V2Account",

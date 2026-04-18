@@ -69,6 +69,7 @@ class V2InventoryCorrectionResult:
 
 @dataclass(frozen=True)
 class V2InventoryStockOutResult:
+    item: V2InventoryItem
     snapshot: V2InventoryStockSnapshot
     event: V2InventoryLedgerEvent
 
@@ -520,7 +521,7 @@ def commit_v2_inventory_stock_out(
     )
     db_session.add(event)
     db_session.flush()
-    return V2InventoryStockOutResult(snapshot=snapshot, event=event)
+    return V2InventoryStockOutResult(item=item, snapshot=snapshot, event=event)
 
 
 def submit_v2_inventory_stock_out(

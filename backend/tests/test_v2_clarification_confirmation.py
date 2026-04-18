@@ -513,6 +513,73 @@ def test_v2_approve_confirmation_commits_inventory_and_appends_system_result_mes
     assert "stock-in committed" in messages[-1]["payload_json"]["text"].lower()
 
 
+def test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event(client, db_session) -> None:
+    from sqlalchemy import select
+
+    from app.models import V2AuditLog, V2OutboxEvent, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+            }
+        },
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    audit_log = db_session.scalar(
+        select(V2AuditLog)
+        .where(V2AuditLog.task_run_id == task_run_id)
+        .order_by(V2AuditLog.created_at.desc(), V2AuditLog.audit_log_id.desc())
+    )
+    outbox_event = db_session.scalar(
+        select(V2OutboxEvent)
+        .where(
+            V2OutboxEvent.aggregate_type == "task_run",
+            V2OutboxEvent.aggregate_id == task_run_id,
+        )
+        .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+    )
+
+    assert response.status_code == 200
+    assert task_run is not None
+    assert audit_log is not None
+    assert audit_log.tenant_id == "tenant_a"
+    assert audit_log.shop_id == "shop_a1"
+    assert audit_log.session_id == task_run.session_id
+    assert audit_log.task_run_id == task_run_id
+    assert audit_log.action == "inventory.stock_in_committed"
+    assert audit_log.actor_type == "account"
+    assert audit_log.actor_id == "acct_001"
+    assert audit_log.target_type == "inventory_item"
+    assert audit_log.metadata_json["confirmation_id"] == confirmation.confirmation_id
+    assert audit_log.metadata_json["event_type"] == "stock_in"
+    assert outbox_event is not None
+    assert outbox_event.tenant_id == "tenant_a"
+    assert outbox_event.shop_id == "shop_a1"
+    assert outbox_event.aggregate_type == "task_run"
+    assert outbox_event.aggregate_id == task_run_id
+    assert outbox_event.event_type == "inventory.stock_in.committed"
+    assert outbox_event.status == "pending"
+    assert outbox_event.attempt_count == 0
+    assert outbox_event.payload_json["confirmation_id"] == confirmation.confirmation_id
+    assert outbox_event.payload_json["task_run_id"] == task_run_id
+
+
 def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_result_message(
     client, db_session
 ) -> None:
@@ -598,6 +665,96 @@ def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_
     assert messages[-1]["payload_json"]["confirmation_type"] == "inventory.stock_out"
     assert messages[-1]["payload_json"]["task_run_status"] == "committed"
     assert "stock-out committed" in messages[-1]["payload_json"]["text"].lower()
+
+
+def test_v2_approve_stock_out_confirmation_appends_audit_log_and_outbox_event(client, db_session) -> None:
+    from sqlalchemy import select
+
+    from app.models import V2AuditLog, V2OutboxEvent, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+    from app.services.v2_inventory import commit_v2_inventory_stock_in
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    seed_task_run_id = "vtask_seed_stock_out_audit_outbox"
+    _seed_v2_inventory_task_run_in_existing_context(db_session, task_run_id=seed_task_run_id)
+    seeded = commit_v2_inventory_stock_in(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=seed_task_run_id,
+        created_by_account_id="acct_001",
+        payload={"item_name": "Cola", "quantity": 5, "unit": "box", "price": 18.5},
+    )
+    db_session.commit()
+
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_out",
+        draft_payload={
+            "inventory_item_id": seeded.item.inventory_item_id,
+            "expected_quantity": 5,
+            "stock_out_quantity": 2,
+            "reason": "counter sale",
+        },
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {
+                    "inventory_item_id": seeded.item.inventory_item_id,
+                    "expected_quantity": 5,
+                    "stock_out_quantity": 2,
+                    "reason": "counter sale",
+                }
+            }
+        },
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    audit_log = db_session.scalar(
+        select(V2AuditLog)
+        .where(V2AuditLog.task_run_id == task_run_id)
+        .order_by(V2AuditLog.created_at.desc(), V2AuditLog.audit_log_id.desc())
+    )
+    outbox_event = db_session.scalar(
+        select(V2OutboxEvent)
+        .where(
+            V2OutboxEvent.aggregate_type == "task_run",
+            V2OutboxEvent.aggregate_id == task_run_id,
+        )
+        .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+    )
+
+    assert response.status_code == 200
+    assert task_run is not None
+    assert audit_log is not None
+    assert audit_log.tenant_id == "tenant_a"
+    assert audit_log.shop_id == "shop_a1"
+    assert audit_log.session_id == task_run.session_id
+    assert audit_log.task_run_id == task_run_id
+    assert audit_log.action == "inventory.stock_out_committed"
+    assert audit_log.actor_type == "account"
+    assert audit_log.actor_id == "acct_001"
+    assert audit_log.target_type == "inventory_item"
+    assert audit_log.metadata_json["confirmation_id"] == confirmation.confirmation_id
+    assert audit_log.metadata_json["event_type"] == "stock_out"
+    assert outbox_event is not None
+    assert outbox_event.tenant_id == "tenant_a"
+    assert outbox_event.shop_id == "shop_a1"
+    assert outbox_event.aggregate_type == "task_run"
+    assert outbox_event.aggregate_id == task_run_id
+    assert outbox_event.event_type == "inventory.stock_out.committed"
+    assert outbox_event.status == "pending"
+    assert outbox_event.attempt_count == 0
+    assert outbox_event.payload_json["confirmation_id"] == confirmation.confirmation_id
+    assert outbox_event.payload_json["task_run_id"] == task_run_id
 
 
 def test_v2_approve_stock_out_confirmation_rejects_insufficient_stock_and_rolls_back(client, db_session) -> None:

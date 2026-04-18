@@ -12,6 +12,7 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.services.v2_commit_records import append_v2_inventory_commit_records
 from app.services.v2_inventory import (
     commit_v2_inventory_stock_in,
     commit_v2_inventory_stock_out,
@@ -748,7 +749,7 @@ def approve_v2_confirmation(
         system_result_text: str | None = None
         if confirmation.confirmation_type == "inventory.stock_in":
             resolved_fields = dict(resolution_payload.get("fields") or {})
-            commit_v2_inventory_stock_in(
+            commit_result = commit_v2_inventory_stock_in(
                 db_session,
                 tenant_id=tenant_id,
                 shop_id=shop_id,
@@ -756,13 +757,22 @@ def approve_v2_confirmation(
                 created_by_account_id=approved_by_account_id,
                 payload=resolved_fields,
             )
+            append_v2_inventory_commit_records(
+                db_session,
+                task_run=task_run,
+                confirmation=confirmation,
+                actor_type="account",
+                actor_id=approved_by_account_id,
+                inventory_item=commit_result.item,
+                ledger_event=commit_result.event,
+            )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
             system_result_text = "Inventory stock-in committed."
         elif confirmation.confirmation_type == "inventory.stock_out":
             resolved_fields = dict(resolution_payload.get("fields") or {})
-            commit_v2_inventory_stock_out(
+            commit_result = commit_v2_inventory_stock_out(
                 db_session,
                 tenant_id=tenant_id,
                 shop_id=shop_id,
@@ -771,6 +781,15 @@ def approve_v2_confirmation(
                 stock_out_quantity=resolved_fields.get("stock_out_quantity"),
                 reason=str(resolved_fields.get("reason") or ""),
                 created_by_account_id=approved_by_account_id,
+            )
+            append_v2_inventory_commit_records(
+                db_session,
+                task_run=task_run,
+                confirmation=confirmation,
+                actor_type="account",
+                actor_id=approved_by_account_id,
+                inventory_item=commit_result.item,
+                ledger_event=commit_result.event,
             )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."

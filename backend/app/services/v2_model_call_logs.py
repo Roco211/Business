@@ -23,7 +23,15 @@ def append_v2_model_call_log(
     error_code: str | None,
     latency_ms: int | None,
     cost_micros: int | None,
+    prompt_version: str | None = None,
+    schema_version: str | None = None,
+    confidence_score: float | None = None,
+    used_fallback: bool = False,
 ) -> V2ModelCallLog:
+    normalized_prompt_version = prompt_version.strip() if isinstance(prompt_version, str) and prompt_version.strip() else None
+    normalized_schema_version = schema_version.strip() if isinstance(schema_version, str) and schema_version.strip() else None
+    if confidence_score is not None and not 0 <= confidence_score <= 1:
+        raise ValueError("confidence_score must be between 0 and 1")
     now = utc_now_naive()
     log = V2ModelCallLog(
         model_call_log_id=new_prefixed_id("vcall"),
@@ -44,6 +52,10 @@ def append_v2_model_call_log(
         error_code=error_code,
         latency_ms=latency_ms,
         cost_micros=cost_micros,
+        prompt_version=normalized_prompt_version,
+        schema_version=normalized_schema_version,
+        confidence_score=confidence_score,
+        used_fallback=used_fallback,
         started_at=now,
         completed_at=now if status.strip().lower() == "completed" else None,
         created_at=now,

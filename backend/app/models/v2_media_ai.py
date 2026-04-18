@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -110,6 +110,10 @@ class V2ModelCallLog(Base):
     error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     latency_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
     cost_micros: Mapped[int | None] = mapped_column(Integer(), nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    schema_version: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    confidence_score: Mapped[float | None] = mapped_column(Float(), nullable=True)
+    used_fallback: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
     started_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)

@@ -365,6 +365,43 @@ def test_append_v2_model_call_log_persists_provider_observability(db_session) ->
     assert log.media_asset_id == created.media_asset_id
 
 
+def test_append_v2_model_call_log_persists_observability_metadata(db_session) -> None:
+    from app.services.v2_model_call_logs import append_v2_model_call_log
+
+    _seed_v2_media_context(db_session)
+    uploaded_asset_id = _seed_v2_uploaded_media_asset(db_session)
+
+    log = append_v2_model_call_log(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        requested_by_account_id="acct_001",
+        media_asset_id=uploaded_asset_id,
+        task_run_id=None,
+        conversation_session_id=None,
+        provider_type="ocr",
+        provider_key="mock",
+        model_name="mock-ocr",
+        operation_type="receipt.extract",
+        status="completed",
+        request_payload={"media_asset_id": uploaded_asset_id},
+        response_payload={"total_amount": 18.5},
+        error_code=None,
+        latency_ms=25,
+        cost_micros=0,
+        prompt_version="receipt-extract@v1",
+        schema_version="receipt.schema@v1",
+        confidence_score=0.91,
+        used_fallback=False,
+    )
+
+    assert log.prompt_version == "receipt-extract@v1"
+    assert log.schema_version == "receipt.schema@v1"
+    assert log.confidence_score == 0.91
+    assert log.used_fallback is False
+
+
 def test_v2_document_schema_persists_context_boundaries(db_session) -> None:
     from app.models import V2Document
 

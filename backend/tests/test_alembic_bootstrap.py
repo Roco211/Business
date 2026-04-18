@@ -66,6 +66,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert {"model_call_log_id", "tenant_id", "shop_id", "context_session_id", "provider_type", "model_name"} <= {
         column["name"] for column in inspector.get_columns("v2_model_call_logs")
     }
+    assert {"prompt_version", "schema_version", "confidence_score", "used_fallback"} <= {
+        column["name"] for column in inspector.get_columns("v2_model_call_logs")
+    }
     assert {"ocr_document_id", "shop_id", "media_id", "document_type", "status", "extracted_fields"} <= {
         column["name"] for column in inspector.get_columns("ocr_documents")
     }

@@ -1040,6 +1040,67 @@ def test_v2_create_typed_task_draft_specializes_generic_task_intent(client, db_s
     assert confirm_response.status_code == 201
 
 
+def test_v2_create_stock_in_task_draft_rejects_invalid_payload(client, db_session) -> None:
+    token, context_token, task_run_id = _create_api_task_run(
+        client,
+        db_session,
+        intent_type="inventory.stock_in",
+    )
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": {"item_name": "Cola", "quantity": 2, "price": 18.5},
+        },
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["status"] == "captured"
+    assert task_response.json()["data"]["draft_payload"] is None
+
+
+def test_v2_create_stock_out_task_draft_rejects_invalid_payload(client, db_session) -> None:
+    token, context_token = _create_api_identity_context(client, db_session)
+    task_run_id = "vtask_stock_out_invalid_draft"
+    _seed_v2_inventory_task_run_in_existing_context(
+        db_session,
+        task_run_id=task_run_id,
+        intent_type="inventory.stock_out",
+    )
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_out",
+            "draft_payload": {
+                "inventory_item_id": "vitem_seed",
+                "expected_quantity": 5,
+                "stock_out_quantity": 0,
+                "reason": "counter sale",
+            },
+        },
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["status"] == "captured"
+    assert task_response.json()["data"]["draft_payload"] is None
+
+
 def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
     from app.services.v2_conversation import create_v2_clarification
 

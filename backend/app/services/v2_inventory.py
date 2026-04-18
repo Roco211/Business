@@ -73,6 +73,14 @@ class V2InventoryStockOutResult:
     event: V2InventoryLedgerEvent
 
 
+@dataclass(frozen=True)
+class V2ApprovedStockOutPayload:
+    inventory_item_id: str
+    expected_quantity: Decimal
+    stock_out_quantity: Decimal
+    reason: str
+
+
 def list_v2_inventory_items(
     db_session: Session,
     *,
@@ -169,6 +177,44 @@ def _parse_v2_stock_in_payload(payload: dict[str, object]) -> V2ApprovedStockInP
         unit=unit,
         price=price,
     )
+
+
+def validate_v2_stock_in_draft_payload(payload: dict[str, object]) -> None:
+    _parse_v2_stock_in_payload(payload)
+
+
+def _parse_v2_stock_out_payload(payload: dict[str, object]) -> V2ApprovedStockOutPayload:
+    inventory_item_id = str(payload.get("inventory_item_id") or "").strip()
+    if not inventory_item_id:
+        raise V2InventoryStockOutValidationError("inventory_item_id is required")
+
+    normalized_reason = str(payload.get("reason") or "").strip()
+    if not normalized_reason:
+        raise V2InventoryStockOutValidationError("reason is required")
+
+    try:
+        normalized_expected_quantity = Decimal(str(payload.get("expected_quantity")))
+        normalized_stock_out_quantity = Decimal(str(payload.get("stock_out_quantity")))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise V2InventoryStockOutValidationError(
+            "expected_quantity and stock_out_quantity must be numeric"
+        ) from exc
+
+    if normalized_expected_quantity < 0:
+        raise V2InventoryStockOutValidationError("expected_quantity must be >= 0")
+    if normalized_stock_out_quantity <= 0:
+        raise V2InventoryStockOutValidationError("stock_out_quantity must be > 0")
+
+    return V2ApprovedStockOutPayload(
+        inventory_item_id=inventory_item_id,
+        expected_quantity=normalized_expected_quantity,
+        stock_out_quantity=normalized_stock_out_quantity,
+        reason=normalized_reason,
+    )
+
+
+def validate_v2_stock_out_draft_payload(payload: dict[str, object]) -> None:
+    _parse_v2_stock_out_payload(payload)
 
 
 def _require_v2_task_run(
@@ -417,42 +463,42 @@ def commit_v2_inventory_stock_out(
     reason: str,
     created_by_account_id: str,
 ) -> V2InventoryStockOutResult:
-    normalized_reason = reason.strip()
-    if not normalized_reason:
-        raise V2InventoryStockOutValidationError("reason is required")
-
-    normalized_expected_quantity = Decimal(expected_quantity)
-    normalized_stock_out_quantity = Decimal(stock_out_quantity)
-    if normalized_stock_out_quantity <= 0:
-        raise V2InventoryStockOutValidationError("stock_out_quantity must be > 0")
+    approved_payload = _parse_v2_stock_out_payload(
+        {
+            "inventory_item_id": inventory_item_id,
+            "expected_quantity": expected_quantity,
+            "stock_out_quantity": stock_out_quantity,
+            "reason": reason,
+        }
+    )
 
     try:
         snapshot = _require_v2_inventory_snapshot(
             db_session,
             tenant_id=tenant_id,
             shop_id=shop_id,
-            inventory_item_id=inventory_item_id,
+            inventory_item_id=approved_payload.inventory_item_id,
         )
     except V2InventoryCorrectionItemNotFoundError as exc:
-        raise V2InventoryStockOutItemNotFoundError(inventory_item_id) from exc
+        raise V2InventoryStockOutItemNotFoundError(approved_payload.inventory_item_id) from exc
 
     item = db_session.scalar(
         select(V2InventoryItem).where(
-            V2InventoryItem.inventory_item_id == inventory_item_id,
+            V2InventoryItem.inventory_item_id == approved_payload.inventory_item_id,
             V2InventoryItem.tenant_id == tenant_id,
         )
     )
     if item is None:
-        raise V2InventoryStockOutItemNotFoundError(inventory_item_id)
+        raise V2InventoryStockOutItemNotFoundError(approved_payload.inventory_item_id)
 
     current_quantity = Decimal(snapshot.current_quantity)
-    if current_quantity != normalized_expected_quantity:
+    if current_quantity != approved_payload.expected_quantity:
         raise V2InventoryStockOutConflictError("inventory changed since the snapshot was read")
-    if normalized_stock_out_quantity > current_quantity:
+    if approved_payload.stock_out_quantity > current_quantity:
         raise V2InventoryStockOutValidationError("stock_out_quantity exceeds the current stock")
 
     now = utc_now_naive()
-    quantity_after = normalized_expected_quantity - normalized_stock_out_quantity
+    quantity_after = approved_payload.expected_quantity - approved_payload.stock_out_quantity
     snapshot.current_quantity = quantity_after
     snapshot.updated_at = now
     item.updated_at = now
@@ -460,15 +506,15 @@ def commit_v2_inventory_stock_out(
         event_id=f"vevent_{uuid.uuid4().hex}"[:40],
         tenant_id=tenant_id,
         shop_id=shop_id,
-        inventory_item_id=inventory_item_id,
+        inventory_item_id=approved_payload.inventory_item_id,
         event_type="stock_out",
-        quantity_delta=-normalized_stock_out_quantity,
+        quantity_delta=-approved_payload.stock_out_quantity,
         quantity_after=quantity_after,
         unit=item.default_unit,
         price=snapshot.current_price,
         source_type="inventory_stock_out",
-        source_id=inventory_item_id,
-        reason=normalized_reason,
+        source_id=approved_payload.inventory_item_id,
+        reason=approved_payload.reason,
         created_by_account_id=created_by_account_id,
         occurred_at=now,
     )

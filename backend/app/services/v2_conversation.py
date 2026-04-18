@@ -12,7 +12,12 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
-from app.services.v2_inventory import commit_v2_inventory_stock_in, commit_v2_inventory_stock_out
+from app.services.v2_inventory import (
+    commit_v2_inventory_stock_in,
+    commit_v2_inventory_stock_out,
+    validate_v2_stock_in_draft_payload,
+    validate_v2_stock_out_draft_payload,
+)
 from app.services.v2_time import utc_now_naive
 
 CAPTURED_STATUS = "captured"
@@ -279,6 +284,11 @@ def upsert_v2_task_draft(
         raise V2TaskDraftTypeMismatchError(
             f"Task run {task_run_id} intent type '{task_run.intent_type}' does not match draft type '{normalized_draft_type}'."
         )
+
+    if normalized_draft_type == "inventory.stock_in":
+        validate_v2_stock_in_draft_payload(draft_payload)
+    elif normalized_draft_type == "inventory.stock_out":
+        validate_v2_stock_out_draft_payload(draft_payload)
 
     now = utc_now_naive()
     if should_specialize_generic_task:

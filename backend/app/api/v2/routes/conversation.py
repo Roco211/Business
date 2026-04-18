@@ -328,6 +328,13 @@ def create_task_draft_v2(
                 error=V2ErrorBody(code="validation_error", message=str(exc))
             ).model_dump(),
         )
+    except (V2InventoryPayloadValidationError, V2InventoryStockOutValidationError) as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="validation_error", message=str(exc))
+            ).model_dump(),
+        )
     except V2TaskDraftTypeMismatchError:
         return JSONResponse(
             status_code=409,

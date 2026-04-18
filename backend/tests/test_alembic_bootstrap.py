@@ -28,6 +28,8 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "owner_accounts" in inspector.get_table_names()
     assert "shop_memberships" in inspector.get_table_names()
     assert "auth_sessions" in inspector.get_table_names()
+    assert "v2_media_assets" in inspector.get_table_names()
+    assert "v2_model_call_logs" in inspector.get_table_names()
     assert "v2_session_stream_events" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
     assert {"session_id", "shop_id", "participants", "last_event_seq"} <= {
@@ -53,6 +55,12 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     }
     assert {"media_id", "shop_id", "media_type", "status", "public_url"} <= {
         column["name"] for column in inspector.get_columns("media_uploads")
+    }
+    assert {"media_asset_id", "tenant_id", "shop_id", "context_session_id", "uploaded_by_account_id"} <= {
+        column["name"] for column in inspector.get_columns("v2_media_assets")
+    }
+    assert {"model_call_log_id", "tenant_id", "shop_id", "context_session_id", "provider_type", "model_name"} <= {
+        column["name"] for column in inspector.get_columns("v2_model_call_logs")
     }
     assert {"ocr_document_id", "shop_id", "media_id", "document_type", "status", "extracted_fields"} <= {
         column["name"] for column in inspector.get_columns("ocr_documents")

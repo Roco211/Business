@@ -3159,6 +3159,42 @@
         "title": "V2ClarificationListData",
         "type": "object"
       },
+      "V2CompleteMediaAssetData": {
+        "properties": {
+          "media_asset_id": {
+            "title": "Media Asset Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "media_asset_id",
+          "status"
+        ],
+        "title": "V2CompleteMediaAssetData",
+        "type": "object"
+      },
+      "V2CompleteMediaAssetRequest": {
+        "properties": {
+          "checksum_sha256": {
+            "title": "Checksum Sha256",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checksum_sha256",
+          "size_bytes"
+        ],
+        "title": "V2CompleteMediaAssetRequest",
+        "type": "object"
+      },
       "V2ConfirmationData": {
         "properties": {
           "approved_by_account_id": {
@@ -3337,6 +3373,62 @@
         "title": "V2ContextSelectRequest",
         "type": "object"
       },
+      "V2CreateMediaAssetData": {
+        "properties": {
+          "media_asset_id": {
+            "title": "Media Asset Id",
+            "type": "string"
+          },
+          "public_url": {
+            "title": "Public Url",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "media_asset_id",
+          "status",
+          "upload_url",
+          "public_url"
+        ],
+        "title": "V2CreateMediaAssetData",
+        "type": "object"
+      },
+      "V2CreateMediaAssetRequest": {
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media_type",
+          "file_name",
+          "content_type",
+          "size_bytes"
+        ],
+        "title": "V2CreateMediaAssetRequest",
+        "type": "object"
+      },
       "V2CreateMessageData": {
         "properties": {
           "intent_type": {
@@ -3466,6 +3558,18 @@
         "title": "V2DataEnvelope[V2ClarificationListData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2CompleteMediaAssetData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2CompleteMediaAssetData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2CompleteMediaAssetData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2ConfirmationData_": {
         "properties": {
           "data": {
@@ -3500,6 +3604,18 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2ContextData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2CreateMediaAssetData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2CreateMediaAssetData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2CreateMediaAssetData]",
         "type": "object"
       },
       "V2DataEnvelope_V2CreateMessageData_": {
@@ -8467,6 +8583,165 @@
         "summary": "Me Tenants V2",
         "tags": [
           "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/media-assets": {
+      "post": {
+        "operationId": "create_media_asset_v2_api_v2_media_assets_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CreateMediaAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2CreateMediaAssetData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Media Asset V2",
+        "tags": [
+          "v2-media-ai"
+        ]
+      }
+    },
+    "/api/v2/media-assets/{media_asset_id}/complete": {
+      "post": {
+        "operationId": "complete_media_asset_v2_api_v2_media_assets__media_asset_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_asset_id",
+            "required": true,
+            "schema": {
+              "title": "Media Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CompleteMediaAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2CompleteMediaAssetData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Media Asset V2",
+        "tags": [
+          "v2-media-ai"
         ]
       }
     },

@@ -3008,6 +3008,126 @@
         "title": "TaskRunData",
         "type": "object"
       },
+      "V2ApproveConfirmationRequest": {
+        "properties": {
+          "resolution_payload": {
+            "additionalProperties": true,
+            "title": "Resolution Payload",
+            "type": "object"
+          }
+        },
+        "title": "V2ApproveConfirmationRequest",
+        "type": "object"
+      },
+      "V2ConfirmationData": {
+        "properties": {
+          "approved_by_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By Account Id"
+          },
+          "confirmation_id": {
+            "title": "Confirmation Id",
+            "type": "string"
+          },
+          "confirmation_type": {
+            "title": "Confirmation Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_payload": {
+            "additionalProperties": true,
+            "title": "Draft Payload",
+            "type": "object"
+          },
+          "resolution_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Payload"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmation_id",
+          "tenant_id",
+          "shop_id",
+          "task_run_id",
+          "confirmation_type",
+          "status",
+          "draft_payload",
+          "approved_by_account_id",
+          "resolution_payload",
+          "created_at",
+          "resolved_at"
+        ],
+        "title": "V2ConfirmationData",
+        "type": "object"
+      },
+      "V2ConfirmationListData": {
+        "properties": {
+          "confirmations": {
+            "items": {
+              "$ref": "#/components/schemas/V2ConfirmationData"
+            },
+            "title": "Confirmations",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "confirmations",
+          "count"
+        ],
+        "title": "V2ConfirmationListData",
+        "type": "object"
+      },
       "V2ContextData": {
         "properties": {
           "account_id": {
@@ -3146,6 +3266,30 @@
           "title"
         ],
         "title": "V2CreateSessionRequest",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ConfirmationData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ConfirmationData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ConfirmationData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ConfirmationListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ConfirmationListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ConfirmationListData]",
         "type": "object"
       },
       "V2DataEnvelope_V2ContextData_": {
@@ -5919,6 +6063,258 @@
         "summary": "Login V2",
         "tags": [
           "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/confirmations": {
+      "get": {
+        "operationId": "list_confirmations_v2_api_v2_confirmations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ConfirmationListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Confirmations V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/confirmations/{confirmation_id}/approve": {
+      "post": {
+        "operationId": "approve_confirmation_v2_api_v2_confirmations__confirmation_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "confirmation_id",
+            "required": true,
+            "schema": {
+              "title": "Confirmation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2ApproveConfirmationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ConfirmationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Confirmation V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/confirmations/{confirmation_id}/reject": {
+      "post": {
+        "operationId": "reject_confirmation_v2_api_v2_confirmations__confirmation_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "confirmation_id",
+            "required": true,
+            "schema": {
+              "title": "Confirmation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ConfirmationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject Confirmation V2",
+        "tags": [
+          "v2-conversation"
         ]
       }
     },

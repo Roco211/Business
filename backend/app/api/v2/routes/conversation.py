@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,9 @@ from app.api.deps.v2_context import (
 )
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.contracts.v2.conversation import (
+    V2ApproveConfirmationRequest,
+    V2ConfirmationData,
+    V2ConfirmationListData,
     V2CreateMessageData,
     V2CreateMessageRequest,
     V2CreateSessionRequest,
@@ -21,11 +24,16 @@ from app.contracts.v2.conversation import (
 )
 from app.db.session import get_db_session
 from app.services.v2_conversation import (
+    V2ConfirmationConflictError,
+    V2TaskRunTransitionError,
+    approve_v2_confirmation,
     create_v2_message_and_task_run,
     create_v2_session,
     get_v2_task_run,
     list_v2_messages,
+    list_v2_confirmations,
     list_v2_sessions,
+    reject_v2_confirmation,
 )
 
 router = APIRouter(prefix="/api/v2", tags=["v2-conversation"])
@@ -37,6 +45,22 @@ def _context_account_mismatch() -> JSONResponse:
         content=V2ErrorEnvelope(
             error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
         ).model_dump(),
+    )
+
+
+def _to_confirmation_data(confirmation) -> V2ConfirmationData:
+    return V2ConfirmationData(
+        confirmation_id=confirmation.confirmation_id,
+        tenant_id=confirmation.tenant_id,
+        shop_id=confirmation.shop_id,
+        task_run_id=confirmation.task_run_id,
+        confirmation_type=confirmation.confirmation_type,
+        status=confirmation.status,
+        draft_payload=confirmation.draft_payload,
+        approved_by_account_id=confirmation.approved_by_account_id,
+        resolution_payload=confirmation.resolution_payload,
+        created_at=confirmation.created_at,
+        resolved_at=confirmation.resolved_at,
     )
 
 
@@ -207,3 +231,109 @@ def get_task_run_v2(
             completed_at=task_run.completed_at,
         )
     )
+
+
+@router.get("/confirmations", response_model=V2DataEnvelope[V2ConfirmationListData])
+def list_confirmations_v2(
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    status_filter: str | None = Query(default="pending", alias="status"),
+    limit: int = Query(default=20, ge=1, le=50),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ConfirmationListData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    normalized_status = status_filter.strip() if status_filter is not None and status_filter.strip() else None
+    confirmations = [
+        _to_confirmation_data(item)
+        for item in list_v2_confirmations(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            status=normalized_status,
+            limit=limit,
+        )
+    ]
+    return V2DataEnvelope(
+        data=V2ConfirmationListData(confirmations=confirmations, count=len(confirmations))
+    )
+
+
+@router.post(
+    "/confirmations/{confirmation_id}/approve",
+    response_model=V2DataEnvelope[V2ConfirmationData],
+)
+def approve_confirmation_v2(
+    confirmation_id: str,
+    payload: V2ApproveConfirmationRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        confirmation = approve_v2_confirmation(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            confirmation_id=confirmation_id,
+            resolution_payload=payload.resolution_payload,
+            approved_by_account_id=account.account_id,
+        )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="confirmation_not_found", message="Confirmation not found")
+            ).model_dump(),
+        )
+    except (V2ConfirmationConflictError, V2TaskRunTransitionError):
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="confirmation_not_pending", message="Confirmation is not pending")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_confirmation_data(confirmation))
+
+
+@router.post(
+    "/confirmations/{confirmation_id}/reject",
+    response_model=V2DataEnvelope[V2ConfirmationData],
+)
+def reject_confirmation_v2(
+    confirmation_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        confirmation = reject_v2_confirmation(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            confirmation_id=confirmation_id,
+        )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="confirmation_not_found", message="Confirmation not found")
+            ).model_dump(),
+        )
+    except (V2ConfirmationConflictError, V2TaskRunTransitionError):
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="confirmation_not_pending", message="Confirmation is not pending")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_confirmation_data(confirmation))

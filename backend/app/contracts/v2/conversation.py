@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class V2CreateSessionRequest(BaseModel):
@@ -66,3 +66,26 @@ class V2TaskRunData(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+
+
+class V2ApproveConfirmationRequest(BaseModel):
+    resolution_payload: dict[str, object] = Field(default_factory=dict)
+
+
+class V2ConfirmationData(BaseModel):
+    confirmation_id: str
+    tenant_id: str
+    shop_id: str
+    task_run_id: str
+    confirmation_type: str
+    status: str
+    draft_payload: dict[str, object]
+    approved_by_account_id: str | None
+    resolution_payload: dict[str, object] | None
+    created_at: datetime
+    resolved_at: datetime | None
+
+
+class V2ConfirmationListData(BaseModel):
+    confirmations: list[V2ConfirmationData]
+    count: int

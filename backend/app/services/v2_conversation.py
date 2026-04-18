@@ -4,8 +4,26 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import V2ConversationSession, V2Message, V2TaskRun
+from app.models import V2Clarification, V2Confirmation, V2ConversationSession, V2Message, V2TaskRun
 from app.services.v2_time import utc_now_naive
+
+CAPTURED_STATUS = "captured"
+INTERPRETING_STATUS = "interpreting"
+DRAFTED_STATUS = "drafted"
+NEEDS_CLARIFICATION_STATUS = "needs_clarification"
+AWAITING_CONFIRMATION_STATUS = "awaiting_confirmation"
+EXECUTING_STATUS = "executing"
+REJECTED_STATUS = "rejected"
+PENDING_STATUS = "pending"
+APPROVED_STATUS = "approved"
+
+
+class V2TaskRunTransitionError(ValueError):
+    pass
+
+
+class V2ConfirmationConflictError(ValueError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -161,3 +179,268 @@ def get_v2_task_run(
             V2TaskRun.shop_id == shop_id,
         )
     )
+
+
+def _require_v2_task_run_for_context(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+) -> V2TaskRun:
+    task_run = db_session.scalar(
+        select(V2TaskRun)
+        .where(
+            V2TaskRun.task_run_id == task_run_id,
+            V2TaskRun.tenant_id == tenant_id,
+            V2TaskRun.shop_id == shop_id,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if task_run is None:
+        raise LookupError(task_run_id)
+    return task_run
+
+
+def create_v2_clarification(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    reason_code: str,
+    question_text: str,
+    requested_fields: list[str],
+    draft_payload: dict[str, object] | None,
+) -> V2Clarification:
+    existing = db_session.scalar(
+        select(V2Clarification)
+        .where(V2Clarification.task_run_id == task_run_id)
+        .execution_options(populate_existing=True)
+    )
+    if existing is not None:
+        if existing.status == PENDING_STATUS:
+            return existing
+        raise V2ConfirmationConflictError(
+            f"Task run {task_run_id} already has a non-pending clarification in status '{existing.status}'."
+        )
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run.status not in {CAPTURED_STATUS, INTERPRETING_STATUS}:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run_id} cannot request clarification from status '{task_run.status}'."
+        )
+
+    now = utc_now_naive()
+    clarification = V2Clarification(
+        clarification_id=f"vclar_{uuid.uuid4().hex}"[:40],
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        status=PENDING_STATUS,
+        reason_code=reason_code,
+        question_text=question_text,
+        requested_fields=requested_fields,
+        draft_payload=draft_payload,
+        answer_payload=None,
+        answered_by_account_id=None,
+        created_at=now,
+        answered_at=None,
+    )
+    task_run.status = NEEDS_CLARIFICATION_STATUS
+    task_run.result_summary = question_text
+    task_run.updated_at = now
+    task_run.completed_at = None
+    db_session.add(clarification)
+    db_session.commit()
+    return clarification
+
+
+def create_v2_confirmation(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    confirmation_type: str,
+    draft_payload: dict[str, object],
+) -> V2Confirmation:
+    existing = db_session.scalar(
+        select(V2Confirmation)
+        .where(V2Confirmation.task_run_id == task_run_id)
+        .execution_options(populate_existing=True)
+    )
+    if existing is not None:
+        if existing.status == PENDING_STATUS:
+            return existing
+        raise V2ConfirmationConflictError(
+            f"Task run {task_run_id} already has a non-pending confirmation in status '{existing.status}'."
+        )
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run.status not in {CAPTURED_STATUS, DRAFTED_STATUS}:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run_id} cannot await confirmation from status '{task_run.status}'."
+        )
+
+    now = utc_now_naive()
+    confirmation = V2Confirmation(
+        confirmation_id=f"vconf_{uuid.uuid4().hex}"[:40],
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        confirmation_type=confirmation_type,
+        status=PENDING_STATUS,
+        draft_payload=draft_payload,
+        approved_by_account_id=None,
+        resolution_payload=None,
+        created_at=now,
+        resolved_at=None,
+    )
+    task_run.status = AWAITING_CONFIRMATION_STATUS
+    task_run.result_summary = "Awaiting confirmation."
+    task_run.updated_at = now
+    task_run.completed_at = None
+    db_session.add(confirmation)
+    db_session.commit()
+    return confirmation
+
+
+def list_v2_confirmations(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    status: str | None,
+    limit: int,
+) -> list[V2Confirmation]:
+    safe_limit = max(1, min(limit, 50))
+    statement = select(V2Confirmation).where(
+        V2Confirmation.tenant_id == tenant_id,
+        V2Confirmation.shop_id == shop_id,
+    )
+    if status is not None:
+        statement = statement.where(V2Confirmation.status == status)
+    statement = statement.order_by(V2Confirmation.created_at.desc(), V2Confirmation.confirmation_id.desc()).limit(
+        safe_limit
+    )
+    return list(db_session.scalars(statement))
+
+
+def _require_v2_confirmation_for_context(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    confirmation_id: str,
+) -> V2Confirmation:
+    confirmation = db_session.scalar(
+        select(V2Confirmation)
+        .where(
+            V2Confirmation.confirmation_id == confirmation_id,
+            V2Confirmation.tenant_id == tenant_id,
+            V2Confirmation.shop_id == shop_id,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if confirmation is None:
+        raise LookupError(confirmation_id)
+    return confirmation
+
+
+def approve_v2_confirmation(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    confirmation_id: str,
+    resolution_payload: dict[str, object],
+    approved_by_account_id: str,
+) -> V2Confirmation:
+    confirmation = _require_v2_confirmation_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        confirmation_id=confirmation_id,
+    )
+    if confirmation.status != PENDING_STATUS:
+        raise V2ConfirmationConflictError(
+            f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+        )
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=confirmation.task_run_id,
+    )
+    if task_run.status != AWAITING_CONFIRMATION_STATUS:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+        )
+
+    now = utc_now_naive()
+    confirmation.status = APPROVED_STATUS
+    confirmation.resolution_payload = resolution_payload
+    confirmation.approved_by_account_id = approved_by_account_id
+    confirmation.resolved_at = now
+    task_run.status = EXECUTING_STATUS
+    task_run.result_summary = "Confirmation approved; deterministic execution pending."
+    task_run.error_code = None
+    task_run.updated_at = now
+    task_run.completed_at = None
+    db_session.commit()
+    return confirmation
+
+
+def reject_v2_confirmation(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    confirmation_id: str,
+) -> V2Confirmation:
+    confirmation = _require_v2_confirmation_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        confirmation_id=confirmation_id,
+    )
+    if confirmation.status != PENDING_STATUS:
+        raise V2ConfirmationConflictError(
+            f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+        )
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=confirmation.task_run_id,
+    )
+    if task_run.status != AWAITING_CONFIRMATION_STATUS:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+        )
+
+    now = utc_now_naive()
+    confirmation.status = REJECTED_STATUS
+    confirmation.resolution_payload = None
+    confirmation.approved_by_account_id = None
+    confirmation.resolved_at = now
+    task_run.status = REJECTED_STATUS
+    task_run.result_summary = "Confirmation rejected."
+    task_run.error_code = None
+    task_run.updated_at = now
+    task_run.completed_at = now
+    db_session.commit()
+    return confirmation

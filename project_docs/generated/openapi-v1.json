@@ -4031,9 +4031,31 @@
       },
       "V2ExtractReceiptDocumentRequest": {
         "properties": {
+          "conversation_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Session Id"
+          },
           "media_asset_id": {
             "title": "Media Asset Id",
             "type": "string"
+          },
+          "task_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Run Id"
           }
         },
         "required": [

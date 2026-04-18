@@ -1,4 +1,7 @@
+from sqlalchemy import select
+
 from app.core.config import get_settings
+from app.models import V2ConversationSession, V2TaskRun
 from app.services.ocr_gateway import get_default_ocr_gateway
 from app.services.ocr_types import OcrMediaInput, OcrProviderError
 from app.services.v2_documents import (
@@ -24,6 +27,8 @@ def extract_v2_receipt_document(
     context_session_id: str,
     requested_by_account_id: str,
     media_asset_id: str,
+    task_run_id: str | None = None,
+    conversation_session_id: str | None = None,
 ):
     try:
         media_asset = get_ready_v2_media_asset(
@@ -37,6 +42,13 @@ def extract_v2_receipt_document(
         raise V2DocumentDependencyNotFoundError("media_asset_not_found") from exc
     except V2MediaAssetNotReadyError as exc:
         raise V2DocumentConflictError(media_asset_id) from exc
+    normalized_task_run_id, normalized_conversation_session_id = _resolve_task_affinity(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        conversation_session_id=conversation_session_id,
+    )
 
     media_input = OcrMediaInput(
         media_id=media_asset.media_asset_id,
@@ -55,8 +67,8 @@ def extract_v2_receipt_document(
             context_session_id=context_session_id,
             requested_by_account_id=requested_by_account_id,
             media_asset_id=media_asset.media_asset_id,
-            task_run_id=None,
-            conversation_session_id=None,
+            task_run_id=normalized_task_run_id,
+            conversation_session_id=normalized_conversation_session_id,
             provider_type="ocr",
             provider_key=_resolve_ocr_provider_key(),
             model_name=_resolve_ocr_model_name(fallback_provider_name=None),
@@ -82,8 +94,8 @@ def extract_v2_receipt_document(
         context_session_id=context_session_id,
         requested_by_account_id=requested_by_account_id,
         media_asset_id=media_asset.media_asset_id,
-        task_run_id=None,
-        conversation_session_id=None,
+        task_run_id=normalized_task_run_id,
+        conversation_session_id=normalized_conversation_session_id,
         provider_type="ocr",
         provider_key=_resolve_ocr_provider_key(extraction.provider_name),
         model_name=_resolve_ocr_model_name(fallback_provider_name=extraction.provider_name),
@@ -156,3 +168,47 @@ def _resolve_ocr_model_name(*, fallback_provider_name: str | None) -> str:
     if isinstance(fallback_provider_name, str) and fallback_provider_name.strip():
         return fallback_provider_name.strip()
     return "mock-ocr"
+
+
+def _resolve_task_affinity(
+    db_session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str | None,
+    conversation_session_id: str | None,
+) -> tuple[str | None, str | None]:
+    normalized_task_run_id = task_run_id.strip() if isinstance(task_run_id, str) and task_run_id.strip() else None
+    normalized_conversation_session_id = (
+        conversation_session_id.strip()
+        if isinstance(conversation_session_id, str) and conversation_session_id.strip()
+        else None
+    )
+
+    if normalized_conversation_session_id is not None:
+        session = db_session.scalar(
+            select(V2ConversationSession).where(
+                V2ConversationSession.session_id == normalized_conversation_session_id,
+                V2ConversationSession.tenant_id == tenant_id,
+                V2ConversationSession.shop_id == shop_id,
+            )
+        )
+        if session is None:
+            raise V2DocumentDependencyNotFoundError("conversation_session_not_found")
+
+    if normalized_task_run_id is not None:
+        task_run = db_session.scalar(
+            select(V2TaskRun).where(
+                V2TaskRun.task_run_id == normalized_task_run_id,
+                V2TaskRun.tenant_id == tenant_id,
+                V2TaskRun.shop_id == shop_id,
+            )
+        )
+        if task_run is None:
+            raise V2DocumentDependencyNotFoundError("task_run_not_found")
+        if normalized_conversation_session_id is not None and task_run.session_id != normalized_conversation_session_id:
+            raise V2DocumentConflictError(normalized_task_run_id)
+        if normalized_conversation_session_id is None:
+            normalized_conversation_session_id = task_run.session_id
+
+    return normalized_task_run_id, normalized_conversation_session_id

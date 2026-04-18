@@ -58,6 +58,8 @@ class V2CreateDocumentRequest(BaseModel):
 
 class V2ExtractReceiptDocumentRequest(BaseModel):
     media_asset_id: str
+    task_run_id: str | None = None
+    conversation_session_id: str | None = None
 
 
 class V2DocumentData(BaseModel):

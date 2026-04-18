@@ -216,6 +216,64 @@ def _seed_v2_uploaded_media_asset(
     return created.media_asset_id
 
 
+def _seed_v2_media_task_run(
+    db_session,
+    *,
+    session_id: str = "vsess_media_001",
+    task_run_id: str = "vtask_media_001",
+) -> tuple[str, str]:
+    from app.models import V2ConversationSession, V2Message, V2TaskRun
+
+    now = _utc_now_naive()
+    db_session.add(
+        V2ConversationSession(
+            session_id=session_id,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_type="receipt",
+            title="Receipt Extraction",
+            status="active",
+            initiated_by_account_id="acct_001",
+            created_at=now,
+            updated_at=now,
+        )
+    )
+    db_session.add(
+        V2Message(
+            message_id=f"vmsg_{task_run_id}"[:40],
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_id=session_id,
+            actor_type="account",
+            actor_id="acct_001",
+            message_kind="receipt-image",
+            payload_json={"text": "extract receipt"},
+            client_request_id=f"req_{task_run_id}"[:64],
+            created_at=now,
+        )
+    )
+    db_session.add(
+        V2TaskRun(
+            task_run_id=task_run_id,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            session_id=session_id,
+            source_message_id=f"vmsg_{task_run_id}"[:40],
+            intent_type="document.receipt.extract",
+            status="captured",
+            risk_level="medium",
+            trace_id=f"trace_{task_run_id}"[:64],
+            result_summary=None,
+            error_code=None,
+            created_at=now,
+            updated_at=now,
+            completed_at=None,
+        )
+    )
+    db_session.commit()
+    return session_id, task_run_id
+
+
 def test_v2_media_ai_schema_persists_context_boundaries(db_session) -> None:
     from app.models import V2MediaAsset, V2ModelCallLog
 
@@ -591,6 +649,36 @@ def test_extract_v2_receipt_document_persists_failed_model_call_log_on_provider_
     assert log.operation_type == "document.receipt.extract"
 
 
+def test_extract_v2_receipt_document_links_model_call_log_to_task_run_and_session(
+    db_session,
+    monkeypatch,
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    _seed_v2_media_context(db_session)
+    session_id, task_run_id = _seed_v2_media_task_run(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    monkeypatch.setattr(receipt_documents_service, "get_default_ocr_gateway", lambda: _StubOcrGateway())
+
+    document = receipt_documents_service.extract_v2_receipt_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        requested_by_account_id="acct_001",
+        media_asset_id=media_asset_id,
+        task_run_id=task_run_id,
+        conversation_session_id=session_id,
+    )
+
+    from app.models import V2ModelCallLog
+
+    log = db_session.get(V2ModelCallLog, document.model_call_log_id)
+    assert log is not None
+    assert log.task_run_id == task_run_id
+    assert log.conversation_session_id == session_id
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -723,3 +811,47 @@ def test_v2_extract_receipt_document_uses_current_context(client, db_session, mo
     assert payload["document_type"] == "purchase-receipt"
     assert payload["extraction_status"] == "completed"
     assert payload["model_call_log_id"] is not None
+
+
+def test_v2_extract_receipt_document_links_task_run_and_session(client, db_session, monkeypatch) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "receipt", "title": "Receipt Session"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+    message_response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "receipt-image",
+            "payload_json": {"text": "extract"},
+            "client_request_id": "receipt_extract_task",
+        },
+    )
+    task_run_id = message_response.json()["data"]["task_run_id"]
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+    monkeypatch.setattr(receipt_documents_service, "get_default_ocr_gateway", lambda: _StubOcrGateway())
+
+    response = client.post(
+        "/api/v2/documents/receipt-extractions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "media_asset_id": media_asset_id,
+            "task_run_id": task_run_id,
+            "conversation_session_id": session_id,
+        },
+    )
+
+    from app.models import V2ModelCallLog
+
+    assert response.status_code == 201
+    db_session.expire_all()
+    model_call_log_id = response.json()["data"]["model_call_log_id"]
+    log = db_session.get(V2ModelCallLog, model_call_log_id)
+    assert log is not None
+    assert log.task_run_id == task_run_id
+    assert log.conversation_session_id == session_id

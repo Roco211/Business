@@ -230,6 +230,8 @@ def extract_receipt_document_v2(
             context_session_id=context.context_session_id,
             requested_by_account_id=account.account_id,
             media_asset_id=payload.media_asset_id,
+            task_run_id=payload.task_run_id,
+            conversation_session_id=payload.conversation_session_id,
         )
     except V2DocumentDependencyNotFoundError as exc:
         return JSONResponse(

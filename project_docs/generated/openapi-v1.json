@@ -3008,6 +3008,17 @@
         "title": "TaskRunData",
         "type": "object"
       },
+      "V2AnswerClarificationRequest": {
+        "properties": {
+          "answer_payload": {
+            "additionalProperties": true,
+            "title": "Answer Payload",
+            "type": "object"
+          }
+        },
+        "title": "V2AnswerClarificationRequest",
+        "type": "object"
+      },
       "V2ApproveConfirmationRequest": {
         "properties": {
           "resolution_payload": {
@@ -3017,6 +3028,135 @@
           }
         },
         "title": "V2ApproveConfirmationRequest",
+        "type": "object"
+      },
+      "V2ClarificationData": {
+        "properties": {
+          "answer_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Payload"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "answered_by_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered By Account Id"
+          },
+          "clarification_id": {
+            "title": "Clarification Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Payload"
+          },
+          "question_text": {
+            "title": "Question Text",
+            "type": "string"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "requested_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Requested Fields",
+            "type": "array"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "clarification_id",
+          "tenant_id",
+          "shop_id",
+          "task_run_id",
+          "status",
+          "reason_code",
+          "question_text",
+          "requested_fields",
+          "draft_payload",
+          "answer_payload",
+          "answered_by_account_id",
+          "created_at",
+          "answered_at"
+        ],
+        "title": "V2ClarificationData",
+        "type": "object"
+      },
+      "V2ClarificationListData": {
+        "properties": {
+          "clarifications": {
+            "items": {
+              "$ref": "#/components/schemas/V2ClarificationData"
+            },
+            "title": "Clarifications",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clarifications",
+          "count"
+        ],
+        "title": "V2ClarificationListData",
         "type": "object"
       },
       "V2ConfirmationData": {
@@ -3266,6 +3406,30 @@
           "title"
         ],
         "title": "V2CreateSessionRequest",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ClarificationData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ClarificationData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ClarificationData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2ClarificationListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ClarificationListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ClarificationListData]",
         "type": "object"
       },
       "V2DataEnvelope_V2ConfirmationData_": {
@@ -6063,6 +6227,184 @@
         "summary": "Login V2",
         "tags": [
           "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/clarifications": {
+      "get": {
+        "operationId": "list_clarifications_v2_api_v2_clarifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ClarificationListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Clarifications V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/clarifications/{clarification_id}/answer": {
+      "post": {
+        "operationId": "answer_clarification_v2_api_v2_clarifications__clarification_id__answer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "clarification_id",
+            "required": true,
+            "schema": {
+              "title": "Clarification Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2AnswerClarificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ClarificationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer Clarification V2",
+        "tags": [
+          "v2-conversation"
         ]
       }
     },

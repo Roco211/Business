@@ -10,6 +10,9 @@ from app.api.deps.v2_context import (
 )
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.contracts.v2.conversation import (
+    V2AnswerClarificationRequest,
+    V2ClarificationData,
+    V2ClarificationListData,
     V2ApproveConfirmationRequest,
     V2ConfirmationData,
     V2ConfirmationListData,
@@ -26,10 +29,12 @@ from app.db.session import get_db_session
 from app.services.v2_conversation import (
     V2ConfirmationConflictError,
     V2TaskRunTransitionError,
+    answer_v2_clarification,
     approve_v2_confirmation,
     create_v2_message_and_task_run,
     create_v2_session,
     get_v2_task_run,
+    list_v2_clarifications,
     list_v2_messages,
     list_v2_confirmations,
     list_v2_sessions,
@@ -61,6 +66,24 @@ def _to_confirmation_data(confirmation) -> V2ConfirmationData:
         resolution_payload=confirmation.resolution_payload,
         created_at=confirmation.created_at,
         resolved_at=confirmation.resolved_at,
+    )
+
+
+def _to_clarification_data(clarification) -> V2ClarificationData:
+    return V2ClarificationData(
+        clarification_id=clarification.clarification_id,
+        tenant_id=clarification.tenant_id,
+        shop_id=clarification.shop_id,
+        task_run_id=clarification.task_run_id,
+        status=clarification.status,
+        reason_code=clarification.reason_code,
+        question_text=clarification.question_text,
+        requested_fields=clarification.requested_fields,
+        draft_payload=clarification.draft_payload,
+        answer_payload=clarification.answer_payload,
+        answered_by_account_id=clarification.answered_by_account_id,
+        created_at=clarification.created_at,
+        answered_at=clarification.answered_at,
     )
 
 
@@ -231,6 +254,74 @@ def get_task_run_v2(
             completed_at=task_run.completed_at,
         )
     )
+
+
+@router.get("/clarifications", response_model=V2DataEnvelope[V2ClarificationListData])
+def list_clarifications_v2(
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    status_filter: str | None = Query(default="pending", alias="status"),
+    limit: int = Query(default=20, ge=1, le=50),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ClarificationListData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    normalized_status = status_filter.strip() if status_filter is not None and status_filter.strip() else None
+    clarifications = [
+        _to_clarification_data(item)
+        for item in list_v2_clarifications(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            status=normalized_status,
+            limit=limit,
+        )
+    ]
+    return V2DataEnvelope(
+        data=V2ClarificationListData(clarifications=clarifications, count=len(clarifications))
+    )
+
+
+@router.post(
+    "/clarifications/{clarification_id}/answer",
+    response_model=V2DataEnvelope[V2ClarificationData],
+)
+def answer_clarification_v2(
+    clarification_id: str,
+    payload: V2AnswerClarificationRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ClarificationData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        clarification = answer_v2_clarification(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            clarification_id=clarification_id,
+            answer_payload=payload.answer_payload,
+            answered_by_account_id=account.account_id,
+        )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="clarification_not_found", message="Clarification not found")
+            ).model_dump(),
+        )
+    except (V2ConfirmationConflictError, V2TaskRunTransitionError):
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="clarification_not_pending", message="Clarification is not pending")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_clarification_data(clarification))
 
 
 @router.get("/confirmations", response_model=V2DataEnvelope[V2ConfirmationListData])

@@ -16,6 +16,7 @@ EXECUTING_STATUS = "executing"
 REJECTED_STATUS = "rejected"
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
+ANSWERED_STATUS = "answered"
 
 
 class V2TaskRunTransitionError(ValueError):
@@ -314,6 +315,93 @@ def create_v2_confirmation(
     db_session.add(confirmation)
     db_session.commit()
     return confirmation
+
+
+def list_v2_clarifications(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    status: str | None,
+    limit: int,
+) -> list[V2Clarification]:
+    safe_limit = max(1, min(limit, 50))
+    statement = select(V2Clarification).where(
+        V2Clarification.tenant_id == tenant_id,
+        V2Clarification.shop_id == shop_id,
+    )
+    if status is not None:
+        statement = statement.where(V2Clarification.status == status)
+    statement = statement.order_by(V2Clarification.created_at.desc(), V2Clarification.clarification_id.desc()).limit(
+        safe_limit
+    )
+    return list(db_session.scalars(statement))
+
+
+def _require_v2_clarification_for_context(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    clarification_id: str,
+) -> V2Clarification:
+    clarification = db_session.scalar(
+        select(V2Clarification)
+        .where(
+            V2Clarification.clarification_id == clarification_id,
+            V2Clarification.tenant_id == tenant_id,
+            V2Clarification.shop_id == shop_id,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if clarification is None:
+        raise LookupError(clarification_id)
+    return clarification
+
+
+def answer_v2_clarification(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    clarification_id: str,
+    answer_payload: dict[str, object],
+    answered_by_account_id: str,
+) -> V2Clarification:
+    clarification = _require_v2_clarification_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        clarification_id=clarification_id,
+    )
+    if clarification.status != PENDING_STATUS:
+        raise V2ConfirmationConflictError(
+            f"Clarification {clarification_id} must be pending; found '{clarification.status}'."
+        )
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=clarification.task_run_id,
+    )
+    if task_run.status != NEEDS_CLARIFICATION_STATUS:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run.task_run_id} must be awaiting clarification; found '{task_run.status}'."
+        )
+
+    now = utc_now_naive()
+    clarification.status = ANSWERED_STATUS
+    clarification.answer_payload = answer_payload
+    clarification.answered_by_account_id = answered_by_account_id
+    clarification.answered_at = now
+    task_run.status = DRAFTED_STATUS
+    task_run.result_summary = "Clarification answered; draft is ready for confirmation."
+    task_run.error_code = None
+    task_run.updated_at = now
+    task_run.completed_at = None
+    db_session.commit()
+    return clarification
 
 
 def list_v2_confirmations(

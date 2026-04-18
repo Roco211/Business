@@ -89,3 +89,28 @@ class V2ConfirmationData(BaseModel):
 class V2ConfirmationListData(BaseModel):
     confirmations: list[V2ConfirmationData]
     count: int
+
+
+class V2AnswerClarificationRequest(BaseModel):
+    answer_payload: dict[str, object] = Field(default_factory=dict)
+
+
+class V2ClarificationData(BaseModel):
+    clarification_id: str
+    tenant_id: str
+    shop_id: str
+    task_run_id: str
+    status: str
+    reason_code: str
+    question_text: str
+    requested_fields: list[str]
+    draft_payload: dict[str, object] | None
+    answer_payload: dict[str, object] | None
+    answered_by_account_id: str | None
+    created_at: datetime
+    answered_at: datetime | None
+
+
+class V2ClarificationListData(BaseModel):
+    clarifications: list[V2ClarificationData]
+    count: int

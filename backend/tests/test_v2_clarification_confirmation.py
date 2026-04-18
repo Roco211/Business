@@ -383,3 +383,103 @@ def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:
     assert task_run is not None
     assert task_run.status == "rejected"
     assert task_run.completed_at is not None
+
+
+def test_v2_list_clarifications_returns_current_context_pending_items(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+
+    response = client.get(
+        "/api/v2/clarifications?status=pending&limit=20",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["count"] == 1
+    assert payload["clarifications"][0]["clarification_id"] == clarification.clarification_id
+    assert payload["clarifications"][0]["status"] == "pending"
+
+
+def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client, db_session) -> None:
+    from app.models import V2TaskRun
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+
+    response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"quantity": 2, "unit": "box"}},
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    assert response.status_code == 200
+    assert response.json()["data"]["status"] == "answered"
+    assert response.json()["data"]["answered_by_account_id"] == "acct_001"
+    assert response.json()["data"]["answer_payload"] == {"quantity": 2, "unit": "box"}
+    assert task_run is not None
+    assert task_run.status == "drafted"
+    assert task_run.completed_at is None
+
+
+def test_v2_answer_clarification_rejects_non_pending_record(db_session) -> None:
+    import pytest
+
+    from app.services.v2_conversation import (
+        V2ConfirmationConflictError,
+        answer_v2_clarification,
+        create_v2_clarification,
+    )
+
+    _seed_v2_task_run(db_session, task_run_id="vtask_answer_once")
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id="vtask_answer_once",
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+    answer_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        clarification_id=clarification.clarification_id,
+        answer_payload={"quantity": 2},
+        answered_by_account_id="acct_001",
+    )
+
+    with pytest.raises(V2ConfirmationConflictError):
+        answer_v2_clarification(
+            db_session,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            clarification_id=clarification.clarification_id,
+            answer_payload={"quantity": 3},
+            answered_by_account_id="acct_001",
+        )

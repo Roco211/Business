@@ -12,6 +12,7 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.services.v2_confirmation_provenance import build_v2_confirmation_source_payload
 from app.services.v2_commit_records import append_v2_inventory_commit_records
 from app.services.v2_inventory import (
     commit_v2_inventory_stock_in,
@@ -163,6 +164,18 @@ def _message_preview_text(payload_json: dict[str, object], message_kind: str) ->
     return message_kind
 
 
+def _build_v2_system_result_source_payload(confirmation: V2Confirmation) -> dict[str, str]:
+    return {
+        key: value
+        for key, value in build_v2_confirmation_source_payload(confirmation).items()
+        if value is not None
+    }
+
+
+def _is_v2_receipt_derived_confirmation(confirmation: V2Confirmation) -> bool:
+    return build_v2_confirmation_source_payload(confirmation).get("source_type") == "receipt-document"
+
+
 def append_v2_message_created_event(
     db_session: Session,
     *,
@@ -309,6 +322,7 @@ def append_v2_system_result_message(
     text: str,
 ) -> V2Message:
     now = utc_now_naive()
+    source_payload = _build_v2_system_result_source_payload(confirmation)
     message = V2Message(
         message_id=f"vmsg_{uuid.uuid4().hex}"[:40],
         tenant_id=task_run.tenant_id,
@@ -324,6 +338,7 @@ def append_v2_system_result_message(
             "intent_type": task_run.intent_type,
             "confirmation_id": confirmation.confirmation_id,
             "confirmation_type": confirmation.confirmation_type,
+            **source_payload,
         },
         client_request_id=None,
         created_at=now,
@@ -846,7 +861,10 @@ def approve_v2_confirmation(
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
-            system_result_text = "Inventory stock-in committed."
+            if _is_v2_receipt_derived_confirmation(confirmation):
+                system_result_text = "Receipt stock-in committed."
+            else:
+                system_result_text = "Inventory stock-in committed."
             should_enqueue_outbox = True
         elif confirmation.confirmation_type == "inventory.stock_out":
             resolved_fields = dict(resolution_payload.get("fields") or {})

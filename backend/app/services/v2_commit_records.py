@@ -12,6 +12,7 @@ from app.models import (
     V2OutboxEvent,
     V2TaskRun,
 )
+from app.services.v2_confirmation_provenance import build_v2_confirmation_source_payload
 from app.services.v2_time import utc_now_naive
 
 PENDING_OUTBOX_STATUS = "pending"
@@ -45,46 +46,16 @@ def _build_inventory_commit_event_type(confirmation_type: str) -> str:
     raise ValueError(f"Unsupported inventory confirmation_type '{confirmation_type}'.")
 
 
-def _coerce_object_dict(value: object) -> dict[str, object]:
-    if isinstance(value, dict):
-        return value
-    return {}
-
-
-def _normalize_optional_string(value: object) -> str | None:
-    if value is None:
-        return None
-    normalized = str(value).strip()
-    return normalized or None
-
-
 def _build_inventory_commit_provenance(
     confirmation: V2Confirmation,
     ledger_event: V2InventoryLedgerEvent,
 ) -> dict[str, str | None]:
-    resolution_payload = _coerce_object_dict(confirmation.resolution_payload)
-    resolved_fields = _coerce_object_dict(resolution_payload.get("fields"))
-    draft_payload = _coerce_object_dict(confirmation.draft_payload)
-
-    source_type = (
-        _normalize_optional_string(resolved_fields.get("source_type"))
-        or _normalize_optional_string(draft_payload.get("source_type"))
-        or ledger_event.source_type
-    )
-    source_document_id = (
-        _normalize_optional_string(resolved_fields.get("source_document_id"))
-        or _normalize_optional_string(draft_payload.get("source_document_id"))
-    )
-    source_media_asset_id = (
-        _normalize_optional_string(resolved_fields.get("source_media_asset_id"))
-        or _normalize_optional_string(draft_payload.get("source_media_asset_id"))
-    )
-
     return {
-        "source_type": source_type,
-        "source_id": source_document_id or ledger_event.source_id,
-        "source_document_id": source_document_id,
-        "source_media_asset_id": source_media_asset_id,
+        **build_v2_confirmation_source_payload(
+            confirmation,
+            default_source_type=ledger_event.source_type,
+            default_source_id=ledger_event.source_id,
+        ),
         "ledger_source_type": ledger_event.source_type,
         "ledger_source_id": ledger_event.source_id,
     }

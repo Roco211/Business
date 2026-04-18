@@ -848,6 +848,9 @@ def test_create_v2_receipt_stock_in_confirmation_from_document_appends_system_re
     assert messages[-1].payload_json["confirmation_id"] == confirmation.confirmation_id
     assert messages[-1].payload_json["confirmation_type"] == "inventory.stock_in"
     assert messages[-1].payload_json["task_run_status"] == "awaiting_confirmation"
+    assert messages[-1].payload_json["source_type"] == "receipt-document"
+    assert messages[-1].payload_json["source_document_id"] == document.document_id
+    assert messages[-1].payload_json["source_media_asset_id"] == media_asset_id
     assert "ready for confirmation" in messages[-1].payload_json["text"].lower()
 
 

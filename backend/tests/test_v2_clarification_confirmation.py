@@ -676,6 +676,61 @@ def test_v2_approve_receipt_derived_stock_in_confirmation_appends_receipt_proven
     assert outbox_event.payload_json["ledger_source_id"] == task_run_id
 
 
+def test_v2_approve_receipt_derived_stock_in_confirmation_appends_receipt_provenance_to_system_result_message(
+    client, db_session
+) -> None:
+    from app.services.v2_conversation import create_v2_confirmation
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={
+            "item_name": "Cola",
+            "quantity": 2,
+            "unit": "box",
+            "price": 18.5,
+            "source_type": "receipt-document",
+            "source_document_id": "vdoc_receipt_001",
+            "source_media_asset_id": "vmedia_receipt_001",
+        },
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+            }
+        },
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    messages_response = client.get(
+        f"/api/v2/sessions/{task_response.json()['data']['session_id']}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    messages = messages_response.json()["data"]["messages"]
+
+    assert response.status_code == 200
+    assert task_response.status_code == 200
+    assert messages_response.status_code == 200
+    assert messages[-1]["actor_type"] == "system"
+    assert messages[-1]["message_kind"] == "system_result"
+    assert messages[-1]["payload_json"]["task_run_id"] == task_run_id
+    assert messages[-1]["payload_json"]["confirmation_id"] == confirmation.confirmation_id
+    assert messages[-1]["payload_json"]["source_type"] == "receipt-document"
+    assert messages[-1]["payload_json"]["source_document_id"] == "vdoc_receipt_001"
+    assert messages[-1]["payload_json"]["source_media_asset_id"] == "vmedia_receipt_001"
+    assert "receipt stock-in committed" in messages[-1]["payload_json"]["text"].lower()
+
+
 def test_v2_approve_inventory_confirmation_enqueues_outbox_drain_after_commit(
     db_session, monkeypatch
 ) -> None:

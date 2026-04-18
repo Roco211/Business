@@ -29,6 +29,7 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     assert "shop_memberships" in inspector.get_table_names()
     assert "auth_sessions" in inspector.get_table_names()
     assert "v2_media_assets" in inspector.get_table_names()
+    assert "v2_documents" in inspector.get_table_names()
     assert "v2_model_call_logs" in inspector.get_table_names()
     assert "v2_session_stream_events" in inspector.get_table_names()
     assert {"shop_id", "name", "timezone"} <= {column["name"] for column in inspector.get_columns("shops")}
@@ -58,6 +59,9 @@ def test_alembic_upgrade_creates_shops_and_sessions(tmp_path) -> None:
     }
     assert {"media_asset_id", "tenant_id", "shop_id", "context_session_id", "uploaded_by_account_id"} <= {
         column["name"] for column in inspector.get_columns("v2_media_assets")
+    }
+    assert {"document_id", "tenant_id", "shop_id", "media_asset_id", "document_type"} <= {
+        column["name"] for column in inspector.get_columns("v2_documents")
     }
     assert {"model_call_log_id", "tenant_id", "shop_id", "context_session_id", "provider_type", "model_name"} <= {
         column["name"] for column in inspector.get_columns("v2_model_call_logs")

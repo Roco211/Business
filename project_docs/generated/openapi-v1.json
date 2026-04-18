@@ -3373,6 +3373,52 @@
         "title": "V2ContextSelectRequest",
         "type": "object"
       },
+      "V2CreateDocumentRequest": {
+        "properties": {
+          "confidence_summary": {
+            "additionalProperties": true,
+            "title": "Confidence Summary",
+            "type": "object"
+          },
+          "document_type": {
+            "title": "Document Type",
+            "type": "string"
+          },
+          "extracted_fields": {
+            "additionalProperties": true,
+            "title": "Extracted Fields",
+            "type": "object"
+          },
+          "extraction_status": {
+            "title": "Extraction Status",
+            "type": "string"
+          },
+          "media_asset_id": {
+            "title": "Media Asset Id",
+            "type": "string"
+          },
+          "model_call_log_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Call Log Id"
+          }
+        },
+        "required": [
+          "media_asset_id",
+          "document_type",
+          "extraction_status",
+          "extracted_fields",
+          "confidence_summary"
+        ],
+        "title": "V2CreateDocumentRequest",
+        "type": "object"
+      },
       "V2CreateMediaAssetData": {
         "properties": {
           "media_asset_id": {
@@ -3630,6 +3676,18 @@
         "title": "V2DataEnvelope[V2CreateMessageData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2DocumentData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2DocumentData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2DocumentData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2HealthData_": {
         "properties": {
           "data": {
@@ -3844,6 +3902,70 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2WorkerHealthData]",
+        "type": "object"
+      },
+      "V2DocumentData": {
+        "properties": {
+          "confidence_summary": {
+            "additionalProperties": true,
+            "title": "Confidence Summary",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "document_type": {
+            "title": "Document Type",
+            "type": "string"
+          },
+          "extracted_fields": {
+            "additionalProperties": true,
+            "title": "Extracted Fields",
+            "type": "object"
+          },
+          "extraction_status": {
+            "title": "Extraction Status",
+            "type": "string"
+          },
+          "media_asset_id": {
+            "title": "Media Asset Id",
+            "type": "string"
+          },
+          "model_call_log_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Call Log Id"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "media_asset_id",
+          "model_call_log_id",
+          "document_type",
+          "extraction_status",
+          "extracted_fields",
+          "confidence_summary",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "V2DocumentData",
         "type": "object"
       },
       "V2ErrorBody": {
@@ -7927,6 +8049,155 @@
         "summary": "Select Context V2",
         "tags": [
           "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/documents": {
+      "post": {
+        "operationId": "create_document_v2_api_v2_documents_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CreateDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2DocumentData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Document V2",
+        "tags": [
+          "v2-media-ai"
+        ]
+      }
+    },
+    "/api/v2/documents/{document_id}": {
+      "get": {
+        "operationId": "get_document_v2_api_v2_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2DocumentData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Document V2",
+        "tags": [
+          "v2-media-ai"
         ]
       }
     },

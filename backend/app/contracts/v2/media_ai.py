@@ -45,3 +45,24 @@ class V2MediaAssetData(BaseModel):
     uploaded_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class V2CreateDocumentRequest(BaseModel):
+    media_asset_id: str
+    model_call_log_id: str | None = None
+    document_type: str
+    extraction_status: str
+    extracted_fields: dict[str, object]
+    confidence_summary: dict[str, object]
+
+
+class V2DocumentData(BaseModel):
+    document_id: str
+    media_asset_id: str
+    model_call_log_id: str | None
+    document_type: str
+    extraction_status: str
+    extracted_fields: dict[str, object]
+    confidence_summary: dict[str, object]
+    created_at: datetime
+    updated_at: datetime

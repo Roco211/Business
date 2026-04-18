@@ -153,6 +153,39 @@ class _StubObjectStorage:
         }
 
 
+def _seed_v2_uploaded_media_asset(
+    db_session,
+    *,
+    context_session_id: str = "vctx_001",
+    storage: _StubObjectStorage | None = None,
+) -> str:
+    from app.services.v2_media_assets import create_v2_media_asset_upload, mark_v2_media_asset_uploaded
+
+    object_storage = storage or _StubObjectStorage()
+    created = create_v2_media_asset_upload(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id=context_session_id,
+        uploaded_by_account_id="acct_001",
+        media_type="receipt-image",
+        file_name="receipt.jpg",
+        content_type="image/jpeg",
+        size_bytes=2048,
+        object_storage=object_storage,
+    )
+    mark_v2_media_asset_uploaded(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        media_asset_id=created.media_asset_id,
+        checksum_sha256="abc123",
+        size_bytes=2048,
+        object_storage=object_storage,
+    )
+    return created.media_asset_id
+
+
 def test_v2_media_ai_schema_persists_context_boundaries(db_session) -> None:
     from app.models import V2MediaAsset, V2ModelCallLog
 
@@ -332,6 +365,93 @@ def test_append_v2_model_call_log_persists_provider_observability(db_session) ->
     assert log.media_asset_id == created.media_asset_id
 
 
+def test_v2_document_schema_persists_context_boundaries(db_session) -> None:
+    from app.models import V2Document
+
+    _seed_v2_media_context(db_session)
+    uploaded_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    now = _utc_now_naive()
+    document = V2Document(
+        document_id="vdoc_001",
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        media_asset_id=uploaded_asset_id,
+        model_call_log_id=None,
+        created_by_account_id="acct_001",
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={"total_amount": 18.5},
+        confidence_summary={"overall": 0.91},
+        created_at=now,
+        updated_at=now,
+    )
+    db_session.add(document)
+    db_session.commit()
+
+    persisted = db_session.get(V2Document, "vdoc_001")
+    assert persisted is not None
+    assert persisted.tenant_id == "tenant_a"
+    assert persisted.shop_id == "shop_a1"
+    assert persisted.media_asset_id == uploaded_asset_id
+
+
+def test_create_v2_document_persists_completed_receipt_result(db_session) -> None:
+    from app.services.v2_documents import create_v2_document
+
+    _seed_v2_media_context(db_session)
+    uploaded_asset_id = _seed_v2_uploaded_media_asset(db_session)
+
+    created = create_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        created_by_account_id="acct_001",
+        media_asset_id=uploaded_asset_id,
+        model_call_log_id=None,
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={"total_amount": 18.5, "items": []},
+        confidence_summary={"overall": 0.91},
+    )
+
+    assert created.document_id.startswith("vdoc_")
+    assert created.media_asset_id == uploaded_asset_id
+    assert created.document_type == "purchase-receipt"
+    assert created.extraction_status == "completed"
+
+
+def test_get_v2_document_requires_current_context_scope(db_session) -> None:
+    from app.services.v2_documents import create_v2_document, get_v2_document
+
+    _seed_v2_media_context(db_session)
+    uploaded_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    created = create_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        created_by_account_id="acct_001",
+        media_asset_id=uploaded_asset_id,
+        model_call_log_id=None,
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={"total_amount": 18.5},
+        confidence_summary={"overall": 0.91},
+    )
+
+    loaded = get_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        document_id=created.document_id,
+    )
+
+    assert loaded.document_id == created.document_id
+    assert loaded.media_asset_id == uploaded_asset_id
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -343,6 +463,26 @@ def test_v2_create_media_asset_requires_context(client, db_session) -> None:
             "file_name": "receipt.jpg",
             "content_type": "image/jpeg",
             "size_bytes": 2048,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "context_required"
+
+
+def test_v2_create_document_requires_context(client, db_session) -> None:
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+
+    response = client.post(
+        "/api/v2/documents",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "media_asset_id": media_asset_id,
+            "document_type": "purchase-receipt",
+            "extraction_status": "completed",
+            "extracted_fields": {"total_amount": 18.5},
+            "confidence_summary": {"overall": 0.91},
         },
     )
 
@@ -381,3 +521,31 @@ def test_v2_create_and_complete_media_asset_uses_current_context(client, db_sess
         "media_asset_id": media_asset_id,
         "status": "uploaded",
     }
+
+
+def test_v2_create_and_get_document_uses_current_context(client, db_session) -> None:
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+
+    create_response = client.post(
+        "/api/v2/documents",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "media_asset_id": media_asset_id,
+            "document_type": "purchase-receipt",
+            "extraction_status": "completed",
+            "extracted_fields": {"total_amount": 18.5, "items": []},
+            "confidence_summary": {"overall": 0.91},
+        },
+    )
+    document_id = create_response.json()["data"]["document_id"]
+    detail_response = client.get(
+        f"/api/v2/documents/{document_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert create_response.status_code == 201
+    assert create_response.json()["data"]["document_type"] == "purchase-receipt"
+    assert detail_response.status_code == 200
+    assert detail_response.json()["data"]["document_id"] == document_id
+    assert detail_response.json()["data"]["media_asset_id"] == media_asset_id

@@ -39,6 +39,40 @@ class V2MediaAsset(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
 
 
+class V2Document(Base):
+    __tablename__ = "v2_documents"
+
+    document_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("v2_tenants.tenant_id"), nullable=False, index=True)
+    shop_id: Mapped[str] = mapped_column(ForeignKey("v2_shops.shop_id"), nullable=False, index=True)
+    context_session_id: Mapped[str] = mapped_column(
+        ForeignKey("v2_context_sessions.context_session_id"),
+        nullable=False,
+        index=True,
+    )
+    media_asset_id: Mapped[str] = mapped_column(
+        ForeignKey("v2_media_assets.media_asset_id"),
+        nullable=False,
+        index=True,
+    )
+    model_call_log_id: Mapped[str | None] = mapped_column(
+        ForeignKey("v2_model_call_logs.model_call_log_id"),
+        nullable=True,
+        index=True,
+    )
+    created_by_account_id: Mapped[str] = mapped_column(
+        ForeignKey("v2_accounts.account_id"),
+        nullable=False,
+        index=True,
+    )
+    document_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    extraction_status: Mapped[str] = mapped_column(String(24), nullable=False)
+    extracted_fields: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    confidence_summary: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+
+
 class V2ModelCallLog(Base):
     __tablename__ = "v2_model_call_logs"
 

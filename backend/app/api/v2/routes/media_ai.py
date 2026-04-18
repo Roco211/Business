@@ -12,10 +12,20 @@ from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.contracts.v2.media_ai import (
     V2CompleteMediaAssetData,
     V2CompleteMediaAssetRequest,
+    V2CreateDocumentRequest,
     V2CreateMediaAssetData,
     V2CreateMediaAssetRequest,
+    V2DocumentData,
 )
 from app.db.session import get_db_session
+from app.services.v2_documents import (
+    V2DocumentConflictError,
+    V2DocumentDependencyNotFoundError,
+    V2DocumentNotFoundError,
+    V2DocumentValidationError,
+    create_v2_document,
+    get_v2_document,
+)
 from app.services.v2_media_assets import (
     V2MediaAssetConflictError,
     V2MediaAssetNotReadyError,
@@ -26,6 +36,7 @@ from app.services.v2_media_assets import (
 )
 
 router = APIRouter(prefix="/api/v2/media-assets", tags=["v2-media-ai"])
+documents_router = APIRouter(prefix="/api/v2/documents", tags=["v2-media-ai"])
 
 
 def _context_account_mismatch() -> JSONResponse:
@@ -34,6 +45,20 @@ def _context_account_mismatch() -> JSONResponse:
         content=V2ErrorEnvelope(
             error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
         ).model_dump(),
+    )
+
+
+def _to_v2_document_data(document) -> V2DocumentData:
+    return V2DocumentData(
+        document_id=document.document_id,
+        media_asset_id=document.media_asset_id,
+        model_call_log_id=document.model_call_log_id,
+        document_type=document.document_type,
+        extraction_status=document.extraction_status,
+        extracted_fields=document.extracted_fields,
+        confidence_summary=document.confidence_summary,
+        created_at=document.created_at,
+        updated_at=document.updated_at,
     )
 
 
@@ -135,3 +160,78 @@ def complete_media_asset_v2(
             status=completed.status,
         )
     )
+
+
+@documents_router.post("", response_model=V2DataEnvelope[V2DocumentData], status_code=status.HTTP_201_CREATED)
+def create_document_v2(
+    payload: V2CreateDocumentRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2DocumentData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        document = create_v2_document(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            context_session_id=context.context_session_id,
+            created_by_account_id=account.account_id,
+            media_asset_id=payload.media_asset_id,
+            model_call_log_id=payload.model_call_log_id,
+            document_type=payload.document_type,
+            extraction_status=payload.extraction_status,
+            extracted_fields=payload.extracted_fields,
+            confidence_summary=payload.confidence_summary,
+        )
+    except V2DocumentDependencyNotFoundError as exc:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code=exc.dependency_code, message="Document dependency not found")
+            ).model_dump(),
+        )
+    except V2DocumentConflictError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="document_conflict", message="Document conflicts with current media state")
+            ).model_dump(),
+        )
+    except V2DocumentValidationError as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(error=V2ErrorBody(code="validation_error", message=str(exc))).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_v2_document_data(document))
+
+
+@documents_router.get("/{document_id}", response_model=V2DataEnvelope[V2DocumentData])
+def get_document_v2(
+    document_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2DocumentData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        document = get_v2_document(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            document_id=document_id,
+        )
+    except V2DocumentNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="document_not_found", message="Document not found")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_v2_document_data(document))

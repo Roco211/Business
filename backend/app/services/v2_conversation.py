@@ -26,6 +26,7 @@ REJECTED_STATUS = "rejected"
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
 ANSWERED_STATUS = "answered"
+GENERIC_DRAFT_TYPES = {"conversation.capture"}
 
 
 class V2TaskRunTransitionError(ValueError):
@@ -37,6 +38,10 @@ class V2ConfirmationConflictError(ValueError):
 
 
 class V2TaskDraftNotReadyError(ValueError):
+    pass
+
+
+class V2ConfirmationTypeMismatchError(ValueError):
     pass
 
 
@@ -497,6 +502,10 @@ def request_v2_confirmation_from_task_draft(
     )
     if draft is None:
         raise V2TaskDraftNotReadyError(f"Task run {task_run_id} does not have a draft yet.")
+    if draft.draft_type not in GENERIC_DRAFT_TYPES and draft.draft_type != confirmation_type:
+        raise V2ConfirmationTypeMismatchError(
+            f"Task run {task_run_id} draft type '{draft.draft_type}' does not match confirmation type '{confirmation_type}'."
+        )
 
     task_run = _require_v2_task_run_for_context(
         db_session,

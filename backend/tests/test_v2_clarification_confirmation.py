@@ -171,22 +171,7 @@ def _seed_v2_identity_for_api(db_session) -> None:
 
 
 def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
-    _seed_v2_identity_for_api(db_session)
-    login_response = client.post(
-        "/api/v2/auth/login",
-        json={"email": "owner@example.com", "password": "dev-password"},
-    )
-    assert login_response.status_code == 200
-    token = login_response.json()["data"]["access_token"]
-
-    context_response = client.post(
-        "/api/v2/context/select",
-        headers={"Authorization": f"Bearer {token}"},
-        json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
-    )
-    assert context_response.status_code == 200
-    context_token = context_response.json()["data"]["context_token"]
-
+    token, context_token = _create_api_identity_context(client, db_session)
     session_response = client.post(
         "/api/v2/sessions",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
@@ -207,6 +192,24 @@ def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
     assert message_response.status_code == 201
     task_run_id = message_response.json()["data"]["task_run_id"]
     return token, context_token, task_run_id
+
+
+def _create_api_identity_context(client, db_session) -> tuple[str, str]:
+    _seed_v2_identity_for_api(db_session)
+    login_response = client.post(
+        "/api/v2/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["data"]["access_token"]
+
+    context_response = client.post(
+        "/api/v2/context/select",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
+    )
+    assert context_response.status_code == 200
+    return token, context_response.json()["data"]["context_token"]
 
 
 def _seed_v2_inventory_task_run_in_existing_context(
@@ -881,3 +884,83 @@ def test_v2_request_confirmation_from_draft_rejects_missing_draft(client, db_ses
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "draft_not_ready"
+
+
+def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token = _create_api_identity_context(client, db_session)
+    task_run_id = "vtask_stock_out_draft_confirm"
+    _seed_v2_inventory_task_run_in_existing_context(
+        db_session,
+        task_run_id=task_run_id,
+        intent_type="inventory.stock_out",
+    )
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_stock_out_quantity",
+        question_text="How many boxes should be stocked out?",
+        requested_fields=["stock_out_quantity", "reason"],
+        draft_payload={"inventory_item_id": "vitem_seed", "expected_quantity": 5},
+    )
+
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"stock_out_quantity": 2, "reason": "counter sale"}},
+    )
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_out"},
+    )
+
+    assert answer_response.status_code == 200
+    assert response.status_code == 201
+    assert response.json()["data"]["confirmation_type"] == "inventory.stock_out"
+    assert response.json()["data"]["draft_payload"] == {
+        "inventory_item_id": "vitem_seed",
+        "expected_quantity": 5,
+        "stock_out_quantity": 2,
+        "reason": "counter sale",
+    }
+
+
+def test_v2_request_confirmation_from_draft_rejects_type_mismatch(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token = _create_api_identity_context(client, db_session)
+    task_run_id = "vtask_stock_out_type_mismatch"
+    _seed_v2_inventory_task_run_in_existing_context(
+        db_session,
+        task_run_id=task_run_id,
+        intent_type="inventory.stock_out",
+    )
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_stock_out_quantity",
+        question_text="How many boxes should be stocked out?",
+        requested_fields=["stock_out_quantity", "reason"],
+        draft_payload={"inventory_item_id": "vitem_seed", "expected_quantity": 5},
+    )
+
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"stock_out_quantity": 2, "reason": "counter sale"}},
+    )
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+
+    assert answer_response.status_code == 200
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "confirmation_type_mismatch"

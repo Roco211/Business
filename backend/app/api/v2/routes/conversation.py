@@ -29,6 +29,7 @@ from app.contracts.v2.conversation import (
 from app.db.session import get_db_session
 from app.services.v2_conversation import (
     V2ConfirmationConflictError,
+    V2ConfirmationTypeMismatchError,
     V2TaskDraftNotReadyError,
     V2TaskRunTransitionError,
     answer_v2_clarification,
@@ -310,6 +311,16 @@ def request_confirmation_from_task_draft_v2(
             status_code=409,
             content=V2ErrorEnvelope(
                 error=V2ErrorBody(code="draft_not_ready", message="Task draft is not ready")
+            ).model_dump(),
+        )
+    except V2ConfirmationTypeMismatchError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(
+                    code="confirmation_type_mismatch",
+                    message="Confirmation type does not match task draft type",
+                )
             ).model_dump(),
         )
     except (V2ConfirmationConflictError, V2TaskRunTransitionError):

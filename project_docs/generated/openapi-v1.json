@@ -3612,6 +3612,18 @@
         "title": "V2DataEnvelope[V2ShopListData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2SubmitInventoryCorrectionData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SubmitInventoryCorrectionData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SubmitInventoryCorrectionData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2TaskRunData_": {
         "properties": {
           "data": {
@@ -4320,6 +4332,71 @@
           "shops"
         ],
         "title": "V2ShopListData",
+        "type": "object"
+      },
+      "V2SubmitInventoryCorrectionData": {
+        "properties": {
+          "correction_event_id": {
+            "title": "Correction Event Id",
+            "type": "string"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "new_quantity": {
+            "title": "New Quantity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "correction_event_id",
+          "inventory_item_id",
+          "new_quantity"
+        ],
+        "title": "V2SubmitInventoryCorrectionData",
+        "type": "object"
+      },
+      "V2SubmitInventoryCorrectionRequest": {
+        "properties": {
+          "corrected_quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Corrected Quantity"
+          },
+          "expected_quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Expected Quantity"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "inventory_item_id",
+          "expected_quantity",
+          "corrected_quantity",
+          "reason"
+        ],
+        "title": "V2SubmitInventoryCorrectionRequest",
         "type": "object"
       },
       "V2TaskRunData": {
@@ -7379,6 +7456,81 @@
         "summary": "V2 Health",
         "tags": [
           "v2-system"
+        ]
+      }
+    },
+    "/api/v2/inventory/corrections": {
+      "post": {
+        "operationId": "submit_inventory_correction_v2_api_v2_inventory_corrections_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2SubmitInventoryCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SubmitInventoryCorrectionData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Inventory Correction V2",
+        "tags": [
+          "v2-inventory"
         ]
       }
     },

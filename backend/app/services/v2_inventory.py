@@ -21,6 +21,18 @@ class V2InventoryUnitMismatchError(ValueError):
     pass
 
 
+class V2InventoryCorrectionValidationError(ValueError):
+    pass
+
+
+class V2InventoryCorrectionConflictError(ValueError):
+    pass
+
+
+class V2InventoryCorrectionItemNotFoundError(LookupError):
+    pass
+
+
 @dataclass(frozen=True)
 class V2ApprovedStockInPayload:
     item_id: str | None
@@ -33,6 +45,12 @@ class V2ApprovedStockInPayload:
 @dataclass(frozen=True)
 class V2CommittedStockInResult:
     item: V2InventoryItem
+    snapshot: V2InventoryStockSnapshot
+    event: V2InventoryLedgerEvent
+
+
+@dataclass(frozen=True)
+class V2InventoryCorrectionResult:
     snapshot: V2InventoryStockSnapshot
     event: V2InventoryLedgerEvent
 
@@ -231,6 +249,25 @@ def _get_or_create_v2_stock_snapshot(
     return snapshot
 
 
+def _require_v2_inventory_snapshot(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    inventory_item_id: str,
+) -> V2InventoryStockSnapshot:
+    snapshot = db_session.scalar(
+        select(V2InventoryStockSnapshot).where(
+            V2InventoryStockSnapshot.tenant_id == tenant_id,
+            V2InventoryStockSnapshot.shop_id == shop_id,
+            V2InventoryStockSnapshot.inventory_item_id == inventory_item_id,
+        )
+    )
+    if snapshot is None:
+        raise V2InventoryCorrectionItemNotFoundError(inventory_item_id)
+    return snapshot
+
+
 def commit_v2_inventory_stock_in(
     db_session: Session,
     *,
@@ -286,3 +323,66 @@ def commit_v2_inventory_stock_in(
     db_session.add(event)
     db_session.flush()
     return V2CommittedStockInResult(item=item, snapshot=snapshot, event=event)
+
+
+def submit_v2_inventory_correction(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    inventory_item_id: str,
+    expected_quantity: Decimal,
+    corrected_quantity: Decimal,
+    reason: str,
+    created_by_account_id: str,
+) -> V2InventoryCorrectionResult:
+    normalized_reason = reason.strip()
+    if not normalized_reason:
+        raise V2InventoryCorrectionValidationError("reason is required")
+    normalized_corrected_quantity = Decimal(corrected_quantity)
+    if normalized_corrected_quantity < 0:
+        raise V2InventoryCorrectionValidationError("corrected_quantity must be >= 0")
+    normalized_expected_quantity = Decimal(expected_quantity)
+
+    snapshot = _require_v2_inventory_snapshot(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        inventory_item_id=inventory_item_id,
+    )
+    if Decimal(snapshot.current_quantity) != normalized_expected_quantity:
+        raise V2InventoryCorrectionConflictError("inventory changed since the snapshot was read")
+
+    item = db_session.scalar(
+        select(V2InventoryItem).where(
+            V2InventoryItem.inventory_item_id == inventory_item_id,
+            V2InventoryItem.tenant_id == tenant_id,
+        )
+    )
+    if item is None:
+        raise V2InventoryCorrectionItemNotFoundError(inventory_item_id)
+
+    now = utc_now_naive()
+    quantity_delta = normalized_corrected_quantity - Decimal(snapshot.current_quantity)
+    snapshot.current_quantity = normalized_corrected_quantity
+    snapshot.updated_at = now
+    item.updated_at = now
+    event = V2InventoryLedgerEvent(
+        event_id=f"vevent_{uuid.uuid4().hex}"[:40],
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        inventory_item_id=inventory_item_id,
+        event_type="correction",
+        quantity_delta=quantity_delta,
+        quantity_after=normalized_corrected_quantity,
+        unit=item.default_unit,
+        price=snapshot.current_price,
+        source_type="inventory_correction",
+        source_id=inventory_item_id,
+        reason=normalized_reason,
+        created_by_account_id=created_by_account_id,
+        occurred_at=now,
+    )
+    db_session.add(event)
+    db_session.commit()
+    return V2InventoryCorrectionResult(snapshot=snapshot, event=event)

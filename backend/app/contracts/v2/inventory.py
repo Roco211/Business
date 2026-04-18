@@ -60,3 +60,16 @@ class V2InventoryLedgerEventData(BaseModel):
 class V2InventoryLedgerEventListData(BaseModel):
     events: list[V2InventoryLedgerEventData]
     count: int
+
+
+class V2SubmitInventoryCorrectionRequest(BaseModel):
+    inventory_item_id: str
+    expected_quantity: Decimal
+    corrected_quantity: Decimal
+    reason: str
+
+
+class V2SubmitInventoryCorrectionData(BaseModel):
+    correction_event_id: str
+    inventory_item_id: str
+    new_quantity: Decimal

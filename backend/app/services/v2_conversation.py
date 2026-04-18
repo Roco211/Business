@@ -12,6 +12,7 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.services.v2_inventory import commit_v2_inventory_stock_in
 from app.services.v2_time import utc_now_naive
 
 CAPTURED_STATUS = "captured"
@@ -20,6 +21,7 @@ DRAFTED_STATUS = "drafted"
 NEEDS_CLARIFICATION_STATUS = "needs_clarification"
 AWAITING_CONFIRMATION_STATUS = "awaiting_confirmation"
 EXECUTING_STATUS = "executing"
+COMMITTED_STATUS = "committed"
 REJECTED_STATUS = "rejected"
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
@@ -568,40 +570,60 @@ def approve_v2_confirmation(
     resolution_payload: dict[str, object],
     approved_by_account_id: str,
 ) -> V2Confirmation:
-    confirmation = _require_v2_confirmation_for_context(
-        db_session,
-        tenant_id=tenant_id,
-        shop_id=shop_id,
-        confirmation_id=confirmation_id,
-    )
-    if confirmation.status != PENDING_STATUS:
-        raise V2ConfirmationConflictError(
-            f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+    try:
+        confirmation = _require_v2_confirmation_for_context(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            confirmation_id=confirmation_id,
         )
+        if confirmation.status != PENDING_STATUS:
+            raise V2ConfirmationConflictError(
+                f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+            )
 
-    task_run = _require_v2_task_run_for_context(
-        db_session,
-        tenant_id=tenant_id,
-        shop_id=shop_id,
-        task_run_id=confirmation.task_run_id,
-    )
-    if task_run.status != AWAITING_CONFIRMATION_STATUS:
-        raise V2TaskRunTransitionError(
-            f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+        task_run = _require_v2_task_run_for_context(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            task_run_id=confirmation.task_run_id,
         )
+        if task_run.status != AWAITING_CONFIRMATION_STATUS:
+            raise V2TaskRunTransitionError(
+                f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+            )
 
-    now = utc_now_naive()
-    confirmation.status = APPROVED_STATUS
-    confirmation.resolution_payload = resolution_payload
-    confirmation.approved_by_account_id = approved_by_account_id
-    confirmation.resolved_at = now
-    task_run.status = EXECUTING_STATUS
-    task_run.result_summary = "Confirmation approved; deterministic execution pending."
-    task_run.error_code = None
-    task_run.updated_at = now
-    task_run.completed_at = None
-    db_session.commit()
-    return confirmation
+        now = utc_now_naive()
+        confirmation.status = APPROVED_STATUS
+        confirmation.resolution_payload = resolution_payload
+        confirmation.approved_by_account_id = approved_by_account_id
+        confirmation.resolved_at = now
+
+        if confirmation.confirmation_type == "inventory.stock_in":
+            resolved_fields = dict(resolution_payload.get("fields") or {})
+            commit_v2_inventory_stock_in(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                task_run_id=task_run.task_run_id,
+                created_by_account_id=approved_by_account_id,
+                payload=resolved_fields,
+            )
+            task_run.status = COMMITTED_STATUS
+            task_run.result_summary = "Confirmation approved and inventory committed."
+            task_run.completed_at = now
+        else:
+            task_run.status = EXECUTING_STATUS
+            task_run.result_summary = "Confirmation approved; deterministic execution pending."
+            task_run.completed_at = None
+
+        task_run.error_code = None
+        task_run.updated_at = now
+        db_session.commit()
+        return confirmation
+    except Exception:
+        db_session.rollback()
+        raise
 
 
 def reject_v2_confirmation(

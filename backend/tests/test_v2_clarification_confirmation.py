@@ -366,14 +366,14 @@ def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(
         tenant_id="tenant_a",
         shop_id="shop_a1",
         task_run_id=task_run_id,
-        confirmation_type="inventory.stock_in",
-        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box"},
+        confirmation_type="workflow.manual_review",
+        draft_payload={"note": "Need manual follow-up"},
     )
 
     response = client.post(
         f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
-        json={"resolution_payload": {"fields": {"item_name": "Cola", "quantity": 2, "unit": "box"}}},
+        json={"resolution_payload": {"fields": {"note": "approved for next worker"}}},
     )
 
     db_session.expire_all()
@@ -384,6 +384,94 @@ def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(
     assert task_run is not None
     assert task_run.status == "executing"
     assert task_run.completed_at is None
+
+
+def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
+    from app.models import V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskRun
+    from app.services.v2_conversation import create_v2_confirmation
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+    )
+
+    response = client.post(
+        f"/api/v2/confirmations/{confirmation.confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "resolution_payload": {
+                "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+            }
+        },
+    )
+
+    db_session.expire_all()
+    task_run = db_session.get(V2TaskRun, task_run_id)
+    items = db_session.query(V2InventoryItem).all()
+    snapshots = db_session.query(V2InventoryStockSnapshot).all()
+    events = db_session.query(V2InventoryLedgerEvent).all()
+
+    assert response.status_code == 200
+    assert response.json()["data"]["status"] == "approved"
+    assert task_run is not None
+    assert task_run.status == "committed"
+    assert task_run.completed_at is not None
+    assert len(items) == 1
+    assert items[0].tenant_id == "tenant_a"
+    assert snapshots[0].shop_id == "shop_a1"
+    assert snapshots[0].current_quantity == 2
+    assert events[0].shop_id == "shop_a1"
+    assert events[0].quantity_after == 2
+
+
+def test_v2_approve_confirmation_rolls_back_when_inventory_commit_fails(db_session, monkeypatch) -> None:
+    import pytest
+
+    from app.models import V2Confirmation, V2TaskRun
+    from app.services import v2_conversation as conversation_service
+    from app.services.v2_conversation import approve_v2_confirmation, create_v2_confirmation
+
+    _seed_v2_task_run(db_session, task_run_id="vtask_v2_approve_rollback")
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id="vtask_v2_approve_rollback",
+        confirmation_type="inventory.stock_in",
+        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+    )
+
+    def blow_up(*args, **kwargs):
+        raise RuntimeError("inventory commit failed")
+
+    monkeypatch.setattr(conversation_service, "commit_v2_inventory_stock_in", blow_up)
+
+    with pytest.raises(RuntimeError, match="inventory commit failed"):
+        approve_v2_confirmation(
+            db_session,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            confirmation_id=confirmation.confirmation_id,
+            resolution_payload={
+                "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+            },
+            approved_by_account_id="acct_001",
+        )
+
+    db_session.expire_all()
+    persisted_task_run = db_session.get(V2TaskRun, "vtask_v2_approve_rollback")
+    persisted_confirmation = db_session.get(V2Confirmation, confirmation.confirmation_id)
+    assert persisted_confirmation is not None
+    assert persisted_confirmation.status == "pending"
+    assert persisted_confirmation.approved_by_account_id is None
+    assert persisted_task_run is not None
+    assert persisted_task_run.status == "awaiting_confirmation"
+    assert persisted_task_run.completed_at is None
 
 
 def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:

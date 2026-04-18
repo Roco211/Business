@@ -219,5 +219,5 @@ def commit_v2_inventory_stock_in(
         occurred_at=now,
     )
     db_session.add(event)
-    db_session.commit()
+    db_session.flush()
     return V2CommittedStockInResult(item=item, snapshot=snapshot, event=event)

@@ -3492,6 +3492,42 @@
         "title": "V2DataEnvelope[V2HealthData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2InventoryItemListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2InventoryItemListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2InventoryItemListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2InventoryLedgerEventListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2InventoryLedgerEventListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2InventoryLedgerEventListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2InventoryStockListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2InventoryStockListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2InventoryStockListData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2LoginData_": {
         "properties": {
           "data": {
@@ -3677,6 +3713,309 @@
           "api_version"
         ],
         "title": "V2HealthData",
+        "type": "object"
+      },
+      "V2InventoryItemData": {
+        "properties": {
+          "barcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Barcode"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "default_unit": {
+            "title": "Default Unit",
+            "type": "string"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sku"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "inventory_item_id",
+          "tenant_id",
+          "sku",
+          "name",
+          "barcode",
+          "default_unit",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "V2InventoryItemData",
+        "type": "object"
+      },
+      "V2InventoryItemListData": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/V2InventoryItemData"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "V2InventoryItemListData",
+        "type": "object"
+      },
+      "V2InventoryLedgerEventData": {
+        "properties": {
+          "created_by_account_id": {
+            "title": "Created By Account Id",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "item_name": {
+            "title": "Item Name",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "quantity_after": {
+            "title": "Quantity After",
+            "type": "string"
+          },
+          "quantity_delta": {
+            "title": "Quantity Delta",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "tenant_id",
+          "shop_id",
+          "inventory_item_id",
+          "item_name",
+          "event_type",
+          "quantity_delta",
+          "quantity_after",
+          "unit",
+          "price",
+          "source_type",
+          "source_id",
+          "reason",
+          "created_by_account_id",
+          "occurred_at"
+        ],
+        "title": "V2InventoryLedgerEventData",
+        "type": "object"
+      },
+      "V2InventoryLedgerEventListData": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/V2InventoryLedgerEventData"
+            },
+            "title": "Events",
+            "type": "array"
+          }
+        },
+        "required": [
+          "events",
+          "count"
+        ],
+        "title": "V2InventoryLedgerEventListData",
+        "type": "object"
+      },
+      "V2InventoryStockData": {
+        "properties": {
+          "current_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Price"
+          },
+          "current_quantity": {
+            "title": "Current Quantity",
+            "type": "string"
+          },
+          "default_unit": {
+            "title": "Default Unit",
+            "type": "string"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "item_name": {
+            "title": "Item Name",
+            "type": "string"
+          },
+          "low_stock_threshold": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low Stock Threshold"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "tenant_id",
+          "shop_id",
+          "inventory_item_id",
+          "item_name",
+          "default_unit",
+          "current_quantity",
+          "current_price",
+          "low_stock_threshold",
+          "updated_at"
+        ],
+        "title": "V2InventoryStockData",
+        "type": "object"
+      },
+      "V2InventoryStockListData": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/V2InventoryStockData"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "V2InventoryStockListData",
         "type": "object"
       },
       "V2LoginData": {
@@ -7040,6 +7379,253 @@
         "summary": "V2 Health",
         "tags": [
           "v2-system"
+        ]
+      }
+    },
+    "/api/v2/inventory/events": {
+      "get": {
+        "operationId": "list_inventory_events_v2_api_v2_inventory_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2InventoryLedgerEventListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Inventory Events V2",
+        "tags": [
+          "v2-inventory"
+        ]
+      }
+    },
+    "/api/v2/inventory/items": {
+      "get": {
+        "operationId": "list_inventory_items_v2_api_v2_inventory_items_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2InventoryItemListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Inventory Items V2",
+        "tags": [
+          "v2-inventory"
+        ]
+      }
+    },
+    "/api/v2/inventory/stock": {
+      "get": {
+        "operationId": "list_inventory_stock_v2_api_v2_inventory_stock_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2InventoryStockListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Inventory Stock V2",
+        "tags": [
+          "v2-inventory"
         ]
       }
     },

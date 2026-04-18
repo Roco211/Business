@@ -11,7 +11,7 @@ from app.services.v2_documents import (
 )
 from app.services.v2_media_assets import V2MediaAssetNotReadyError, get_ready_v2_media_asset
 from app.services.v2_model_call_logs import append_v2_model_call_log
-from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_draft_from_document
+from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_confirmation_from_document
 
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
 RECEIPT_EXTRACTION_STATUS = "completed"
@@ -138,7 +138,7 @@ def extract_v2_receipt_document(
         confidence_summary=confidence_summary,
     )
     if normalized_task_run_id is not None:
-        create_v2_receipt_stock_in_draft_from_document(
+        create_v2_receipt_stock_in_confirmation_from_document(
             db_session,
             tenant_id=tenant_id,
             shop_id=shop_id,

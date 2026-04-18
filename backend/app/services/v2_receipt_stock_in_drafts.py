@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.services.v2_conversation import upsert_v2_task_draft
+from app.services.v2_conversation import request_v2_confirmation_from_task_draft, upsert_v2_task_draft
 from app.services.v2_documents import get_v2_document
 
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
@@ -51,6 +51,32 @@ def create_v2_receipt_stock_in_draft_from_document(
         draft_type=RECEIPT_STOCK_IN_DRAFT_TYPE,
         draft_payload=draft_payload,
         created_by_account_id=created_by_account_id,
+    )
+
+
+def create_v2_receipt_stock_in_confirmation_from_document(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    document_id: str,
+    created_by_account_id: str,
+):
+    create_v2_receipt_stock_in_draft_from_document(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        document_id=document_id,
+        created_by_account_id=created_by_account_id,
+    )
+    return request_v2_confirmation_from_task_draft(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        confirmation_type=RECEIPT_STOCK_IN_DRAFT_TYPE,
     )
 
 

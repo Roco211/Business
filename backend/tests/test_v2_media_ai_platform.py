@@ -739,6 +739,64 @@ def test_create_v2_receipt_stock_in_draft_from_document_materializes_first_line_
     assert db_session.query(V2InventoryStockSnapshot).count() == 0
 
 
+def test_create_v2_receipt_stock_in_confirmation_from_document_moves_task_to_awaiting_confirmation(
+    db_session,
+) -> None:
+    from app.models import V2Confirmation, V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskRun
+    from app.services.v2_documents import create_v2_document
+    from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_confirmation_from_document
+
+    _seed_v2_media_context(db_session)
+    _, task_run_id = _seed_v2_media_task_run(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    document = create_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        created_by_account_id="acct_001",
+        media_asset_id=media_asset_id,
+        model_call_log_id=None,
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={
+            "raw_text": "Red Bull 250ml x 2",
+            "items": [{"name": "Red Bull 250ml", "quantity": 2.0, "unit": "can", "price": 6.5}],
+            "total_amount": 13.0,
+        },
+        confidence_summary={"overall": 0.91},
+    )
+
+    confirmation = create_v2_receipt_stock_in_confirmation_from_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        document_id=document.document_id,
+        created_by_account_id="acct_001",
+    )
+
+    db_session.expire_all()
+    persisted_task_run = db_session.get(V2TaskRun, task_run_id)
+    persisted_confirmation = db_session.get(V2Confirmation, confirmation.confirmation_id)
+
+    assert persisted_task_run is not None
+    assert persisted_task_run.status == "awaiting_confirmation"
+    assert persisted_confirmation is not None
+    assert persisted_confirmation.confirmation_type == "inventory.stock_in"
+    assert persisted_confirmation.draft_payload == {
+        "item_name": "Red Bull 250ml",
+        "quantity": 2.0,
+        "unit": "can",
+        "price": 6.5,
+        "source_type": "receipt-document",
+        "source_document_id": document.document_id,
+        "source_media_asset_id": media_asset_id,
+    }
+    assert db_session.query(V2InventoryLedgerEvent).count() == 0
+    assert db_session.query(V2InventoryStockSnapshot).count() == 0
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -911,10 +969,9 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
         f"/api/v2/task-runs/{task_run_id}",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
     )
-    confirm_response = client.post(
-        f"/api/v2/task-runs/{task_run_id}/confirmations",
+    pending_confirmations_response = client.get(
+        "/api/v2/confirmations?status=pending&limit=20",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
-        json={"confirmation_type": "inventory.stock_in"},
     )
 
     assert response.status_code == 201
@@ -925,7 +982,7 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
     assert log.task_run_id == task_run_id
     assert log.conversation_session_id == session_id
     assert task_response.status_code == 200
-    assert task_response.json()["data"]["status"] == "drafted"
+    assert task_response.json()["data"]["status"] == "awaiting_confirmation"
     assert task_response.json()["data"]["intent_type"] == "inventory.stock_in"
     assert task_response.json()["data"]["draft_payload"] == {
         "item_name": "Red Bull 250ml",
@@ -936,5 +993,9 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
         "source_document_id": response.json()["data"]["document_id"],
         "source_media_asset_id": media_asset_id,
     }
-    assert confirm_response.status_code == 201
-    assert confirm_response.json()["data"]["confirmation_type"] == "inventory.stock_in"
+    assert pending_confirmations_response.status_code == 200
+    assert pending_confirmations_response.json()["data"]["count"] == 1
+    assert pending_confirmations_response.json()["data"]["confirmations"][0]["confirmation_type"] == "inventory.stock_in"
+    assert pending_confirmations_response.json()["data"]["confirmations"][0]["draft_payload"] == task_response.json()[
+        "data"
+    ]["draft_payload"]

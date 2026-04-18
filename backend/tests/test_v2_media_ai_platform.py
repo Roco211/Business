@@ -679,6 +679,66 @@ def test_extract_v2_receipt_document_links_model_call_log_to_task_run_and_sessio
     assert log.conversation_session_id == session_id
 
 
+def test_create_v2_receipt_stock_in_draft_from_document_materializes_first_line_item(db_session) -> None:
+    from app.models import V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskDraft, V2TaskRun
+    from app.services.v2_documents import create_v2_document
+    from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_draft_from_document
+
+    _seed_v2_media_context(db_session)
+    _, task_run_id = _seed_v2_media_task_run(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    document = create_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        created_by_account_id="acct_001",
+        media_asset_id=media_asset_id,
+        model_call_log_id=None,
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={
+            "raw_text": "Red Bull 250ml x 2",
+            "items": [
+                {"name": "Red Bull 250ml", "quantity": 2.0, "unit": "can", "price": 6.5},
+                {"name": "Water", "quantity": 1.0, "unit": "bottle", "price": 2.0},
+            ],
+            "total_amount": 15.0,
+        },
+        confidence_summary={"overall": 0.91},
+    )
+
+    task_run = create_v2_receipt_stock_in_draft_from_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        document_id=document.document_id,
+        created_by_account_id="acct_001",
+    )
+
+    db_session.expire_all()
+    persisted_task_run = db_session.get(V2TaskRun, task_run_id)
+    draft = db_session.query(V2TaskDraft).filter_by(task_run_id=task_run_id).one()
+
+    assert task_run.task_run_id == task_run_id
+    assert persisted_task_run is not None
+    assert persisted_task_run.status == "drafted"
+    assert persisted_task_run.intent_type == "inventory.stock_in"
+    assert draft.draft_type == "inventory.stock_in"
+    assert draft.payload_json == {
+        "item_name": "Red Bull 250ml",
+        "quantity": 2.0,
+        "unit": "can",
+        "price": 6.5,
+        "source_type": "receipt-document",
+        "source_document_id": document.document_id,
+        "source_media_asset_id": media_asset_id,
+    }
+    assert db_session.query(V2InventoryLedgerEvent).count() == 0
+    assert db_session.query(V2InventoryStockSnapshot).count() == 0
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -816,6 +876,8 @@ def test_v2_extract_receipt_document_uses_current_context(client, db_session, mo
 def test_v2_extract_receipt_document_links_task_run_and_session(client, db_session, monkeypatch) -> None:
     import app.services.v2_receipt_documents as receipt_documents_service
 
+    from app.models import V2ModelCallLog
+
     token, context_token = _seed_v2_media_login_and_context(client, db_session)
     session_response = client.post(
         "/api/v2/sessions",
@@ -845,8 +907,15 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
             "conversation_session_id": session_id,
         },
     )
-
-    from app.models import V2ModelCallLog
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    confirm_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
 
     assert response.status_code == 201
     db_session.expire_all()
@@ -855,3 +924,17 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
     assert log is not None
     assert log.task_run_id == task_run_id
     assert log.conversation_session_id == session_id
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["status"] == "drafted"
+    assert task_response.json()["data"]["intent_type"] == "inventory.stock_in"
+    assert task_response.json()["data"]["draft_payload"] == {
+        "item_name": "Red Bull 250ml",
+        "quantity": 2.0,
+        "unit": "can",
+        "price": 6.5,
+        "source_type": "receipt-document",
+        "source_document_id": response.json()["data"]["document_id"],
+        "source_media_asset_id": media_asset_id,
+    }
+    assert confirm_response.status_code == 201
+    assert confirm_response.json()["data"]["confirmation_type"] == "inventory.stock_in"

@@ -37,7 +37,7 @@ ANSWERED_STATUS = "answered"
 SYSTEM_ACTOR_TYPE = "system"
 RUNTIME_SYSTEM_ACTOR_ID = "runtime_system"
 SYSTEM_RESULT_MESSAGE_KIND = "system_result"
-GENERIC_DRAFT_TYPES = {"conversation.capture"}
+GENERIC_DRAFT_TYPES = {"conversation.capture", "document.receipt.extract"}
 ALLOWED_V2_MESSAGE_INTENTS = {
     "conversation.capture",
     "inventory.stock_in",

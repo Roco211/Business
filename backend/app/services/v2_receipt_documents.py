@@ -11,6 +11,7 @@ from app.services.v2_documents import (
 )
 from app.services.v2_media_assets import V2MediaAssetNotReadyError, get_ready_v2_media_asset
 from app.services.v2_model_call_logs import append_v2_model_call_log
+from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_draft_from_document
 
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
 RECEIPT_EXTRACTION_STATUS = "completed"
@@ -111,7 +112,7 @@ def extract_v2_receipt_document(
         confidence_score=confidence_summary["overall"],
         used_fallback=extraction.used_fallback,
     )
-    return create_v2_document(
+    document = create_v2_document(
         db_session,
         tenant_id=tenant_id,
         shop_id=shop_id,
@@ -136,6 +137,16 @@ def extract_v2_receipt_document(
         },
         confidence_summary=confidence_summary,
     )
+    if normalized_task_run_id is not None:
+        create_v2_receipt_stock_in_draft_from_document(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            task_run_id=normalized_task_run_id,
+            document_id=document.document_id,
+            created_by_account_id=requested_by_account_id,
+        )
+    return document
 
 
 def _build_confidence_summary(extraction) -> dict[str, object]:

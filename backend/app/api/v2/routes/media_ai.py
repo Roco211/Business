@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.v2.session_stream_publish import (
+    publish_v2_stream_events_best_effort,
+    resolve_v2_task_run_session_cursor,
+)
 from app.api.deps.v2_context import (
     V2AuthenticatedAccount,
     V2ExecutionContext,
@@ -215,12 +219,22 @@ def create_document_v2(
 @documents_router.post("/receipt-extractions", response_model=V2DataEnvelope[V2DocumentData], status_code=status.HTTP_201_CREATED)
 def extract_receipt_document_v2(
     payload: V2ExtractReceiptDocumentRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2DocumentData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    task_run_cursor = None
+    if isinstance(payload.task_run_id, str) and payload.task_run_id.strip():
+        task_run_cursor = resolve_v2_task_run_session_cursor(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            task_run_id=payload.task_run_id.strip(),
+        )
 
     try:
         document = extract_v2_receipt_document(
@@ -251,6 +265,16 @@ def extract_receipt_document_v2(
         return JSONResponse(
             status_code=503,
             content=V2ErrorEnvelope(error=V2ErrorBody(code=exc.code, message=exc.message)).model_dump(),
+        )
+
+    if task_run_cursor is not None:
+        session_id_for_publish, after_seq = task_run_cursor
+        publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
         )
 
     return V2DataEnvelope(data=_to_v2_document_data(document))

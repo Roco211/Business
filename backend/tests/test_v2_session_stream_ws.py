@@ -224,6 +224,92 @@ def _dispatch_v2_outbox_scope() -> None:
     assert result.completed_count == 1
 
 
+class _StubWsObjectStorage:
+    def create_upload_target(
+        self,
+        *,
+        object_key: str,
+        content_type: str,
+        size_bytes: int,
+    ):
+        from app.services.object_storage import ObjectStorageUploadTarget
+
+        return ObjectStorageUploadTarget(
+            object_key=object_key,
+            upload_url=f"https://upload.example/{object_key}",
+            public_url=f"https://public.example/{object_key}",
+        )
+
+    def verify_uploaded_object(
+        self,
+        *,
+        object_key: str,
+        expected_size_bytes: int | None = None,
+        expected_checksum_sha256: str | None = None,
+    ) -> dict[str, object]:
+        return {
+            "object_key": object_key,
+            "size_bytes": expected_size_bytes,
+            "checksum_sha256": expected_checksum_sha256,
+        }
+
+
+class _StubWsReceiptOcrGateway:
+    def extract_purchase_receipt(self, media_input):
+        from app.services.ocr_types import OcrExtractedLineItem, OcrExtraction
+
+        return OcrExtraction(
+            document_type="purchase-receipt",
+            provider_name="stub-ocr",
+            raw_text="Red Bull 250ml x 2",
+            line_items=[
+                OcrExtractedLineItem(
+                    item_name="Red Bull 250ml",
+                    quantity=2.0,
+                    unit="can",
+                    price=6.5,
+                )
+            ],
+            total_amount=13.0,
+            low_confidence_fields=[],
+            used_fallback=False,
+            raw_payload={"provider": "stub"},
+        )
+
+
+def _seed_v2_uploaded_receipt_media_asset_for_ws(*, context_session_id: str) -> str:
+    from app.db.session import get_session_factory
+    from app.services.v2_media_assets import create_v2_media_asset_upload, mark_v2_media_asset_uploaded
+
+    db_session = get_session_factory()()
+    storage = _StubWsObjectStorage()
+    try:
+        created = create_v2_media_asset_upload(
+            db_session,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            context_session_id=context_session_id,
+            uploaded_by_account_id="acct_001",
+            media_type="receipt-image",
+            file_name="receipt.jpg",
+            content_type="image/jpeg",
+            size_bytes=2048,
+            object_storage=storage,
+        )
+        mark_v2_media_asset_uploaded(
+            db_session,
+            tenant_id="tenant_a",
+            shop_id="shop_a1",
+            media_asset_id=created.media_asset_id,
+            checksum_sha256="abc123",
+            size_bytes=2048,
+            object_storage=storage,
+        )
+        return created.media_asset_id
+    finally:
+        db_session.close()
+
+
 def test_v2_session_stream_ws_rejects_invalid_token(monkeypatch, tmp_path) -> None:
     with _create_v2_websocket_client(monkeypatch, tmp_path) as client:
         with client.websocket_connect(
@@ -417,3 +503,66 @@ def test_v2_session_stream_ws_delivers_worker_inventory_update_before_keepalive(
     assert inventory_event["session_id"] == session_id
     assert inventory_event["data"]["event_type"] == "stock_in"
     assert inventory_event["data"]["quantity_after"] == "2"
+
+
+def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_waiting_for_keepalive(
+    monkeypatch, tmp_path
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    with _create_v2_websocket_client(
+        monkeypatch,
+        tmp_path,
+        keepalive_seconds="5",
+        pending_poll_seconds="0.5",
+    ) as client:
+        token, context_token = _seed_v2_login_and_context_for_ws(client)
+        session_id = _create_v2_ws_session(client, token=token, context_token=context_token)
+        message_response = client.post(
+            f"/api/v2/sessions/{session_id}/messages",
+            headers=_v2_headers(token, context_token),
+            json={
+                "message_kind": "receipt-image",
+                "payload_json": {"text": "extract receipt"},
+                "client_request_id": "v2_ws_receipt_extract_001",
+            },
+        )
+        assert message_response.status_code == 201
+        task_run_id = message_response.json()["data"]["task_run_id"]
+        media_asset_id = _seed_v2_uploaded_receipt_media_asset_for_ws(context_session_id=context_token)
+        monkeypatch.setattr(receipt_documents_service, "get_default_ocr_gateway", lambda: _StubWsReceiptOcrGateway())
+
+        with client.websocket_connect(
+            f"/api/v2/ws/sessions/{session_id}?token={token}&context_token={context_token}"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            assert ready_event["event_type"] == "session.ready"
+
+            started = time.perf_counter()
+            extraction_response = client.post(
+                "/api/v2/documents/receipt-extractions",
+                headers=_v2_headers(token, context_token),
+                json={
+                    "media_asset_id": media_asset_id,
+                    "task_run_id": task_run_id,
+                    "conversation_session_id": session_id,
+                },
+            )
+            first_event = websocket.receive_json()
+            second_event = websocket.receive_json()
+            third_event = websocket.receive_json()
+            elapsed = time.perf_counter() - started
+
+    assert extraction_response.status_code == 201
+    assert elapsed < 0.4
+    assert [first_event["event_type"], second_event["event_type"], third_event["event_type"]] == [
+        "task.updated",
+        "task.updated",
+        "message.created",
+    ]
+    assert [first_event["data"]["status"], second_event["data"]["status"]] == [
+        "drafted",
+        "awaiting_confirmation",
+    ]
+    assert third_event["data"]["message_kind"] == "system_result"
+    assert third_event["data"]["preview_text"] == "Receipt stock-in draft is ready for confirmation."

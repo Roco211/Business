@@ -564,5 +564,13 @@ def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_wait
         "drafted",
         "awaiting_confirmation",
     ]
+    assert third_event["task_run_id"] == task_run_id
     assert third_event["data"]["message_kind"] == "system_result"
     assert third_event["data"]["preview_text"] == "Receipt stock-in draft is ready for confirmation."
+    assert third_event["data"]["payload_json"]["task_run_id"] == task_run_id
+    assert third_event["data"]["payload_json"]["confirmation_id"]
+    assert third_event["data"]["payload_json"]["confirmation_type"] == "inventory.stock_in"
+    assert third_event["data"]["payload_json"]["task_run_status"] == "awaiting_confirmation"
+    assert third_event["data"]["payload_json"]["source_type"] == "receipt-document"
+    assert third_event["data"]["payload_json"]["source_document_id"] == extraction_response.json()["data"]["document_id"]
+    assert third_event["data"]["payload_json"]["source_media_asset_id"] == media_asset_id

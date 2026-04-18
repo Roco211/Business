@@ -164,6 +164,25 @@ def _message_preview_text(payload_json: dict[str, object], message_kind: str) ->
     return message_kind
 
 
+def _resolve_v2_message_event_task_run_id(message: V2Message) -> str | None:
+    raw_task_run_id = message.payload_json.get("task_run_id")
+    if isinstance(raw_task_run_id, str) and raw_task_run_id.strip():
+        return raw_task_run_id.strip()
+    return None
+
+
+def _build_v2_message_created_event_data(message: V2Message) -> dict[str, object]:
+    data: dict[str, object] = {
+        "message_kind": message.message_kind,
+        "actor_type": message.actor_type,
+        "actor_id": message.actor_id,
+        "preview_text": _message_preview_text(message.payload_json, message.message_kind),
+    }
+    if message.message_kind == SYSTEM_RESULT_MESSAGE_KIND:
+        data["payload_json"] = dict(message.payload_json)
+    return data
+
+
 def _build_v2_system_result_source_payload(confirmation: V2Confirmation) -> dict[str, str]:
     return {
         key: value
@@ -187,14 +206,9 @@ def append_v2_message_created_event(
         shop_id=message.shop_id,
         session_id=message.session_id,
         event_type="message.created",
-        task_run_id=None,
+        task_run_id=_resolve_v2_message_event_task_run_id(message),
         message_id=message.message_id,
-        data={
-            "message_kind": message.message_kind,
-            "actor_type": message.actor_type,
-            "actor_id": message.actor_id,
-            "preview_text": _message_preview_text(message.payload_json, message.message_kind),
-        },
+        data=_build_v2_message_created_event_data(message),
         occurred_at=message.created_at,
     )
 

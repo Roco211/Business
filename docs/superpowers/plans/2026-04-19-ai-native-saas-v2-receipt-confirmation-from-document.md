@@ -113,7 +113,7 @@ git diff --check
 git status --short
 ```
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

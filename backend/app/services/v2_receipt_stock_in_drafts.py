@@ -1,6 +1,11 @@
 from sqlalchemy.orm import Session
 
-from app.services.v2_conversation import request_v2_confirmation_from_task_draft, upsert_v2_task_draft
+from app.services.v2_conversation import (
+    append_v2_system_result_message,
+    get_v2_task_run,
+    request_v2_confirmation_from_task_draft,
+    upsert_v2_task_draft,
+)
 from app.services.v2_documents import get_v2_document
 
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
@@ -71,13 +76,28 @@ def create_v2_receipt_stock_in_confirmation_from_document(
         document_id=document_id,
         created_by_account_id=created_by_account_id,
     )
-    return request_v2_confirmation_from_task_draft(
+    confirmation = request_v2_confirmation_from_task_draft(
         db_session,
         tenant_id=tenant_id,
         shop_id=shop_id,
         task_run_id=task_run_id,
         confirmation_type=RECEIPT_STOCK_IN_DRAFT_TYPE,
     )
+    task_run = get_v2_task_run(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run is not None:
+        append_v2_system_result_message(
+            db_session,
+            task_run=task_run,
+            confirmation=confirmation,
+            text="Receipt stock-in draft is ready for confirmation.",
+        )
+        db_session.commit()
+    return confirmation
 
 
 def _require_first_receipt_item(extracted_fields: dict[str, object]) -> dict[str, object]:

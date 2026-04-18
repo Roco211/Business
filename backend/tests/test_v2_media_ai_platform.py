@@ -797,6 +797,60 @@ def test_create_v2_receipt_stock_in_confirmation_from_document_moves_task_to_awa
     assert db_session.query(V2InventoryStockSnapshot).count() == 0
 
 
+def test_create_v2_receipt_stock_in_confirmation_from_document_appends_system_result_message(
+    db_session,
+) -> None:
+    from app.models import V2Message
+    from app.services.v2_documents import create_v2_document
+    from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_confirmation_from_document
+
+    _seed_v2_media_context(db_session)
+    session_id, task_run_id = _seed_v2_media_task_run(db_session)
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session)
+    document = create_v2_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        context_session_id="vctx_001",
+        created_by_account_id="acct_001",
+        media_asset_id=media_asset_id,
+        model_call_log_id=None,
+        document_type="purchase-receipt",
+        extraction_status="completed",
+        extracted_fields={
+            "raw_text": "Red Bull 250ml x 2",
+            "items": [{"name": "Red Bull 250ml", "quantity": 2.0, "unit": "can", "price": 6.5}],
+            "total_amount": 13.0,
+        },
+        confidence_summary={"overall": 0.91},
+    )
+
+    confirmation = create_v2_receipt_stock_in_confirmation_from_document(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        document_id=document.document_id,
+        created_by_account_id="acct_001",
+    )
+
+    messages = (
+        db_session.query(V2Message)
+        .filter_by(session_id=session_id)
+        .order_by(V2Message.created_at.asc(), V2Message.message_id.asc())
+        .all()
+    )
+
+    assert messages[-1].actor_type == "system"
+    assert messages[-1].actor_id == "runtime_system"
+    assert messages[-1].message_kind == "system_result"
+    assert messages[-1].payload_json["task_run_id"] == task_run_id
+    assert messages[-1].payload_json["confirmation_id"] == confirmation.confirmation_id
+    assert messages[-1].payload_json["confirmation_type"] == "inventory.stock_in"
+    assert messages[-1].payload_json["task_run_status"] == "awaiting_confirmation"
+    assert "ready for confirmation" in messages[-1].payload_json["text"].lower()
+
+
 def test_v2_create_media_asset_requires_context(client, db_session) -> None:
     token, _ = _seed_v2_media_login_and_context(client, db_session)
 
@@ -973,6 +1027,10 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
         "/api/v2/confirmations?status=pending&limit=20",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
     )
+    messages_response = client.get(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
 
     assert response.status_code == 201
     db_session.expire_all()
@@ -999,3 +1057,15 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
     assert pending_confirmations_response.json()["data"]["confirmations"][0]["draft_payload"] == task_response.json()[
         "data"
     ]["draft_payload"]
+    assert messages_response.status_code == 200
+    assert messages_response.json()["data"]["messages"][-1]["actor_type"] == "system"
+    assert messages_response.json()["data"]["messages"][-1]["message_kind"] == "system_result"
+    assert messages_response.json()["data"]["messages"][-1]["payload_json"]["task_run_id"] == task_run_id
+    assert (
+        messages_response.json()["data"]["messages"][-1]["payload_json"]["confirmation_id"]
+        == pending_confirmations_response.json()["data"]["confirmations"][0]["confirmation_id"]
+    )
+    assert (
+        "ready for confirmation"
+        in messages_response.json()["data"]["messages"][-1]["payload_json"]["text"].lower()
+    )

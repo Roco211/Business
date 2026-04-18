@@ -204,6 +204,71 @@ def _create_v2_stock_in_confirmed_session(
     return session_id
 
 
+def _create_v2_receipt_derived_stock_in_confirmed_session(
+    client: TestClient,
+    *,
+    token: str,
+    context_token: str,
+) -> tuple[str, str]:
+    session_id = _create_v2_ws_session(client, token=token, context_token=context_token)
+    message_response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers=_v2_headers(token, context_token),
+        json={
+            "message_kind": "text",
+            "payload_json": {"text": "restock receipt cola"},
+            "client_request_id": "v2_ws_receipt_inventory_001",
+            "intent_type": "inventory.stock_in",
+        },
+    )
+    assert message_response.status_code == 201
+    task_run_id = message_response.json()["data"]["task_run_id"]
+
+    receipt_draft_payload = {
+        "item_name": "Receipt Cola",
+        "quantity": 2,
+        "unit": "box",
+        "price": 18.5,
+        "source_type": "receipt-document",
+        "source_document_id": "vdoc_receipt_001",
+        "source_media_asset_id": "vmedia_receipt_001",
+    }
+    draft_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers=_v2_headers(token, context_token),
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": receipt_draft_payload,
+        },
+    )
+    assert draft_response.status_code == 200
+
+    confirmation_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers=_v2_headers(token, context_token),
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+    assert confirmation_response.status_code == 201
+    confirmation_id = confirmation_response.json()["data"]["confirmation_id"]
+
+    approve_response = client.post(
+        f"/api/v2/confirmations/{confirmation_id}/approve",
+        headers=_v2_headers(token, context_token),
+        json={
+            "resolution_payload": {
+                "fields": {
+                    "item_name": "Receipt Cola",
+                    "quantity": 2,
+                    "unit": "box",
+                    "price": 18.5,
+                }
+            }
+        },
+    )
+    assert approve_response.status_code == 200
+    return session_id, task_run_id
+
+
 def _dispatch_v2_outbox_scope() -> None:
     from app.db.session import get_session_factory
     from app.services.v2_outbox_dispatch import dispatch_v2_outbox_events
@@ -503,6 +568,46 @@ def test_v2_session_stream_ws_delivers_worker_inventory_update_before_keepalive(
     assert inventory_event["session_id"] == session_id
     assert inventory_event["data"]["event_type"] == "stock_in"
     assert inventory_event["data"]["quantity_after"] == "2"
+
+
+def test_v2_session_stream_ws_delivers_receipt_inventory_update_provenance_before_keepalive(
+    monkeypatch, tmp_path
+) -> None:
+    with _create_v2_websocket_client(
+        monkeypatch,
+        tmp_path,
+        keepalive_seconds="5",
+        pending_poll_seconds="0.05",
+    ) as client:
+        token, context_token = _seed_v2_login_and_context_for_ws(client)
+        session_id, task_run_id = _create_v2_receipt_derived_stock_in_confirmed_session(
+            client,
+            token=token,
+            context_token=context_token,
+        )
+
+        with client.websocket_connect(
+            f"/api/v2/ws/sessions/{session_id}?token={token}&context_token={context_token}"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            assert ready_event["event_type"] == "session.ready"
+
+            started = time.perf_counter()
+            _dispatch_v2_outbox_scope()
+            inventory_event = websocket.receive_json()
+            elapsed = time.perf_counter() - started
+
+    assert elapsed < 1.0
+    assert inventory_event["event_type"] == "inventory.updated"
+    assert inventory_event["session_id"] == session_id
+    assert inventory_event["task_run_id"] == task_run_id
+    assert inventory_event["data"]["event_type"] == "stock_in"
+    assert inventory_event["data"]["quantity_after"] == "2"
+    assert inventory_event["data"]["source_type"] == "receipt-document"
+    assert inventory_event["data"]["source_document_id"] == "vdoc_receipt_001"
+    assert inventory_event["data"]["source_media_asset_id"] == "vmedia_receipt_001"
+    assert inventory_event["data"]["ledger_source_type"] == "task_run"
+    assert inventory_event["data"]["ledger_source_id"] == task_run_id
 
 
 def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_waiting_for_keepalive(

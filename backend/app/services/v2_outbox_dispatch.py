@@ -24,6 +24,14 @@ UNSUPPORTED_OUTBOX_EVENT_ERROR_CODE = "unsupported_outbox_event"
 INVALID_OUTBOX_PAYLOAD_ERROR_CODE = "invalid_outbox_payload"
 DISPATCH_FAILED_ERROR_CODE = "dispatch_failed"
 INVENTORY_ITEM_NOT_FOUND_ERROR_CODE = "inventory_item_not_found"
+INVENTORY_UPDATED_PROVENANCE_KEYS = (
+    "source_type",
+    "source_id",
+    "source_document_id",
+    "source_media_asset_id",
+    "ledger_source_type",
+    "ledger_source_id",
+)
 
 
 class _UnsupportedOutboxEventError(ValueError):
@@ -59,6 +67,28 @@ def _require_payload_inventory_item_id(outbox_event: V2OutboxEvent) -> str:
     return raw_inventory_item_id.strip()
 
 
+def _build_inventory_updated_stream_payload(
+    *,
+    outbox_event: V2OutboxEvent,
+    inventory_item_id: str,
+    inventory_event_id: str | None,
+    inventory_event_type: str | None,
+    unit: str | None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "inventory_item_id": inventory_item_id,
+        "inventory_event_id": inventory_event_id,
+        "event_type": inventory_event_type,
+        "quantity_after": outbox_event.payload_json.get("quantity_after"),
+        "unit": unit,
+    }
+    for key in INVENTORY_UPDATED_PROVENANCE_KEYS:
+        value = outbox_event.payload_json.get(key)
+        if value is not None:
+            payload[key] = value
+    return payload
+
+
 def _append_inventory_updated_stream_event(
     db_session: Session,
     *,
@@ -92,13 +122,13 @@ def _append_inventory_updated_stream_event(
             event_type="inventory.updated",
             task_run_id=task_run_id,
             message_id=None,
-            data={
-                "inventory_item_id": inventory_item_id,
-                "inventory_event_id": inventory_event_id,
-                "event_type": inventory_event_type,
-                "quantity_after": outbox_event.payload_json.get("quantity_after"),
-                "unit": unit,
-            },
+            data=_build_inventory_updated_stream_payload(
+                outbox_event=outbox_event,
+                inventory_item_id=inventory_item_id,
+                inventory_event_id=inventory_event_id,
+                inventory_event_type=inventory_event_type,
+                unit=unit,
+            ),
             occurred_at=dispatch_now,
         )
     except LookupError:

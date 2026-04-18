@@ -357,6 +357,76 @@ def test_dispatch_v2_outbox_events_appends_inventory_updated_stream_event(db_ses
     }
 
 
+def test_dispatch_v2_outbox_events_appends_receipt_provenance_to_inventory_updated_stream_event(
+    db_session,
+) -> None:
+    from app.models import V2ConversationSession, V2SessionStreamEvent
+
+    dispatch_service = _load_v2_outbox_dispatch_service()
+    _seed_dispatch_scope(db_session)
+    _seed_conversation_task(db_session)
+    _seed_inventory_item(db_session, inventory_item_id="vitem_receipt", name="Receipt Cola")
+    _seed_inventory_event(
+        db_session,
+        event_id="vevent_receipt_in",
+        inventory_item_id="vitem_receipt",
+        event_type="stock_in",
+        quantity_delta=Decimal("2"),
+        quantity_after=Decimal("2"),
+        price=Decimal("18.5"),
+        occurred_at=_dt("2026-04-18T10:00:00"),
+    )
+    _seed_outbox_event(
+        db_session,
+        outbox_event_id="evt_receipt_inventory_stream",
+        event_type="inventory.stock_in.committed",
+        payload_json={
+            "session_id": "vsess_001",
+            "task_run_id": "vtask_001",
+            "inventory_item_id": "vitem_receipt",
+            "inventory_event_id": "vevent_receipt_in",
+            "event_type": "stock_in",
+            "quantity_after": "2",
+            "unit": "box",
+            "source_type": "receipt-document",
+            "source_id": "vdoc_receipt_001",
+            "source_document_id": "vdoc_receipt_001",
+            "source_media_asset_id": "vmedia_receipt_001",
+            "ledger_source_type": "task_run",
+            "ledger_source_id": "vtask_001",
+        },
+    )
+    db_session.commit()
+
+    dispatch_service.dispatch_v2_outbox_events(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        limit=10,
+        now=_dt("2026-04-18T11:30:00"),
+    )
+
+    db_session.expire_all()
+    session = db_session.get(V2ConversationSession, "vsess_001")
+    stream_event = db_session.scalar(
+        select(V2SessionStreamEvent)
+        .where(V2SessionStreamEvent.event_id.like("vsevt_%"))
+        .order_by(V2SessionStreamEvent.seq.desc())
+    )
+
+    assert session is not None
+    assert session.last_event_seq == 1
+    assert stream_event is not None
+    assert stream_event.event_type == "inventory.updated"
+    assert stream_event.task_run_id == "vtask_001"
+    assert stream_event.payload_json["source_type"] == "receipt-document"
+    assert stream_event.payload_json["source_id"] == "vdoc_receipt_001"
+    assert stream_event.payload_json["source_document_id"] == "vdoc_receipt_001"
+    assert stream_event.payload_json["source_media_asset_id"] == "vmedia_receipt_001"
+    assert stream_event.payload_json["ledger_source_type"] == "task_run"
+    assert stream_event.payload_json["ledger_source_id"] == "vtask_001"
+
+
 def test_dispatch_v2_outbox_events_marks_unsupported_event_failed_without_retry(db_session) -> None:
     from app.models import V2OutboxEvent
 

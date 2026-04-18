@@ -25,7 +25,7 @@
 - Modify: `backend/app/models/__init__.py`
 - Create: `backend/alembic/versions/20260418_05_create_v2_inventory_ledger_foundation.py`
 
-- [ ] **Step 1: 先写失败测试，固定 tenant / shop 边界**
+- [x] **Step 1: 先写失败测试，固定 tenant / shop 边界**
 
 ```python
 def test_v2_inventory_ledger_schema_persists_tenant_and_shop_boundaries(db_session) -> None:
@@ -83,7 +83,7 @@ def test_v2_inventory_ledger_schema_persists_tenant_and_shop_boundaries(db_sessi
     assert persisted.shop_id == "shop_a1"
 ```
 
-- [ ] **Step 2: 运行 schema 测试，确认因模型或迁移缺失而失败**
+- [x] **Step 2: 运行 schema 测试，确认因模型或迁移缺失而失败**
 
 Run:
 
@@ -91,7 +91,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_ledger.py::test_v2_inventory_ledger_schema_persists_tenant_and_shop_boundaries -q
 ```
 
-- [ ] **Step 3: 新增模型与迁移**
+- [x] **Step 3: 新增模型与迁移**
 
 `backend/app/models/v2_inventory.py`
 
@@ -118,7 +118,7 @@ revision = "20260418_05"
 down_revision = "20260418_04"
 ```
 
-- [ ] **Step 4: 重跑 schema 测试**
+- [x] **Step 4: 重跑 schema 测试**
 
 Run:
 
@@ -136,7 +136,7 @@ Expected:
 - Modify: `backend/tests/test_v2_inventory_ledger.py`
 - Create: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 先写失败测试，固定“首次入库创建 tenant 级商品 + shop 级 snapshot + ledger event”**
+- [x] **Step 1: 先写失败测试，固定“首次入库创建 tenant 级商品 + shop 级 snapshot + ledger event”**
 
 ```python
 def test_v2_commit_stock_in_creates_item_snapshot_and_ledger_event(db_session) -> None:
@@ -159,7 +159,7 @@ def test_v2_commit_stock_in_creates_item_snapshot_and_ledger_event(db_session) -
     assert result.event.quantity_after == 3
 ```
 
-- [ ] **Step 2: 运行测试，确认因为服务缺失而失败**
+- [x] **Step 2: 运行测试，确认因为服务缺失而失败**
 
 Run:
 
@@ -167,7 +167,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_ledger.py::test_v2_commit_stock_in_creates_item_snapshot_and_ledger_event -q
 ```
 
-- [ ] **Step 3: 实现最小服务**
+- [x] **Step 3: 实现最小服务**
 
 `backend/app/services/v2_inventory.py`
 
@@ -187,7 +187,7 @@ def commit_v2_inventory_stock_in(...):
     # 更新 snapshot 投影
 ```
 
-- [ ] **Step 4: 重跑提交测试**
+- [x] **Step 4: 重跑提交测试**
 
 Run:
 
@@ -205,7 +205,7 @@ Expected:
 - Modify: `backend/tests/test_v2_inventory_ledger.py`
 - Modify: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认同 tenant 下复用商品、不同 shop 的 snapshot 分离**
+- [x] **Step 1: 先写失败测试，确认同 tenant 下复用商品、不同 shop 的 snapshot 分离**
 
 ```python
 def test_v2_commit_stock_in_reuses_tenant_item_and_keeps_shop_snapshots_isolated(db_session) -> None:
@@ -254,7 +254,7 @@ def test_v2_commit_stock_in_reuses_tenant_item_and_keeps_shop_snapshots_isolated
     }
 ```
 
-- [ ] **Step 2: 运行隔离测试，确认失败原因是解析 / 投影逻辑尚未完整**
+- [x] **Step 2: 运行隔离测试，确认失败原因是解析 / 投影逻辑尚未完整**
 
 Run:
 
@@ -262,7 +262,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_ledger.py::test_v2_commit_stock_in_reuses_tenant_item_and_keeps_shop_snapshots_isolated -q
 ```
 
-- [ ] **Step 3: 补足 tenant 级商品匹配与 shop 级 snapshot upsert 逻辑**
+- [x] **Step 3: 补足 tenant 级商品匹配与 shop 级 snapshot upsert 逻辑**
 
 ```python
 def _resolve_v2_inventory_item_for_stock_in(...):
@@ -273,7 +273,7 @@ def _get_or_create_v2_snapshot(...):
     # shop 级逐门店维护 current_quantity / current_price
 ```
 
-- [ ] **Step 4: 重跑隔离测试**
+- [x] **Step 4: 重跑隔离测试**
 
 Run:
 
@@ -290,7 +290,7 @@ Expected:
 **Files:**
 - Verify: `backend/tests/test_v2_inventory_ledger.py`
 
-- [ ] **Step 1: 运行 V2 inventory 账本测试文件**
+- [x] **Step 1: 运行 V2 inventory 账本测试文件**
 
 Run:
 
@@ -298,7 +298,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_ledger.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -306,7 +306,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -314,7 +314,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

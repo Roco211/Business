@@ -28,7 +28,7 @@
 - Create: `backend/app/services/v2_commit_records.py`
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 先写失败测试，确认 stock-in approve 后写入 V2 audit/outbox**
+- [x] **Step 1: 先写失败测试，确认 stock-in approve 后写入 V2 audit/outbox**
 
 ```python
 def test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event(client, db_session) -> None:
@@ -81,7 +81,7 @@ def test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event(cli
     assert outbox_event.payload_json["confirmation_id"] == confirmation.confirmation_id
 ```
 
-- [ ] **Step 2: 运行测试，确认当前缺少模型或记录而失败**
+- [x] **Step 2: 运行测试，确认当前缺少模型或记录而失败**
 
 Run:
 
@@ -89,7 +89,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event -q
 ```
 
-- [ ] **Step 3: 新增 V2 governance 模型与迁移**
+- [x] **Step 3: 新增 V2 governance 模型与迁移**
 
 `backend/app/models/v2_governance.py`
 
@@ -125,7 +125,7 @@ class V2OutboxEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
 ```
 
-- [ ] **Step 4: 新增写入 helper 并接入 stock-in approve**
+- [x] **Step 4: 新增写入 helper 并接入 stock-in approve**
 
 `backend/app/services/v2_commit_records.py`
 
@@ -152,7 +152,7 @@ append_v2_inventory_commit_records(
 )
 ```
 
-- [ ] **Step 5: 重跑 stock-in 测试**
+- [x] **Step 5: 重跑 stock-in 测试**
 
 Run:
 
@@ -172,7 +172,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/services/v2_commit_records.py`
 
-- [ ] **Step 1: 写失败测试，确认 stock-out approve 后写入 V2 audit/outbox**
+- [x] **Step 1: 写失败测试，确认 stock-out approve 后写入 V2 audit/outbox**
 
 ```python
 def test_v2_approve_stock_out_confirmation_appends_audit_log_and_outbox_event(client, db_session) -> None:
@@ -182,7 +182,7 @@ def test_v2_approve_stock_out_confirmation_appends_audit_log_and_outbox_event(cl
     assert outbox_event.event_type == "inventory.stock_out.committed"
 ```
 
-- [ ] **Step 2: 运行测试，确认 stock-out 缺少库存 item 上下文或记录而失败**
+- [x] **Step 2: 运行测试，确认 stock-out 缺少库存 item 上下文或记录而失败**
 
 Run:
 
@@ -190,7 +190,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_approve_stock_out_confirmation_appends_audit_log_and_outbox_event -q
 ```
 
-- [ ] **Step 3: 让 stock-out commit result 返回 item，并接入同一个 helper**
+- [x] **Step 3: 让 stock-out commit result 返回 item，并接入同一个 helper**
 
 `backend/app/services/v2_inventory.py`
 
@@ -216,7 +216,7 @@ append_v2_inventory_commit_records(
 )
 ```
 
-- [ ] **Step 4: 重跑 stock-out 测试**
+- [x] **Step 4: 重跑 stock-out 测试**
 
 Run:
 
@@ -235,7 +235,7 @@ Expected:
 - Verify: `backend/tests/test_v2_inventory_ledger.py`
 - Verify: `backend/tests/test_alembic_bootstrap.py`
 
-- [ ] **Step 1: 运行新增目标测试**
+- [x] **Step 1: 运行新增目标测试**
 
 Run:
 
@@ -243,7 +243,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -k "audit_log_and_outbox_event" -q
 ```
 
-- [ ] **Step 2: 运行 clarification / confirmation 全测试**
+- [x] **Step 2: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -251,7 +251,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 3: 运行 migration / V2 关键回归**
+- [x] **Step 3: 运行 migration / V2 关键回归**
 
 Run:
 
@@ -259,7 +259,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_alembic_bootstrap.py backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -267,7 +267,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

@@ -27,7 +27,7 @@
 - Modify: `backend/app/api/v2/router.py`
 - Modify: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认 items 接口按 tenant 返回商品**
+- [x] **Step 1: 先写失败测试，确认 items 接口按 tenant 返回商品**
 
 ```python
 def test_v2_list_inventory_items_returns_tenant_scoped_items(client, db_session) -> None:
@@ -58,7 +58,7 @@ def test_v2_list_inventory_items_returns_tenant_scoped_items(client, db_session)
     assert [item["name"] for item in payload["items"]] == ["Orange", "Cola"]
 ```
 
-- [ ] **Step 2: 运行 items 测试，确认因为路由或契约缺失而失败**
+- [x] **Step 2: 运行 items 测试，确认因为路由或契约缺失而失败**
 
 Run:
 
@@ -66,7 +66,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_read_api.py::test_v2_list_inventory_items_returns_tenant_scoped_items -q
 ```
 
-- [ ] **Step 3: 实现 items 查询契约、服务与路由**
+- [x] **Step 3: 实现 items 查询契约、服务与路由**
 
 ```python
 class V2InventoryItemData(BaseModel):
@@ -86,7 +86,7 @@ def list_v2_inventory_items(...):
     ...
 ```
 
-- [ ] **Step 4: 重跑 items 测试**
+- [x] **Step 4: 重跑 items 测试**
 
 Run:
 
@@ -106,7 +106,7 @@ Expected:
 - Modify: `backend/app/api/v2/routes/inventory.py`
 - Modify: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认 stock 接口只返回当前 shop 的库存投影**
+- [x] **Step 1: 先写失败测试，确认 stock 接口只返回当前 shop 的库存投影**
 
 ```python
 def test_v2_list_inventory_stock_returns_current_shop_snapshots(client, db_session) -> None:
@@ -139,7 +139,7 @@ def test_v2_list_inventory_stock_returns_current_shop_snapshots(client, db_sessi
     assert payload["items"][0]["item_name"] == "Cola"
 ```
 
-- [ ] **Step 2: 运行 stock 测试，确认因为查询逻辑缺失而失败**
+- [x] **Step 2: 运行 stock 测试，确认因为查询逻辑缺失而失败**
 
 Run:
 
@@ -147,7 +147,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_read_api.py::test_v2_list_inventory_stock_returns_current_shop_snapshots -q
 ```
 
-- [ ] **Step 3: 实现 stock 查询数据模型与服务**
+- [x] **Step 3: 实现 stock 查询数据模型与服务**
 
 ```python
 class V2InventoryStockData(BaseModel):
@@ -168,7 +168,7 @@ def list_v2_inventory_stock(...):
     # join snapshot + item，按 updated_at desc 排序
 ```
 
-- [ ] **Step 4: 重跑 stock 测试**
+- [x] **Step 4: 重跑 stock 测试**
 
 Run:
 
@@ -188,7 +188,7 @@ Expected:
 - Modify: `backend/app/api/v2/routes/inventory.py`
 - Modify: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认 events 接口返回当前 shop 最新事件**
+- [x] **Step 1: 先写失败测试，确认 events 接口返回当前 shop 最新事件**
 
 ```python
 def test_v2_list_inventory_events_returns_current_shop_events_newest_first(client, db_session) -> None:
@@ -219,7 +219,7 @@ def test_v2_list_inventory_events_returns_current_shop_events_newest_first(clien
     assert [item["item_name"] for item in payload["events"]] == ["Orange", "Cola"]
 ```
 
-- [ ] **Step 2: 运行 events 测试，确认因为路由或查询缺失而失败**
+- [x] **Step 2: 运行 events 测试，确认因为路由或查询缺失而失败**
 
 Run:
 
@@ -227,7 +227,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_read_api.py::test_v2_list_inventory_events_returns_current_shop_events_newest_first -q
 ```
 
-- [ ] **Step 3: 实现 events 查询数据模型与服务**
+- [x] **Step 3: 实现 events 查询数据模型与服务**
 
 ```python
 class V2InventoryLedgerEventData(BaseModel):
@@ -253,7 +253,7 @@ def list_v2_inventory_events(...):
     # join ledger event + item，按 occurred_at desc 排序
 ```
 
-- [ ] **Step 4: 重跑 events 测试**
+- [x] **Step 4: 重跑 events 测试**
 
 Run:
 
@@ -271,7 +271,7 @@ Expected:
 - Verify: `backend/tests/test_v2_inventory_read_api.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 V2 inventory read API 测试**
+- [x] **Step 1: 运行 V2 inventory read API 测试**
 
 Run:
 
@@ -279,7 +279,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_read_api.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -287,7 +287,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI 快照并校验**
+- [x] **Step 3: 刷新 OpenAPI 快照并校验**
 
 Run:
 
@@ -296,7 +296,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -304,7 +304,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

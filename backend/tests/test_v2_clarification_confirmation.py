@@ -216,6 +216,15 @@ def _create_api_identity_context(client, db_session) -> tuple[str, str]:
     return token, context_response.json()["data"]["context_token"]
 
 
+def _list_v2_stream_events(client, *, token: str, context_token: str, session_id: str) -> list[dict[str, object]]:
+    response = client.get(
+        f"/api/v2/sessions/{session_id}/stream-events?after_seq=0",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    assert response.status_code == 200
+    return response.json()["data"]["events"]
+
+
 def _seed_v2_inventory_task_run_in_existing_context(
     db_session,
     *,
@@ -445,12 +454,29 @@ def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(
 
     db_session.expire_all()
     task_run = db_session.get(V2TaskRun, task_run_id)
+    stream_events = _list_v2_stream_events(
+        client,
+        token=token,
+        context_token=context_token,
+        session_id=task_run.session_id if task_run is not None else "",
+    )
     assert response.status_code == 200
     assert response.json()["data"]["status"] == "approved"
     assert response.json()["data"]["approved_by_account_id"] == "acct_001"
     assert task_run is not None
     assert task_run.status == "executing"
     assert task_run.completed_at is None
+    assert [event["event_type"] for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "task.updated",
+        "task.updated",
+    ]
+    assert [event["data"].get("status") for event in stream_events if event["event_type"] == "task.updated"] == [
+        "captured",
+        "awaiting_confirmation",
+        "executing",
+    ]
 
 
 def test_v2_approve_confirmation_commits_inventory_and_appends_system_result_message(client, db_session) -> None:
@@ -578,6 +604,113 @@ def test_v2_approve_stock_in_confirmation_appends_audit_log_and_outbox_event(cli
     assert outbox_event.attempt_count == 0
     assert outbox_event.payload_json["confirmation_id"] == confirmation.confirmation_id
     assert outbox_event.payload_json["task_run_id"] == task_run_id
+
+
+def test_v2_approve_inventory_confirmation_enqueues_outbox_drain_after_commit(
+    db_session, monkeypatch
+) -> None:
+    from sqlalchemy import select
+
+    import app.services.v2_conversation as v2_conversation
+    from app.db.session import get_session_factory
+    from app.models import V2OutboxEvent, V2TaskRun
+    from app.services.v2_conversation import approve_v2_confirmation, create_v2_confirmation
+
+    task_run_id = "vtask_enqueue_after_commit"
+    _seed_v2_task_run(db_session, task_run_id=task_run_id)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+    )
+    observed: dict[str, object | None] = {}
+
+    def fake_enqueue_v2_outbox_drain(*, tenant_id: str, shop_id: str, **kwargs) -> bool:
+        verification_session = get_session_factory()()
+        try:
+            verification_task_run = verification_session.get(V2TaskRun, task_run_id)
+            verification_outbox = verification_session.scalar(
+                select(V2OutboxEvent)
+                .where(
+                    V2OutboxEvent.aggregate_type == "task_run",
+                    V2OutboxEvent.aggregate_id == task_run_id,
+                )
+                .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+            )
+            observed["tenant_id"] = tenant_id
+            observed["shop_id"] = shop_id
+            observed["batch_limit"] = kwargs.get("batch_limit", 50)
+            observed["max_batches"] = kwargs.get("max_batches", 10)
+            observed["retry_after_seconds"] = kwargs.get("retry_after_seconds", 60)
+            observed["task_status"] = verification_task_run.status if verification_task_run is not None else None
+            observed["outbox_status"] = verification_outbox.status if verification_outbox is not None else None
+        finally:
+            verification_session.close()
+        return True
+
+    monkeypatch.setattr(v2_conversation, "enqueue_v2_outbox_drain", fake_enqueue_v2_outbox_drain)
+
+    approved = approve_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        confirmation_id=confirmation.confirmation_id,
+        resolution_payload={
+            "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+        },
+        approved_by_account_id="acct_001",
+    )
+
+    assert approved.status == "approved"
+    assert observed == {
+        "tenant_id": "tenant_a",
+        "shop_id": "shop_a1",
+        "batch_limit": 50,
+        "max_batches": 10,
+        "retry_after_seconds": 60,
+        "task_status": "committed",
+        "outbox_status": "pending",
+    }
+
+
+def test_v2_approve_manual_review_confirmation_does_not_enqueue_outbox_drain(
+    db_session, monkeypatch
+) -> None:
+    import app.services.v2_conversation as v2_conversation
+    from app.services.v2_conversation import approve_v2_confirmation, create_v2_confirmation
+
+    task_run_id = "vtask_manual_review_no_enqueue"
+    _seed_v2_task_run(db_session, task_run_id=task_run_id)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="workflow.manual_review",
+        draft_payload={"note": "Need manual follow-up"},
+    )
+    calls: list[dict[str, object]] = []
+
+    def fake_enqueue_v2_outbox_drain(**kwargs) -> bool:
+        calls.append(kwargs)
+        return True
+
+    monkeypatch.setattr(v2_conversation, "enqueue_v2_outbox_drain", fake_enqueue_v2_outbox_drain)
+
+    approved = approve_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        confirmation_id=confirmation.confirmation_id,
+        resolution_payload={"fields": {"note": "approved for next worker"}},
+        approved_by_account_id="acct_001",
+    )
+
+    assert approved.status == "approved"
+    assert calls == []
 
 
 def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_result_message(
@@ -901,6 +1034,12 @@ def test_v2_reject_confirmation_marks_task_rejected_and_appends_system_result_me
         f"/api/v2/sessions/{task_run.session_id}/messages",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
     )
+    stream_events = _list_v2_stream_events(
+        client,
+        token=token,
+        context_token=context_token,
+        session_id=task_run.session_id,
+    )
     messages = messages_response.json()["data"]["messages"]
 
     assert messages_response.status_code == 200
@@ -913,6 +1052,16 @@ def test_v2_reject_confirmation_marks_task_rejected_and_appends_system_result_me
     assert messages[-1]["payload_json"]["confirmation_type"] == "inventory.stock_in"
     assert messages[-1]["payload_json"]["task_run_status"] == "rejected"
     assert "rejected" in messages[-1]["payload_json"]["text"].lower()
+    assert [event["event_type"] for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "task.updated",
+        "message.created",
+        "task.updated",
+    ]
+    assert stream_events[-2]["data"]["message_kind"] == "system_result"
+    assert stream_events[-2]["data"]["actor_type"] == "system"
+    assert stream_events[-1]["data"]["status"] == "rejected"
 
 
 def test_v2_list_clarifications_returns_current_context_pending_items(client, db_session) -> None:
@@ -966,6 +1115,12 @@ def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client
 
     db_session.expire_all()
     task_run = db_session.get(V2TaskRun, task_run_id)
+    stream_events = _list_v2_stream_events(
+        client,
+        token=token,
+        context_token=context_token,
+        session_id=task_run.session_id if task_run is not None else "",
+    )
     assert response.status_code == 200
     assert response.json()["data"]["status"] == "answered"
     assert response.json()["data"]["answered_by_account_id"] == "acct_001"
@@ -973,6 +1128,17 @@ def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client
     assert task_run is not None
     assert task_run.status == "drafted"
     assert task_run.completed_at is None
+    assert [event["event_type"] for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "task.updated",
+        "task.updated",
+    ]
+    assert [event["data"].get("status") for event in stream_events if event["event_type"] == "task.updated"] == [
+        "captured",
+        "needs_clarification",
+        "drafted",
+    ]
 
 
 def test_v2_answer_clarification_materializes_task_draft(client, db_session) -> None:
@@ -1161,6 +1327,16 @@ def test_v2_create_typed_task_draft_materializes_draft_and_marks_task_drafted(cl
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
         json={"confirmation_type": "inventory.stock_in"},
     )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    stream_events = _list_v2_stream_events(
+        client,
+        token=token,
+        context_token=context_token,
+        session_id=task_response.json()["data"]["session_id"],
+    )
 
     assert response.status_code == 200
     assert response.json()["data"]["status"] == "drafted"
@@ -1173,6 +1349,19 @@ def test_v2_create_typed_task_draft_materializes_draft_and_marks_task_drafted(cl
     }
     assert confirm_response.status_code == 201
     assert confirm_response.json()["data"]["draft_payload"] == response.json()["data"]["draft_payload"]
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["status"] == "awaiting_confirmation"
+    assert [event["event_type"] for event in stream_events] == [
+        "message.created",
+        "task.updated",
+        "task.updated",
+        "task.updated",
+    ]
+    assert [event["data"].get("status") for event in stream_events if event["event_type"] == "task.updated"] == [
+        "captured",
+        "drafted",
+        "awaiting_confirmation",
+    ]
 
 
 def test_v2_create_typed_task_draft_rejects_type_mismatch(client, db_session) -> None:

@@ -3610,6 +3610,18 @@
         "title": "V2DataEnvelope[V2MessageListData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2ProjectionReplayData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ProjectionReplayData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ProjectionReplayData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2SessionData_": {
         "properties": {
           "data": {
@@ -3632,6 +3644,18 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2SessionListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2SessionStreamReplayData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SessionStreamReplayData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SessionStreamReplayData]",
         "type": "object"
       },
       "V2DataEnvelope_V2ShopListData_": {
@@ -3692,6 +3716,18 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2TenantListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2WorkerHealthData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2WorkerHealthData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2WorkerHealthData]",
         "type": "object"
       },
       "V2ErrorBody": {
@@ -4246,6 +4282,79 @@
         "title": "V2MessageListData",
         "type": "object"
       },
+      "V2ProjectionReplayData": {
+        "properties": {
+          "deleted_snapshot_count": {
+            "title": "Deleted Snapshot Count",
+            "type": "integer"
+          },
+          "inventory_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory Item Id"
+          },
+          "ledger_event_count": {
+            "title": "Ledger Event Count",
+            "type": "integer"
+          },
+          "replayed_at": {
+            "format": "date-time",
+            "title": "Replayed At",
+            "type": "string"
+          },
+          "replayed_item_count": {
+            "title": "Replayed Item Count",
+            "type": "integer"
+          },
+          "replayed_snapshot_count": {
+            "title": "Replayed Snapshot Count",
+            "type": "integer"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "shop_id",
+          "inventory_item_id",
+          "replayed_item_count",
+          "replayed_snapshot_count",
+          "deleted_snapshot_count",
+          "ledger_event_count",
+          "replayed_at"
+        ],
+        "title": "V2ProjectionReplayData",
+        "type": "object"
+      },
+      "V2ProjectionReplayRequest": {
+        "properties": {
+          "inventory_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory Item Id"
+          }
+        },
+        "title": "V2ProjectionReplayRequest",
+        "type": "object"
+      },
       "V2RefreshRequest": {
         "properties": {
           "refresh_token": {
@@ -4329,6 +4438,98 @@
           "sessions"
         ],
         "title": "V2SessionListData",
+        "type": "object"
+      },
+      "V2SessionStreamEventData": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "task_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Run Id"
+          }
+        },
+        "required": [
+          "event_id",
+          "seq",
+          "event_type",
+          "session_id",
+          "occurred_at"
+        ],
+        "title": "V2SessionStreamEventData",
+        "type": "object"
+      },
+      "V2SessionStreamReplayData": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/V2SessionStreamEventData"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "last_event_seq": {
+            "title": "Last Event Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "count",
+          "last_event_seq",
+          "events"
+        ],
+        "title": "V2SessionStreamReplayData",
         "type": "object"
       },
       "V2ShopData": {
@@ -4661,6 +4862,70 @@
           "tenants"
         ],
         "title": "V2TenantListData",
+        "type": "object"
+      },
+      "V2WorkerHealthData": {
+        "properties": {
+          "completed_count": {
+            "title": "Completed Count",
+            "type": "integer"
+          },
+          "failed_count": {
+            "title": "Failed Count",
+            "type": "integer"
+          },
+          "oldest_available_pending_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Available Pending At"
+          },
+          "oldest_pending_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Pending At"
+          },
+          "pending_count": {
+            "title": "Pending Count",
+            "type": "integer"
+          },
+          "processing_count": {
+            "title": "Processing Count",
+            "type": "integer"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "shop_id",
+          "pending_count",
+          "processing_count",
+          "completed_count",
+          "failed_count",
+          "oldest_pending_at",
+          "oldest_available_pending_at"
+        ],
+        "title": "V2WorkerHealthData",
         "type": "object"
       },
       "ValidationError": {
@@ -7570,6 +7835,146 @@
         ]
       }
     },
+    "/api/v2/internal/projections/replay": {
+      "post": {
+        "operationId": "post_v2_projection_replay_api_v2_internal_projections_replay_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2ProjectionReplayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ProjectionReplayData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post V2 Projection Replay",
+        "tags": [
+          "v2-internal"
+        ]
+      }
+    },
+    "/api/v2/internal/worker-health": {
+      "get": {
+        "operationId": "get_v2_worker_health_api_v2_internal_worker_health_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2WorkerHealthData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get V2 Worker Health",
+        "tags": [
+          "v2-internal"
+        ]
+      }
+    },
     "/api/v2/inventory/corrections": {
       "post": {
         "operationId": "submit_inventory_correction_v2_api_v2_inventory_corrections_post",
@@ -8354,6 +8759,103 @@
           }
         },
         "summary": "Post Message V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/sessions/{session_id}/stream-events": {
+      "get": {
+        "operationId": "list_session_stream_events_v2_api_v2_sessions__session_id__stream_events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after_seq",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After Seq",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SessionStreamReplayData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Session Stream Events V2",
         "tags": [
           "v2-conversation"
         ]

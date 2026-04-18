@@ -50,7 +50,7 @@
 - Create: `backend/alembic/versions/20260418_02_create_v2_conversation_runtime.py`
 - Test: `backend/tests/test_v2_conversation_runtime.py`
 
-- [ ] **Step 1: 写失败测试，证明 conversation session、message、task_run 都直接带 tenant/shop 边界**
+- [x] **Step 1: 写失败测试，证明 conversation session、message、task_run 都直接带 tenant/shop 边界**
 
 ```python
 from sqlalchemy import select
@@ -108,7 +108,7 @@ def test_v2_runtime_schema_persists_tenant_and_shop_boundaries(db_session) -> No
     assert persisted_task_run.shop_id == "shop_a1"
 ```
 
-- [ ] **Step 2: 运行测试，确认因为模型或表不存在而失败**
+- [x] **Step 2: 运行测试，确认因为模型或表不存在而失败**
 
 Run:
 
@@ -120,7 +120,7 @@ Expected:
 
 - `ImportError`、`AttributeError` 或 `OperationalError: no such table`
 
-- [ ] **Step 3: 写 v2 runtime ORM 模型**
+- [x] **Step 3: 写 v2 runtime ORM 模型**
 
 `backend/app/models/v2_conversation.py`
 
@@ -201,7 +201,7 @@ class V2TaskRun(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
 ```
 
-- [ ] **Step 4: 写 Alembic 迁移**
+- [x] **Step 4: 写 Alembic 迁移**
 
 `backend/alembic/versions/20260418_02_create_v2_conversation_runtime.py`
 
@@ -309,7 +309,7 @@ def downgrade() -> None:
     op.drop_table("v2_conversation_sessions")
 ```
 
-- [ ] **Step 5: 导入模型并重新运行 schema 测试**
+- [x] **Step 5: 导入模型并重新运行 schema 测试**
 
 Run:
 
@@ -321,7 +321,7 @@ Expected:
 
 - `1 passed`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/app/models/v2_conversation.py backend/app/models/__init__.py backend/alembic/versions/20260418_02_create_v2_conversation_runtime.py backend/tests/test_v2_conversation_runtime.py
@@ -337,7 +337,7 @@ git commit -m "feat: add v2 conversation runtime schema"
 - Modify: `backend/app/api/v2/router.py`
 - Test: `backend/tests/test_v2_conversation_runtime.py`
 
-- [ ] **Step 1: 先在测试文件写共享 helper，显式创建 v2 account、context，并返回 `token + context_token`**
+- [x] **Step 1: 先在测试文件写共享 helper，显式创建 v2 account、context，并返回 `token + context_token`**
 
 ```python
 def seed_v2_login_and_context(client, db_session) -> tuple[str, str]:
@@ -363,7 +363,7 @@ def seed_v2_login_and_context(client, db_session) -> tuple[str, str]:
     return token, select_response.json()["data"]["context_token"]
 ```
 
-- [ ] **Step 2: 写失败测试，确认创建 session 必须使用 execution context，并从 context 继承 tenant/shop**
+- [x] **Step 2: 写失败测试，确认创建 session 必须使用 execution context，并从 context 继承 tenant/shop**
 
 ```python
 def test_v2_create_session_uses_execution_context_boundaries(client, db_session) -> None:
@@ -388,7 +388,7 @@ def test_v2_create_session_uses_execution_context_boundaries(client, db_session)
     assert payload["session_type"] == "workgroup"
 ```
 
-- [ ] **Step 3: 写失败测试，确认列出 session 只返回当前 tenant/shop 下的对象**
+- [x] **Step 3: 写失败测试，确认列出 session 只返回当前 tenant/shop 下的对象**
 
 ```python
 def test_v2_list_sessions_only_returns_current_context_scope(client, db_session) -> None:
@@ -415,7 +415,7 @@ def test_v2_list_sessions_only_returns_current_context_scope(client, db_session)
     assert [item["title"] for item in response.json()["data"]["sessions"]] == ["会话二", "会话一"]
 ```
 
-- [ ] **Step 4: 运行 session 测试，确认因为路由不存在而失败**
+- [x] **Step 4: 运行 session 测试，确认因为路由不存在而失败**
 
 Run:
 
@@ -427,7 +427,7 @@ Expected:
 
 - `404 != 201` 或 `404 != 200`
 
-- [ ] **Step 5: 写合同、服务与路由最小实现**
+- [x] **Step 5: 写合同、服务与路由最小实现**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -612,7 +612,7 @@ def list_sessions_v2(
     return V2DataEnvelope(data=V2SessionListData(sessions=sessions))
 ```
 
-- [ ] **Step 6: 挂载 router 并跑 session 测试**
+- [x] **Step 6: 挂载 router 并跑 session 测试**
 
 Run:
 
@@ -624,7 +624,7 @@ Expected:
 
 - `2 passed`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add backend/app/contracts/v2/conversation.py backend/app/services/v2_conversation.py backend/app/api/v2/routes/conversation.py backend/app/api/v2/router.py backend/tests/test_v2_conversation_runtime.py
@@ -639,7 +639,7 @@ git commit -m "feat: add v2 conversation sessions"
 - Modify: `backend/app/api/v2/routes/conversation.py`
 - Test: `backend/tests/test_v2_conversation_runtime.py`
 
-- [ ] **Step 1: 写失败测试，确认追加消息时会自动创建 `captured` 任务**
+- [x] **Step 1: 写失败测试，确认追加消息时会自动创建 `captured` 任务**
 
 ```python
 def test_v2_post_message_creates_message_and_captured_task_run(client, db_session) -> None:
@@ -668,7 +668,7 @@ def test_v2_post_message_creates_message_and_captured_task_run(client, db_sessio
     assert payload["status"] == "captured"
 ```
 
-- [ ] **Step 2: 写失败测试，确认列出消息只返回当前 session 且按时间正序**
+- [x] **Step 2: 写失败测试，确认列出消息只返回当前 session 且按时间正序**
 
 ```python
 def test_v2_list_messages_returns_session_scoped_history(client, db_session) -> None:
@@ -699,7 +699,7 @@ def test_v2_list_messages_returns_session_scoped_history(client, db_session) -> 
     assert [item["payload_json"]["text"] for item in response.json()["data"]["messages"]] == ["one", "two"]
 ```
 
-- [ ] **Step 3: 运行 message 测试，确认红灯**
+- [x] **Step 3: 运行 message 测试，确认红灯**
 
 Run:
 
@@ -711,7 +711,7 @@ Expected:
 
 - `404` 或 `422`
 
-- [ ] **Step 4: 写消息合同、服务与路由最小实现**
+- [x] **Step 4: 写消息合同、服务与路由最小实现**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -898,7 +898,7 @@ def list_messages_v2(
     return V2DataEnvelope(data=V2MessageListData(messages=messages))
 ```
 
-- [ ] **Step 5: 重新运行 message 测试**
+- [x] **Step 5: 重新运行 message 测试**
 
 Run:
 
@@ -910,7 +910,7 @@ Expected:
 
 - `2 passed`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/app/contracts/v2/conversation.py backend/app/services/v2_conversation.py backend/app/api/v2/routes/conversation.py backend/tests/test_v2_conversation_runtime.py
@@ -924,7 +924,7 @@ git commit -m "feat: add v2 messages and captured task runs"
 - Modify: `backend/app/api/v2/routes/conversation.py`
 - Test: `backend/tests/test_v2_conversation_runtime.py`
 
-- [ ] **Step 1: 写失败测试，确认 task_run 查询必须受当前上下文约束**
+- [x] **Step 1: 写失败测试，确认 task_run 查询必须受当前上下文约束**
 
 ```python
 def test_v2_get_task_run_returns_runtime_state_shape(client, db_session) -> None:
@@ -956,7 +956,7 @@ def test_v2_get_task_run_returns_runtime_state_shape(client, db_session) -> None
     assert payload["shop_id"] == "shop_a1"
 ```
 
-- [ ] **Step 2: 运行 task_run 测试，确认红灯**
+- [x] **Step 2: 运行 task_run 测试，确认红灯**
 
 Run:
 
@@ -968,7 +968,7 @@ Expected:
 
 - `404`
 
-- [ ] **Step 3: 写 `GET /api/v2/task-runs/{task_run_id}` 最小实现**
+- [x] **Step 3: 写 `GET /api/v2/task-runs/{task_run_id}` 最小实现**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -1041,7 +1041,7 @@ def get_task_run_v2(
     )
 ```
 
-- [ ] **Step 4: 跑 task_run 测试**
+- [x] **Step 4: 跑 task_run 测试**
 
 Run:
 
@@ -1053,7 +1053,7 @@ Expected:
 
 - `1 passed`
 
-- [ ] **Step 5: 运行本阶段新增测试**
+- [x] **Step 5: 运行本阶段新增测试**
 
 Run:
 
@@ -1065,7 +1065,7 @@ Expected:
 
 - 本文件全部通过
 
-- [ ] **Step 6: 运行关键回归**
+- [x] **Step 6: 运行关键回归**
 
 Run:
 
@@ -1078,7 +1078,7 @@ Expected:
 - v2 identity/context 不回退
 - OpenAPI 快照如失败，应先用 `python backend/scripts/generate_openapi_snapshot.py` 更新，再重新验证
 
-- [ ] **Step 7: 运行全量后端测试**
+- [x] **Step 7: 运行全量后端测试**
 
 Run:
 
@@ -1090,7 +1090,7 @@ Expected:
 
 - 全量通过
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add backend/app/contracts/v2/conversation.py backend/app/api/v2/routes/conversation.py backend/tests/test_v2_conversation_runtime.py project_docs/generated/openapi-v1.json

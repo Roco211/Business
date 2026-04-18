@@ -10,6 +10,18 @@ class Settings:
     redis_url: str
     database_url: str
     session_stream_keepalive_seconds: float
+    session_stream_pending_poll_seconds: float = float(os.getenv("SESSION_STREAM_PENDING_POLL_SECONDS", "1"))
+    v2_outbox_due_sweep_interval_seconds: int = int(os.getenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "30"))
+    v2_outbox_due_sweep_scope_limit: int = int(os.getenv("V2_OUTBOX_DUE_SWEEP_SCOPE_LIMIT", "20"))
+    v2_outbox_due_sweep_batch_limit_per_scope: int = int(
+        os.getenv("V2_OUTBOX_DUE_SWEEP_BATCH_LIMIT_PER_SCOPE", "50")
+    )
+    v2_outbox_due_sweep_max_batches_per_scope: int = int(
+        os.getenv("V2_OUTBOX_DUE_SWEEP_MAX_BATCHES_PER_SCOPE", "10")
+    )
+    v2_outbox_due_sweep_retry_after_seconds: int = int(
+        os.getenv("V2_OUTBOX_DUE_SWEEP_RETRY_AFTER_SECONDS", "60")
+    )
     app_runtime_mode: str = os.getenv("APP_RUNTIME_MODE", "local-demo")
     object_storage_provider: str = os.getenv("OBJECT_STORAGE_PROVIDER", "mock")
     object_storage_bucket: str | None = os.getenv("OBJECT_STORAGE_BUCKET")
@@ -105,6 +117,18 @@ def get_settings() -> Settings:
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
         database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
         session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),
+        session_stream_pending_poll_seconds=float(os.getenv("SESSION_STREAM_PENDING_POLL_SECONDS", "1")),
+        v2_outbox_due_sweep_interval_seconds=int(os.getenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "30")),
+        v2_outbox_due_sweep_scope_limit=int(os.getenv("V2_OUTBOX_DUE_SWEEP_SCOPE_LIMIT", "20")),
+        v2_outbox_due_sweep_batch_limit_per_scope=int(
+            os.getenv("V2_OUTBOX_DUE_SWEEP_BATCH_LIMIT_PER_SCOPE", "50")
+        ),
+        v2_outbox_due_sweep_max_batches_per_scope=int(
+            os.getenv("V2_OUTBOX_DUE_SWEEP_MAX_BATCHES_PER_SCOPE", "10")
+        ),
+        v2_outbox_due_sweep_retry_after_seconds=int(
+            os.getenv("V2_OUTBOX_DUE_SWEEP_RETRY_AFTER_SECONDS", "60")
+        ),
         object_storage_provider=os.getenv("OBJECT_STORAGE_PROVIDER", "mock"),
         object_storage_bucket=os.getenv("OBJECT_STORAGE_BUCKET"),
         object_storage_region=os.getenv("OBJECT_STORAGE_REGION"),

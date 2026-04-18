@@ -48,6 +48,7 @@ def create_app() -> FastAPI:
     )
     app.state.session_stream_manager = SessionStreamConnectionManager(
         keepalive_interval_seconds=settings.session_stream_keepalive_seconds,
+        pending_poll_interval_seconds=settings.session_stream_pending_poll_seconds,
         session_factory=get_session_factory(),
     )
     register_exception_handlers(app)

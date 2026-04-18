@@ -19,6 +19,8 @@ from app.services.v2_inventory import (
     validate_v2_stock_in_draft_payload,
     validate_v2_stock_out_draft_payload,
 )
+from app.services.v2_outbox_runtime_dispatch import enqueue_v2_outbox_drain
+from app.services.v2_session_stream import append_v2_session_event
 from app.services.v2_time import utc_now_naive
 
 CAPTURED_STATUS = "captured"
@@ -138,6 +140,74 @@ def list_v2_sessions(
     )
 
 
+def get_v2_session(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    session_id: str,
+) -> V2ConversationSession | None:
+    return db_session.scalar(
+        select(V2ConversationSession).where(
+            V2ConversationSession.session_id == session_id,
+            V2ConversationSession.tenant_id == tenant_id,
+            V2ConversationSession.shop_id == shop_id,
+        )
+    )
+
+
+def _message_preview_text(payload_json: dict[str, object], message_kind: str) -> str:
+    text = payload_json.get("text")
+    if isinstance(text, str) and text.strip():
+        return text.strip()
+    return message_kind
+
+
+def append_v2_message_created_event(
+    db_session: Session,
+    *,
+    message: V2Message,
+) -> None:
+    append_v2_session_event(
+        db_session,
+        tenant_id=message.tenant_id,
+        shop_id=message.shop_id,
+        session_id=message.session_id,
+        event_type="message.created",
+        task_run_id=None,
+        message_id=message.message_id,
+        data={
+            "message_kind": message.message_kind,
+            "actor_type": message.actor_type,
+            "actor_id": message.actor_id,
+            "preview_text": _message_preview_text(message.payload_json, message.message_kind),
+        },
+        occurred_at=message.created_at,
+    )
+
+
+def append_v2_task_updated_event(
+    db_session: Session,
+    *,
+    task_run: V2TaskRun,
+) -> None:
+    append_v2_session_event(
+        db_session,
+        tenant_id=task_run.tenant_id,
+        shop_id=task_run.shop_id,
+        session_id=task_run.session_id,
+        event_type="task.updated",
+        task_run_id=task_run.task_run_id,
+        message_id=task_run.source_message_id,
+        data={
+            "status": task_run.status,
+            "intent_type": task_run.intent_type,
+            "error_code": task_run.error_code,
+        },
+        occurred_at=task_run.updated_at,
+    )
+
+
 def create_v2_message_and_task_run(
     db_session: Session,
     *,
@@ -150,12 +220,11 @@ def create_v2_message_and_task_run(
     client_request_id: str | None,
     intent_type: str | None,
 ) -> tuple[V2Message, V2TaskRun] | None:
-    session = db_session.scalar(
-        select(V2ConversationSession).where(
-            V2ConversationSession.session_id == session_id,
-            V2ConversationSession.tenant_id == tenant_id,
-            V2ConversationSession.shop_id == shop_id,
-        )
+    session = get_v2_session(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        session_id=session_id,
     )
     if session is None:
         return None
@@ -192,6 +261,8 @@ def create_v2_message_and_task_run(
     )
     db_session.add(message)
     db_session.add(task_run)
+    append_v2_message_created_event(db_session, message=message)
+    append_v2_task_updated_event(db_session, task_run=task_run)
     db_session.commit()
     return message, task_run
 
@@ -258,6 +329,7 @@ def append_v2_system_result_message(
         created_at=now,
     )
     db_session.add(message)
+    append_v2_message_created_event(db_session, message=message)
     return message
 
 
@@ -342,6 +414,7 @@ def upsert_v2_task_draft(
     task_run.error_code = None
     task_run.updated_at = now
     task_run.completed_at = None
+    append_v2_task_updated_event(db_session, task_run=task_run)
     db_session.commit()
     return task_run
 
@@ -459,6 +532,7 @@ def create_v2_clarification(
     task_run.updated_at = now
     task_run.completed_at = None
     db_session.add(clarification)
+    append_v2_task_updated_event(db_session, task_run=task_run)
     db_session.commit()
     return clarification
 
@@ -514,6 +588,7 @@ def create_v2_confirmation(
     task_run.updated_at = now
     task_run.completed_at = None
     db_session.add(confirmation)
+    append_v2_task_updated_event(db_session, task_run=task_run)
     db_session.commit()
     return confirmation
 
@@ -612,6 +687,7 @@ def answer_v2_clarification(
     task_run.error_code = None
     task_run.updated_at = now
     task_run.completed_at = None
+    append_v2_task_updated_event(db_session, task_run=task_run)
     db_session.commit()
     return clarification
 
@@ -717,6 +793,7 @@ def approve_v2_confirmation(
     resolution_payload: dict[str, object],
     approved_by_account_id: str,
 ) -> V2Confirmation:
+    should_enqueue_outbox = False
     try:
         confirmation = _require_v2_confirmation_for_context(
             db_session,
@@ -770,6 +847,7 @@ def approve_v2_confirmation(
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
             system_result_text = "Inventory stock-in committed."
+            should_enqueue_outbox = True
         elif confirmation.confirmation_type == "inventory.stock_out":
             resolved_fields = dict(resolution_payload.get("fields") or {})
             commit_result = commit_v2_inventory_stock_out(
@@ -795,6 +873,7 @@ def approve_v2_confirmation(
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
             system_result_text = "Inventory stock-out committed."
+            should_enqueue_outbox = True
         else:
             task_run.status = EXECUTING_STATUS
             task_run.result_summary = "Confirmation approved; deterministic execution pending."
@@ -809,11 +888,14 @@ def approve_v2_confirmation(
                 confirmation=confirmation,
                 text=system_result_text,
             )
+        append_v2_task_updated_event(db_session, task_run=task_run)
         db_session.commit()
-        return confirmation
     except Exception:
         db_session.rollback()
         raise
+    if should_enqueue_outbox:
+        enqueue_v2_outbox_drain(tenant_id=tenant_id, shop_id=shop_id)
+    return confirmation
 
 
 def reject_v2_confirmation(
@@ -862,6 +944,7 @@ def reject_v2_confirmation(
             confirmation=confirmation,
             text="Confirmation rejected; no business change committed.",
         )
+        append_v2_task_updated_event(db_session, task_run=task_run)
         db_session.commit()
         return confirmation
     except Exception:

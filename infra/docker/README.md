@@ -7,6 +7,7 @@ This directory defines the local infrastructure for the current MVP foundation:
 - MinIO
 - API service
 - Worker service
+- Beat service
 
 Phase 2 adds SQLAlchemy and Alembic-backed persistence. The backend now expects a migration-managed schema for DB-backed routes such as mock login bootstrap and session bootstrap. By default the application derives its database URL from `MYSQL_*` variables, and `DATABASE_URL` is only needed when you want to override that behavior explicitly.
 
@@ -64,6 +65,8 @@ Current realtime behavior is intentionally lightweight:
 
 Replay endpoints, OCR-specific stream events, and stock-out realtime flows remain future work.
 
+The V2 outbox due-scope fallback now also has a Celery beat-based scheduling path. The beat process periodically enqueues `app.workers.v2_outbox_due_tasks.drain_due_v2_outbox_scopes` so pending projection work can still be swept even when no business request triggers the best-effort runtime dispatch path.
+
 ## Local Demo Run Order
 
 With the current MVP slices in place, the recommended local operator flow is now:
@@ -71,7 +74,7 @@ With the current MVP slices in place, the recommended local operator flow is now
 1. Start the local stack:
 
 ```powershell
-docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker
+docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker beat
 ```
 
 2. Verify the running API and reset the demo state:
@@ -111,7 +114,7 @@ Use this flow for operator trial checks (not demo reset):
 1. Start the local stack:
 
 ```powershell
-docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker
+docker compose -f infra/docker/docker-compose.yml --env-file .env.example up -d mysql redis minio api worker beat
 ```
 
 2. Switch runtime/provider env vars to the trial profile:

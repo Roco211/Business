@@ -46,7 +46,7 @@
 - Modify: `backend/app/models/__init__.py`
 - Create: `backend/alembic/versions/20260418_04_create_v2_task_drafts.py`
 
-- [ ] **Step 1: 写失败测试，固定 task_draft 直接持有 tenant/shop/task_run 边界**
+- [x] **Step 1: 写失败测试，固定 task_draft 直接持有 tenant/shop/task_run 边界**
 
 ```python
 def test_v2_task_draft_schema_persists_context_boundaries(db_session) -> None:
@@ -76,7 +76,7 @@ def test_v2_task_draft_schema_persists_context_boundaries(db_session) -> None:
     assert persisted.shop_id == "shop_a1"
 ```
 
-- [ ] **Step 2: 运行测试，确认因为模型或表不存在而失败**
+- [x] **Step 2: 运行测试，确认因为模型或表不存在而失败**
 
 Run:
 
@@ -84,7 +84,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_task_draft_schema_persists_context_boundaries -q
 ```
 
-- [ ] **Step 3: 新增 `V2TaskDraft` 模型与迁移**
+- [x] **Step 3: 新增 `V2TaskDraft` 模型与迁移**
 
 `backend/app/models/v2_conversation.py`
 
@@ -110,7 +110,7 @@ revision = "20260418_04"
 down_revision = "20260418_03"
 ```
 
-- [ ] **Step 4: 重新运行 schema 测试**
+- [x] **Step 4: 重新运行 schema 测试**
 
 Run:
 
@@ -129,7 +129,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 写失败测试，确认回答 clarification 会创建可读取的 task_draft**
+- [x] **Step 1: 写失败测试，确认回答 clarification 会创建可读取的 task_draft**
 
 ```python
 def test_v2_answer_clarification_materializes_task_draft(client, db_session) -> None:
@@ -165,7 +165,7 @@ def test_v2_answer_clarification_materializes_task_draft(client, db_session) -> 
     }
 ```
 
-- [ ] **Step 2: 运行测试，确认因为 draft 字段或服务不存在而失败**
+- [x] **Step 2: 运行测试，确认因为 draft 字段或服务不存在而失败**
 
 Run:
 
@@ -173,7 +173,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_answer_clarification_materializes_task_draft -q
 ```
 
-- [ ] **Step 3: 扩展合同与服务**
+- [x] **Step 3: 扩展合同与服务**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -200,7 +200,7 @@ def upsert_v2_task_draft_from_clarification(...):
 
 并让 `answer_v2_clarification()` 在 task 进入 `drafted` 的同时写入或更新 draft。
 
-- [ ] **Step 4: 重新运行 draft 测试**
+- [x] **Step 4: 重新运行 draft 测试**
 
 Run:
 
@@ -219,7 +219,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 写失败测试，确认 drafted task 可以从 draft 创建 confirmation**
+- [x] **Step 1: 写失败测试，确认 drafted task 可以从 draft 创建 confirmation**
 
 ```python
 def test_v2_request_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
@@ -262,7 +262,7 @@ def test_v2_request_confirmation_from_draft_creates_pending_confirmation(client,
     assert task_response.json()["data"]["status"] == "awaiting_confirmation"
 ```
 
-- [ ] **Step 2: 写失败测试，确认没有 draft 时不能请求 confirmation**
+- [x] **Step 2: 写失败测试，确认没有 draft 时不能请求 confirmation**
 
 ```python
 def test_v2_request_confirmation_from_draft_rejects_missing_draft(client, db_session) -> None:
@@ -278,7 +278,7 @@ def test_v2_request_confirmation_from_draft_rejects_missing_draft(client, db_ses
     assert response.json()["error"]["code"] == "draft_not_ready"
 ```
 
-- [ ] **Step 3: 运行测试，确认因为路由不存在而失败**
+- [x] **Step 3: 运行测试，确认因为路由不存在而失败**
 
 Run:
 
@@ -286,7 +286,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_request_confirmation_from_draft_creates_pending_confirmation backend/tests/test_v2_clarification_confirmation.py::test_v2_request_confirmation_from_draft_rejects_missing_draft -q
 ```
 
-- [ ] **Step 4: 新增 request-confirmation 服务与路由**
+- [x] **Step 4: 新增 request-confirmation 服务与路由**
 
 `backend/app/services/v2_conversation.py`
 
@@ -305,7 +305,7 @@ def request_confirmation_from_draft_v2(...):
     ...
 ```
 
-- [ ] **Step 5: 重新运行 confirmation request 测试**
+- [x] **Step 5: 重新运行 confirmation request 测试**
 
 Run:
 
@@ -323,7 +323,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 clarification / draft / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / draft / confirmation 全测试**
 
 Run:
 
@@ -331,7 +331,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行 v2 关键回归**
+- [x] **Step 2: 运行 v2 关键回归**
 
 Run:
 
@@ -339,7 +339,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI 快照并校验**
+- [x] **Step 3: 刷新 OpenAPI 快照并校验**
 
 Run:
 
@@ -348,7 +348,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行全量后端测试**
+- [x] **Step 4: 运行全量后端测试**
 
 Run:
 
@@ -356,7 +356,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

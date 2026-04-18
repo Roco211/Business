@@ -25,7 +25,7 @@
 - Modify: `backend/app/services/v2_inventory.py`
 - Modify: `backend/app/api/v2/routes/inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认出库会更新 snapshot 并追加 `stock_out` 账本事件**
+- [x] **Step 1: 先写失败测试，确认出库会更新 snapshot 并追加 `stock_out` 账本事件**
 
 ```python
 from decimal import Decimal
@@ -80,7 +80,7 @@ def test_v2_submit_inventory_stock_out_updates_snapshot_and_writes_event(client,
     assert event.reason == "counter sale"
 ```
 
-- [ ] **Step 2: 运行成功测试，确认因为路由或服务缺失而失败**
+- [x] **Step 2: 运行成功测试，确认因为路由或服务缺失而失败**
 
 Run:
 
@@ -92,7 +92,7 @@ Expected:
 
 - 测试失败，接口当前应返回 `404 Not Found`，因为 `/api/v2/inventory/stock-out` 尚未实现。
 
-- [ ] **Step 3: 新增出库请求 / 响应契约**
+- [x] **Step 3: 新增出库请求 / 响应契约**
 
 在 `backend/app/contracts/v2/inventory.py` 中追加：
 
@@ -110,7 +110,7 @@ class V2SubmitInventoryStockOutData(BaseModel):
     new_quantity: Decimal
 ```
 
-- [ ] **Step 4: 新增出库服务结果与错误类型**
+- [x] **Step 4: 新增出库服务结果与错误类型**
 
 在 `backend/app/services/v2_inventory.py` 中追加：
 
@@ -133,7 +133,7 @@ class V2InventoryStockOutResult:
     event: V2InventoryLedgerEvent
 ```
 
-- [ ] **Step 5: 实现最小出库服务**
+- [x] **Step 5: 实现最小出库服务**
 
 在 `backend/app/services/v2_inventory.py` 中追加：
 
@@ -208,7 +208,7 @@ def submit_v2_inventory_stock_out(
     return V2InventoryStockOutResult(snapshot=snapshot, event=event)
 ```
 
-- [ ] **Step 6: 实现出库路由与成功响应**
+- [x] **Step 6: 实现出库路由与成功响应**
 
 在 `backend/app/api/v2/routes/inventory.py` 中新增 imports：
 
@@ -279,7 +279,7 @@ def submit_inventory_stock_out_v2(
     )
 ```
 
-- [ ] **Step 7: 重跑成功测试**
+- [x] **Step 7: 重跑成功测试**
 
 Run:
 
@@ -298,7 +298,7 @@ Expected:
 - Modify: `backend/app/services/v2_inventory.py`
 - Modify: `backend/app/api/v2/routes/inventory.py`
 
-- [ ] **Step 1: 写失败测试，确认过期 `expected_quantity` 返回 409**
+- [x] **Step 1: 写失败测试，确认过期 `expected_quantity` 返回 409**
 
 ```python
 def test_v2_submit_inventory_stock_out_rejects_stale_expected_quantity(client, db_session) -> None:
@@ -326,7 +326,7 @@ def test_v2_submit_inventory_stock_out_rejects_stale_expected_quantity(client, d
     assert response.json()["error"]["code"] == "inventory_conflict"
 ```
 
-- [ ] **Step 2: 写失败测试，确认出库数量超过当前库存返回 422**
+- [x] **Step 2: 写失败测试，确认出库数量超过当前库存返回 422**
 
 ```python
 def test_v2_submit_inventory_stock_out_rejects_excessive_quantity(client, db_session) -> None:
@@ -354,7 +354,7 @@ def test_v2_submit_inventory_stock_out_rejects_excessive_quantity(client, db_ses
     assert response.json()["error"]["code"] == "validation_error"
 ```
 
-- [ ] **Step 3: 写失败测试，确认非正数出库数量返回 422**
+- [x] **Step 3: 写失败测试，确认非正数出库数量返回 422**
 
 ```python
 def test_v2_submit_inventory_stock_out_rejects_non_positive_quantity(client, db_session) -> None:
@@ -382,7 +382,7 @@ def test_v2_submit_inventory_stock_out_rejects_non_positive_quantity(client, db_
     assert response.json()["error"]["code"] == "validation_error"
 ```
 
-- [ ] **Step 4: 写失败测试，确认其他门店的 snapshot 在当前上下文不可见**
+- [x] **Step 4: 写失败测试，确认其他门店的 snapshot 在当前上下文不可见**
 
 ```python
 def test_v2_submit_inventory_stock_out_rejects_item_outside_current_shop(client, db_session) -> None:
@@ -411,7 +411,7 @@ def test_v2_submit_inventory_stock_out_rejects_item_outside_current_shop(client,
     assert response.json()["error"]["code"] == "inventory_item_not_found"
 ```
 
-- [ ] **Step 5: 运行四条错误路径测试，确认失败原因准确**
+- [x] **Step 5: 运行四条错误路径测试，确认失败原因准确**
 
 Run:
 
@@ -423,7 +423,7 @@ Expected:
 
 - 在实现路由前失败；在 Task 1 的服务和路由补齐后应全部通过。
 
-- [ ] **Step 6: 重跑出库 API 测试文件**
+- [x] **Step 6: 重跑出库 API 测试文件**
 
 Run:
 
@@ -441,7 +441,7 @@ Expected:
 - Verify: `backend/tests/test_v2_inventory_stock_out_api.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行库存相关 V2 回归**
+- [x] **Step 1: 运行库存相关 V2 回归**
 
 Run:
 
@@ -453,7 +453,7 @@ Expected:
 
 - 全部通过。
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -465,7 +465,7 @@ Expected:
 
 - 全部通过。
 
-- [ ] **Step 3: 刷新 OpenAPI 快照并校验**
+- [x] **Step 3: 刷新 OpenAPI 快照并校验**
 
 Run:
 
@@ -478,7 +478,7 @@ Expected:
 
 - OpenAPI snapshot 测试通过；如果 snapshot 有差异，确认只来自新增 `/api/v2/inventory/stock-out`。
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -490,7 +490,7 @@ Expected:
 
 - 全量测试通过。
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

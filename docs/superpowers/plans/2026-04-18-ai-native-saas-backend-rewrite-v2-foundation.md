@@ -50,7 +50,7 @@
 - Modify: `backend/app/api/router.py`
 - Test: `backend/tests/test_v2_identity_context.py`
 
-- [ ] **Step 1: 写失败测试，固定 v2 health 入口**
+- [x] **Step 1: 写失败测试，固定 v2 health 入口**
 
 ```python
 def test_v2_health_returns_versioned_envelope(client) -> None:
@@ -65,7 +65,7 @@ def test_v2_health_returns_versioned_envelope(client) -> None:
     }
 ```
 
-- [ ] **Step 2: 运行测试，确认因为路由不存在而失败**
+- [x] **Step 2: 运行测试，确认因为路由不存在而失败**
 
 Run:
 
@@ -78,7 +78,7 @@ Expected:
 - 失败原因是 `404 != 200`。
 - 如果是导入错误，先修正测试导入再重新确认红灯（RED）。
 
-- [ ] **Step 3: 写最小 v2 合同和路由实现**
+- [x] **Step 3: 写最小 v2 合同和路由实现**
 
 `backend/app/contracts/v2/common.py`
 
@@ -149,7 +149,7 @@ from app.api.v2.router import v2_router
 api_router.include_router(v2_router)
 ```
 
-- [ ] **Step 4: 运行 v2 health 测试确认绿灯**
+- [x] **Step 4: 运行 v2 health 测试确认绿灯**
 
 Run:
 
@@ -161,7 +161,7 @@ Expected:
 
 - `1 passed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/api/router.py backend/app/api/v2 backend/app/contracts/v2 backend/tests/test_v2_identity_context.py
@@ -177,7 +177,7 @@ git commit -m "feat: add v2 api foundation"
 - Create: `backend/alembic/versions/20260418_01_create_v2_identity_context.py`
 - Test: `backend/tests/test_v2_identity_context.py`
 
-- [ ] **Step 1: 写失败测试，证明账号可属于两个租户且租户可包含多个门店**
+- [x] **Step 1: 写失败测试，证明账号可属于两个租户且租户可包含多个门店**
 
 ```python
 from sqlalchemy import select
@@ -262,7 +262,7 @@ def test_v2_schema_supports_account_multiple_tenants_and_tenant_multiple_shops(d
     assert {shop.shop_id for shop in shops} == {"shop_a1", "shop_a2"}
 ```
 
-- [ ] **Step 2: 运行测试，确认因为模型不存在或表不存在而失败**
+- [x] **Step 2: 运行测试，确认因为模型不存在或表不存在而失败**
 
 Run:
 
@@ -274,7 +274,7 @@ Expected:
 
 - 失败原因是 `ImportError`、`AttributeError` 或 `OperationalError: no such table`。
 
-- [ ] **Step 3: 先新增共享时间工具，避免 ORM 和服务各自复制时间实现**
+- [x] **Step 3: 先新增共享时间工具，避免 ORM 和服务各自复制时间实现**
 
 `backend/app/services/v2_time.py`
 
@@ -286,7 +286,7 @@ def utc_now_naive() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 ```
 
-- [ ] **Step 4: 新增 v2 ORM 模型**
+- [x] **Step 4: 新增 v2 ORM 模型**
 
 `backend/app/models/v2_identity.py`
 
@@ -400,7 +400,7 @@ class V2ContextSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
 ```
 
-- [ ] **Step 5: 新增迁移，创建与 ORM 一致的 v2 表**
+- [x] **Step 5: 新增迁移，创建与 ORM 一致的 v2 表**
 
 Run:
 
@@ -558,7 +558,7 @@ def downgrade() -> None:
     op.drop_table("v2_accounts")
 ```
 
-- [ ] **Step 6: 导入模型并运行迁移测试**
+- [x] **Step 6: 导入模型并运行迁移测试**
 
 `backend/app/models/__init__.py`
 
@@ -584,7 +584,7 @@ Expected:
 
 - `1 passed`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add backend/app/services/v2_time.py backend/app/models/v2_identity.py backend/app/models/__init__.py backend/alembic/versions/20260418_01_create_v2_identity_context.py backend/tests/test_v2_identity_context.py
@@ -601,7 +601,7 @@ git commit -m "feat: add v2 identity context schema"
 - Modify: `backend/app/api/v2/router.py`
 - Test: `backend/tests/test_v2_identity_context.py`
 
-- [ ] **Step 1: 在测试文件顶部补齐共享 helper，避免测试只调用未定义的种子函数**
+- [x] **Step 1: 在测试文件顶部补齐共享 helper，避免测试只调用未定义的种子函数**
 
 `backend/tests/test_v2_identity_context.py`
 
@@ -699,7 +699,7 @@ def login_v2(client, email: str, password: str) -> str:
     return response.json()["data"]["access_token"]
 ```
 
-- [ ] **Step 2: 写失败测试，确认登录只返回账号登录态，不绑定 tenant 或 shop**
+- [x] **Step 2: 写失败测试，确认登录只返回账号登录态，不绑定 tenant 或 shop**
 
 ```python
 def test_v2_login_returns_account_session_without_shop_binding(client, db_session) -> None:
@@ -725,7 +725,7 @@ def test_v2_login_returns_account_session_without_shop_binding(client, db_sessio
     assert "shop_id" not in payload
 ```
 
-- [ ] **Step 3: 写失败测试，确认账号可列出多个 tenant，并只看到有权限的 shop**
+- [x] **Step 3: 写失败测试，确认账号可列出多个 tenant，并只看到有权限的 shop**
 
 ```python
 def test_v2_me_tenants_and_tenant_shops_use_membership_boundaries(client, db_session) -> None:
@@ -758,7 +758,7 @@ def test_v2_me_tenants_and_tenant_shops_use_membership_boundaries(client, db_ses
     assert [shop["shop_id"] for shop in shops_response.json()["data"]["shops"]] == ["shop_a1"]
 ```
 
-- [ ] **Step 4: 写失败测试，确认 context selection 拒绝无权访问的 shop**
+- [x] **Step 4: 写失败测试，确认 context selection 拒绝无权访问的 shop**
 
 ```python
 def test_v2_context_select_rejects_shop_without_access(client, db_session) -> None:
@@ -783,7 +783,7 @@ def test_v2_context_select_rejects_shop_without_access(client, db_session) -> No
     assert response.json()["error"]["code"] == "shop_access_denied"
 ```
 
-- [ ] **Step 5: 写失败测试，确认有权访问的 shop 会创建 context session**
+- [x] **Step 5: 写失败测试，确认有权访问的 shop 会创建 context session**
 
 ```python
 def test_v2_context_select_creates_explicit_context_session(client, db_session) -> None:
@@ -813,7 +813,7 @@ def test_v2_context_select_creates_explicit_context_session(client, db_session) 
     assert "inventory:read" in payload["permissions"]
 ```
 
-- [ ] **Step 6: 运行任务测试，确认红灯**
+- [x] **Step 6: 运行任务测试，确认红灯**
 
 Run:
 
@@ -826,7 +826,7 @@ Expected:
 - v2 health 与 schema 测试通过。
 - 登录、租户列表、门店列表、context selection 测试因 `404` 或缺失服务而失败。
 
-- [ ] **Step 7: 新增 v2 identity 合同**
+- [x] **Step 7: 新增 v2 identity 合同**
 
 `backend/app/contracts/v2/identity.py`
 
@@ -883,7 +883,7 @@ class V2ContextData(BaseModel):
     permissions: list[str]
 ```
 
-- [ ] **Step 8: 新增 v2 identity 服务**
+- [x] **Step 8: 新增 v2 identity 服务**
 
 `backend/app/services/v2_identity.py`
 
@@ -1080,7 +1080,7 @@ def select_v2_context(
     return context_session
 ```
 
-- [ ] **Step 9: 新增 v2 auth/context 依赖**
+- [x] **Step 9: 新增 v2 auth/context 依赖**
 
 `backend/app/api/deps/v2_context.py`
 
@@ -1122,7 +1122,7 @@ def require_v2_authenticated_account(
     )
 ```
 
-- [ ] **Step 10: 新增 v2 identity 路由**
+- [x] **Step 10: 新增 v2 identity 路由**
 
 `backend/app/api/v2/routes/identity.py`
 
@@ -1262,7 +1262,7 @@ from app.api.v2.routes.identity import router as identity_router
 v2_router.include_router(identity_router)
 ```
 
-- [ ] **Step 11: 注册 v2 未授权异常处理**
+- [x] **Step 11: 注册 v2 未授权异常处理**
 
 `backend/app/main.py`
 
@@ -1280,7 +1280,7 @@ async def _handle_v2_unauthorized(_, __) -> JSONResponse:
     )
 ```
 
-- [ ] **Step 12: 重新运行 v2 identity/context 测试**
+- [x] **Step 12: 重新运行 v2 identity/context 测试**
 
 Run:
 
@@ -1292,7 +1292,7 @@ Expected:
 
 - 本文件所有测试通过。
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 git add backend/app/services/v2_time.py backend/app/services/v2_identity.py backend/app/contracts/v2/identity.py backend/app/api/deps/v2_context.py backend/app/api/v2/routes/identity.py backend/app/api/v2/router.py backend/app/main.py backend/tests/test_v2_identity_context.py
@@ -1305,7 +1305,7 @@ git commit -m "feat: add v2 identity context flow"
 - Modify: `backend/app/api/deps/v2_context.py`
 - Test: `backend/tests/test_v2_identity_context.py`
 
-- [ ] **Step 1: 写失败测试，固定没有 context token 时 v2 业务依赖拒绝执行**
+- [x] **Step 1: 写失败测试，固定没有 context token 时 v2 业务依赖拒绝执行**
 
 ```python
 from fastapi import Depends, FastAPI
@@ -1331,7 +1331,7 @@ def test_v2_business_dependency_rejects_missing_context_token(db_session) -> Non
     assert response.json()["error"]["code"] == "context_required"
 ```
 
-- [ ] **Step 2: 运行测试，确认依赖不存在而失败**
+- [x] **Step 2: 运行测试，确认依赖不存在而失败**
 
 Run:
 
@@ -1343,7 +1343,7 @@ Expected:
 
 - `ImportError` 或 `AttributeError`。
 
-- [ ] **Step 3: 新增 v2 执行上下文依赖**
+- [x] **Step 3: 新增 v2 执行上下文依赖**
 
 `backend/app/api/deps/v2_context.py`
 
@@ -1397,7 +1397,7 @@ def require_v2_execution_context(
     )
 ```
 
-- [ ] **Step 4: 注册 context required 异常处理**
+- [x] **Step 4: 注册 context required 异常处理**
 
 `backend/app/main.py`
 
@@ -1415,7 +1415,7 @@ async def _handle_v2_context_required(_, __) -> JSONResponse:
     )
 ```
 
-- [ ] **Step 5: 运行缺失上下文测试**
+- [x] **Step 5: 运行缺失上下文测试**
 
 Run:
 
@@ -1427,7 +1427,7 @@ Expected:
 
 - `1 passed`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/app/api/deps/v2_context.py backend/app/main.py backend/tests/test_v2_identity_context.py
@@ -1440,7 +1440,7 @@ git commit -m "feat: require explicit v2 execution context"
 - Verify: `backend/tests/test_v2_identity_context.py`
 - Verify: existing backend tests that may be impacted by app wiring and migrations
 
-- [ ] **Step 1: 运行 v2 新测试**
+- [x] **Step 1: 运行 v2 新测试**
 
 Run:
 
@@ -1452,7 +1452,7 @@ Expected:
 
 - 所有 v2 identity/context 测试通过。
 
-- [ ] **Step 2: 运行认证、迁移与健康检查相关回归测试**
+- [x] **Step 2: 运行认证、迁移与健康检查相关回归测试**
 
 Run:
 
@@ -1465,7 +1465,7 @@ Expected:
 - 现有 v1 行为未被破坏。
 - Alembic 能从空库升级到最新 head。
 
-- [ ] **Step 3: 检查 OpenAPI 中同时存在 v1 与 v2 路由**
+- [x] **Step 3: 检查 OpenAPI 中同时存在 v1 与 v2 路由**
 
 Run:
 
@@ -1485,7 +1485,7 @@ Expected:
 
 - 输出 `v1/v2 routes coexist`。
 
-- [ ] **Step 4: 检查 git 状态**
+- [x] **Step 4: 检查 git 状态**
 
 Run:
 

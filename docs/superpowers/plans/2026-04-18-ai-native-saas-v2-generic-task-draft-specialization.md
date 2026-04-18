@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 写失败测试，确认默认 `conversation.capture` task 可以通过 typed draft API 进入 `inventory.stock_in`**
+- [x] **Step 1: 写失败测试，确认默认 `conversation.capture` task 可以通过 typed draft API 进入 `inventory.stock_in`**
 
 ```python
 def test_v2_create_typed_task_draft_specializes_generic_task_intent(client, db_session) -> None:
@@ -45,7 +45,7 @@ def test_v2_create_typed_task_draft_specializes_generic_task_intent(client, db_s
     assert confirm_response.status_code == 201
 ```
 
-- [ ] **Step 2: 运行新增测试，确认当前实现因为 generic intent 被当作 mismatch 而失败**
+- [x] **Step 2: 运行新增测试，确认当前实现因为 generic intent 被当作 mismatch 而失败**
 
 Run:
 
@@ -63,27 +63,27 @@ Expected:
 **Files:**
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 在 `upsert_v2_task_draft()` 中识别 generic intent**
+- [x] **Step 1: 在 `upsert_v2_task_draft()` 中识别 generic intent**
 
 ```python
 should_specialize_generic_task = task_run.intent_type in GENERIC_DRAFT_TYPES
 ```
 
-- [ ] **Step 2: 仅在非 generic 且不匹配时拒绝**
+- [x] **Step 2: 仅在非 generic 且不匹配时拒绝**
 
 ```python
 if not should_specialize_generic_task and task_run.intent_type != normalized_draft_type:
     raise V2TaskDraftTypeMismatchError(...)
 ```
 
-- [ ] **Step 3: 在写 draft 前更新 task run 的 intent**
+- [x] **Step 3: 在写 draft 前更新 task run 的 intent**
 
 ```python
 if should_specialize_generic_task:
     task_run.intent_type = normalized_draft_type
 ```
 
-- [ ] **Step 4: 重跑新增测试**
+- [x] **Step 4: 重跑新增测试**
 
 Run:
 
@@ -100,7 +100,7 @@ Expected:
 **Files:**
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -108,7 +108,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -116,7 +116,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -124,7 +124,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

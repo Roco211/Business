@@ -25,7 +25,7 @@
 - Modify: `backend/app/services/v2_inventory.py`
 - Modify: `backend/app/api/v2/routes/inventory.py`
 
-- [ ] **Step 1: 先写失败测试，确认 correction 会写入 correction ledger event 并更新 snapshot**
+- [x] **Step 1: 先写失败测试，确认 correction 会写入 correction ledger event 并更新 snapshot**
 
 ```python
 def test_v2_submit_inventory_correction_updates_snapshot_and_returns_event_id(client, db_session) -> None:
@@ -55,7 +55,7 @@ def test_v2_submit_inventory_correction_updates_snapshot_and_returns_event_id(cl
     assert response.json()["data"]["correction_event_id"].startswith("vevent_")
 ```
 
-- [ ] **Step 2: 运行成功测试，确认因为路由或服务缺失而失败**
+- [x] **Step 2: 运行成功测试，确认因为路由或服务缺失而失败**
 
 Run:
 
@@ -63,7 +63,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_corrections_api.py::test_v2_submit_inventory_correction_updates_snapshot_and_returns_event_id -q
 ```
 
-- [ ] **Step 3: 新增 correction 请求 / 响应契约与最小服务签名**
+- [x] **Step 3: 新增 correction 请求 / 响应契约与最小服务签名**
 
 ```python
 class V2SubmitInventoryCorrectionRequest(BaseModel):
@@ -86,7 +86,7 @@ class V2InventoryCorrectionResult:
     event: V2InventoryLedgerEvent
 ```
 
-- [ ] **Step 4: 实现 correction 路由与最小服务，让成功测试转绿**
+- [x] **Step 4: 实现 correction 路由与最小服务，让成功测试转绿**
 
 ```python
 @router.post("/corrections", response_model=V2DataEnvelope[V2SubmitInventoryCorrectionData])
@@ -103,7 +103,7 @@ def submit_v2_inventory_correction(...):
     # commit
 ```
 
-- [ ] **Step 5: 重跑成功测试**
+- [x] **Step 5: 重跑成功测试**
 
 Run:
 
@@ -122,7 +122,7 @@ Expected:
 - Modify: `backend/app/services/v2_inventory.py`
 - Modify: `backend/app/api/v2/routes/inventory.py`
 
-- [ ] **Step 1: 写失败测试，确认 stale expected quantity 返回 409**
+- [x] **Step 1: 写失败测试，确认 stale expected quantity 返回 409**
 
 ```python
 def test_v2_submit_inventory_correction_rejects_stale_expected_quantity(client, db_session) -> None:
@@ -131,7 +131,7 @@ def test_v2_submit_inventory_correction_rejects_stale_expected_quantity(client, 
     assert response.json()["error"]["code"] == "inventory_conflict"
 ```
 
-- [ ] **Step 2: 写失败测试，确认负数 corrected quantity 返回 422**
+- [x] **Step 2: 写失败测试，确认负数 corrected quantity 返回 422**
 
 ```python
 def test_v2_submit_inventory_correction_rejects_negative_quantity(client, db_session) -> None:
@@ -140,7 +140,7 @@ def test_v2_submit_inventory_correction_rejects_negative_quantity(client, db_ses
     assert response.json()["error"]["code"] == "validation_error"
 ```
 
-- [ ] **Step 3: 写失败测试，确认其他门店的 snapshot 在当前上下文不可见**
+- [x] **Step 3: 写失败测试，确认其他门店的 snapshot 在当前上下文不可见**
 
 ```python
 def test_v2_submit_inventory_correction_rejects_item_outside_current_shop(client, db_session) -> None:
@@ -149,7 +149,7 @@ def test_v2_submit_inventory_correction_rejects_item_outside_current_shop(client
     assert response.json()["error"]["code"] == "inventory_item_not_found"
 ```
 
-- [ ] **Step 4: 运行这三个测试，确认失败原因准确**
+- [x] **Step 4: 运行这三个测试，确认失败原因准确**
 
 Run:
 
@@ -157,7 +157,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_corrections_api.py::test_v2_submit_inventory_correction_rejects_stale_expected_quantity backend/tests/test_v2_inventory_corrections_api.py::test_v2_submit_inventory_correction_rejects_negative_quantity backend/tests/test_v2_inventory_corrections_api.py::test_v2_submit_inventory_correction_rejects_item_outside_current_shop -q
 ```
 
-- [ ] **Step 5: 补全 service / route 的错误类型与映射**
+- [x] **Step 5: 补全 service / route 的错误类型与映射**
 
 ```python
 class V2InventoryCorrectionValidationError(ValueError):
@@ -172,7 +172,7 @@ class V2InventoryCorrectionItemNotFoundError(LookupError):
     pass
 ```
 
-- [ ] **Step 6: 重跑三条错误路径测试**
+- [x] **Step 6: 重跑三条错误路径测试**
 
 Run:
 
@@ -190,7 +190,7 @@ Expected:
 - Verify: `backend/tests/test_v2_inventory_corrections_api.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 correction API 测试文件**
+- [x] **Step 1: 运行 correction API 测试文件**
 
 Run:
 
@@ -198,7 +198,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_corrections_api.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -206,7 +206,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI 快照并校验**
+- [x] **Step 3: 刷新 OpenAPI 快照并校验**
 
 Run:
 
@@ -215,7 +215,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -223,7 +223,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

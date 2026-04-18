@@ -41,7 +41,7 @@
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `backend/app/contracts/v2/conversation.py`
 
-- [ ] **Step 1: 写失败测试，确认只能列出当前 context 下的 pending clarification**
+- [x] **Step 1: 写失败测试，确认只能列出当前 context 下的 pending clarification**
 
 ```python
 def test_v2_list_clarifications_returns_current_context_pending_items(client, db_session) -> None:
@@ -71,7 +71,7 @@ def test_v2_list_clarifications_returns_current_context_pending_items(client, db
     assert payload["clarifications"][0]["status"] == "pending"
 ```
 
-- [ ] **Step 2: 写失败测试，确认回答 clarification 会记录答案并把任务推进到 drafted**
+- [x] **Step 2: 写失败测试，确认回答 clarification 会记录答案并把任务推进到 drafted**
 
 ```python
 def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client, db_session) -> None:
@@ -107,7 +107,7 @@ def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client
     assert task_run.completed_at is None
 ```
 
-- [ ] **Step 3: 运行测试，确认因为路由或合同不存在而失败**
+- [x] **Step 3: 运行测试，确认因为路由或合同不存在而失败**
 
 Run:
 
@@ -119,7 +119,7 @@ Expected:
 
 - `404`、`ImportError` 或响应结构不匹配。
 
-- [ ] **Step 4: 新增 clarification 合同**
+- [x] **Step 4: 新增 clarification 合同**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -149,7 +149,7 @@ class V2ClarificationListData(BaseModel):
     count: int
 ```
 
-- [ ] **Step 5: 重新运行 clarification 测试，确认仍然因为服务或路由不存在而红灯**
+- [x] **Step 5: 重新运行 clarification 测试，确认仍然因为服务或路由不存在而红灯**
 
 Run:
 
@@ -167,7 +167,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 写失败测试，确认回答已回答的 clarification 会冲突**
+- [x] **Step 1: 写失败测试，确认回答已回答的 clarification 会冲突**
 
 ```python
 def test_v2_answer_clarification_rejects_non_pending_record(db_session) -> None:
@@ -210,7 +210,7 @@ def test_v2_answer_clarification_rejects_non_pending_record(db_session) -> None:
         )
 ```
 
-- [ ] **Step 2: 运行服务测试，确认因为函数不存在而失败**
+- [x] **Step 2: 运行服务测试，确认因为函数不存在而失败**
 
 Run:
 
@@ -222,7 +222,7 @@ Expected:
 
 - `ImportError`
 
-- [ ] **Step 3: 新增 clarification list / answer 服务**
+- [x] **Step 3: 新增 clarification list / answer 服务**
 
 `backend/app/services/v2_conversation.py`
 
@@ -256,7 +256,7 @@ def answer_v2_clarification(
 - 回答成功后 `task_run.result_summary` 更新为可用于后续 confirm 的文案。
 - 不自动创建 confirmation。
 
-- [ ] **Step 4: 重新运行服务测试**
+- [x] **Step 4: 重新运行服务测试**
 
 Run:
 
@@ -274,7 +274,7 @@ Expected:
 - Modify: `backend/app/api/v2/routes/conversation.py`
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 新增 clarification route helper**
+- [x] **Step 1: 新增 clarification route helper**
 
 `backend/app/api/v2/routes/conversation.py`
 
@@ -283,7 +283,7 @@ def _to_clarification_data(clarification) -> V2ClarificationData:
     ...
 ```
 
-- [ ] **Step 2: 新增 `GET /api/v2/clarifications`**
+- [x] **Step 2: 新增 `GET /api/v2/clarifications`**
 
 ```python
 @router.get("/clarifications", response_model=V2DataEnvelope[V2ClarificationListData])
@@ -291,7 +291,7 @@ def list_clarifications_v2(...):
     # 复用 Authorization + X-Context-Token
 ```
 
-- [ ] **Step 3: 新增 `POST /api/v2/clarifications/{clarification_id}/answer`**
+- [x] **Step 3: 新增 `POST /api/v2/clarifications/{clarification_id}/answer`**
 
 ```python
 @router.post("/clarifications/{clarification_id}/answer", response_model=V2DataEnvelope[V2ClarificationData])
@@ -300,7 +300,7 @@ def answer_clarification_v2(...):
     # V2ConfirmationConflictError / V2TaskRunTransitionError -> clarification_not_pending
 ```
 
-- [ ] **Step 4: 重新运行 clarification API 测试**
+- [x] **Step 4: 重新运行 clarification API 测试**
 
 Run:
 
@@ -318,7 +318,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -330,7 +330,7 @@ Expected:
 
 - 本文件全部通过。
 
-- [ ] **Step 2: 运行 v2 关键回归**
+- [x] **Step 2: 运行 v2 关键回归**
 
 Run:
 
@@ -342,7 +342,7 @@ Expected:
 
 - v2 identity/context、conversation runtime、clarification/confirmation 全部通过。
 
-- [ ] **Step 3: 刷新 OpenAPI 快照**
+- [x] **Step 3: 刷新 OpenAPI 快照**
 
 Run:
 
@@ -350,7 +350,7 @@ Run:
 $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 ```
 
-- [ ] **Step 4: 运行 OpenAPI 合同测试**
+- [x] **Step 4: 运行 OpenAPI 合同测试**
 
 Run:
 
@@ -358,7 +358,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 5: 运行全量后端测试**
+- [x] **Step 5: 运行全量后端测试**
 
 Run:
 
@@ -366,7 +366,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 6: 检查 git 状态并提交**
+- [x] **Step 6: 检查 git 状态并提交**
 
 Run:
 

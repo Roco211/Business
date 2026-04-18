@@ -20,7 +20,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 先写失败测试，确认 `inventory.stock_out` 的 drafted task 可以请求同类型 confirmation**
+- [x] **Step 1: 先写失败测试，确认 `inventory.stock_out` 的 drafted task 可以请求同类型 confirmation**
 
 ```python
 def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
@@ -66,7 +66,7 @@ def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmati
     }
 ```
 
-- [ ] **Step 2: 再写失败测试，确认 draft_type 与 confirmation_type 不一致时返回 409**
+- [x] **Step 2: 再写失败测试，确认 draft_type 与 confirmation_type 不一致时返回 409**
 
 ```python
 def test_v2_request_confirmation_from_draft_rejects_type_mismatch(client, db_session) -> None:
@@ -106,7 +106,7 @@ def test_v2_request_confirmation_from_draft_rejects_type_mismatch(client, db_ses
     assert response.json()["error"]["code"] == "confirmation_type_mismatch"
 ```
 
-- [ ] **Step 3: 运行新增测试，确认当前实现还没有类型对齐校验而失败**
+- [x] **Step 3: 运行新增测试，确认当前实现还没有类型对齐校验而失败**
 
 Run:
 
@@ -120,15 +120,15 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 在 `v2_conversation.py` 新增类型不匹配错误**
+- [x] **Step 1: 在 `v2_conversation.py` 新增类型不匹配错误**
 
 ```python
 class V2ConfirmationTypeMismatchError(ValueError):
     pass
 ```
 
-- [ ] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证 `draft_type == confirmation_type`**
-- [ ] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证“已类型化 draft 必须匹配，泛型 capture draft 允许专门化”**
+- [x] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证 `draft_type == confirmation_type`**
+- [x] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证“已类型化 draft 必须匹配，泛型 capture draft 允许专门化”**
 
 ```python
 GENERIC_DRAFT_TYPES = {"conversation.capture"}
@@ -140,7 +140,7 @@ if draft.draft_type not in GENERIC_DRAFT_TYPES and draft.draft_type != confirmat
     )
 ```
 
-- [ ] **Step 3: 在 route 中把类型不匹配映射成 409 `confirmation_type_mismatch`**
+- [x] **Step 3: 在 route 中把类型不匹配映射成 409 `confirmation_type_mismatch`**
 
 ```python
 except V2ConfirmationTypeMismatchError:
@@ -155,7 +155,7 @@ except V2ConfirmationTypeMismatchError:
     )
 ```
 
-- [ ] **Step 4: 重跑新增测试**
+- [x] **Step 4: 重跑新增测试**
 
 Run:
 
@@ -173,7 +173,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Verify: `backend/tests/test_v2_inventory_stock_out_api.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -181,7 +181,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -189,7 +189,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -197,7 +197,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

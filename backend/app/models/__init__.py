@@ -28,6 +28,7 @@ from app.models.v2_inventory import (
     V2InventoryLedgerEvent,
     V2InventoryStockSnapshot,
 )
+from app.models.v2_realtime import V2SessionStreamEvent
 from app.models.v2_identity import (
     V2Account,
     V2AuthSession,
@@ -62,6 +63,7 @@ __all__ = [
     "V2InventoryItem",
     "V2InventoryLedgerEvent",
     "V2InventoryStockSnapshot",
+    "V2SessionStreamEvent",
     "V2Message",
     "V2OutboxEvent",
     "V2TaskDraft",

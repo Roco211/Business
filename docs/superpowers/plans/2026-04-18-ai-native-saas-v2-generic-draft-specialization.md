@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 先写失败测试，确认泛型 capture draft 请求 `inventory.stock_in` confirmation 后会专门化 task 与 draft**
+- [x] **Step 1: 先写失败测试，确认泛型 capture draft 请求 `inventory.stock_in` confirmation 后会专门化 task 与 draft**
 
 ```python
 def test_v2_request_confirmation_from_generic_draft_specializes_task_and_draft_type(client, db_session) -> None:
@@ -61,7 +61,7 @@ def test_v2_request_confirmation_from_generic_draft_specializes_task_and_draft_t
     assert draft.draft_type == "inventory.stock_in"
 ```
 
-- [ ] **Step 2: 运行新增测试，确认当前实现仍保留 `conversation.capture` 而失败**
+- [x] **Step 2: 运行新增测试，确认当前实现仍保留 `conversation.capture` 而失败**
 
 Run:
 
@@ -74,13 +74,13 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_
 **Files:**
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 在 `request_v2_confirmation_from_task_draft()` 中识别泛型 draft**
+- [x] **Step 1: 在 `request_v2_confirmation_from_task_draft()` 中识别泛型 draft**
 
 ```python
 should_specialize_generic_draft = draft.draft_type in GENERIC_DRAFT_TYPES
 ```
 
-- [ ] **Step 2: 在 task 状态校验通过后更新 task 与 draft 类型**
+- [x] **Step 2: 在 task 状态校验通过后更新 task 与 draft 类型**
 
 ```python
 if should_specialize_generic_draft:
@@ -89,7 +89,7 @@ if should_specialize_generic_draft:
     draft.updated_at = utc_now_naive()
 ```
 
-- [ ] **Step 3: 重跑新增测试**
+- [x] **Step 3: 重跑新增测试**
 
 Run:
 
@@ -106,7 +106,7 @@ Expected:
 **Files:**
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -114,7 +114,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -122,7 +122,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -130,7 +130,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

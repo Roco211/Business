@@ -47,7 +47,7 @@
 - Modify: `backend/app/models/__init__.py`
 - Create: `backend/alembic/versions/20260418_03_create_v2_clarifications_confirmations.py`
 
-- [ ] **Step 1: 写失败测试，固定追问与确认都直接持有 tenant/shop 边界**
+- [x] **Step 1: 写失败测试，固定追问与确认都直接持有 tenant/shop 边界**
 
 ```python
 from datetime import UTC, datetime
@@ -122,7 +122,7 @@ def test_v2_clarification_and_confirmation_schema_persist_context_boundaries(db_
     assert persisted.shop_id == "shop_a1"
 ```
 
-- [ ] **Step 2: 运行测试，确认因为模型或表不存在而失败**
+- [x] **Step 2: 运行测试，确认因为模型或表不存在而失败**
 
 Run:
 
@@ -134,7 +134,7 @@ Expected:
 
 - `ImportError`、`AttributeError` 或 `OperationalError: no such table`。
 
-- [ ] **Step 3: 新增 ORM 模型**
+- [x] **Step 3: 新增 ORM 模型**
 
 在 `backend/app/models/v2_conversation.py` 中追加：
 
@@ -173,7 +173,7 @@ class V2Confirmation(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
 ```
 
-- [ ] **Step 4: 导出新增模型**
+- [x] **Step 4: 导出新增模型**
 
 `backend/app/models/__init__.py`
 
@@ -189,7 +189,7 @@ from app.models.v2_conversation import (
 
 并把 `"V2Clarification"` 与 `"V2Confirmation"` 加入 `__all__`。
 
-- [ ] **Step 5: 新增 Alembic 迁移**
+- [x] **Step 5: 新增 Alembic 迁移**
 
 `backend/alembic/versions/20260418_03_create_v2_clarifications_confirmations.py`
 
@@ -263,7 +263,7 @@ def downgrade() -> None:
     op.drop_table("v2_clarifications")
 ```
 
-- [ ] **Step 6: 重新运行 schema 测试**
+- [x] **Step 6: 重新运行 schema 测试**
 
 Run:
 
@@ -281,7 +281,7 @@ Expected:
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 写失败测试，确认 task 能进入 `needs_clarification`**
+- [x] **Step 1: 写失败测试，确认 task 能进入 `needs_clarification`**
 
 ```python
 def test_v2_create_clarification_moves_task_to_needs_clarification(db_session) -> None:
@@ -308,7 +308,7 @@ def test_v2_create_clarification_moves_task_to_needs_clarification(db_session) -
     assert task_run.completed_at is None
 ```
 
-- [ ] **Step 2: 写失败测试，确认 task 能进入 `awaiting_confirmation`**
+- [x] **Step 2: 写失败测试，确认 task 能进入 `awaiting_confirmation`**
 
 ```python
 def test_v2_create_confirmation_moves_task_to_awaiting_confirmation(db_session) -> None:
@@ -333,7 +333,7 @@ def test_v2_create_confirmation_moves_task_to_awaiting_confirmation(db_session) 
     assert task_run.completed_at is None
 ```
 
-- [ ] **Step 3: 运行服务测试，确认因为服务函数不存在而失败**
+- [x] **Step 3: 运行服务测试，确认因为服务函数不存在而失败**
 
 Run:
 
@@ -345,7 +345,7 @@ Expected:
 
 - `ImportError`。
 
-- [ ] **Step 4: 实现最小服务层函数与状态常量**
+- [x] **Step 4: 实现最小服务层函数与状态常量**
 
 `backend/app/services/v2_conversation.py`
 
@@ -384,7 +384,7 @@ def create_v2_confirmation(...):
 - 如果同一个 `task_run` 已有 pending 记录，返回已有记录，保持幂等。
 - 如果同一个 `task_run` 已有非 pending 记录，抛出冲突异常。
 
-- [ ] **Step 5: 重新运行服务测试**
+- [x] **Step 5: 重新运行服务测试**
 
 Run:
 
@@ -404,7 +404,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 写测试 helper，使用真实 v2 auth/context/session/message API 创建 task**
+- [x] **Step 1: 写测试 helper，使用真实 v2 auth/context/session/message API 创建 task**
 
 ```python
 def _seed_v2_identity_for_api(db_session) -> None:
@@ -432,7 +432,7 @@ def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
     return token, context_token, message_response.json()["data"]["task_run_id"]
 ```
 
-- [ ] **Step 2: 写失败测试，确认列表只返回当前 context 下的 pending confirmation**
+- [x] **Step 2: 写失败测试，确认列表只返回当前 context 下的 pending confirmation**
 
 ```python
 def test_v2_list_confirmations_returns_current_context_pending_items(client, db_session) -> None:
@@ -461,7 +461,7 @@ def test_v2_list_confirmations_returns_current_context_pending_items(client, db_
     assert payload["confirmations"][0]["shop_id"] == "shop_a1"
 ```
 
-- [ ] **Step 3: 写失败测试，确认批准不会直接提交业务真相，而是推进到待确定性执行**
+- [x] **Step 3: 写失败测试，确认批准不会直接提交业务真相，而是推进到待确定性执行**
 
 ```python
 def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(client, db_session) -> None:
@@ -493,7 +493,7 @@ def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(
     assert task_run.completed_at is None
 ```
 
-- [ ] **Step 4: 写失败测试，确认拒绝会显式拒绝任务**
+- [x] **Step 4: 写失败测试，确认拒绝会显式拒绝任务**
 
 ```python
 def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:
@@ -523,7 +523,7 @@ def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:
     assert task_run.completed_at is not None
 ```
 
-- [ ] **Step 5: 运行 API 测试，确认因为路由不存在而失败**
+- [x] **Step 5: 运行 API 测试，确认因为路由不存在而失败**
 
 Run:
 
@@ -535,7 +535,7 @@ Expected:
 
 - `404` 或 `ImportError`。
 
-- [ ] **Step 6: 新增 confirmation 合同**
+- [x] **Step 6: 新增 confirmation 合同**
 
 `backend/app/contracts/v2/conversation.py`
 
@@ -563,7 +563,7 @@ class V2ConfirmationListData(BaseModel):
     count: int
 ```
 
-- [ ] **Step 7: 新增 list / approve / reject 服务函数**
+- [x] **Step 7: 新增 list / approve / reject 服务函数**
 
 `backend/app/services/v2_conversation.py`
 
@@ -585,7 +585,7 @@ def reject_v2_confirmation(db_session: Session, *, tenant_id: str, shop_id: str,
     # task_run.status -> rejected，并设置 completed_at。
 ```
 
-- [ ] **Step 8: 新增 v2 confirmation 路由**
+- [x] **Step 8: 新增 v2 confirmation 路由**
 
 `backend/app/api/v2/routes/conversation.py`
 
@@ -607,7 +607,7 @@ def reject_confirmation_v2(...):
     # 同 approve，但 resolution_payload 为空，task_run 进入 rejected。
 ```
 
-- [ ] **Step 9: 重新运行 API 测试**
+- [x] **Step 9: 重新运行 API 测试**
 
 Run:
 
@@ -627,7 +627,7 @@ Expected:
 - Verify: `backend/tests/test_v2_identity_context.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行新增测试文件**
+- [x] **Step 1: 运行新增测试文件**
 
 Run:
 
@@ -639,7 +639,7 @@ Expected:
 
 - 新增测试全部通过。
 
-- [ ] **Step 2: 运行 v2 关键回归**
+- [x] **Step 2: 运行 v2 关键回归**
 
 Run:
 
@@ -651,7 +651,7 @@ Expected:
 
 - v2 identity/context、conversation runtime、clarification/confirmation 全部通过。
 
-- [ ] **Step 3: 刷新 OpenAPI snapshot**
+- [x] **Step 3: 刷新 OpenAPI snapshot**
 
 Run:
 
@@ -663,7 +663,7 @@ Expected:
 
 - `project_docs/generated/openapi-v1.json` 包含 `/api/v2/confirmations`、`/api/v2/confirmations/{confirmation_id}/approve`、`/api/v2/confirmations/{confirmation_id}/reject`。
 
-- [ ] **Step 4: 运行 OpenAPI 合同测试**
+- [x] **Step 4: 运行 OpenAPI 合同测试**
 
 Run:
 
@@ -675,7 +675,7 @@ Expected:
 
 - `1 passed`。
 
-- [ ] **Step 5: 运行全量后端测试**
+- [x] **Step 5: 运行全量后端测试**
 
 Run:
 
@@ -687,7 +687,7 @@ Expected:
 
 - 全量后端测试通过。
 
-- [ ] **Step 6: 检查 git 状态并提交**
+- [x] **Step 6: 检查 git 状态并提交**
 
 Run:
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, JSON, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -16,6 +16,7 @@ class V2ConversationSession(Base):
     session_type: Mapped[str] = mapped_column(String(32), nullable=False)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    last_event_seq: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     initiated_by_account_id: Mapped[str] = mapped_column(
         ForeignKey("v2_accounts.account_id"),
         nullable=False,

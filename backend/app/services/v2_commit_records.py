@@ -108,8 +108,12 @@ def append_v2_inventory_commit_records(
         },
         status=PENDING_OUTBOX_STATUS,
         attempt_count=0,
+        last_error_code=None,
+        last_error_message=None,
         available_at=now,
+        processed_at=None,
         created_at=now,
+        updated_at=now,
     )
     db_session.add(audit_log)
     db_session.add(outbox_event)

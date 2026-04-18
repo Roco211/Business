@@ -23,7 +23,7 @@
 - Modify: `backend/tests/test_v2_conversation_runtime.py`
 - Modify: `backend/app/contracts/v2/conversation.py`
 
-- [ ] **Step 1: 先写失败测试，确认显式 `inventory.stock_out` 会写入 task run 并在创建响应中返回**
+- [x] **Step 1: 先写失败测试，确认显式 `inventory.stock_out` 会写入 task run 并在创建响应中返回**
 
 ```python
 def test_v2_post_message_accepts_explicit_inventory_intent(client, db_session) -> None:
@@ -58,7 +58,7 @@ def test_v2_post_message_accepts_explicit_inventory_intent(client, db_session) -
     assert task_response.json()["data"]["intent_type"] == "inventory.stock_out"
 ```
 
-- [ ] **Step 2: 再写失败测试，确认未知 `intent_type` 返回 422**
+- [x] **Step 2: 再写失败测试，确认未知 `intent_type` 返回 422**
 
 ```python
 def test_v2_post_message_rejects_unknown_intent_type(client, db_session) -> None:
@@ -85,14 +85,14 @@ def test_v2_post_message_rejects_unknown_intent_type(client, db_session) -> None
     assert response.json()["error"]["code"] == "validation_error"
 ```
 
-- [ ] **Step 3: 更新现有默认行为测试，明确未传 `intent_type` 时仍然返回 `conversation.capture`**
+- [x] **Step 3: 更新现有默认行为测试，明确未传 `intent_type` 时仍然返回 `conversation.capture`**
 
 ```python
 assert payload["status"] == "captured"
 assert payload["intent_type"] == "conversation.capture"
 ```
 
-- [ ] **Step 4: 运行新增测试，确认当前实现因未支持显式意图或未做校验而失败**
+- [x] **Step 4: 运行新增测试，确认当前实现因未支持显式意图或未做校验而失败**
 
 Run:
 
@@ -107,7 +107,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_conversation_r
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 在请求 / 响应契约中加入 `intent_type`**
+- [x] **Step 1: 在请求 / 响应契约中加入 `intent_type`**
 
 ```python
 class V2CreateMessageRequest(BaseModel):
@@ -124,7 +124,7 @@ class V2CreateMessageData(BaseModel):
     status: str
 ```
 
-- [ ] **Step 2: 在服务层新增允许的 message intent 白名单与校验错误**
+- [x] **Step 2: 在服务层新增允许的 message intent 白名单与校验错误**
 
 ```python
 ALLOWED_V2_MESSAGE_INTENTS = {
@@ -145,7 +145,7 @@ def _normalize_v2_message_intent(intent_type: str | None) -> str:
     return normalized
 ```
 
-- [ ] **Step 3: 在 `create_v2_message_and_task_run()` 中使用规范化后的 `intent_type`**
+- [x] **Step 3: 在 `create_v2_message_and_task_run()` 中使用规范化后的 `intent_type`**
 
 ```python
 normalized_intent_type = _normalize_v2_message_intent(intent_type)
@@ -158,7 +158,7 @@ task_run = V2TaskRun(
 )
 ```
 
-- [ ] **Step 4: 在 route 中传递 `payload.intent_type`，并把错误映射成 422**
+- [x] **Step 4: 在 route 中传递 `payload.intent_type`，并把错误映射成 422**
 
 ```python
 created = create_v2_message_and_task_run(
@@ -178,7 +178,7 @@ except V2UnsupportedIntentTypeError as exc:
     )
 ```
 
-- [ ] **Step 5: 在创建响应中返回 `intent_type`**
+- [x] **Step 5: 在创建响应中返回 `intent_type`**
 
 ```python
 return V2DataEnvelope(
@@ -191,7 +191,7 @@ return V2DataEnvelope(
 )
 ```
 
-- [ ] **Step 6: 重跑新增测试**
+- [x] **Step 6: 重跑新增测试**
 
 Run:
 
@@ -209,7 +209,7 @@ Expected:
 - Verify: `backend/tests/test_v2_conversation_runtime.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 conversation runtime 全测试**
+- [x] **Step 1: 运行 conversation runtime 全测试**
 
 Run:
 
@@ -217,7 +217,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_conversation_runtime.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -225,7 +225,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI snapshot 并校验**
+- [x] **Step 3: 刷新 OpenAPI snapshot 并校验**
 
 Run:
 
@@ -234,7 +234,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -242,7 +242,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

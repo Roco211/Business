@@ -4,6 +4,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
+from app.core.config import Settings
 from app.db.alembic_config import resolve_alembic_database_url
 
 
@@ -41,6 +42,19 @@ def test_backend_dockerfile_preserves_backend_subdirectory_for_alembic() -> None
 
     assert "COPY backend /app/backend" in dockerfile
     assert "ENV PYTHONPATH=/app/backend" in dockerfile
+
+
+def test_settings_direct_construction_defaults_pending_poll_seconds() -> None:
+    settings = Settings(
+        app_env="test",
+        app_host="127.0.0.1",
+        app_port=8001,
+        redis_url="redis://localhost:6379/0",
+        database_url="sqlite:///tmp.db",
+        session_stream_keepalive_seconds=20.0,
+    )
+
+    assert settings.session_stream_pending_poll_seconds == 1.0
 
 
 def test_alembic_upgrade_uses_database_url_env_override(monkeypatch, tmp_path) -> None:

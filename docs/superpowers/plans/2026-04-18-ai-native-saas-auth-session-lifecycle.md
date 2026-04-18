@@ -41,7 +41,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_identity_context.py`
 
-- [ ] **Step 1: 写失败测试，固定 login 返回 refresh token**
+- [x] **Step 1: 写失败测试，固定 login 返回 refresh token**
 
 ```python
 def test_v2_login_returns_refresh_token(client, db_session) -> None:
@@ -63,7 +63,7 @@ def test_v2_login_returns_refresh_token(client, db_session) -> None:
     assert response.json()["data"]["refresh_token"]
 ```
 
-- [ ] **Step 2: 写失败测试，固定 `GET /api/v2/me` 只返回账号信息**
+- [x] **Step 2: 写失败测试，固定 `GET /api/v2/me` 只返回账号信息**
 
 ```python
 def test_v2_me_returns_authenticated_account_profile(client, db_session) -> None:
@@ -90,7 +90,7 @@ def test_v2_me_returns_authenticated_account_profile(client, db_session) -> None
     assert "shop_id" not in payload
 ```
 
-- [ ] **Step 3: 写失败测试，固定 logout 会撤销 access token 与 context token**
+- [x] **Step 3: 写失败测试，固定 logout 会撤销 access token 与 context token**
 
 ```python
 def test_v2_logout_revokes_auth_and_context_sessions(client, db_session) -> None:
@@ -130,7 +130,7 @@ def test_v2_logout_revokes_auth_and_context_sessions(client, db_session) -> None
     assert context_response.status_code == 401
 ```
 
-- [ ] **Step 4: 写失败测试，固定 refresh 会轮换 auth session 并使旧 access token 失效**
+- [x] **Step 4: 写失败测试，固定 refresh 会轮换 auth session 并使旧 access token 失效**
 
 ```python
 def test_v2_refresh_rotates_auth_session(client, db_session) -> None:
@@ -164,7 +164,7 @@ def test_v2_refresh_rotates_auth_session(client, db_session) -> None:
     assert new_me_response.status_code == 200
 ```
 
-- [ ] **Step 5: 运行测试，确认因为合同或路由不存在而失败**
+- [x] **Step 5: 运行测试，确认因为合同或路由不存在而失败**
 
 Run:
 
@@ -182,7 +182,7 @@ Expected:
 - Modify: `backend/app/contracts/v2/identity.py`
 - Modify: `backend/app/services/v2_identity.py`
 
-- [ ] **Step 1: 新增 identity 合同**
+- [x] **Step 1: 新增 identity 合同**
 
 `backend/app/contracts/v2/identity.py`
 
@@ -205,7 +205,7 @@ class V2MeData(BaseModel):
     status: str
 ```
 
-- [ ] **Step 2: 新增 auth session lifecycle 服务**
+- [x] **Step 2: 新增 auth session lifecycle 服务**
 
 `backend/app/services/v2_identity.py`
 
@@ -233,7 +233,7 @@ def rotate_v2_auth_session(...):
     # 使用 refresh_token 定位当前 active auth_session，先 revoke，再签发新的 auth_session。
 ```
 
-- [ ] **Step 3: 重新运行失败测试，确认红灯收敛到路由缺失**
+- [x] **Step 3: 重新运行失败测试，确认红灯收敛到路由缺失**
 
 Run:
 
@@ -250,7 +250,7 @@ Expected:
 **Files:**
 - Modify: `backend/app/api/v2/routes/identity.py`
 
-- [ ] **Step 1: 新增 `GET /api/v2/me`**
+- [x] **Step 1: 新增 `GET /api/v2/me`**
 
 ```python
 @router.get("/me", response_model=V2DataEnvelope[V2MeData])
@@ -258,7 +258,7 @@ def me_v2(...):
     ...
 ```
 
-- [ ] **Step 2: 新增 `POST /api/v2/auth/logout`**
+- [x] **Step 2: 新增 `POST /api/v2/auth/logout`**
 
 ```python
 @router.post("/auth/logout", response_model=V2DataEnvelope[dict[str, str]])
@@ -266,7 +266,7 @@ def logout_v2(...):
     ...
 ```
 
-- [ ] **Step 3: 新增 `POST /api/v2/auth/refresh`**
+- [x] **Step 3: 新增 `POST /api/v2/auth/refresh`**
 
 ```python
 @router.post("/auth/refresh", response_model=V2DataEnvelope[V2LoginData], responses={401: {"model": V2ErrorEnvelope}})
@@ -274,7 +274,7 @@ def refresh_v2(...):
     ...
 ```
 
-- [ ] **Step 4: 重新运行 auth lifecycle 测试**
+- [x] **Step 4: 重新运行 auth lifecycle 测试**
 
 Run:
 
@@ -292,7 +292,7 @@ Expected:
 - Verify: `backend/tests/test_v2_identity_context.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 v2 identity/context 测试**
+- [x] **Step 1: 运行 v2 identity/context 测试**
 
 Run:
 
@@ -300,7 +300,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py -q
 ```
 
-- [ ] **Step 2: 运行 v2 关键回归**
+- [x] **Step 2: 运行 v2 关键回归**
 
 Run:
 
@@ -308,7 +308,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI 快照并校验**
+- [x] **Step 3: 刷新 OpenAPI 快照并校验**
 
 Run:
 
@@ -317,7 +317,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行全量后端测试**
+- [x] **Step 4: 运行全量后端测试**
 
 Run:
 
@@ -325,7 +325,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

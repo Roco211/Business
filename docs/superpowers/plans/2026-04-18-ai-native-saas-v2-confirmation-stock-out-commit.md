@@ -21,7 +21,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 先写失败测试，确认批准 `inventory.stock_out` 后会真正写入出库事件并把任务推进到 committed**
+- [x] **Step 1: 先写失败测试，确认批准 `inventory.stock_out` 后会真正写入出库事件并把任务推进到 committed**
 
 ```python
 def test_v2_approve_stock_out_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
@@ -91,7 +91,7 @@ def test_v2_approve_stock_out_confirmation_commits_inventory_and_marks_task_comm
     assert event.quantity_after == 3
 ```
 
-- [ ] **Step 2: 再写失败测试，确认库存不足时 approval 返回 422，且 confirmation 与 task_run 一起回滚**
+- [x] **Step 2: 再写失败测试，确认库存不足时 approval 返回 422，且 confirmation 与 task_run 一起回滚**
 
 ```python
 def test_v2_approve_stock_out_confirmation_rejects_insufficient_stock_and_rolls_back(client, db_session) -> None:
@@ -154,7 +154,7 @@ def test_v2_approve_stock_out_confirmation_rejects_insufficient_stock_and_rolls_
     assert persisted_task_run.status == "awaiting_confirmation"
 ```
 
-- [ ] **Step 3: 运行新增测试，确认因 approval 还没有 stock-out 分支而失败**
+- [x] **Step 3: 运行新增测试，确认因 approval 还没有 stock-out 分支而失败**
 
 Run:
 
@@ -169,7 +169,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 抽出不自动提交事务的 `commit_v2_inventory_stock_out()`，让 API 与 confirmation 复用同一套落账逻辑**
+- [x] **Step 1: 抽出不自动提交事务的 `commit_v2_inventory_stock_out()`，让 API 与 confirmation 复用同一套落账逻辑**
 
 ```python
 def commit_v2_inventory_stock_out(
@@ -199,7 +199,7 @@ def submit_v2_inventory_stock_out(...):
         raise
 ```
 
-- [ ] **Step 2: 在 `approve_v2_confirmation()` 中增加 `inventory.stock_out` 分支，并把成功结果推进到 committed**
+- [x] **Step 2: 在 `approve_v2_confirmation()` 中增加 `inventory.stock_out` 分支，并把成功结果推进到 committed**
 
 ```python
 if confirmation.confirmation_type == "inventory.stock_in":
@@ -226,7 +226,7 @@ else:
     ...
 ```
 
-- [ ] **Step 3: 在 approval 路由映射库存错误，避免 stock-out confirmation 失败时返回 500**
+- [x] **Step 3: 在 approval 路由映射库存错误，避免 stock-out confirmation 失败时返回 500**
 
 ```python
 except (V2InventoryItemNotFoundError, V2InventoryStockOutItemNotFoundError):
@@ -252,7 +252,7 @@ except V2InventoryStockOutConflictError:
     )
 ```
 
-- [ ] **Step 4: 重跑新增 approval 测试**
+- [x] **Step 4: 重跑新增 approval 测试**
 
 Run:
 
@@ -271,7 +271,7 @@ Expected:
 - Verify: `backend/tests/test_v2_inventory_stock_out_api.py`
 - Verify: `backend/tests/test_v2_inventory_ledger.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -279,7 +279,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行 stock-out API 测试，确认 direct API 仍然保持 green**
+- [x] **Step 2: 运行 stock-out API 测试，确认 direct API 仍然保持 green**
 
 Run:
 
@@ -287,7 +287,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行关键 inventory / runtime V2 回归**
+- [x] **Step 3: 运行关键 inventory / runtime V2 回归**
 
 Run:
 
@@ -295,7 +295,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -303,7 +303,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

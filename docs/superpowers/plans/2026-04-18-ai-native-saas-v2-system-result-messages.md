@@ -20,7 +20,7 @@
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 先写失败测试，确认 stock-in approve 后会话里多出一条 system result 消息**
+- [x] **Step 1: 先写失败测试，确认 stock-in approve 后会话里多出一条 system result 消息**
 
 ```python
 def test_v2_approve_confirmation_commits_inventory_and_appends_system_result_message(client, db_session) -> None:
@@ -40,7 +40,7 @@ def test_v2_approve_confirmation_commits_inventory_and_appends_system_result_mes
     assert messages[-1]["payload_json"]["task_run_status"] == "committed"
 ```
 
-- [ ] **Step 2: 运行单测，确认当前实现尚未写入 system result message 而失败**
+- [x] **Step 2: 运行单测，确认当前实现尚未写入 system result message 而失败**
 
 Run:
 
@@ -48,7 +48,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_approve_confirmation_commits_inventory_and_appends_system_result_message -q
 ```
 
-- [ ] **Step 3: 在会话服务里追加 V2 system result message 助手，并在 stock-in approve 成功后调用**
+- [x] **Step 3: 在会话服务里追加 V2 system result message 助手，并在 stock-in approve 成功后调用**
 
 `backend/app/services/v2_conversation.py`
 
@@ -75,7 +75,7 @@ def append_v2_system_result_message(
     )
 ```
 
-- [ ] **Step 4: 重跑 stock-in 单测**
+- [x] **Step 4: 重跑 stock-in 单测**
 
 Run:
 
@@ -93,7 +93,7 @@ Expected:
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `backend/app/services/v2_conversation.py`
 
-- [ ] **Step 1: 写失败测试，确认 stock-out approve 后也会追加 committed system result message**
+- [x] **Step 1: 写失败测试，确认 stock-out approve 后也会追加 committed system result message**
 
 ```python
 def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_result_message(
@@ -104,7 +104,7 @@ def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_
     assert messages[-1]["payload_json"]["task_run_status"] == "committed"
 ```
 
-- [ ] **Step 2: 写失败测试，确认 reject 后会追加 rejected system result message**
+- [x] **Step 2: 写失败测试，确认 reject 后会追加 rejected system result message**
 
 ```python
 def test_v2_reject_confirmation_marks_task_rejected_and_appends_system_result_message(
@@ -115,7 +115,7 @@ def test_v2_reject_confirmation_marks_task_rejected_and_appends_system_result_me
     assert "reject" in messages[-1]["payload_json"]["text"].lower()
 ```
 
-- [ ] **Step 3: 在 reject 流程里接入同一个 system result message 助手**
+- [x] **Step 3: 在 reject 流程里接入同一个 system result message 助手**
 
 ```python
 append_v2_system_result_message(
@@ -126,7 +126,7 @@ append_v2_system_result_message(
 )
 ```
 
-- [ ] **Step 4: 分别重跑 stock-out / reject 单测**
+- [x] **Step 4: 分别重跑 stock-out / reject 单测**
 
 Run:
 
@@ -145,7 +145,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Verify: `backend/tests/test_v2_conversation_runtime.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -153,7 +153,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -161,7 +161,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -169,7 +169,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

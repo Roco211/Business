@@ -21,7 +21,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 先写失败测试，确认缺少 `unit` 的 `inventory.stock_in` draft 会被拒绝**
+- [x] **Step 1: 先写失败测试，确认缺少 `unit` 的 `inventory.stock_in` draft 会被拒绝**
 
 ```python
 def test_v2_create_stock_in_task_draft_rejects_invalid_payload(client, db_session) -> None:
@@ -51,7 +51,7 @@ def test_v2_create_stock_in_task_draft_rejects_invalid_payload(client, db_sessio
     assert task_response.json()["data"]["draft_payload"] is None
 ```
 
-- [ ] **Step 2: 运行测试，确认当前实现错误地接受非法 draft 而失败**
+- [x] **Step 2: 运行测试，确认当前实现错误地接受非法 draft 而失败**
 
 Run:
 
@@ -59,7 +59,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_create_stock_in_task_draft_rejects_invalid_payload -q
 ```
 
-- [ ] **Step 3: 在库存服务中暴露 stock-in draft 校验入口，并在 draft 写入前调用**
+- [x] **Step 3: 在库存服务中暴露 stock-in draft 校验入口，并在 draft 写入前调用**
 
 `backend/app/services/v2_inventory.py`
 
@@ -75,7 +75,7 @@ if normalized_draft_type == "inventory.stock_in":
     validate_v2_stock_in_draft_payload(draft_payload)
 ```
 
-- [ ] **Step 4: 重跑 stock-in 测试**
+- [x] **Step 4: 重跑 stock-in 测试**
 
 Run:
 
@@ -95,7 +95,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 写失败测试，确认 `stock_out_quantity <= 0` 的 `inventory.stock_out` draft 会被拒绝**
+- [x] **Step 1: 写失败测试，确认 `stock_out_quantity <= 0` 的 `inventory.stock_out` draft 会被拒绝**
 
 ```python
 def test_v2_create_stock_out_task_draft_rejects_invalid_payload(client, db_session) -> None:
@@ -132,7 +132,7 @@ def test_v2_create_stock_out_task_draft_rejects_invalid_payload(client, db_sessi
     assert task_response.json()["data"]["draft_payload"] is None
 ```
 
-- [ ] **Step 2: 运行测试，确认当前实现错误地接受非法 draft 而失败**
+- [x] **Step 2: 运行测试，确认当前实现错误地接受非法 draft 而失败**
 
 Run:
 
@@ -140,7 +140,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py::test_v2_create_stock_out_task_draft_rejects_invalid_payload -q
 ```
 
-- [ ] **Step 3: 提取 stock-out payload 解析函数并接入 route 错误映射**
+- [x] **Step 3: 提取 stock-out payload 解析函数并接入 route 错误映射**
 
 `backend/app/services/v2_inventory.py`
 
@@ -172,7 +172,7 @@ except (V2InventoryPayloadValidationError, V2InventoryStockOutValidationError) a
     )
 ```
 
-- [ ] **Step 4: 重跑 stock-out 测试**
+- [x] **Step 4: 重跑 stock-out 测试**
 
 Run:
 
@@ -189,7 +189,7 @@ Expected:
 **Files:**
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 运行 draft / clarification / confirmation 全测试**
+- [x] **Step 1: 运行 draft / clarification / confirmation 全测试**
 
 Run:
 
@@ -197,7 +197,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -205,7 +205,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 运行后端全量测试**
+- [x] **Step 3: 运行后端全量测试**
 
 Run:
 
@@ -213,7 +213,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

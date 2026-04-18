@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, Query, status
+from functools import partial
+
+from anyio import from_thread
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps.v2_context import (
@@ -25,9 +29,12 @@ from app.contracts.v2.conversation import (
     V2RequestConfirmationFromDraftRequest,
     V2SessionData,
     V2SessionListData,
+    V2SessionStreamReplayData,
     V2TaskRunData,
 )
-from app.db.session import get_db_session
+from app.db.session import get_db_session, get_session_factory
+from app.models import V2Clarification, V2Confirmation, V2ContextSession
+from app.realtime.connection_manager import get_session_stream_manager
 from app.services.v2_conversation import (
     V2ConfirmationConflictError,
     V2ConfirmationTypeMismatchError,
@@ -40,6 +47,7 @@ from app.services.v2_conversation import (
     approve_v2_confirmation,
     create_v2_message_and_task_run,
     create_v2_session,
+    get_v2_session,
     get_v2_task_draft,
     get_v2_task_run,
     list_v2_clarifications,
@@ -50,6 +58,7 @@ from app.services.v2_conversation import (
     request_v2_confirmation_from_task_draft,
     upsert_v2_task_draft,
 )
+from app.services.v2_identity import resolve_v2_auth_session
 from app.services.v2_inventory import (
     V2InventoryItemNotFoundError,
     V2InventoryPayloadValidationError,
@@ -58,8 +67,12 @@ from app.services.v2_inventory import (
     V2InventoryStockOutValidationError,
     V2InventoryUnitMismatchError,
 )
+from app.services.v2_session_stream import list_v2_session_events_after
+from app.services.v2_time import utc_now_naive
 
 router = APIRouter(prefix="/api/v2", tags=["v2-conversation"])
+UNAUTHORIZED_CLOSE_CODE = 4401
+SESSION_NOT_FOUND_CLOSE_CODE = 4404
 
 
 def _context_account_mismatch() -> JSONResponse:
@@ -69,6 +82,177 @@ def _context_account_mismatch() -> JSONResponse:
             error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
         ).model_dump(),
     )
+
+
+def _resolve_active_v2_context_session(
+    db_session: Session,
+    *,
+    context_token: str,
+) -> V2ContextSession | None:
+    return db_session.scalar(
+        select(V2ContextSession).where(
+            V2ContextSession.context_session_id == context_token,
+            V2ContextSession.status == "active",
+            V2ContextSession.expires_at > utc_now_naive(),
+        )
+    )
+
+
+async def _close_websocket(websocket: WebSocket, *, code: int) -> None:
+    await websocket.accept()
+    await websocket.close(code=code)
+
+
+def _is_v2_websocket_auth_still_valid(
+    *,
+    session_factory,
+    bearer_token: str,
+    context_token: str,
+    expected_account_id: str,
+    expected_tenant_id: str,
+    expected_shop_id: str,
+) -> bool:
+    db_session = session_factory()
+    try:
+        refreshed_auth = resolve_v2_auth_session(db_session, bearer_token=bearer_token)
+        if refreshed_auth is None or refreshed_auth.account_id != expected_account_id:
+            return False
+
+        refreshed_context = _resolve_active_v2_context_session(
+            db_session,
+            context_token=context_token,
+        )
+        if refreshed_context is None:
+            return False
+
+        return (
+            refreshed_context.account_id == expected_account_id
+            and refreshed_context.tenant_id == expected_tenant_id
+            and refreshed_context.shop_id == expected_shop_id
+        )
+    finally:
+        db_session.close()
+
+
+def _resolve_v2_session_cursor(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    session_id: str,
+) -> tuple[str, int] | None:
+    session = get_v2_session(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        session_id=session_id,
+    )
+    if session is None:
+        return None
+    return session.session_id, int(session.last_event_seq)
+
+
+def _resolve_v2_task_run_session_cursor(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+) -> tuple[str, int] | None:
+    task_run = get_v2_task_run(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run is None:
+        return None
+    return _resolve_v2_session_cursor(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        session_id=task_run.session_id,
+    )
+
+
+def _resolve_v2_clarification_session_cursor(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    clarification_id: str,
+) -> tuple[str, int] | None:
+    clarification = db_session.scalar(
+        select(V2Clarification).where(
+            V2Clarification.clarification_id == clarification_id,
+            V2Clarification.tenant_id == tenant_id,
+            V2Clarification.shop_id == shop_id,
+        )
+    )
+    if clarification is None:
+        return None
+    return _resolve_v2_task_run_session_cursor(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=clarification.task_run_id,
+    )
+
+
+def _resolve_v2_confirmation_session_cursor(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    confirmation_id: str,
+) -> tuple[str, int] | None:
+    confirmation = db_session.scalar(
+        select(V2Confirmation).where(
+            V2Confirmation.confirmation_id == confirmation_id,
+            V2Confirmation.tenant_id == tenant_id,
+            V2Confirmation.shop_id == shop_id,
+        )
+    )
+    if confirmation is None:
+        return None
+    return _resolve_v2_task_run_session_cursor(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=confirmation.task_run_id,
+    )
+
+
+def _publish_v2_stream_events_best_effort(
+    request: Request,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    session_id: str,
+    after_seq: int,
+) -> None:
+    session_factory = get_session_factory()
+    publish_session = session_factory()
+    try:
+        events = list_v2_session_events_after(
+            publish_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            session_id=session_id,
+            after_seq=after_seq,
+        )
+    finally:
+        publish_session.close()
+
+    if not events:
+        return
+
+    manager = get_session_stream_manager(request.app)
+    for event in events:
+        try:
+            from_thread.run(partial(manager.publish, session_id=session_id, event=event))
+        except Exception:
+            return
 
 
 def _to_confirmation_data(confirmation) -> V2ConfirmationData:
@@ -174,6 +358,135 @@ def list_sessions_v2(
     return V2DataEnvelope(data=V2SessionListData(sessions=sessions))
 
 
+@router.get("/sessions/{session_id}/stream-events", response_model=V2DataEnvelope[V2SessionStreamReplayData])
+def list_session_stream_events_v2(
+    session_id: str,
+    after_seq: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2SessionStreamReplayData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    session = get_v2_session(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        session_id=session_id,
+    )
+    if session is None:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="session_not_found", message="Session not found")
+            ).model_dump(),
+        )
+
+    events = list_v2_session_events_after(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        session_id=session_id,
+        after_seq=after_seq,
+        limit=limit,
+    )
+    return V2DataEnvelope(
+        data=V2SessionStreamReplayData(
+            session_id=session_id,
+            count=len(events),
+            last_event_seq=int(session.last_event_seq),
+            events=events,
+        )
+    )
+
+
+@router.websocket("/ws/sessions/{session_id}")
+async def session_stream_websocket_v2(websocket: WebSocket, session_id: str) -> None:
+    token = websocket.query_params.get("token")
+    context_token = websocket.query_params.get("context_token")
+    session_factory = get_session_factory()
+    db_session = session_factory()
+    manager = get_session_stream_manager(websocket.app)
+    connected = False
+
+    try:
+        if not token or not context_token:
+            await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
+            return
+
+        auth = resolve_v2_auth_session(db_session, bearer_token=token)
+        if auth is None:
+            await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
+            return
+
+        context_session = _resolve_active_v2_context_session(
+            db_session,
+            context_token=context_token,
+        )
+        if context_session is None or context_session.account_id != auth.account_id:
+            await _close_websocket(websocket, code=UNAUTHORIZED_CLOSE_CODE)
+            return
+
+        conversation_session = get_v2_session(
+            db_session,
+            tenant_id=context_session.tenant_id,
+            shop_id=context_session.shop_id,
+            session_id=session_id,
+        )
+        if conversation_session is None:
+            await _close_websocket(websocket, code=SESSION_NOT_FOUND_CLOSE_CODE)
+            return
+
+        after_seq_param = websocket.query_params.get("after_seq")
+        if after_seq_param is None or after_seq_param == "":
+            replay_after_seq = int(conversation_session.last_event_seq)
+        else:
+            try:
+                replay_after_seq = max(0, int(after_seq_param))
+            except ValueError:
+                replay_after_seq = int(conversation_session.last_event_seq)
+
+        def _load_v2_pending_events(pending_db_session, pending_session_id: str, after_seq: int):
+            return list_v2_session_events_after(
+                pending_db_session,
+                tenant_id=context_session.tenant_id,
+                shop_id=context_session.shop_id,
+                session_id=pending_session_id,
+                after_seq=after_seq,
+            )
+
+        await manager.connect(
+            session_id=session_id,
+            websocket=websocket,
+            replay_after_seq=replay_after_seq,
+            current_seq=int(conversation_session.last_event_seq),
+            pending_event_loader=_load_v2_pending_events,
+            auth_is_valid=lambda: _is_v2_websocket_auth_still_valid(
+                session_factory=session_factory,
+                bearer_token=token,
+                context_token=context_token,
+                expected_account_id=auth.account_id,
+                expected_tenant_id=context_session.tenant_id,
+                expected_shop_id=context_session.shop_id,
+            ),
+            unauthorized_close_code=UNAUTHORIZED_CLOSE_CODE,
+        )
+        connected = True
+
+        while True:
+            message = await websocket.receive()
+            if message["type"] == "websocket.disconnect":
+                break
+    except WebSocketDisconnect:
+        pass
+    finally:
+        db_session.close()
+        if connected:
+            await manager.disconnect(session_id=session_id, websocket=websocket)
+
+
 @router.post(
     "/sessions/{session_id}/messages",
     response_model=V2DataEnvelope[V2CreateMessageData],
@@ -182,12 +495,20 @@ def list_sessions_v2(
 def post_message_v2(
     session_id: str,
     payload: V2CreateMessageRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2CreateMessageData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    session_cursor = _resolve_v2_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        session_id=session_id,
+    )
 
     try:
         created = create_v2_message_and_task_run(
@@ -217,6 +538,15 @@ def post_message_v2(
         )
 
     message, task_run = created
+    if session_cursor is not None:
+        _, after_seq = session_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(
         data=V2CreateMessageData(
             message_id=message.message_id,
@@ -297,12 +627,20 @@ def get_task_run_v2(
 def create_task_draft_v2(
     task_run_id: str,
     payload: V2CreateTaskDraftRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2TaskRunData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    task_run_cursor = _resolve_v2_task_run_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        task_run_id=task_run_id,
+    )
 
     try:
         task_run = upsert_v2_task_draft(
@@ -356,6 +694,15 @@ def create_task_draft_v2(
         shop_id=context.shop_id,
         task_run_id=task_run_id,
     )
+    if task_run_cursor is not None:
+        session_id_for_publish, after_seq = task_run_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(data=_to_task_run_data(task_run, draft))
 
 
@@ -367,12 +714,20 @@ def create_task_draft_v2(
 def request_confirmation_from_task_draft_v2(
     task_run_id: str,
     payload: V2RequestConfirmationFromDraftRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    task_run_cursor = _resolve_v2_task_run_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        task_run_id=task_run_id,
+    )
 
     try:
         confirmation = request_v2_confirmation_from_task_draft(
@@ -414,6 +769,15 @@ def request_confirmation_from_task_draft_v2(
             ).model_dump(),
         )
 
+    if task_run_cursor is not None:
+        session_id_for_publish, after_seq = task_run_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(data=_to_confirmation_data(confirmation))
 
 
@@ -451,12 +815,20 @@ def list_clarifications_v2(
 def answer_clarification_v2(
     clarification_id: str,
     payload: V2AnswerClarificationRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2ClarificationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    clarification_cursor = _resolve_v2_clarification_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        clarification_id=clarification_id,
+    )
 
     try:
         clarification = answer_v2_clarification(
@@ -482,6 +854,15 @@ def answer_clarification_v2(
             ).model_dump(),
         )
 
+    if clarification_cursor is not None:
+        session_id_for_publish, after_seq = clarification_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(data=_to_clarification_data(clarification))
 
 
@@ -519,12 +900,20 @@ def list_confirmations_v2(
 def approve_confirmation_v2(
     confirmation_id: str,
     payload: V2ApproveConfirmationRequest,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    confirmation_cursor = _resolve_v2_confirmation_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        confirmation_id=confirmation_id,
+    )
 
     try:
         confirmation = approve_v2_confirmation(
@@ -575,6 +964,15 @@ def approve_confirmation_v2(
             ).model_dump(),
         )
 
+    if confirmation_cursor is not None:
+        session_id_for_publish, after_seq = confirmation_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(data=_to_confirmation_data(confirmation))
 
 
@@ -584,12 +982,20 @@ def approve_confirmation_v2(
 )
 def reject_confirmation_v2(
     confirmation_id: str,
+    request: Request,
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+
+    confirmation_cursor = _resolve_v2_confirmation_session_cursor(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        confirmation_id=confirmation_id,
+    )
 
     try:
         confirmation = reject_v2_confirmation(
@@ -613,4 +1019,13 @@ def reject_confirmation_v2(
             ).model_dump(),
         )
 
+    if confirmation_cursor is not None:
+        session_id_for_publish, after_seq = confirmation_cursor
+        _publish_v2_stream_events_best_effort(
+            request,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id_for_publish,
+            after_seq=after_seq,
+        )
     return V2DataEnvelope(data=_to_confirmation_data(confirmation))

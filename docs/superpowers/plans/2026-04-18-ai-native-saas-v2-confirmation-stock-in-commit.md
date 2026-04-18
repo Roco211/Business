@@ -20,7 +20,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 先写失败测试，确认批准后真正写入库存真相并把任务推进到 committed**
+- [x] **Step 1: 先写失败测试，确认批准后真正写入库存真相并把任务推进到 committed**
 
 ```python
 def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
@@ -58,7 +58,7 @@ def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(clie
     assert events[0].quantity_after == 2
 ```
 
-- [ ] **Step 2: 再写失败测试，确认库存提交失败时 confirmation 与 task_run 会一起回滚**
+- [x] **Step 2: 再写失败测试，确认库存提交失败时 confirmation 与 task_run 会一起回滚**
 
 ```python
 def test_v2_approve_confirmation_rolls_back_when_inventory_commit_fails(db_session, monkeypatch) -> None:
@@ -102,7 +102,7 @@ def test_v2_approve_confirmation_rolls_back_when_inventory_commit_fails(db_sessi
     assert persisted_task_run.status == "awaiting_confirmation"
 ```
 
-- [ ] **Step 3: 运行新增测试，确认因 approval 仍停留在 executing / 无回滚编排而失败**
+- [x] **Step 3: 运行新增测试，确认因 approval 仍停留在 executing / 无回滚编排而失败**
 
 Run:
 
@@ -116,7 +116,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/services/v2_inventory.py`
 
-- [ ] **Step 1: 让 `commit_v2_inventory_stock_in()` 改为只 flush，不自行 commit**
+- [x] **Step 1: 让 `commit_v2_inventory_stock_in()` 改为只 flush，不自行 commit**
 
 ```python
 def commit_v2_inventory_stock_in(...):
@@ -126,7 +126,7 @@ def commit_v2_inventory_stock_in(...):
     return V2CommittedStockInResult(...)
 ```
 
-- [ ] **Step 2: 在 `v2_conversation.py` 引入 `COMMITTED_STATUS` 与 inventory commit 编排**
+- [x] **Step 2: 在 `v2_conversation.py` 引入 `COMMITTED_STATUS` 与 inventory commit 编排**
 
 ```python
 COMMITTED_STATUS = "committed"
@@ -144,7 +144,7 @@ def _approve_inventory_stock_in_confirmation(...):
     )
 ```
 
-- [ ] **Step 3: 在 `approve_v2_confirmation()` 中用单事务包住确认批准和库存落账**
+- [x] **Step 3: 在 `approve_v2_confirmation()` 中用单事务包住确认批准和库存落账**
 
 ```python
 def approve_v2_confirmation(...):
@@ -167,7 +167,7 @@ def approve_v2_confirmation(...):
         raise
 ```
 
-- [ ] **Step 4: 重跑新增 approval 测试**
+- [x] **Step 4: 重跑新增 approval 测试**
 
 Run:
 
@@ -185,7 +185,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Verify: `backend/tests/test_v2_inventory_ledger.py`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -193,7 +193,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行 inventory ledger 测试，确认移除内部 commit 后仍保持 green**
+- [x] **Step 2: 运行 inventory ledger 测试，确认移除内部 commit 后仍保持 green**
 
 Run:
 
@@ -201,7 +201,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_inventory_ledger.py -q
 ```
 
-- [ ] **Step 3: 运行关键 V2 回归**
+- [x] **Step 3: 运行关键 V2 回归**
 
 Run:
 
@@ -209,7 +209,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -217,7 +217,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

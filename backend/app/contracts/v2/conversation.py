@@ -53,6 +53,24 @@ class V2MessageListData(BaseModel):
     messages: list[V2MessageData]
 
 
+class V2SessionStreamEventData(BaseModel):
+    event_id: str
+    seq: int
+    event_type: str
+    session_id: str
+    task_run_id: str | None = None
+    message_id: str | None = None
+    occurred_at: datetime
+    data: dict[str, object] = Field(default_factory=dict)
+
+
+class V2SessionStreamReplayData(BaseModel):
+    session_id: str
+    count: int
+    last_event_seq: int
+    events: list[V2SessionStreamEventData]
+
+
 class V2TaskRunData(BaseModel):
     task_run_id: str
     tenant_id: str

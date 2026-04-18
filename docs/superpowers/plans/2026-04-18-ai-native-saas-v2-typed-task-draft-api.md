@@ -22,7 +22,7 @@
 **Files:**
 - Modify: `backend/tests/test_v2_clarification_confirmation.py`
 
-- [ ] **Step 1: 写失败测试，确认显式 `inventory.stock_in` task 可以创建 typed draft 并进入 `drafted`**
+- [x] **Step 1: 写失败测试，确认显式 `inventory.stock_in` task 可以创建 typed draft 并进入 `drafted`**
 
 ```python
 def test_v2_create_typed_task_draft_materializes_draft_and_marks_task_drafted(client, db_session) -> None:
@@ -72,7 +72,7 @@ def test_v2_create_typed_task_draft_materializes_draft_and_marks_task_drafted(cl
     assert confirm_response.json()["data"]["draft_payload"] == response.json()["data"]["draft_payload"]
 ```
 
-- [ ] **Step 2: 写失败测试，确认 typed task 不能创建不匹配的 draft**
+- [x] **Step 2: 写失败测试，确认 typed task 不能创建不匹配的 draft**
 
 ```python
 def test_v2_create_typed_task_draft_rejects_type_mismatch(client, db_session) -> None:
@@ -97,7 +97,7 @@ def test_v2_create_typed_task_draft_rejects_type_mismatch(client, db_session) ->
     assert response.json()["error"]["code"] == "draft_type_mismatch"
 ```
 
-- [ ] **Step 3: 写失败测试，确认已进入 confirmation 的 task 不能继续改 draft**
+- [x] **Step 3: 写失败测试，确认已进入 confirmation 的 task 不能继续改 draft**
 
 ```python
 def test_v2_create_typed_task_draft_rejects_non_draftable_task_status(client, db_session) -> None:
@@ -132,7 +132,7 @@ def test_v2_create_typed_task_draft_rejects_non_draftable_task_status(client, db
     assert response.json()["error"]["code"] == "task_run_not_draftable"
 ```
 
-- [ ] **Step 4: 运行新增测试，确认当前实现因为路由不存在而失败**
+- [x] **Step 4: 运行新增测试，确认当前实现因为路由不存在而失败**
 
 Run:
 
@@ -151,7 +151,7 @@ Expected:
 - Modify: `backend/app/services/v2_conversation.py`
 - Modify: `backend/app/api/v2/routes/conversation.py`
 
-- [ ] **Step 1: 新增请求合同**
+- [x] **Step 1: 新增请求合同**
 
 ```python
 class V2CreateTaskDraftRequest(BaseModel):
@@ -159,7 +159,7 @@ class V2CreateTaskDraftRequest(BaseModel):
     draft_payload: dict[str, object] = Field(default_factory=dict)
 ```
 
-- [ ] **Step 2: 在服务层新增 draft type 白名单与错误**
+- [x] **Step 2: 在服务层新增 draft type 白名单与错误**
 
 ```python
 ALLOWED_V2_TASK_DRAFT_TYPES = {
@@ -176,7 +176,7 @@ class V2TaskDraftTypeMismatchError(ValueError):
     pass
 ```
 
-- [ ] **Step 3: 新增 `upsert_v2_task_draft()`**
+- [x] **Step 3: 新增 `upsert_v2_task_draft()`**
 
 ```python
 def upsert_v2_task_draft(
@@ -204,7 +204,7 @@ def upsert_v2_task_draft(
     return task_run
 ```
 
-- [ ] **Step 4: 新增路由并复用 task run 响应形状**
+- [x] **Step 4: 新增路由并复用 task run 响应形状**
 
 ```python
 @router.post("/task-runs/{task_run_id}/draft", response_model=V2DataEnvelope[V2TaskRunData])
@@ -212,7 +212,7 @@ def create_task_draft_v2(...):
     ...
 ```
 
-- [ ] **Step 5: 重跑新增测试**
+- [x] **Step 5: 重跑新增测试**
 
 Run:
 
@@ -230,7 +230,7 @@ Expected:
 - Verify: `backend/tests/test_v2_clarification_confirmation.py`
 - Modify: `project_docs/generated/openapi-v1.json`
 
-- [ ] **Step 1: 运行 clarification / confirmation 全测试**
+- [x] **Step 1: 运行 clarification / confirmation 全测试**
 
 Run:
 
@@ -238,7 +238,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_clarification_confirmation.py -q
 ```
 
-- [ ] **Step 2: 运行关键 V2 回归**
+- [x] **Step 2: 运行关键 V2 回归**
 
 Run:
 
@@ -246,7 +246,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_inventory_ledger.py backend/tests/test_v2_inventory_read_api.py backend/tests/test_v2_inventory_corrections_api.py backend/tests/test_v2_inventory_stock_out_api.py -q
 ```
 
-- [ ] **Step 3: 刷新 OpenAPI snapshot 并校验**
+- [x] **Step 3: 刷新 OpenAPI snapshot 并校验**
 
 Run:
 
@@ -255,7 +255,7 @@ $env:PYTHONPATH="backend"; python backend/scripts/generate_openapi_snapshot.py
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_openapi_contract_snapshot.py -q
 ```
 
-- [ ] **Step 4: 运行后端全量测试**
+- [x] **Step 4: 运行后端全量测试**
 
 Run:
 
@@ -263,7 +263,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 5: 检查 git 状态并提交**
+- [x] **Step 5: 检查 git 状态并提交**
 
 Run:
 

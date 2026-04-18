@@ -32,6 +32,10 @@ ALLOWED_V2_MESSAGE_INTENTS = {
     "inventory.stock_in",
     "inventory.stock_out",
 }
+ALLOWED_V2_TASK_DRAFT_TYPES = {
+    "inventory.stock_in",
+    "inventory.stock_out",
+}
 
 
 class V2TaskRunTransitionError(ValueError):
@@ -51,6 +55,14 @@ class V2ConfirmationTypeMismatchError(ValueError):
 
 
 class V2UnsupportedIntentTypeError(ValueError):
+    pass
+
+
+class V2UnsupportedDraftTypeError(ValueError):
+    pass
+
+
+class V2TaskDraftTypeMismatchError(ValueError):
     pass
 
 
@@ -182,6 +194,13 @@ def _normalize_v2_message_intent(intent_type: str | None) -> str:
     return normalized
 
 
+def _normalize_v2_task_draft_type(draft_type: str) -> str:
+    normalized = draft_type.strip()
+    if normalized not in ALLOWED_V2_TASK_DRAFT_TYPES:
+        raise V2UnsupportedDraftTypeError(f"Unsupported draft_type '{normalized}'.")
+    return normalized
+
+
 def list_v2_messages(
     db_session: Session,
     *,
@@ -232,6 +251,51 @@ def get_v2_task_draft(
             V2TaskDraft.shop_id == shop_id,
         )
     )
+
+
+def upsert_v2_task_draft(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    draft_type: str,
+    draft_payload: dict[str, object],
+    created_by_account_id: str,
+) -> V2TaskRun:
+    normalized_draft_type = _normalize_v2_task_draft_type(draft_type)
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run.status not in {CAPTURED_STATUS, DRAFTED_STATUS}:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run_id} cannot accept draft updates from status '{task_run.status}'."
+        )
+    if task_run.intent_type != normalized_draft_type:
+        raise V2TaskDraftTypeMismatchError(
+            f"Task run {task_run_id} intent type '{task_run.intent_type}' does not match draft type '{normalized_draft_type}'."
+        )
+
+    now = utc_now_naive()
+    _upsert_v2_task_draft(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run=task_run,
+        draft_payload=dict(draft_payload),
+        created_by_account_id=created_by_account_id,
+        now=now,
+    )
+    task_run.status = DRAFTED_STATUS
+    task_run.result_summary = "Task draft is ready for confirmation."
+    task_run.error_code = None
+    task_run.updated_at = now
+    task_run.completed_at = None
+    db_session.commit()
+    return task_run
 
 
 def _require_v2_task_run_for_context(

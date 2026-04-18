@@ -170,7 +170,7 @@ def _seed_v2_identity_for_api(db_session) -> None:
     db_session.commit()
 
 
-def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
+def _create_api_task_run(client, db_session, *, intent_type: str | None = None) -> tuple[str, str, str]:
     token, context_token = _create_api_identity_context(client, db_session)
     session_response = client.post(
         "/api/v2/sessions",
@@ -180,14 +180,18 @@ def _create_api_task_run(client, db_session) -> tuple[str, str, str]:
     assert session_response.status_code == 201
     session_id = session_response.json()["data"]["session_id"]
 
+    message_payload = {
+        "message_kind": "text",
+        "payload_json": {"text": "restock cola"},
+        "client_request_id": "confirm_api_msg",
+    }
+    if intent_type is not None:
+        message_payload["intent_type"] = intent_type
+
     message_response = client.post(
         f"/api/v2/sessions/{session_id}/messages",
         headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
-        json={
-            "message_kind": "text",
-            "payload_json": {"text": "restock cola"},
-            "client_request_id": "confirm_api_msg",
-        },
+        json=message_payload,
     )
     assert message_response.status_code == 201
     task_run_id = message_response.json()["data"]["task_run_id"]
@@ -923,6 +927,94 @@ def test_v2_request_confirmation_from_generic_draft_specializes_task_and_draft_t
     assert confirmation_response.status_code == 201
     assert task_response.json()["data"]["intent_type"] == "inventory.stock_in"
     assert draft.draft_type == "inventory.stock_in"
+
+
+def test_v2_create_typed_task_draft_materializes_draft_and_marks_task_drafted(client, db_session) -> None:
+    token, context_token, task_run_id = _create_api_task_run(
+        client,
+        db_session,
+        intent_type="inventory.stock_in",
+    )
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+        },
+    )
+    confirm_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["status"] == "drafted"
+    assert response.json()["data"]["intent_type"] == "inventory.stock_in"
+    assert response.json()["data"]["draft_payload"] == {
+        "item_name": "Cola",
+        "quantity": 2,
+        "unit": "box",
+        "price": 18.5,
+    }
+    assert confirm_response.status_code == 201
+    assert confirm_response.json()["data"]["draft_payload"] == response.json()["data"]["draft_payload"]
+
+
+def test_v2_create_typed_task_draft_rejects_type_mismatch(client, db_session) -> None:
+    token, context_token = _create_api_identity_context(client, db_session)
+    task_run_id = "vtask_typed_draft_mismatch"
+    _seed_v2_inventory_task_run_in_existing_context(
+        db_session,
+        task_run_id=task_run_id,
+        intent_type="inventory.stock_out",
+    )
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "draft_type_mismatch"
+
+
+def test_v2_create_typed_task_draft_rejects_non_draftable_task_status(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_confirmation
+
+    token, context_token = _create_api_identity_context(client, db_session)
+    task_run_id = "vtask_typed_draft_not_draftable"
+    _seed_v2_inventory_task_run_in_existing_context(
+        db_session,
+        task_run_id=task_run_id,
+        intent_type="inventory.stock_in",
+    )
+    create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5},
+    )
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/draft",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "draft_type": "inventory.stock_in",
+            "draft_payload": {"item_name": "Cola", "quantity": 3, "unit": "box", "price": 18.5},
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "task_run_not_draftable"
 
 
 def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:

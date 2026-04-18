@@ -71,6 +71,11 @@ class V2TaskRunData(BaseModel):
     completed_at: datetime | None
 
 
+class V2CreateTaskDraftRequest(BaseModel):
+    draft_type: str
+    draft_payload: dict[str, object] = Field(default_factory=dict)
+
+
 class V2RequestConfirmationFromDraftRequest(BaseModel):
     confirmation_type: str
 

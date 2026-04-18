@@ -3424,6 +3424,24 @@
         "title": "V2CreateSessionRequest",
         "type": "object"
       },
+      "V2CreateTaskDraftRequest": {
+        "properties": {
+          "draft_payload": {
+            "additionalProperties": true,
+            "title": "Draft Payload",
+            "type": "object"
+          },
+          "draft_type": {
+            "title": "Draft Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "draft_type"
+        ],
+        "title": "V2CreateTaskDraftRequest",
+        "type": "object"
+      },
       "V2DataEnvelope_V2ClarificationData_": {
         "properties": {
           "data": {
@@ -8494,6 +8512,90 @@
           }
         },
         "summary": "Request Confirmation From Task Draft V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/task-runs/{task_run_id}/draft": {
+      "post": {
+        "operationId": "create_task_draft_v2_api_v2_task_runs__task_run_id__draft_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_run_id",
+            "required": true,
+            "schema": {
+              "title": "Task Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CreateTaskDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2TaskRunData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Task Draft V2",
         "tags": [
           "v2-conversation"
         ]

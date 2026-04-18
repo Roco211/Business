@@ -19,6 +19,7 @@ from app.contracts.v2.conversation import (
     V2CreateMessageData,
     V2CreateMessageRequest,
     V2CreateSessionRequest,
+    V2CreateTaskDraftRequest,
     V2MessageData,
     V2MessageListData,
     V2RequestConfirmationFromDraftRequest,
@@ -30,8 +31,10 @@ from app.db.session import get_db_session
 from app.services.v2_conversation import (
     V2ConfirmationConflictError,
     V2ConfirmationTypeMismatchError,
+    V2TaskDraftTypeMismatchError,
     V2TaskDraftNotReadyError,
     V2TaskRunTransitionError,
+    V2UnsupportedDraftTypeError,
     V2UnsupportedIntentTypeError,
     answer_v2_clarification,
     approve_v2_confirmation,
@@ -45,6 +48,7 @@ from app.services.v2_conversation import (
     list_v2_sessions,
     reject_v2_confirmation,
     request_v2_confirmation_from_task_draft,
+    upsert_v2_task_draft,
 )
 from app.services.v2_inventory import (
     V2InventoryItemNotFoundError,
@@ -98,6 +102,26 @@ def _to_clarification_data(clarification) -> V2ClarificationData:
         answered_by_account_id=clarification.answered_by_account_id,
         created_at=clarification.created_at,
         answered_at=clarification.answered_at,
+    )
+
+
+def _to_task_run_data(task_run, draft) -> V2TaskRunData:
+    return V2TaskRunData(
+        task_run_id=task_run.task_run_id,
+        tenant_id=task_run.tenant_id,
+        shop_id=task_run.shop_id,
+        session_id=task_run.session_id,
+        source_message_id=task_run.source_message_id,
+        intent_type=task_run.intent_type,
+        status=task_run.status,
+        risk_level=task_run.risk_level,
+        trace_id=task_run.trace_id,
+        result_summary=task_run.result_summary,
+        error_code=task_run.error_code,
+        draft_payload=draft.payload_json if draft is not None else None,
+        created_at=task_run.created_at,
+        updated_at=task_run.updated_at,
+        completed_at=task_run.completed_at,
     )
 
 
@@ -266,25 +290,66 @@ def get_task_run_v2(
         shop_id=context.shop_id,
         task_run_id=task_run_id,
     )
-    return V2DataEnvelope(
-        data=V2TaskRunData(
-            task_run_id=task_run.task_run_id,
-            tenant_id=task_run.tenant_id,
-            shop_id=task_run.shop_id,
-            session_id=task_run.session_id,
-            source_message_id=task_run.source_message_id,
-            intent_type=task_run.intent_type,
-            status=task_run.status,
-            risk_level=task_run.risk_level,
-            trace_id=task_run.trace_id,
-            result_summary=task_run.result_summary,
-            error_code=task_run.error_code,
-            draft_payload=draft.payload_json if draft is not None else None,
-            created_at=task_run.created_at,
-            updated_at=task_run.updated_at,
-            completed_at=task_run.completed_at,
+    return V2DataEnvelope(data=_to_task_run_data(task_run, draft))
+
+
+@router.post("/task-runs/{task_run_id}/draft", response_model=V2DataEnvelope[V2TaskRunData])
+def create_task_draft_v2(
+    task_run_id: str,
+    payload: V2CreateTaskDraftRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2TaskRunData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        task_run = upsert_v2_task_draft(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            task_run_id=task_run_id,
+            draft_type=payload.draft_type,
+            draft_payload=payload.draft_payload,
+            created_by_account_id=account.account_id,
         )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="task_run_not_found", message="Task run not found")
+            ).model_dump(),
+        )
+    except V2UnsupportedDraftTypeError as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="validation_error", message=str(exc))
+            ).model_dump(),
+        )
+    except V2TaskDraftTypeMismatchError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="draft_type_mismatch", message="Task draft type does not match task intent")
+            ).model_dump(),
+        )
+    except V2TaskRunTransitionError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="task_run_not_draftable", message="Task run cannot accept draft updates")
+            ).model_dump(),
+        )
+
+    draft = get_v2_task_draft(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        task_run_id=task_run_id,
     )
+    return V2DataEnvelope(data=_to_task_run_data(task_run, draft))
 
 
 @router.post(

@@ -31,6 +31,9 @@ REJECTED_STATUS = "rejected"
 PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
 ANSWERED_STATUS = "answered"
+SYSTEM_ACTOR_TYPE = "system"
+RUNTIME_SYSTEM_ACTOR_ID = "runtime_system"
+SYSTEM_RESULT_MESSAGE_KIND = "system_result"
 GENERIC_DRAFT_TYPES = {"conversation.capture"}
 ALLOWED_V2_MESSAGE_INTENTS = {
     "conversation.capture",
@@ -224,6 +227,37 @@ def list_v2_messages(
             .order_by(V2Message.created_at.asc(), V2Message.message_id.asc())
         )
     )
+
+
+def append_v2_system_result_message(
+    db_session: Session,
+    *,
+    task_run: V2TaskRun,
+    confirmation: V2Confirmation,
+    text: str,
+) -> V2Message:
+    now = utc_now_naive()
+    message = V2Message(
+        message_id=f"vmsg_{uuid.uuid4().hex}"[:40],
+        tenant_id=task_run.tenant_id,
+        shop_id=task_run.shop_id,
+        session_id=task_run.session_id,
+        actor_type=SYSTEM_ACTOR_TYPE,
+        actor_id=RUNTIME_SYSTEM_ACTOR_ID,
+        message_kind=SYSTEM_RESULT_MESSAGE_KIND,
+        payload_json={
+            "text": text,
+            "task_run_id": task_run.task_run_id,
+            "task_run_status": task_run.status,
+            "intent_type": task_run.intent_type,
+            "confirmation_id": confirmation.confirmation_id,
+            "confirmation_type": confirmation.confirmation_type,
+        },
+        client_request_id=None,
+        created_at=now,
+    )
+    db_session.add(message)
+    return message
 
 
 def get_v2_task_run(
@@ -711,6 +745,7 @@ def approve_v2_confirmation(
         confirmation.approved_by_account_id = approved_by_account_id
         confirmation.resolved_at = now
 
+        system_result_text: str | None = None
         if confirmation.confirmation_type == "inventory.stock_in":
             resolved_fields = dict(resolution_payload.get("fields") or {})
             commit_v2_inventory_stock_in(
@@ -724,6 +759,7 @@ def approve_v2_confirmation(
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
+            system_result_text = "Inventory stock-in committed."
         elif confirmation.confirmation_type == "inventory.stock_out":
             resolved_fields = dict(resolution_payload.get("fields") or {})
             commit_v2_inventory_stock_out(
@@ -739,6 +775,7 @@ def approve_v2_confirmation(
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
+            system_result_text = "Inventory stock-out committed."
         else:
             task_run.status = EXECUTING_STATUS
             task_run.result_summary = "Confirmation approved; deterministic execution pending."
@@ -746,6 +783,13 @@ def approve_v2_confirmation(
 
         task_run.error_code = None
         task_run.updated_at = now
+        if system_result_text is not None:
+            append_v2_system_result_message(
+                db_session,
+                task_run=task_run,
+                confirmation=confirmation,
+                text=system_result_text,
+            )
         db_session.commit()
         return confirmation
     except Exception:
@@ -760,37 +804,47 @@ def reject_v2_confirmation(
     shop_id: str,
     confirmation_id: str,
 ) -> V2Confirmation:
-    confirmation = _require_v2_confirmation_for_context(
-        db_session,
-        tenant_id=tenant_id,
-        shop_id=shop_id,
-        confirmation_id=confirmation_id,
-    )
-    if confirmation.status != PENDING_STATUS:
-        raise V2ConfirmationConflictError(
-            f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+    try:
+        confirmation = _require_v2_confirmation_for_context(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            confirmation_id=confirmation_id,
         )
+        if confirmation.status != PENDING_STATUS:
+            raise V2ConfirmationConflictError(
+                f"Confirmation {confirmation_id} must be pending; found '{confirmation.status}'."
+            )
 
-    task_run = _require_v2_task_run_for_context(
-        db_session,
-        tenant_id=tenant_id,
-        shop_id=shop_id,
-        task_run_id=confirmation.task_run_id,
-    )
-    if task_run.status != AWAITING_CONFIRMATION_STATUS:
-        raise V2TaskRunTransitionError(
-            f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+        task_run = _require_v2_task_run_for_context(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            task_run_id=confirmation.task_run_id,
         )
+        if task_run.status != AWAITING_CONFIRMATION_STATUS:
+            raise V2TaskRunTransitionError(
+                f"Task run {task_run.task_run_id} must be awaiting confirmation; found '{task_run.status}'."
+            )
 
-    now = utc_now_naive()
-    confirmation.status = REJECTED_STATUS
-    confirmation.resolution_payload = None
-    confirmation.approved_by_account_id = None
-    confirmation.resolved_at = now
-    task_run.status = REJECTED_STATUS
-    task_run.result_summary = "Confirmation rejected."
-    task_run.error_code = None
-    task_run.updated_at = now
-    task_run.completed_at = now
-    db_session.commit()
-    return confirmation
+        now = utc_now_naive()
+        confirmation.status = REJECTED_STATUS
+        confirmation.resolution_payload = None
+        confirmation.approved_by_account_id = None
+        confirmation.resolved_at = now
+        task_run.status = REJECTED_STATUS
+        task_run.result_summary = "Confirmation rejected."
+        task_run.error_code = None
+        task_run.updated_at = now
+        task_run.completed_at = now
+        append_v2_system_result_message(
+            db_session,
+            task_run=task_run,
+            confirmation=confirmation,
+            text="Confirmation rejected; no business change committed.",
+        )
+        db_session.commit()
+        return confirmation
+    except Exception:
+        db_session.rollback()
+        raise

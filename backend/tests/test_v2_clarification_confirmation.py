@@ -453,7 +453,7 @@ def test_v2_approve_confirmation_records_resolution_and_moves_task_to_executing(
     assert task_run.completed_at is None
 
 
-def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
+def test_v2_approve_confirmation_commits_inventory_and_appends_system_result_message(client, db_session) -> None:
     from app.models import V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskRun
     from app.services.v2_conversation import create_v2_confirmation
 
@@ -488,15 +488,34 @@ def test_v2_approve_confirmation_commits_inventory_and_marks_task_committed(clie
     assert task_run is not None
     assert task_run.status == "committed"
     assert task_run.completed_at is not None
+
+    messages_response = client.get(
+        f"/api/v2/sessions/{task_run.session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    messages = messages_response.json()["data"]["messages"]
+
     assert len(items) == 1
     assert items[0].tenant_id == "tenant_a"
     assert snapshots[0].shop_id == "shop_a1"
     assert snapshots[0].current_quantity == 2
     assert events[0].shop_id == "shop_a1"
     assert events[0].quantity_after == 2
+    assert messages_response.status_code == 200
+    assert len(messages) == 2
+    assert messages[-1]["actor_type"] == "system"
+    assert messages[-1]["actor_id"] == "runtime_system"
+    assert messages[-1]["message_kind"] == "system_result"
+    assert messages[-1]["payload_json"]["task_run_id"] == task_run_id
+    assert messages[-1]["payload_json"]["confirmation_id"] == confirmation.confirmation_id
+    assert messages[-1]["payload_json"]["confirmation_type"] == "inventory.stock_in"
+    assert messages[-1]["payload_json"]["task_run_status"] == "committed"
+    assert "stock-in committed" in messages[-1]["payload_json"]["text"].lower()
 
 
-def test_v2_approve_stock_out_confirmation_commits_inventory_and_marks_task_committed(client, db_session) -> None:
+def test_v2_approve_stock_out_confirmation_commits_inventory_and_appends_system_result_message(
+    client, db_session
+) -> None:
     from app.models import V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2TaskRun
     from app.services.v2_conversation import create_v2_confirmation
     from app.services.v2_inventory import commit_v2_inventory_stock_in
@@ -559,9 +578,26 @@ def test_v2_approve_stock_out_confirmation_commits_inventory_and_marks_task_comm
     assert task_run is not None
     assert task_run.status == "committed"
     assert task_run.completed_at is not None
+
+    messages_response = client.get(
+        f"/api/v2/sessions/{task_run.session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    messages = messages_response.json()["data"]["messages"]
+
     assert snapshot.current_quantity == Decimal("3")
     assert event.quantity_after == Decimal("3")
     assert event.reason == "counter sale"
+    assert messages_response.status_code == 200
+    assert len(messages) == 2
+    assert messages[-1]["actor_type"] == "system"
+    assert messages[-1]["actor_id"] == "runtime_system"
+    assert messages[-1]["message_kind"] == "system_result"
+    assert messages[-1]["payload_json"]["task_run_id"] == task_run_id
+    assert messages[-1]["payload_json"]["confirmation_id"] == confirmation.confirmation_id
+    assert messages[-1]["payload_json"]["confirmation_type"] == "inventory.stock_out"
+    assert messages[-1]["payload_json"]["task_run_status"] == "committed"
+    assert "stock-out committed" in messages[-1]["payload_json"]["text"].lower()
 
 
 def test_v2_approve_stock_out_confirmation_rejects_insufficient_stock_and_rolls_back(client, db_session) -> None:
@@ -675,7 +711,9 @@ def test_v2_approve_confirmation_rolls_back_when_inventory_commit_fails(db_sessi
     assert persisted_task_run.completed_at is None
 
 
-def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:
+def test_v2_reject_confirmation_marks_task_rejected_and_appends_system_result_message(
+    client, db_session
+) -> None:
     from app.models import V2TaskRun
     from app.services.v2_conversation import create_v2_confirmation
 
@@ -701,6 +739,23 @@ def test_v2_reject_confirmation_marks_task_rejected(client, db_session) -> None:
     assert task_run is not None
     assert task_run.status == "rejected"
     assert task_run.completed_at is not None
+
+    messages_response = client.get(
+        f"/api/v2/sessions/{task_run.session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    messages = messages_response.json()["data"]["messages"]
+
+    assert messages_response.status_code == 200
+    assert len(messages) == 2
+    assert messages[-1]["actor_type"] == "system"
+    assert messages[-1]["actor_id"] == "runtime_system"
+    assert messages[-1]["message_kind"] == "system_result"
+    assert messages[-1]["payload_json"]["task_run_id"] == task_run_id
+    assert messages[-1]["payload_json"]["confirmation_id"] == confirmation.confirmation_id
+    assert messages[-1]["payload_json"]["confirmation_type"] == "inventory.stock_in"
+    assert messages[-1]["payload_json"]["task_run_status"] == "rejected"
+    assert "rejected" in messages[-1]["payload_json"]["text"].lower()
 
 
 def test_v2_list_clarifications_returns_current_context_pending_items(client, db_session) -> None:

@@ -63,9 +63,14 @@ class V2TaskRunData(BaseModel):
     trace_id: str
     result_summary: str | None
     error_code: str | None
+    draft_payload: dict[str, object] | None = None
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+
+
+class V2RequestConfirmationFromDraftRequest(BaseModel):
+    confirmation_type: str
 
 
 class V2ApproveConfirmationRequest(BaseModel):

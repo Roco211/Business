@@ -74,6 +74,24 @@ class V2TaskRun(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
 
 
+class V2TaskDraft(Base):
+    __tablename__ = "v2_task_drafts"
+
+    task_draft_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("v2_tenants.tenant_id"), nullable=False, index=True)
+    shop_id: Mapped[str] = mapped_column(ForeignKey("v2_shops.shop_id"), nullable=False, index=True)
+    task_run_id: Mapped[str] = mapped_column(
+        ForeignKey("v2_task_runs.task_run_id"),
+        nullable=False,
+        unique=True,
+    )
+    draft_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_json: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    created_by_account_id: Mapped[str] = mapped_column(ForeignKey("v2_accounts.account_id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+
+
 class V2Clarification(Base):
     __tablename__ = "v2_clarifications"
 

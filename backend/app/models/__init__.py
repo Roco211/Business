@@ -19,6 +19,7 @@ from app.models.v2_conversation import (
     V2Confirmation,
     V2ConversationSession,
     V2Message,
+    V2TaskDraft,
     V2TaskRun,
 )
 from app.models.v2_identity import (
@@ -52,6 +53,7 @@ __all__ = [
     "V2Confirmation",
     "V2ConversationSession",
     "V2Message",
+    "V2TaskDraft",
     "V2TaskRun",
     "V2Account",
     "V2AuthSession",

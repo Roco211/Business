@@ -4,7 +4,14 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import V2Clarification, V2Confirmation, V2ConversationSession, V2Message, V2TaskRun
+from app.models import (
+    V2Clarification,
+    V2Confirmation,
+    V2ConversationSession,
+    V2Message,
+    V2TaskDraft,
+    V2TaskRun,
+)
 from app.services.v2_time import utc_now_naive
 
 CAPTURED_STATUS = "captured"
@@ -24,6 +31,10 @@ class V2TaskRunTransitionError(ValueError):
 
 
 class V2ConfirmationConflictError(ValueError):
+    pass
+
+
+class V2TaskDraftNotReadyError(ValueError):
     pass
 
 
@@ -182,6 +193,22 @@ def get_v2_task_run(
     )
 
 
+def get_v2_task_draft(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+) -> V2TaskDraft | None:
+    return db_session.scalar(
+        select(V2TaskDraft).where(
+            V2TaskDraft.task_run_id == task_run_id,
+            V2TaskDraft.tenant_id == tenant_id,
+            V2TaskDraft.shop_id == shop_id,
+        )
+    )
+
+
 def _require_v2_task_run_for_context(
     db_session: Session,
     *,
@@ -201,6 +228,43 @@ def _require_v2_task_run_for_context(
     if task_run is None:
         raise LookupError(task_run_id)
     return task_run
+
+
+def _upsert_v2_task_draft(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run: V2TaskRun,
+    draft_payload: dict[str, object],
+    created_by_account_id: str,
+    now,
+) -> V2TaskDraft:
+    draft = get_v2_task_draft(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run.task_run_id,
+    )
+    if draft is None:
+        draft = V2TaskDraft(
+            task_draft_id=f"vdraft_{uuid.uuid4().hex}"[:40],
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            task_run_id=task_run.task_run_id,
+            draft_type=task_run.intent_type,
+            payload_json=draft_payload,
+            created_by_account_id=created_by_account_id,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(draft)
+        return draft
+
+    draft.draft_type = task_run.intent_type
+    draft.payload_json = draft_payload
+    draft.updated_at = now
+    return draft
 
 
 def create_v2_clarification(
@@ -395,6 +459,17 @@ def answer_v2_clarification(
     clarification.answer_payload = answer_payload
     clarification.answered_by_account_id = answered_by_account_id
     clarification.answered_at = now
+    merged_draft_payload = dict(clarification.draft_payload or {})
+    merged_draft_payload.update(answer_payload)
+    _upsert_v2_task_draft(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run=task_run,
+        draft_payload=merged_draft_payload,
+        created_by_account_id=answered_by_account_id,
+        now=now,
+    )
     task_run.status = DRAFTED_STATUS
     task_run.result_summary = "Clarification answered; draft is ready for confirmation."
     task_run.error_code = None
@@ -402,6 +477,44 @@ def answer_v2_clarification(
     task_run.completed_at = None
     db_session.commit()
     return clarification
+
+
+def request_v2_confirmation_from_task_draft(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    confirmation_type: str,
+) -> V2Confirmation:
+    draft = get_v2_task_draft(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if draft is None:
+        raise V2TaskDraftNotReadyError(f"Task run {task_run_id} does not have a draft yet.")
+
+    task_run = _require_v2_task_run_for_context(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+    )
+    if task_run.status != DRAFTED_STATUS:
+        raise V2TaskRunTransitionError(
+            f"Task run {task_run_id} must be drafted before confirmation; found '{task_run.status}'."
+        )
+
+    return create_v2_confirmation(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        confirmation_type=confirmation_type,
+        draft_payload=dict(draft.payload_json),
+    )
 
 
 def list_v2_confirmations(

@@ -255,6 +255,35 @@ def test_v2_clarification_and_confirmation_schema_persist_context_boundaries(db_
     assert persisted.shop_id == "shop_a1"
 
 
+def test_v2_task_draft_schema_persists_context_boundaries(db_session) -> None:
+    from sqlalchemy import select
+
+    from app.models import V2TaskDraft
+
+    now = _utc_now_naive()
+    _seed_v2_task_run(db_session, task_run_id="vtask_draft_schema")
+    draft = V2TaskDraft(
+        task_draft_id="vdraft_001",
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id="vtask_draft_schema",
+        draft_type="inventory.stock_in",
+        payload_json={"item_name": "Cola", "quantity": 2, "unit": "box"},
+        created_by_account_id="acct_001",
+        created_at=now,
+        updated_at=now,
+    )
+    db_session.add(draft)
+    db_session.commit()
+
+    persisted = db_session.scalar(
+        select(V2TaskDraft).where(V2TaskDraft.task_draft_id == "vdraft_001")
+    )
+    assert persisted is not None
+    assert persisted.tenant_id == "tenant_a"
+    assert persisted.shop_id == "shop_a1"
+
+
 def test_v2_create_clarification_moves_task_to_needs_clarification(db_session) -> None:
     from app.models import V2TaskRun
     from app.services.v2_conversation import create_v2_clarification
@@ -445,6 +474,39 @@ def test_v2_answer_clarification_records_answer_and_moves_task_to_drafted(client
     assert task_run.completed_at is None
 
 
+def test_v2_answer_clarification_materializes_task_draft(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"quantity": 2, "unit": "box"}},
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert answer_response.status_code == 200
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["draft_payload"] == {
+        "item_name": "Cola",
+        "quantity": 2,
+        "unit": "box",
+    }
+
+
 def test_v2_answer_clarification_rejects_non_pending_record(db_session) -> None:
     import pytest
 
@@ -483,3 +545,57 @@ def test_v2_answer_clarification_rejects_non_pending_record(db_session) -> None:
             answer_payload={"quantity": 3},
             answered_by_account_id="acct_001",
         )
+
+
+def test_v2_request_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"quantity": 2, "unit": "box"}},
+    )
+    assert answer_response.status_code == 200
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["data"]["status"] == "pending"
+    assert response.json()["data"]["draft_payload"] == {
+        "item_name": "Cola",
+        "quantity": 2,
+        "unit": "box",
+    }
+    assert task_response.json()["data"]["status"] == "awaiting_confirmation"
+
+
+def test_v2_request_confirmation_from_draft_rejects_missing_draft(client, db_session) -> None:
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+
+    response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "draft_not_ready"

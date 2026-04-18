@@ -21,6 +21,7 @@ from app.contracts.v2.conversation import (
     V2CreateSessionRequest,
     V2MessageData,
     V2MessageListData,
+    V2RequestConfirmationFromDraftRequest,
     V2SessionData,
     V2SessionListData,
     V2TaskRunData,
@@ -28,17 +29,20 @@ from app.contracts.v2.conversation import (
 from app.db.session import get_db_session
 from app.services.v2_conversation import (
     V2ConfirmationConflictError,
+    V2TaskDraftNotReadyError,
     V2TaskRunTransitionError,
     answer_v2_clarification,
     approve_v2_confirmation,
     create_v2_message_and_task_run,
     create_v2_session,
+    get_v2_task_draft,
     get_v2_task_run,
     list_v2_clarifications,
     list_v2_messages,
     list_v2_confirmations,
     list_v2_sessions,
     reject_v2_confirmation,
+    request_v2_confirmation_from_task_draft,
 )
 
 router = APIRouter(prefix="/api/v2", tags=["v2-conversation"])
@@ -236,6 +240,12 @@ def get_task_run_v2(
             ).model_dump(),
         )
 
+    draft = get_v2_task_draft(
+        db_session,
+        tenant_id=context.tenant_id,
+        shop_id=context.shop_id,
+        task_run_id=task_run_id,
+    )
     return V2DataEnvelope(
         data=V2TaskRunData(
             task_run_id=task_run.task_run_id,
@@ -249,11 +259,60 @@ def get_task_run_v2(
             trace_id=task_run.trace_id,
             result_summary=task_run.result_summary,
             error_code=task_run.error_code,
+            draft_payload=draft.payload_json if draft is not None else None,
             created_at=task_run.created_at,
             updated_at=task_run.updated_at,
             completed_at=task_run.completed_at,
         )
     )
+
+
+@router.post(
+    "/task-runs/{task_run_id}/confirmations",
+    response_model=V2DataEnvelope[V2ConfirmationData],
+    status_code=status.HTTP_201_CREATED,
+)
+def request_confirmation_from_task_draft_v2(
+    task_run_id: str,
+    payload: V2RequestConfirmationFromDraftRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        confirmation = request_v2_confirmation_from_task_draft(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            task_run_id=task_run_id,
+            confirmation_type=payload.confirmation_type,
+        )
+    except LookupError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="task_run_not_found", message="Task run not found")
+            ).model_dump(),
+        )
+    except V2TaskDraftNotReadyError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="draft_not_ready", message="Task draft is not ready")
+            ).model_dump(),
+        )
+    except (V2ConfirmationConflictError, V2TaskRunTransitionError):
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="task_run_not_drafted", message="Task run is not drafted")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(data=_to_confirmation_data(confirmation))
 
 
 @router.get("/clarifications", response_model=V2DataEnvelope[V2ClarificationListData])

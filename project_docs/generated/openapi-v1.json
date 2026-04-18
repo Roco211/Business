@@ -3862,6 +3862,19 @@
         "title": "V2RefreshRequest",
         "type": "object"
       },
+      "V2RequestConfirmationFromDraftRequest": {
+        "properties": {
+          "confirmation_type": {
+            "title": "Confirmation Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmation_type"
+        ],
+        "title": "V2RequestConfirmationFromDraftRequest",
+        "type": "object"
+      },
       "V2SessionData": {
         "properties": {
           "initiated_by_account_id": {
@@ -3988,6 +4001,18 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "draft_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Payload"
           },
           "error_code": {
             "anyOf": [
@@ -7479,6 +7504,90 @@
           }
         },
         "summary": "Get Task Run V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/task-runs/{task_run_id}/confirmations": {
+      "post": {
+        "operationId": "request_confirmation_from_task_draft_v2_api_v2_task_runs__task_run_id__confirmations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_run_id",
+            "required": true,
+            "schema": {
+              "title": "Task Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2RequestConfirmationFromDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ConfirmationData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Confirmation From Task Draft V2",
         "tags": [
           "v2-conversation"
         ]

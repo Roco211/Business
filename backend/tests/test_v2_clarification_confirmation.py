@@ -886,6 +886,45 @@ def test_v2_request_confirmation_from_draft_rejects_missing_draft(client, db_ses
     assert response.json()["error"]["code"] == "draft_not_ready"
 
 
+def test_v2_request_confirmation_from_generic_draft_specializes_task_and_draft_type(client, db_session) -> None:
+    from app.models import V2TaskDraft
+    from app.services.v2_conversation import create_v2_clarification
+
+    token, context_token, task_run_id = _create_api_task_run(client, db_session)
+    clarification = create_v2_clarification(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        reason_code="missing_quantity",
+        question_text="How many boxes should be stocked in?",
+        requested_fields=["quantity"],
+        draft_payload={"item_name": "Cola"},
+    )
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification.clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": {"quantity": 2, "unit": "box"}},
+    )
+    confirmation_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    db_session.expire_all()
+    draft = db_session.query(V2TaskDraft).filter_by(task_run_id=task_run_id).one()
+
+    assert answer_response.status_code == 200
+    assert confirmation_response.status_code == 201
+    assert task_response.json()["data"]["intent_type"] == "inventory.stock_in"
+    assert draft.draft_type == "inventory.stock_in"
+
+
 def test_v2_request_stock_out_confirmation_from_draft_creates_pending_confirmation(client, db_session) -> None:
     from app.services.v2_conversation import create_v2_clarification
 

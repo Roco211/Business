@@ -520,6 +520,7 @@ def request_v2_confirmation_from_task_draft(
     )
     if draft is None:
         raise V2TaskDraftNotReadyError(f"Task run {task_run_id} does not have a draft yet.")
+    should_specialize_generic_draft = draft.draft_type in GENERIC_DRAFT_TYPES
     if draft.draft_type not in GENERIC_DRAFT_TYPES and draft.draft_type != confirmation_type:
         raise V2ConfirmationTypeMismatchError(
             f"Task run {task_run_id} draft type '{draft.draft_type}' does not match confirmation type '{confirmation_type}'."
@@ -535,6 +536,13 @@ def request_v2_confirmation_from_task_draft(
         raise V2TaskRunTransitionError(
             f"Task run {task_run_id} must be drafted before confirmation; found '{task_run.status}'."
         )
+    if should_specialize_generic_draft:
+        now = utc_now_naive()
+        task_run.intent_type = confirmation_type
+        task_run.updated_at = now
+        draft.draft_type = confirmation_type
+        draft.updated_at = now
+        db_session.flush()
 
     return create_v2_confirmation(
         db_session,

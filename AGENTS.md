@@ -1,0 +1,73 @@
+# AGENTS 约束
+
+本仓库后续在当前重构方向下，所有智能体、协作者、自动化流程都必须遵守以下规则。
+
+## 语言规则
+
+以下类型的 Markdown 文档必须使用中文撰写：
+
+- 架构原则文档
+- 架构设计文档
+- 方案设计文档
+- `spec` 文档
+- `plan` 文档
+- 设计决策文档
+- 重构说明文档
+- 治理与约束类文档
+
+默认适用路径包括但不限于：
+
+- `docs/architecture/**/*.md`
+- `docs/superpowers/specs/**/*.md`
+- `docs/superpowers/plans/**/*.md`
+
+如果必须引用英文术语，应优先使用“中文 + 英文术语”的形式，例如：
+
+- 租户（tenant）
+- 门店（shop）
+- 执行上下文（execution context）
+
+不允许新增纯英文的原则、设计、架构、计划类 Markdown 文档。
+
+## 架构原则优先级
+
+后续实现、设计、计划如与以下文件冲突，以这些文件为最高优先级：
+
+- `docs/architecture/ai-native-saas-architecture-principles.md`
+- `docs/superpowers/specs/2026-04-18-ai-native-saas-backend-rewrite-design.md`
+
+## 重构方向
+
+当前后端重构正式采用方案 C：
+
+- 重写核心架构
+- 保留业务经验
+- 废弃错误边界
+
+不得继续把以下旧假设带入新架构：
+
+- `shop` 等于租户边界
+- 登录直接绑定单个 `shop`
+- 通过主键回溯上下文完成权限判断
+- 在认证路径中隐式创建默认店铺或默认 owner
+
+## AI 原生原则
+
+后续实现必须坚持：
+
+- AI 负责理解和编排
+- 系统负责权限、约束、确认、落账、审计
+- AI 不能直接修改业务真相
+- 不确定性必须进入追问、确认、拒绝或纠错工作流
+
+## 多租户原则
+
+必须坚持以下数据边界：
+
+- `tenant` 是第一业务边界
+- `shop` 是 `tenant` 下业务单元
+- 一个 `account` 可以加入多个 `tenant`
+- 一个 `tenant` 可以包含多个 `shop`
+- 所有关键业务对象默认带 `tenant_id`
+- 门店级对象同时带 `shop_id`
+

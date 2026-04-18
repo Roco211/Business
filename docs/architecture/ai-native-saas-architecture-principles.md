@@ -1,46 +1,65 @@
-# AI-Native SaaS Architecture Principles
+# AI 原生 SaaS 架构原则
 
-Date: 2026-04-18
-Status: Accepted
-Scope: Backend rewrite foundation
+日期：2026-04-18
+状态：已确认
+范围：后端重构基础原则
 
-## Decision
+## 决策
 
-We will rebuild the backend using option C: a core architecture rewrite.
+后端正式采用方案 C：重写核心架构。
 
-This is not a blind rewrite from zero. We will preserve useful product learning from the current MVP, especially inventory ledger thinking, confirmation workflows, task state transitions, multimodal provider abstractions, and audit requirements. We will discard the old foundational boundaries where they conflict with the target SaaS model.
+这不是一次不加筛选的推倒重来，而是一次“保留业务经验、重建错误边界”的重构。我们会继承当前 MVP 中已经证明有价值的部分，例如：
 
-The target product is an AI-native multi-tenant SaaS business operating system for small merchants. Multimodal AI is the primary interaction and orchestration layer. Deterministic backend tools remain the source of business truth.
+- 库存事件账本思路
+- 确认流和人工审批边界
+- 任务状态流转经验
+- 多模态 provider 抽象
+- 审计与可追溯要求
 
-## Highest-Level Principles
+我们会废弃那些与目标产品模型冲突的旧基础边界，尤其是：
 
-1. AI understands and orchestrates. The system constrains and commits.
-2. Tenant is the first business boundary. Shop is a business unit under a tenant.
-3. Every business operation must execute inside an explicit account, tenant, shop, permission, and session context.
-4. AI may propose intents and tool calls, but AI must not directly mutate business truth.
-5. Uncertainty is a normal workflow state, not an exception.
-6. High-risk or uncertain actions require clarification, confirmation, rejection, or correction paths.
-7. Critical business facts must be evented, auditable, and explainable.
-8. Model providers are replaceable. AI capability, prompts, schemas, evaluations, cost, and latency must be observable.
+- 把 `shop` 当作租户边界
+- 登录后直接绑定单个 `shop`
+- 依赖主键回溯上下文来做权限和租户隔离
+- 在认证路径中隐式创建默认店铺和默认 owner
 
-## Product Positioning
+目标产品的本质是：
 
-This project is not a traditional inventory system with an AI assistant attached.
+**一个以多模态大模型为核心交互与编排引擎的 AI 原生多租户 SaaS 商家业务操作系统。**
 
-It is an AI-native SaaS application where users primarily interact through:
+## 最高原则
 
-- voice
-- images
-- receipts and OCR
-- text conversation
-- confirmation cards
-- concise operational surfaces
+1. AI 负责理解和编排，系统负责约束和落账。
+2. `tenant` 是第一业务边界，`shop` 只是 `tenant` 下的业务单元。
+3. 所有业务操作都必须在显式上下文中执行。
+4. AI 可以提出意图和工具调用建议，但 AI 不能直接修改业务真相。
+5. 不确定性是正常状态，不是异常分支。
+6. 高风险或低置信度操作必须进入追问、确认、拒绝或纠错流程。
+7. 关键业务事实必须事件化、可审计、可解释。
+8. 模型 provider 必须可替换，提示词、schema、评估、成本和延迟必须可观测。
+9. 重要异步链路必须可靠投递，不能依赖 best-effort。
+10. 后续所有重构和实现决策，若与本文件冲突，以本文件为准。
 
-Forms, admin screens, APIs, and CLI tools are supporting surfaces. They are useful for setup, debugging, operations, and fallback, but they are not the main product differentiator.
+## 产品定位
 
-## Multi-Tenant Model
+这个项目不是“库存系统 + AI 助手”。
 
-The future SaaS hierarchy is:
+它应该被定义为：
+
+**AI 原生、多租户、面向中小商家的 SaaS 业务操作系统。**
+
+这里的“AI 原生”有明确含义：
+
+- 用户主要通过语音、图片、票据、文本对话发起操作
+- AI 是主入口，不是附加入口
+- AI 负责理解、澄清、规划、组织工具调用
+- 系统负责权限、风险控制、确认、落账、审计和回放
+
+表单界面、后台接口、CLI 工具都属于辅助和兜底能力，不是主产品心智。
+
+## 多租户模型
+
+未来 SaaS 的层级结构是：
 
 ```text
 Platform
@@ -52,36 +71,37 @@ Role / Permission
 Business Data
 ```
 
-Definitions:
+定义如下：
 
-- Account: a human login identity. One account may belong to multiple tenants.
-- Tenant: a merchant organization or commercial account.
-- Shop: a store or operating unit under one tenant.
-- Tenant membership: an account's role inside a tenant.
-- Shop access: which shops a tenant member may operate or view.
+- `Account`：自然人账号。一个账号可以加入多个租户。
+- `Tenant`：商家组织，是第一业务边界。
+- `Shop`：租户下的门店或经营单元。
+- `Tenant Membership`：账号在某个租户中的身份。
+- `Shop Access`：某个租户成员可访问的门店范围。
 
-Required implications:
+因此必须满足：
 
-- Do not use `shop_id` as the tenant boundary.
-- Do not bind login sessions only to one shop.
-- Do not rely on primary-key lookup followed by context inference for authorization.
-- Business tables should carry `tenant_id` by default.
-- Shop-scoped tables should also carry `shop_id`.
-- Cross-tenant data leakage must be treated as a P0 class risk.
+- 不允许再用 `shop_id` 充当租户边界。
+- 不允许把登录态只绑定到一个 `shop_id`。
+- 不允许默认假设租户成员天然拥有全部门店访问权。
+- 业务表默认带 `tenant_id`。
+- 门店相关业务表在 `tenant_id` 之外还应带 `shop_id`。
+- 跨租户数据泄漏视为 P0 风险。
 
-## Explicit Execution Context
+## 显式执行上下文
 
-Every business operation must receive an explicit execution context.
+所有业务动作都必须在显式上下文中执行。
 
-Minimum context:
+最小上下文建议包含：
 
 ```text
-actor_id
+account_id
 tenant_id
 shop_id
 membership_id
-role
+role_key
 permissions
+context_session_id
 session_id
 input_channel
 locale
@@ -89,127 +109,155 @@ timezone
 trace_id
 ```
 
-The system must establish context before running business logic. Services should not accept only object IDs and reconstruct authority from database relationships unless the query is explicitly scoped by the execution context.
+规则：
 
-## AI-Native Workflow
+- 服务层优先接收显式上下文，而不是只接收对象主键。
+- 读写数据库时必须先按 `tenant_id` 限定。
+- 门店级业务必须同时按 `shop_id` 限定。
+- AI 解释、工具执行、确认流、账本提交都不能绕开上下文。
 
-The canonical workflow is:
+## AI 原生工作流
 
-```text
-Capture input
-Interpret multimodal intent
-Assess confidence and risk
-Clarify missing or ambiguous fields
-Create a structured draft
-Request confirmation when needed
-Execute deterministic tools
-Commit ledger and audit facts
-Publish task/session events
-Allow correction without rewriting history
-```
-
-AI output is advisory until it crosses a deterministic tool boundary.
-
-## Uncertainty Handling
-
-AI input is probabilistic. The system must support uncertainty as first-class state.
-
-Common states:
-
-- captured: the user input has entered the system.
-- interpreted: AI has produced a candidate intent or extraction.
-- needs_clarification: required fields are missing or ambiguous.
-- needs_confirmation: the proposed write action is ready but requires human approval.
-- rejected: the user or policy rejected the proposed action.
-- committed: deterministic tools wrote the business fact.
-- corrected: a later correction event adjusted the business truth.
-
-The system should not hide low confidence. It should surface the reason and guide the next safe action.
-
-## Human-in-the-Loop Risk Policy
-
-Risk policy controls whether the system answers, asks, confirms, or blocks.
-
-Suggested levels:
-
-- Low-risk read: answer directly when confidence is sufficient.
-- Low-risk suggestion: provide recommendation without mutation.
-- Medium-risk write: require confirmation before commit.
-- High-risk write: require strong confirmation or elevated role.
-- Uncertain action: ask a clarifying question before confirmation.
-- Unauthorized action: block and explain the permission boundary.
-
-The closer an action gets to business truth, the more deterministic control is required.
-
-## Tool-Governed Execution
-
-Tools must be structured, typed, permission-aware, idempotent, and auditable.
-
-Each tool should define:
-
-- input schema
-- output schema
-- required context
-- required permissions
-- risk level
-- idempotency key
-- possible failure reasons
-- audit behavior
-- whether it mutates business truth
-
-AI may choose and propose a tool invocation. The backend validates and executes it.
-
-## Ledger and Audit Truth
-
-Current state should not be the only source of truth.
-
-For inventory and similar business domains:
+系统的标准工作流应该是：
 
 ```text
-initial state + stock-in events - stock-out events + correction events = current state
+捕获输入
+多模态解释
+评估置信度和风险
+追问澄清
+生成结构化草稿
+请求确认
+执行确定性工具
+提交账本与审计
+支持后续纠错
 ```
 
-Principles:
+AI 输出在跨过工具边界之前都只是“建议”，不是业务事实。
 
-- Use ledger events for critical business changes.
-- Use projections or snapshots for fast reads.
-- Do not silently overwrite historical facts.
-- Corrections should append new events.
-- Audit logs must connect actor, input, AI interpretation, confirmation, tool execution, and resulting business facts.
+## 不确定性处理
 
-## Session as Business Context
+AI 输入天然带概率性质，所以系统必须原生支持以下状态：
 
-A session is not just a chat history.
+- `captured`：输入已捕获
+- `interpreted`：AI 已生成候选理解
+- `needs_clarification`：信息不足或存在歧义，需要追问
+- `needs_confirmation`：写操作条件已满足，但还需要人确认
+- `rejected`：用户或策略拒绝该动作
+- `committed`：确定性工具已落账
+- `corrected`：后续通过纠错事件修正
 
-A session is a business task context. It may contain:
+系统不能假装 AI 一定是对的，也不能把低置信度隐藏成普通错误。正确做法是：
 
-- user messages
-- uploaded media
-- AI interpretations
-- tool-call drafts
-- clarifying questions
-- confirmations
-- task state changes
-- result cards
-- committed business events
-- audit references
+- 说明不确定在哪里
+- 给出下一步可执行动作
+- 引导用户完成确认或纠错
 
-Session design must support multiple session types, such as shop workgroup, receipt processing, stocktaking, correction, and replenishment review.
+## 人机共驾与风险分层
 
-## AI Capability Architecture
+这个产品不是“AI 全自动经营系统”，而是“AI 与用户共同驾驶的业务系统”。
 
-AI capabilities should be provider-agnostic and versioned.
+建议的风险分层：
 
-Capability categories:
+- 低风险只读操作：允许直接回答
+- 低风险建议：允许直接返回建议
+- 中风险写操作：需要确认
+- 高风险写操作：需要强确认或更高权限
+- 低置信度动作：先追问，不直接写业务真相
+- 无权限动作：直接阻断并给出解释
 
-- ASR: speech to text
-- Vision: product, shelf, and image recognition
-- OCR: receipt and document extraction
-- LLM reasoning: intent, planning, clarification, summarization
-- Retrieval: product matching, aliases, historical context, tenant knowledge
-- Evaluation: quality, confidence, regression, and cost tracking
+原则是：
 
-For each capability, track:
+**越接近业务真相，越需要确定性约束和人工确认。**
+
+## 工具治理原则
+
+AI 只能跨过“结构化工具边界”来影响业务。
+
+每个工具都应该明确：
+
+- 输入 schema
+- 输出 schema
+- 必需上下文
+- 必需权限
+- 风险等级
+- 幂等键
+- 失败码
+- 审计行为
+- 是否会修改业务真相
+
+AI 可以选择工具，也可以提出工具调用建议，但后端必须验证并执行。
+
+## 账本与业务真相
+
+关键业务数据不能只靠“当前状态表”表达。
+
+以库存为例，正确表达应该是：
+
+```text
+初始状态 + 入库事件 - 出库事件 + 纠错事件 = 当前库存
+```
+
+因此应坚持：
+
+- 关键写操作使用事件账本表达
+- 当前状态是投影，不是唯一真相
+- 错误通过追加纠错事件修复
+- 不允许静默覆盖历史事实
+
+## 审计原则
+
+关键动作都必须能回答这些问题：
+
+- 谁发起的
+- 在哪个租户、哪个门店
+- 通过什么输入发起
+- AI 是如何理解的
+- 为什么需要追问或确认
+- 用户最终确认或拒绝了什么
+- 调用了哪个工具
+- 写入了哪些业务事实
+- 是否后来发生纠错
+
+审计不是附属能力，而是 AI 原生业务系统的基础能力。
+
+## 会话原则
+
+`session` 不只是聊天记录，它是业务上下文容器。
+
+会话中应包含：
+
+- 用户输入
+- 媒体资源
+- AI 解释结果
+- 任务状态
+- 追问
+- 确认
+- 系统结果消息
+- 账本写入线索
+- 审计引用
+
+因此会话类型应该可扩展，例如：
+
+- 门店工作群会话
+- 票据处理会话
+- 盘点会话
+- 补货建议会话
+- 纠错处理会话
+
+## AI 能力架构
+
+AI 能力需要按能力类型抽象，而不是直接绑定某个供应商。
+
+能力建议拆分为：
+
+- `ASR`
+- `Vision`
+- `OCR`
+- `LLM Reasoning`
+- `Retrieval`
+- `Evaluation`
+
+每次模型调用都应记录：
 
 - provider
 - model
@@ -218,79 +266,104 @@ For each capability, track:
 - confidence
 - latency
 - cost
-- fallback usage
-- failure reason
-- human correction outcome
+- fallback 使用情况
+- error code
 
-The core architecture must not depend on a single AI provider.
+原则：
 
-## Memory Boundaries
+**大模型是核心能力，但具体供应商不是核心架构。**
 
-AI memory must be scoped.
+## 记忆边界
 
-Memory types:
+AI 记忆必须分层且带边界。
 
-- short-term session memory
-- shop business memory
-- tenant organization memory
-- long-term learning memory
+建议分为：
 
-Rules:
+- 短期会话记忆
+- 门店业务记忆
+- 租户组织记忆
+- 长期学习记忆
 
-- Tenant memory must never leak across tenants.
-- Shop-specific corrections should not automatically affect other shops unless promoted by policy.
-- Cross-tenant accounts must switch context explicitly.
-- Retrieval must always be scoped by tenant and, when needed, shop.
+规则：
 
-## Authorization Separation
+- 租户记忆不能跨租户泄漏
+- 门店纠错不能默认污染其他门店
+- 跨租户账号必须显式切换上下文
+- 检索和召回必须带租户边界
 
-AI does not grant permission.
+## 权限与 AI 分离
 
-The authorization system must decide:
+AI 可以理解意图，但 AI 不能为自己授予权限。
 
-- whether the actor belongs to the tenant
-- whether the actor can access the shop
-- whether the actor can perform the requested action
-- whether the action needs confirmation
-- whether the action requires an elevated role
+真正的系统判断必须回答：
 
-AI can explain the action. The policy system decides whether it is allowed.
+- 这个账号是否属于当前租户
+- 这个账号是否可访问当前门店
+- 这个账号是否具备当前动作所需权限
+- 这个动作是否需要确认
+- 这个动作是否需要更高权限
 
-## Async and Event Reliability
+原则：
 
-Multimodal AI workflows are naturally asynchronous.
+**AI 负责建议，权限系统负责裁决。**
 
-The architecture should separate:
+## 异步与可靠投递
 
-- commands: requested actions
-- tasks: asynchronous work
-- events: committed facts
-- outbox: reliable event dispatch
-- workers: background processing
-- projections: query-optimized read models
+多模态 AI 系统天然包含慢任务：
 
-Do not rely on best-effort in-memory dispatch for important workflows.
+- 上传媒体
+- OCR
+- ASR
+- Vision
+- LLM 推理
+- 批量入库
+- 投影更新
+- 审计生成
+- 实时推送
 
-## Real-Time Experience
+因此必须采用：
 
-Real-time delivery is a projection of committed facts.
+- Command
+- Task
+- Event
+- Outbox
+- Worker
+- Projection
 
-The desired order is:
+重要链路不能只依赖：
+
+- `.delay()` best-effort
+- 单进程内存队列
+- websocket 发送成功即视为业务成功
+
+## 实时体验原则
+
+实时推送只是业务事实的投影，不是业务事实本身。
+
+正确顺序应该是：
 
 ```text
-commit business event
-write outbox event
-deliver over websocket / push / polling
-client updates UI
+提交业务事实
+写出 outbox 事件
+后台投递
+websocket / push / polling 更新前端
 ```
 
-Websocket delivery is not the business truth. Database events are the truth.
+因此数据库事件流和投影才是真相来源。
 
-## Observability and Evaluation
+## 可观测与评估
 
-Because AI is the competitive core, the system must measure AI quality.
+既然 AI 是核心竞争力，系统必须能回答：
 
-Track at minimum:
+- 哪类输入最容易失败
+- 哪些商品最容易识别错
+- 哪些门店追问率最高
+- 哪个 provider 延迟最高
+- 哪个 prompt 版本效果更差
+- 哪类任务最常被拒绝
+- 哪类任务最常被人工纠正
+
+至少记录：
 
 - intent accuracy
 - extraction accuracy
@@ -304,58 +377,62 @@ Track at minimum:
 - fallback rate
 - task failure rate
 
-AI quality that cannot be measured cannot be improved reliably.
+## 成本与延迟预算
 
-## Cost and Latency Budgeting
+不是所有请求都应该使用最昂贵的模型。
 
-Not every operation should use the most expensive model.
+必须遵守：
 
-Rules:
+- 简单库存读取优先走确定性查询
+- 商品匹配优先走检索，再决定是否进入 LLM
+- OCR 和 Vision 结果应支持缓存与复用
+- 重复媒体不应重复高成本处理
+- 模型选择应基于风险、歧义程度和业务价值
 
-- Simple inventory reads should not require LLM calls when deterministic data is enough.
-- Product matching should prefer scoped search before expensive reasoning.
-- OCR and Vision results should be cached and reused.
-- Repeated processing of identical media should be avoided.
-- Model selection should depend on risk, ambiguity, and expected business value.
+## CLI 定位
 
-## CLI Positioning
+CLI 在后端优先阶段是合理的，但它属于工程辅助入口，不是最终产品主入口。
 
-CLI tools are allowed and useful during backend-first development.
+CLI 适合承担：
 
-CLI should support:
+- tenant / shop 初始化
+- 本地 smoke test
+- provider 评估
+- 任务回放
+- 数据修复
+- 运维诊断
 
-- tenant/shop setup
-- local smoke tests
-- task replay
-- provider evaluation
-- data repair
-- operational diagnostics
+产品差异化入口仍然是：
 
-CLI is not the end-user product surface. The differentiating product surface remains multimodal AI interaction.
+- 语音
+- 图片
+- 票据
+- 对话
+- 确认卡
 
-## Rewrite Rules
+## 重写规则
 
-During the option C rewrite:
+方案 C 的执行规则如下：
 
-- Preserve product learning, not old boundaries.
-- Rebuild identity, tenant, shop, membership, role, context, session, task, event, and ledger foundations.
-- Reuse current code only when it fits the new boundaries.
-- Treat the existing implementation as a reference, not as a constraint.
-- Convert valuable old tests into new acceptance tests when possible.
-- Avoid compatibility layers that preserve incorrect domain concepts.
+- 保留业务洞察，不保留错误边界
+- 重建 identity、tenant、shop、membership、context、session、task、event、ledger 核心基础
+- 仅在新边界下合理的前提下复用旧代码
+- 旧系统是参考，不是约束
+- 旧测试里有价值的是业务场景，不是旧实现细节
+- 不要用兼容层长期保留错误概念
 
-## Non-Negotiables
+## 不可动摇的决策
 
-These decisions should not be revisited casually:
+以下决策不应被随意推翻：
 
-- The product is AI-native.
-- Multimodal AI is a core differentiator.
-- Tenant is not shop.
-- Account can belong to multiple tenants.
-- Tenant can contain multiple shops.
-- Context switching is explicit.
-- AI cannot directly mutate business truth.
-- Uncertainty requires workflow support.
-- Confirmation, correction, and audit are foundational.
-- Critical business facts must be explainable.
+- 项目是 AI 原生应用
+- 多模态大模型是核心差异化能力
+- `tenant` 不是 `shop`
+- 一个 `account` 可以加入多个 `tenant`
+- 一个 `tenant` 可以包含多个 `shop`
+- 上下文切换必须显式
+- AI 不能直接修改业务真相
+- 不确定性必须进入工作流
+- 确认、纠错、审计是基础设施
+- 关键业务事实必须可解释
 

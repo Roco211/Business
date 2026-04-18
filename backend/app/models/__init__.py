@@ -22,6 +22,11 @@ from app.models.v2_conversation import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.models.v2_inventory import (
+    V2InventoryItem,
+    V2InventoryLedgerEvent,
+    V2InventoryStockSnapshot,
+)
 from app.models.v2_identity import (
     V2Account,
     V2AuthSession,
@@ -52,6 +57,9 @@ __all__ = [
     "V2Clarification",
     "V2Confirmation",
     "V2ConversationSession",
+    "V2InventoryItem",
+    "V2InventoryLedgerEvent",
+    "V2InventoryStockSnapshot",
     "V2Message",
     "V2TaskDraft",
     "V2TaskRun",

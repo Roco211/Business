@@ -27,6 +27,11 @@ PENDING_STATUS = "pending"
 APPROVED_STATUS = "approved"
 ANSWERED_STATUS = "answered"
 GENERIC_DRAFT_TYPES = {"conversation.capture"}
+ALLOWED_V2_MESSAGE_INTENTS = {
+    "conversation.capture",
+    "inventory.stock_in",
+    "inventory.stock_out",
+}
 
 
 class V2TaskRunTransitionError(ValueError):
@@ -42,6 +47,10 @@ class V2TaskDraftNotReadyError(ValueError):
 
 
 class V2ConfirmationTypeMismatchError(ValueError):
+    pass
+
+
+class V2UnsupportedIntentTypeError(ValueError):
     pass
 
 
@@ -118,6 +127,7 @@ def create_v2_message_and_task_run(
     message_kind: str,
     payload_json: dict[str, object],
     client_request_id: str | None,
+    intent_type: str | None,
 ) -> tuple[V2Message, V2TaskRun] | None:
     session = db_session.scalar(
         select(V2ConversationSession).where(
@@ -129,6 +139,7 @@ def create_v2_message_and_task_run(
     if session is None:
         return None
 
+    normalized_intent_type = _normalize_v2_message_intent(intent_type)
     now = utc_now_naive()
     message = V2Message(
         message_id=f"vmsg_{uuid.uuid4().hex}"[:40],
@@ -148,7 +159,7 @@ def create_v2_message_and_task_run(
         shop_id=shop_id,
         session_id=session_id,
         source_message_id=message.message_id,
-        intent_type="conversation.capture",
+        intent_type=normalized_intent_type,
         status="captured",
         risk_level="unknown",
         trace_id=f"trace_{uuid.uuid4().hex}",
@@ -162,6 +173,13 @@ def create_v2_message_and_task_run(
     db_session.add(task_run)
     db_session.commit()
     return message, task_run
+
+
+def _normalize_v2_message_intent(intent_type: str | None) -> str:
+    normalized = (intent_type or "conversation.capture").strip()
+    if normalized not in ALLOWED_V2_MESSAGE_INTENTS:
+        raise V2UnsupportedIntentTypeError(f"Unsupported intent_type '{normalized}'.")
+    return normalized
 
 
 def list_v2_messages(

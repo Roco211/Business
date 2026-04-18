@@ -261,7 +261,64 @@ def test_v2_post_message_creates_message_and_captured_task_run(client, db_sessio
     payload = response.json()["data"]
     assert payload["message_id"].startswith("vmsg_")
     assert payload["task_run_id"].startswith("vtask_")
+    assert payload["intent_type"] == "conversation.capture"
     assert payload["status"] == "captured"
+
+
+def test_v2_post_message_accepts_explicit_inventory_intent(client, db_session) -> None:
+    token, context_token = seed_v2_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "workgroup", "title": "工作群"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+
+    response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "text",
+            "payload_json": {"text": "sell two cola"},
+            "client_request_id": "v2_msg_stock_out_intent",
+            "intent_type": "inventory.stock_out",
+        },
+    )
+    task_run_id = response.json()["data"]["task_run_id"]
+
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["data"]["intent_type"] == "inventory.stock_out"
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["intent_type"] == "inventory.stock_out"
+
+
+def test_v2_post_message_rejects_unknown_intent_type(client, db_session) -> None:
+    token, context_token = seed_v2_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "workgroup", "title": "工作群"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+
+    response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "text",
+            "payload_json": {"text": "do something"},
+            "client_request_id": "v2_msg_unknown_intent",
+            "intent_type": "inventory.delete_all",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
 
 
 def test_v2_list_messages_returns_session_scoped_history(client, db_session) -> None:

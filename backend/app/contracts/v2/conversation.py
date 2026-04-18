@@ -26,11 +26,13 @@ class V2CreateMessageRequest(BaseModel):
     message_kind: str
     payload_json: dict[str, object]
     client_request_id: str | None = None
+    intent_type: str | None = None
 
 
 class V2CreateMessageData(BaseModel):
     message_id: str
     task_run_id: str
+    intent_type: str
     status: str
 
 

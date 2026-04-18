@@ -3339,6 +3339,10 @@
       },
       "V2CreateMessageData": {
         "properties": {
+          "intent_type": {
+            "title": "Intent Type",
+            "type": "string"
+          },
           "message_id": {
             "title": "Message Id",
             "type": "string"
@@ -3355,6 +3359,7 @@
         "required": [
           "message_id",
           "task_run_id",
+          "intent_type",
           "status"
         ],
         "title": "V2CreateMessageData",
@@ -3372,6 +3377,17 @@
               }
             ],
             "title": "Client Request Id"
+          },
+          "intent_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Type"
           },
           "message_kind": {
             "title": "Message Kind",

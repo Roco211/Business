@@ -32,6 +32,7 @@ from app.services.v2_conversation import (
     V2ConfirmationTypeMismatchError,
     V2TaskDraftNotReadyError,
     V2TaskRunTransitionError,
+    V2UnsupportedIntentTypeError,
     answer_v2_clarification,
     approve_v2_confirmation,
     create_v2_message_and_task_run,
@@ -164,16 +165,25 @@ def post_message_v2(
     if account.account_id != context.account_id:
         return _context_account_mismatch()
 
-    created = create_v2_message_and_task_run(
-        db_session,
-        tenant_id=context.tenant_id,
-        shop_id=context.shop_id,
-        session_id=session_id,
-        actor_id=account.account_id,
-        message_kind=payload.message_kind,
-        payload_json=payload.payload_json,
-        client_request_id=payload.client_request_id,
-    )
+    try:
+        created = create_v2_message_and_task_run(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session_id,
+            actor_id=account.account_id,
+            message_kind=payload.message_kind,
+            payload_json=payload.payload_json,
+            client_request_id=payload.client_request_id,
+            intent_type=payload.intent_type,
+        )
+    except V2UnsupportedIntentTypeError as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="validation_error", message=str(exc))
+            ).model_dump(),
+        )
     if created is None:
         return JSONResponse(
             status_code=404,
@@ -187,6 +197,7 @@ def post_message_v2(
         data=V2CreateMessageData(
             message_id=message.message_id,
             task_run_id=task_run.task_run_id,
+            intent_type=task_run.intent_type,
             status=task_run.status,
         )
     )

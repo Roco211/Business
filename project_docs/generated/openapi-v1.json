@@ -3077,6 +3077,77 @@
         "title": "V2ContextSelectRequest",
         "type": "object"
       },
+      "V2CreateMessageData": {
+        "properties": {
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id",
+          "task_run_id",
+          "status"
+        ],
+        "title": "V2CreateMessageData",
+        "type": "object"
+      },
+      "V2CreateMessageRequest": {
+        "properties": {
+          "client_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Request Id"
+          },
+          "message_kind": {
+            "title": "Message Kind",
+            "type": "string"
+          },
+          "payload_json": {
+            "additionalProperties": true,
+            "title": "Payload Json",
+            "type": "object"
+          }
+        },
+        "required": [
+          "message_kind",
+          "payload_json"
+        ],
+        "title": "V2CreateMessageRequest",
+        "type": "object"
+      },
+      "V2CreateSessionRequest": {
+        "properties": {
+          "session_type": {
+            "title": "Session Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_type",
+          "title"
+        ],
+        "title": "V2CreateSessionRequest",
+        "type": "object"
+      },
       "V2DataEnvelope_V2ContextData_": {
         "properties": {
           "data": {
@@ -3087,6 +3158,18 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2ContextData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2CreateMessageData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2CreateMessageData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2CreateMessageData]",
         "type": "object"
       },
       "V2DataEnvelope_V2HealthData_": {
@@ -3113,6 +3196,42 @@
         "title": "V2DataEnvelope[V2LoginData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2MessageListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2MessageListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2MessageListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2SessionData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SessionData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SessionData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2SessionListData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SessionListData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SessionListData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2ShopListData_": {
         "properties": {
           "data": {
@@ -3123,6 +3242,18 @@
           "data"
         ],
         "title": "V2DataEnvelope[V2ShopListData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2TaskRunData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2TaskRunData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2TaskRunData]",
         "type": "object"
       },
       "V2DataEnvelope_V2TenantListData_": {
@@ -3257,6 +3388,148 @@
         "title": "V2LoginRequest",
         "type": "object"
       },
+      "V2MessageData": {
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "actor_type": {
+            "title": "Actor Type",
+            "type": "string"
+          },
+          "client_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Request Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "message_kind": {
+            "title": "Message Kind",
+            "type": "string"
+          },
+          "payload_json": {
+            "additionalProperties": true,
+            "title": "Payload Json",
+            "type": "object"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id",
+          "tenant_id",
+          "shop_id",
+          "session_id",
+          "actor_type",
+          "actor_id",
+          "message_kind",
+          "payload_json",
+          "client_request_id",
+          "created_at"
+        ],
+        "title": "V2MessageData",
+        "type": "object"
+      },
+      "V2MessageListData": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/V2MessageData"
+            },
+            "title": "Messages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "title": "V2MessageListData",
+        "type": "object"
+      },
+      "V2SessionData": {
+        "properties": {
+          "initiated_by_account_id": {
+            "title": "Initiated By Account Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "session_type": {
+            "title": "Session Type",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "tenant_id",
+          "shop_id",
+          "session_type",
+          "title",
+          "status",
+          "initiated_by_account_id"
+        ],
+        "title": "V2SessionData",
+        "type": "object"
+      },
+      "V2SessionListData": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/V2SessionData"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sessions"
+        ],
+        "title": "V2SessionListData",
+        "type": "object"
+      },
       "V2ShopData": {
         "properties": {
           "access_level": {
@@ -3304,6 +3577,108 @@
           "shops"
         ],
         "title": "V2ShopListData",
+        "type": "object"
+      },
+      "V2TaskRunData": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "intent_type": {
+            "title": "Intent Type",
+            "type": "string"
+          },
+          "result_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Summary"
+          },
+          "risk_level": {
+            "title": "Risk Level",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "shop_id": {
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "source_message_id": {
+            "title": "Source Message Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_run_id": {
+            "title": "Task Run Id",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_run_id",
+          "tenant_id",
+          "shop_id",
+          "session_id",
+          "source_message_id",
+          "intent_type",
+          "status",
+          "risk_level",
+          "trace_id",
+          "result_summary",
+          "error_code",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "V2TaskRunData",
         "type": "object"
       },
       "V2TenantData": {
@@ -5758,6 +6133,374 @@
         "summary": "Me Tenants V2",
         "tags": [
           "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/sessions": {
+      "get": {
+        "operationId": "list_sessions_v2_api_v2_sessions_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SessionListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sessions V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      },
+      "post": {
+        "operationId": "create_session_v2_api_v2_sessions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CreateSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SessionData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Session V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/sessions/{session_id}/messages": {
+      "get": {
+        "operationId": "list_messages_v2_api_v2_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2MessageListData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Messages V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      },
+      "post": {
+        "operationId": "post_message_v2_api_v2_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2CreateMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2CreateMessageData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Message V2",
+        "tags": [
+          "v2-conversation"
+        ]
+      }
+    },
+    "/api/v2/task-runs/{task_run_id}": {
+      "get": {
+        "operationId": "get_task_run_v2_api_v2_task_runs__task_run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_run_id",
+            "required": true,
+            "schema": {
+              "title": "Task Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2TaskRunData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Task Run V2",
+        "tags": [
+          "v2-conversation"
         ]
       }
     },

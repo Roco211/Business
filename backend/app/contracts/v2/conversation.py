@@ -1,0 +1,68 @@
+from datetime import datetime
+
+from pydantic import BaseModel
+
+
+class V2CreateSessionRequest(BaseModel):
+    session_type: str
+    title: str
+
+
+class V2SessionData(BaseModel):
+    session_id: str
+    tenant_id: str
+    shop_id: str
+    session_type: str
+    title: str
+    status: str
+    initiated_by_account_id: str
+
+
+class V2SessionListData(BaseModel):
+    sessions: list[V2SessionData]
+
+
+class V2CreateMessageRequest(BaseModel):
+    message_kind: str
+    payload_json: dict[str, object]
+    client_request_id: str | None = None
+
+
+class V2CreateMessageData(BaseModel):
+    message_id: str
+    task_run_id: str
+    status: str
+
+
+class V2MessageData(BaseModel):
+    message_id: str
+    tenant_id: str
+    shop_id: str
+    session_id: str
+    actor_type: str
+    actor_id: str
+    message_kind: str
+    payload_json: dict[str, object]
+    client_request_id: str | None
+    created_at: datetime
+
+
+class V2MessageListData(BaseModel):
+    messages: list[V2MessageData]
+
+
+class V2TaskRunData(BaseModel):
+    task_run_id: str
+    tenant_id: str
+    shop_id: str
+    session_id: str
+    source_message_id: str
+    intent_type: str
+    status: str
+    risk_level: str
+    trace_id: str
+    result_summary: str | None
+    error_code: str | None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None

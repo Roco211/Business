@@ -14,6 +14,7 @@ from app.models.session_record import SessionRecord
 from app.models.shop import Shop
 from app.models.shop_membership import ShopMembership
 from app.models.task_run import TaskRun
+from app.models.v2_conversation import V2ConversationSession, V2Message, V2TaskRun
 from app.models.v2_identity import (
     V2Account,
     V2AuthSession,
@@ -41,6 +42,9 @@ __all__ = [
     "Shop",
     "ShopMembership",
     "TaskRun",
+    "V2ConversationSession",
+    "V2Message",
+    "V2TaskRun",
     "V2Account",
     "V2AuthSession",
     "V2ContextSession",

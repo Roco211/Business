@@ -120,7 +120,7 @@ git status --short
 
 Expected: `git diff --check` 无输出，工作区只包含本切片文件。
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

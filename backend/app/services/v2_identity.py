@@ -6,6 +6,7 @@ import secrets
 import uuid
 
 from sqlalchemy import and_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -25,6 +26,7 @@ _PASSWORD_HASH_ITERATIONS = 310_000
 @dataclass(frozen=True)
 class IssuedV2AuthSession:
     access_token: str
+    refresh_token: str
     account_id: str
 
 
@@ -66,21 +68,25 @@ def authenticate_v2_account(db_session: Session, email: str, password: str) -> V
 def issue_v2_auth_session(db_session: Session, *, account_id: str, ttl_minutes: int) -> IssuedV2AuthSession:
     now = utc_now_naive()
     access_token = secrets.token_urlsafe(32)
-    db_session.add(
-        V2AuthSession(
-            auth_session_id=f"v2auth_{uuid.uuid4().hex}"[:40],
-            account_id=account_id,
-            access_token_hash=hash_v2_token(access_token),
-            refresh_token_hash=None,
-            status="active",
-            expires_at=now + timedelta(minutes=ttl_minutes),
-            revoked_at=None,
-            last_seen_at=now,
-            created_at=now,
-        )
+    refresh_token = secrets.token_urlsafe(32)
+    auth_session = V2AuthSession(
+        auth_session_id=f"v2auth_{uuid.uuid4().hex}"[:40],
+        account_id=account_id,
+        access_token_hash=hash_v2_token(access_token),
+        refresh_token_hash=hash_v2_token(refresh_token),
+        status="active",
+        expires_at=now + timedelta(minutes=ttl_minutes),
+        revoked_at=None,
+        last_seen_at=now,
+        created_at=now,
     )
+    db_session.add(auth_session)
     db_session.commit()
-    return IssuedV2AuthSession(access_token=access_token, account_id=account_id)
+    return IssuedV2AuthSession(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        account_id=account_id,
+    )
 
 
 def resolve_v2_auth_session(db_session: Session, bearer_token: str) -> ResolvedV2AuthSession | None:
@@ -98,6 +104,69 @@ def resolve_v2_auth_session(db_session: Session, bearer_token: str) -> ResolvedV
         auth_session_id=auth_session.auth_session_id,
         account_id=auth_session.account_id,
     )
+
+
+def get_v2_account(db_session: Session, account_id: str) -> V2Account | None:
+    return db_session.scalar(
+        select(V2Account).where(
+            V2Account.account_id == account_id,
+            V2Account.status == "active",
+        )
+    )
+
+
+def revoke_v2_auth_session(db_session: Session, *, auth_session_id: str) -> bool:
+    auth_session = db_session.scalar(
+        select(V2AuthSession)
+        .where(V2AuthSession.auth_session_id == auth_session_id)
+        .execution_options(populate_existing=True)
+    )
+    if auth_session is None:
+        return False
+    if auth_session.status != "active":
+        return False
+
+    now = utc_now_naive()
+    auth_session.status = "revoked"
+    auth_session.revoked_at = now
+    context_sessions = db_session.scalars(
+        select(V2ContextSession).where(
+            V2ContextSession.auth_session_id == auth_session_id,
+            V2ContextSession.status == "active",
+        )
+    ).all()
+    for context_session in context_sessions:
+        context_session.status = "revoked"
+    db_session.commit()
+    return True
+
+
+def rotate_v2_auth_session(
+    db_session: Session,
+    *,
+    refresh_token: str,
+    ttl_minutes: int,
+) -> IssuedV2AuthSession | None:
+    auth_session = db_session.scalar(
+        select(V2AuthSession)
+        .where(
+            V2AuthSession.refresh_token_hash == hash_v2_token(refresh_token),
+            V2AuthSession.status == "active",
+            V2AuthSession.revoked_at.is_(None),
+            V2AuthSession.expires_at > utc_now_naive(),
+        )
+        .execution_options(populate_existing=True)
+    )
+    if auth_session is None:
+        return None
+
+    account_id = auth_session.account_id
+    try:
+        revoke_v2_auth_session(db_session, auth_session_id=auth_session.auth_session_id)
+        return issue_v2_auth_session(db_session, account_id=account_id, ttl_minutes=ttl_minutes)
+    except IntegrityError:
+        db_session.rollback()
+        return None
 
 
 def list_v2_tenants_for_account(db_session: Session, account_id: str) -> list[tuple[V2Tenant, V2TenantMembership]]:

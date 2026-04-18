@@ -14,6 +14,9 @@ from app.contracts.v2.identity import (
     V2ContextSelectRequest,
     V2LoginData,
     V2LoginRequest,
+    V2LogoutData,
+    V2MeData,
+    V2RefreshRequest,
     V2ShopData,
     V2ShopListData,
     V2TenantData,
@@ -23,9 +26,12 @@ from app.core.config import Settings, get_settings
 from app.db.session import get_db_session
 from app.services.v2_identity import (
     authenticate_v2_account,
+    get_v2_account,
     issue_v2_auth_session,
     list_v2_accessible_shops,
     list_v2_tenants_for_account,
+    revoke_v2_auth_session,
+    rotate_v2_auth_session,
     select_v2_context,
 )
 
@@ -59,8 +65,67 @@ def login_v2(
     return V2DataEnvelope(
         data=V2LoginData(
             access_token=issued.access_token,
+            refresh_token=issued.refresh_token,
             token_type="Bearer",
             account_id=issued.account_id,
+        )
+    )
+
+
+@router.post("/auth/refresh", response_model=V2DataEnvelope[V2LoginData], responses={401: {"model": V2ErrorEnvelope}})
+def refresh_v2(
+    payload: V2RefreshRequest,
+    settings: Settings = Depends(get_settings),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2LoginData] | JSONResponse:
+    issued = rotate_v2_auth_session(
+        db_session,
+        refresh_token=payload.refresh_token,
+        ttl_minutes=settings.auth_session_ttl_minutes,
+    )
+    if issued is None:
+        return _unauthorized()
+
+    return V2DataEnvelope(
+        data=V2LoginData(
+            access_token=issued.access_token,
+            refresh_token=issued.refresh_token,
+            token_type="Bearer",
+            account_id=issued.account_id,
+        )
+    )
+
+
+@router.post("/auth/logout", response_model=V2DataEnvelope[V2LogoutData], responses={401: {"model": V2ErrorEnvelope}})
+def logout_v2(
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2LogoutData] | JSONResponse:
+    revoked = revoke_v2_auth_session(
+        db_session,
+        auth_session_id=account.auth_session_id,
+    )
+    if not revoked:
+        return _unauthorized()
+
+    return V2DataEnvelope(data=V2LogoutData(status="logged_out"))
+
+
+@router.get("/me", response_model=V2DataEnvelope[V2MeData])
+def me_v2(
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2MeData] | JSONResponse:
+    current_account = get_v2_account(db_session, account.account_id)
+    if current_account is None:
+        return _unauthorized()
+
+    return V2DataEnvelope(
+        data=V2MeData(
+            account_id=current_account.account_id,
+            email=current_account.email,
+            display_name=current_account.display_name,
+            status=current_account.status,
         )
     )
 

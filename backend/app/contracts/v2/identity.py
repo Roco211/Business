@@ -8,8 +8,24 @@ class V2LoginRequest(BaseModel):
 
 class V2LoginData(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
     account_id: str
+
+
+class V2RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class V2MeData(BaseModel):
+    account_id: str
+    email: str
+    display_name: str
+    status: str
+
+
+class V2LogoutData(BaseModel):
+    status: str
 
 
 class V2TenantData(BaseModel):

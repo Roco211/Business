@@ -218,8 +218,120 @@ def test_v2_login_returns_account_session_without_shop_binding(client, db_sessio
     payload = response.json()["data"]
     assert payload["token_type"] == "Bearer"
     assert payload["account_id"] == "acct_001"
+    assert payload["refresh_token"]
     assert "tenant_id" not in payload
     assert "shop_id" not in payload
+
+
+def test_v2_login_returns_refresh_token(client, db_session) -> None:
+    seed_v2_identity(
+        db_session,
+        account_id="acct_001",
+        email="owner@example.com",
+        password="dev-password",
+        tenants=[("tenant_a", "Tenant A")],
+        shops={"tenant_a": [("shop_a1", "Shop A1")]},
+    )
+
+    response = client.post(
+        "/api/v2/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["refresh_token"]
+
+
+def test_v2_me_returns_authenticated_account_profile(client, db_session) -> None:
+    seed_v2_identity(
+        db_session,
+        account_id="acct_001",
+        email="owner@example.com",
+        password="dev-password",
+        tenants=[("tenant_a", "Tenant A")],
+        shops={"tenant_a": [("shop_a1", "Shop A1")]},
+    )
+    token = login_v2(client)
+
+    response = client.get(
+        "/api/v2/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["account_id"] == "acct_001"
+    assert payload["email"] == "owner@example.com"
+    assert "tenant_id" not in payload
+    assert "shop_id" not in payload
+
+
+def test_v2_logout_revokes_auth_and_context_sessions(client, db_session) -> None:
+    seed_v2_identity(
+        db_session,
+        account_id="acct_001",
+        email="owner@example.com",
+        password="dev-password",
+        tenants=[("tenant_a", "Tenant A")],
+        shops={"tenant_a": [("shop_a1", "Shop A1")]},
+        accessible_shops=["shop_a1"],
+    )
+    login_response = client.post(
+        "/api/v2/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+    token = login_response.json()["data"]["access_token"]
+    select_response = client.post(
+        "/api/v2/context/select",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
+    )
+    context_token = select_response.json()["data"]["context_token"]
+
+    logout_response = client.post(
+        "/api/v2/auth/logout",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    me_response = client.get("/api/v2/me", headers={"Authorization": f"Bearer {token}"})
+    context_response = client.get(
+        "/api/v2/context/current",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert logout_response.status_code == 200
+    assert me_response.status_code == 401
+    assert context_response.status_code == 401
+
+
+def test_v2_refresh_rotates_auth_session(client, db_session) -> None:
+    seed_v2_identity(
+        db_session,
+        account_id="acct_001",
+        email="owner@example.com",
+        password="dev-password",
+        tenants=[("tenant_a", "Tenant A")],
+        shops={"tenant_a": [("shop_a1", "Shop A1")]},
+    )
+    login_response = client.post(
+        "/api/v2/auth/login",
+        json={"email": "owner@example.com", "password": "dev-password"},
+    )
+    old_access_token = login_response.json()["data"]["access_token"]
+    old_refresh_token = login_response.json()["data"]["refresh_token"]
+
+    refresh_response = client.post(
+        "/api/v2/auth/refresh",
+        json={"refresh_token": old_refresh_token},
+    )
+    new_access_token = refresh_response.json()["data"]["access_token"]
+
+    old_me_response = client.get("/api/v2/me", headers={"Authorization": f"Bearer {old_access_token}"})
+    new_me_response = client.get("/api/v2/me", headers={"Authorization": f"Bearer {new_access_token}"})
+
+    assert refresh_response.status_code == 200
+    assert refresh_response.json()["data"]["refresh_token"] != old_refresh_token
+    assert old_me_response.status_code == 401
+    assert new_me_response.status_code == 200
 
 
 def test_v2_me_tenants_and_tenant_shops_use_membership_boundaries(client, db_session) -> None:

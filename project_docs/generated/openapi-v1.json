@@ -3504,6 +3504,30 @@
         "title": "V2DataEnvelope[V2LoginData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2LogoutData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2LogoutData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2LogoutData]",
+        "type": "object"
+      },
+      "V2DataEnvelope_V2MeData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2MeData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2MeData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2MessageListData_": {
         "properties": {
           "data": {
@@ -3665,6 +3689,10 @@
             "title": "Account Id",
             "type": "string"
           },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
           "token_type": {
             "title": "Token Type",
             "type": "string"
@@ -3672,6 +3700,7 @@
         },
         "required": [
           "access_token",
+          "refresh_token",
           "token_type",
           "account_id"
         ],
@@ -3694,6 +3723,47 @@
           "password"
         ],
         "title": "V2LoginRequest",
+        "type": "object"
+      },
+      "V2LogoutData": {
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "V2LogoutData",
+        "type": "object"
+      },
+      "V2MeData": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "email",
+          "display_name",
+          "status"
+        ],
+        "title": "V2MeData",
         "type": "object"
       },
       "V2MessageData": {
@@ -3777,6 +3847,19 @@
           "messages"
         ],
         "title": "V2MessageListData",
+        "type": "object"
+      },
+      "V2RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "V2RefreshRequest",
         "type": "object"
       },
       "V2SessionData": {
@@ -6230,6 +6313,116 @@
         ]
       }
     },
+    "/api/v2/auth/logout": {
+      "post": {
+        "operationId": "logout_v2_api_v2_auth_logout_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2LogoutData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Logout V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/auth/refresh": {
+      "post": {
+        "operationId": "refresh_v2_api_v2_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2LoginData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
     "/api/v2/clarifications": {
       "get": {
         "operationId": "list_clarifications_v2_api_v2_clarifications_get",
@@ -6822,6 +7015,55 @@
         "summary": "V2 Health",
         "tags": [
           "v2-system"
+        ]
+      }
+    },
+    "/api/v2/me": {
+      "get": {
+        "operationId": "me_v2_api_v2_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2MeData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me V2",
+        "tags": [
+          "v2-identity"
         ]
       }
     },

@@ -3624,6 +3624,18 @@
         "title": "V2DataEnvelope[V2SubmitInventoryCorrectionData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2SubmitInventoryStockOutData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SubmitInventoryStockOutData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SubmitInventoryStockOutData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2TaskRunData_": {
         "properties": {
           "data": {
@@ -4397,6 +4409,71 @@
           "reason"
         ],
         "title": "V2SubmitInventoryCorrectionRequest",
+        "type": "object"
+      },
+      "V2SubmitInventoryStockOutData": {
+        "properties": {
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "new_quantity": {
+            "title": "New Quantity",
+            "type": "string"
+          },
+          "stock_out_event_id": {
+            "title": "Stock Out Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stock_out_event_id",
+          "inventory_item_id",
+          "new_quantity"
+        ],
+        "title": "V2SubmitInventoryStockOutData",
+        "type": "object"
+      },
+      "V2SubmitInventoryStockOutRequest": {
+        "properties": {
+          "expected_quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Expected Quantity"
+          },
+          "inventory_item_id": {
+            "title": "Inventory Item Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "stock_out_quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Stock Out Quantity"
+          }
+        },
+        "required": [
+          "inventory_item_id",
+          "expected_quantity",
+          "stock_out_quantity",
+          "reason"
+        ],
+        "title": "V2SubmitInventoryStockOutRequest",
         "type": "object"
       },
       "V2TaskRunData": {
@@ -7776,6 +7853,81 @@
           }
         },
         "summary": "List Inventory Stock V2",
+        "tags": [
+          "v2-inventory"
+        ]
+      }
+    },
+    "/api/v2/inventory/stock-out": {
+      "post": {
+        "operationId": "submit_inventory_stock_out_v2_api_v2_inventory_stock_out_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Context-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Context-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2SubmitInventoryStockOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SubmitInventoryStockOutData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Inventory Stock Out V2",
         "tags": [
           "v2-inventory"
         ]

@@ -18,16 +18,22 @@ from app.contracts.v2.inventory import (
     V2InventoryStockListData,
     V2SubmitInventoryCorrectionData,
     V2SubmitInventoryCorrectionRequest,
+    V2SubmitInventoryStockOutData,
+    V2SubmitInventoryStockOutRequest,
 )
 from app.db.session import get_db_session
 from app.services.v2_inventory import (
     V2InventoryCorrectionConflictError,
     V2InventoryCorrectionItemNotFoundError,
     V2InventoryCorrectionValidationError,
+    V2InventoryStockOutConflictError,
+    V2InventoryStockOutItemNotFoundError,
+    V2InventoryStockOutValidationError,
     list_v2_inventory_events,
     list_v2_inventory_items,
     list_v2_inventory_stock,
     submit_v2_inventory_correction,
+    submit_v2_inventory_stock_out,
 )
 
 router = APIRouter(prefix="/api/v2/inventory", tags=["v2-inventory"])
@@ -192,6 +198,58 @@ def submit_inventory_correction_v2(
     return V2DataEnvelope(
         data=V2SubmitInventoryCorrectionData(
             correction_event_id=result.event.event_id,
+            inventory_item_id=result.event.inventory_item_id,
+            new_quantity=result.snapshot.current_quantity,
+        )
+    )
+
+
+@router.post("/stock-out", response_model=V2DataEnvelope[V2SubmitInventoryStockOutData])
+def submit_inventory_stock_out_v2(
+    payload: V2SubmitInventoryStockOutRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2SubmitInventoryStockOutData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        result = submit_v2_inventory_stock_out(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            inventory_item_id=payload.inventory_item_id,
+            expected_quantity=payload.expected_quantity,
+            stock_out_quantity=payload.stock_out_quantity,
+            reason=payload.reason,
+            created_by_account_id=account.account_id,
+        )
+    except V2InventoryStockOutItemNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="inventory_item_not_found", message="Inventory item not found")
+            ).model_dump(),
+        )
+    except V2InventoryStockOutConflictError:
+        return JSONResponse(
+            status_code=409,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="inventory_conflict", message="Inventory stock-out conflicts with current stock")
+            ).model_dump(),
+        )
+    except V2InventoryStockOutValidationError as exc:
+        return JSONResponse(
+            status_code=422,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="validation_error", message=str(exc))
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(
+        data=V2SubmitInventoryStockOutData(
+            stock_out_event_id=result.event.event_id,
             inventory_item_id=result.event.inventory_item_id,
             new_quantity=result.snapshot.current_quantity,
         )

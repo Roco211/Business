@@ -73,3 +73,16 @@ class V2SubmitInventoryCorrectionData(BaseModel):
     correction_event_id: str
     inventory_item_id: str
     new_quantity: Decimal
+
+
+class V2SubmitInventoryStockOutRequest(BaseModel):
+    inventory_item_id: str
+    expected_quantity: Decimal
+    stock_out_quantity: Decimal
+    reason: str
+
+
+class V2SubmitInventoryStockOutData(BaseModel):
+    stock_out_event_id: str
+    inventory_item_id: str
+    new_quantity: Decimal

@@ -33,6 +33,18 @@ class V2InventoryCorrectionItemNotFoundError(LookupError):
     pass
 
 
+class V2InventoryStockOutValidationError(ValueError):
+    pass
+
+
+class V2InventoryStockOutConflictError(ValueError):
+    pass
+
+
+class V2InventoryStockOutItemNotFoundError(LookupError):
+    pass
+
+
 @dataclass(frozen=True)
 class V2ApprovedStockInPayload:
     item_id: str | None
@@ -51,6 +63,12 @@ class V2CommittedStockInResult:
 
 @dataclass(frozen=True)
 class V2InventoryCorrectionResult:
+    snapshot: V2InventoryStockSnapshot
+    event: V2InventoryLedgerEvent
+
+
+@dataclass(frozen=True)
+class V2InventoryStockOutResult:
     snapshot: V2InventoryStockSnapshot
     event: V2InventoryLedgerEvent
 
@@ -386,3 +404,78 @@ def submit_v2_inventory_correction(
     db_session.add(event)
     db_session.commit()
     return V2InventoryCorrectionResult(snapshot=snapshot, event=event)
+
+
+def submit_v2_inventory_stock_out(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    inventory_item_id: str,
+    expected_quantity: Decimal,
+    stock_out_quantity: Decimal,
+    reason: str,
+    created_by_account_id: str,
+) -> V2InventoryStockOutResult:
+    normalized_reason = reason.strip()
+    if not normalized_reason:
+        raise V2InventoryStockOutValidationError("reason is required")
+
+    normalized_expected_quantity = Decimal(expected_quantity)
+    normalized_stock_out_quantity = Decimal(stock_out_quantity)
+    if normalized_stock_out_quantity <= 0:
+        raise V2InventoryStockOutValidationError("stock_out_quantity must be > 0")
+
+    try:
+        try:
+            snapshot = _require_v2_inventory_snapshot(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                inventory_item_id=inventory_item_id,
+            )
+        except V2InventoryCorrectionItemNotFoundError as exc:
+            raise V2InventoryStockOutItemNotFoundError(inventory_item_id) from exc
+
+        item = db_session.scalar(
+            select(V2InventoryItem).where(
+                V2InventoryItem.inventory_item_id == inventory_item_id,
+                V2InventoryItem.tenant_id == tenant_id,
+            )
+        )
+        if item is None:
+            raise V2InventoryStockOutItemNotFoundError(inventory_item_id)
+
+        current_quantity = Decimal(snapshot.current_quantity)
+        if current_quantity != normalized_expected_quantity:
+            raise V2InventoryStockOutConflictError("inventory changed since the snapshot was read")
+        if normalized_stock_out_quantity > current_quantity:
+            raise V2InventoryStockOutValidationError("stock_out_quantity exceeds the current stock")
+
+        now = utc_now_naive()
+        quantity_after = normalized_expected_quantity - normalized_stock_out_quantity
+        snapshot.current_quantity = quantity_after
+        snapshot.updated_at = now
+        item.updated_at = now
+        event = V2InventoryLedgerEvent(
+            event_id=f"vevent_{uuid.uuid4().hex}"[:40],
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            inventory_item_id=inventory_item_id,
+            event_type="stock_out",
+            quantity_delta=-normalized_stock_out_quantity,
+            quantity_after=quantity_after,
+            unit=item.default_unit,
+            price=snapshot.current_price,
+            source_type="inventory_stock_out",
+            source_id=inventory_item_id,
+            reason=normalized_reason,
+            created_by_account_id=created_by_account_id,
+            occurred_at=now,
+        )
+        db_session.add(event)
+        db_session.commit()
+        return V2InventoryStockOutResult(snapshot=snapshot, event=event)
+    except Exception:
+        db_session.rollback()
+        raise

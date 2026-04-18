@@ -3,7 +3,7 @@
 
 **Goal:** 收紧 `request_v2_confirmation_from_task_draft()` 的工具边界，要求 `confirmation_type` 与 `task_draft.draft_type` 对齐，并补上 `inventory.stock_out` 的 draft -> confirmation API 覆盖。
 
-**Architecture:** 本阶段不引入新的 runtime 解释器或 task type 推断，只在现有 `draft -> confirmation` 边界增加后端验证。`request_v2_confirmation_from_task_draft()` 先读取当前 task draft，验证请求的 `confirmation_type` 与 `draft_type` 一致后才允许创建 pending confirmation；API 层为这类边界错误返回 409，避免 AI 或 worker 带着错误工具类型跨越结构化工具边界。
+**Architecture:** 本阶段不引入新的 runtime 解释器或 task type 推断，只在现有 `draft -> confirmation` 边界增加后端验证。`request_v2_confirmation_from_task_draft()` 先读取当前 task draft：如果 draft 已经是显式业务类型，则要求请求的 `confirmation_type` 与 `draft_type` 一致；如果 draft 仍是现阶段兼容用的泛型 `conversation.capture`，则允许在请求确认时专门化为具体业务 confirmation。API 层为真正的类型不匹配返回 409，避免 AI 或 worker 带着错误工具类型跨越结构化工具边界。
 
 **Tech Stack:** Python、FastAPI、SQLAlchemy、pytest
 
@@ -128,9 +128,13 @@ class V2ConfirmationTypeMismatchError(ValueError):
 ```
 
 - [ ] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证 `draft_type == confirmation_type`**
+- [ ] **Step 2: 在 `request_v2_confirmation_from_task_draft()` 中验证“已类型化 draft 必须匹配，泛型 capture draft 允许专门化”**
 
 ```python
-if draft.draft_type != confirmation_type:
+GENERIC_DRAFT_TYPES = {"conversation.capture"}
+
+
+if draft.draft_type not in GENERIC_DRAFT_TYPES and draft.draft_type != confirmation_type:
     raise V2ConfirmationTypeMismatchError(
         f"Task run {task_run_id} draft type '{draft.draft_type}' does not match confirmation type '{confirmation_type}'."
     )
@@ -208,4 +212,4 @@ git commit -m "feat: validate v2 draft confirmation types"
 - Spec coverage：本计划聚焦结构化工具边界校验和 `inventory.stock_out` 的 draft -> confirmation 覆盖，不扩展到新的 runtime 解释器、confirmation approval 或 audit/outbox。
 - Placeholder scan：没有保留 `TBD`、`TODO`、`implement later` 一类占位。
 - Type consistency：统一使用 `draft_type`、`confirmation_type`、`inventory.stock_out`、`confirmation_type_mismatch` 这组命名。
-- Architecture check：后端在 AI 建议跨越工具边界前执行类型校验，符合“AI 可以提出工具调用建议，但后端必须验证并执行”的原则。
+- Architecture check：后端在 AI 建议跨越工具边界前执行类型校验；同时保留现阶段 `conversation.capture` 到显式业务 confirmation 的兼容专门化路径，符合“后端必须验证并执行”与当前 V2 迁移节奏。

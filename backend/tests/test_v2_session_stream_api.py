@@ -358,9 +358,32 @@ def test_v2_session_stream_api_replays_receipt_clarification_inventory_update_pr
 
     assert replay_response.status_code == 200
     events = replay_response.json()["data"]["events"]
+    system_result_events = [
+        event
+        for event in events
+        if event["event_type"] == "message.created"
+        and event["task_run_id"] == task_run_id
+        and event["data"].get("message_kind") == "system_result"
+    ]
+    committed_task_events = [
+        event
+        for event in events
+        if event["event_type"] == "task.updated"
+        and event["task_run_id"] == task_run_id
+        and event["data"].get("status") == "committed"
+    ]
     inventory_events = [event for event in events if event["event_type"] == "inventory.updated"]
+    assert len(system_result_events) == 1
+    assert len(committed_task_events) == 1
     assert len(inventory_events) == 1
+    system_result_event = system_result_events[0]
+    committed_task_event = committed_task_events[0]
     inventory_event = inventory_events[0]
+    assert system_result_event["data"]["payload_json"]["task_run_id"] == task_run_id
+    assert system_result_event["data"]["payload_json"]["confirmation_type"] == "inventory.stock_in"
+    assert system_result_event["data"]["payload_json"]["source_document_id"] == document_id
+    assert committed_task_event["data"]["intent_type"] == "inventory.stock_in"
+    assert system_result_event["seq"] < committed_task_event["seq"] < inventory_event["seq"]
     assert inventory_event["session_id"] == session_id
     assert inventory_event["task_run_id"] == task_run_id
     assert inventory_event["data"]["event_type"] == "stock_in"
@@ -371,3 +394,27 @@ def test_v2_session_stream_api_replays_receipt_clarification_inventory_update_pr
     assert inventory_event["data"]["source_media_asset_id"] == media_asset_id
     assert inventory_event["data"]["ledger_source_type"] == "task_run"
     assert inventory_event["data"]["ledger_source_id"] == task_run_id
+
+    after_system_result_response = client.get(
+        f"/api/v2/sessions/{session_id}/stream-events?after_seq={system_result_event['seq']}&limit=5",
+        headers=_headers(token, context_token),
+    )
+    after_committed_response = client.get(
+        f"/api/v2/sessions/{session_id}/stream-events?after_seq={committed_task_event['seq']}&limit=5",
+        headers=_headers(token, context_token),
+    )
+
+    assert after_system_result_response.status_code == 200
+    assert after_committed_response.status_code == 200
+    after_system_result_events = after_system_result_response.json()["data"]["events"]
+    after_committed_events = after_committed_response.json()["data"]["events"]
+    assert [event["seq"] for event in after_system_result_events] == [
+        committed_task_event["seq"],
+        inventory_event["seq"],
+    ]
+    assert [event["event_type"] for event in after_system_result_events] == [
+        "task.updated",
+        "inventory.updated",
+    ]
+    assert [event["seq"] for event in after_committed_events] == [inventory_event["seq"]]
+    assert [event["event_type"] for event in after_committed_events] == ["inventory.updated"]

@@ -739,6 +739,92 @@ def test_v2_session_stream_ws_delivers_receipt_clarification_inventory_update_pr
     assert inventory_event["data"]["ledger_source_id"] == task_run_id
 
 
+def test_v2_session_stream_ws_replays_receipt_clarification_suffix_after_system_result_seq(
+    monkeypatch, tmp_path
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    with _create_v2_websocket_client(
+        monkeypatch,
+        tmp_path,
+        keepalive_seconds="5",
+        pending_poll_seconds="0.05",
+    ) as client:
+        token, context_token = _seed_v2_login_and_context_for_ws(client)
+        monkeypatch.setattr(
+            receipt_documents_service,
+            "get_default_ocr_gateway",
+            lambda: _StubWsEmptyReceiptOcrGateway(),
+        )
+        session_id, task_run_id, document_id, media_asset_id = _create_v2_receipt_clarification_committed_session(
+            client,
+            token=token,
+            context_token=context_token,
+        )
+        _dispatch_v2_outbox_scope()
+
+        replay_response = client.get(
+            f"/api/v2/sessions/{session_id}/stream-events?after_seq=0&limit=20",
+            headers=_v2_headers(token, context_token),
+        )
+        assert replay_response.status_code == 200
+        events = replay_response.json()["data"]["events"]
+        system_result_events = [
+            event
+            for event in events
+            if event["event_type"] == "message.created"
+            and event["task_run_id"] == task_run_id
+            and event["data"].get("message_kind") == "system_result"
+        ]
+        committed_events = [
+            event
+            for event in events
+            if event["event_type"] == "task.updated"
+            and event["task_run_id"] == task_run_id
+            and event["data"].get("status") == "committed"
+        ]
+        inventory_events = [event for event in events if event["event_type"] == "inventory.updated"]
+
+        assert len(system_result_events) == 1
+        assert len(committed_events) == 1
+        assert len(inventory_events) == 1
+        system_result_event = system_result_events[0]
+        committed_event = committed_events[0]
+        inventory_event = inventory_events[0]
+        assert system_result_event["seq"] < committed_event["seq"] < inventory_event["seq"]
+
+        with client.websocket_connect(
+            f"/api/v2/ws/sessions/{session_id}?token={token}&context_token={context_token}"
+            f"&after_seq={system_result_event['seq']}"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            replayed_committed_event = websocket.receive_json()
+            replayed_inventory_event = websocket.receive_json()
+
+    assert ready_event["event_type"] == "session.ready"
+    assert ready_event["session_id"] == session_id
+    assert ready_event["seq"] == inventory_event["seq"]
+
+    assert replayed_committed_event["event_type"] == "task.updated"
+    assert replayed_committed_event["seq"] == committed_event["seq"]
+    assert replayed_committed_event["task_run_id"] == task_run_id
+    assert replayed_committed_event["data"]["status"] == "committed"
+    assert replayed_committed_event["data"]["intent_type"] == "inventory.stock_in"
+
+    assert replayed_inventory_event["event_type"] == "inventory.updated"
+    assert replayed_inventory_event["seq"] == inventory_event["seq"]
+    assert replayed_inventory_event["session_id"] == session_id
+    assert replayed_inventory_event["task_run_id"] == task_run_id
+    assert replayed_inventory_event["data"]["event_type"] == "stock_in"
+    assert replayed_inventory_event["data"]["quantity_after"] == "2"
+    assert replayed_inventory_event["data"]["source_type"] == "receipt-document"
+    assert replayed_inventory_event["data"]["source_id"] == document_id
+    assert replayed_inventory_event["data"]["source_document_id"] == document_id
+    assert replayed_inventory_event["data"]["source_media_asset_id"] == media_asset_id
+    assert replayed_inventory_event["data"]["ledger_source_type"] == "task_run"
+    assert replayed_inventory_event["data"]["ledger_source_id"] == task_run_id
+
+
 def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_waiting_for_keepalive(
     monkeypatch, tmp_path
 ) -> None:

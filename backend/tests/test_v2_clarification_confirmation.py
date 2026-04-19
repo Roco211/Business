@@ -859,6 +859,116 @@ def test_v2_approve_inventory_confirmation_enqueues_outbox_drain_after_commit(
     }
 
 
+def test_v2_approve_receipt_derived_inventory_confirmation_enqueues_outbox_drain_after_commit_with_provenance(
+    db_session, monkeypatch
+) -> None:
+    from sqlalchemy import select
+
+    import app.services.v2_conversation as v2_conversation
+    from app.db.session import get_session_factory
+    from app.models import V2OutboxEvent, V2TaskRun
+    from app.services.v2_conversation import approve_v2_confirmation, create_v2_confirmation
+
+    task_run_id = "vtask_receipt_enqueue_after_commit"
+    _seed_v2_task_run(db_session, task_run_id=task_run_id)
+    confirmation = create_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        task_run_id=task_run_id,
+        confirmation_type="inventory.stock_in",
+        draft_payload={
+            "item_name": "Cola",
+            "quantity": 2,
+            "unit": "box",
+            "price": 18.5,
+            "source_type": "receipt-document",
+            "source_document_id": "vdoc_receipt_001",
+            "source_media_asset_id": "vmedia_receipt_001",
+        },
+    )
+    observed: dict[str, object | None] = {}
+
+    def fake_enqueue_v2_outbox_drain(*, tenant_id: str, shop_id: str, **kwargs) -> bool:
+        verification_session = get_session_factory()()
+        try:
+            verification_task_run = verification_session.get(V2TaskRun, task_run_id)
+            verification_outbox = verification_session.scalar(
+                select(V2OutboxEvent)
+                .where(
+                    V2OutboxEvent.aggregate_type == "task_run",
+                    V2OutboxEvent.aggregate_id == task_run_id,
+                )
+                .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+            )
+            observed["tenant_id"] = tenant_id
+            observed["shop_id"] = shop_id
+            observed["batch_limit"] = kwargs.get("batch_limit", 50)
+            observed["max_batches"] = kwargs.get("max_batches", 10)
+            observed["retry_after_seconds"] = kwargs.get("retry_after_seconds", 60)
+            observed["task_status"] = verification_task_run.status if verification_task_run is not None else None
+            observed["outbox_status"] = verification_outbox.status if verification_outbox is not None else None
+            observed["source_type"] = (
+                verification_outbox.payload_json.get("source_type") if verification_outbox is not None else None
+            )
+            observed["source_id"] = (
+                verification_outbox.payload_json.get("source_id") if verification_outbox is not None else None
+            )
+            observed["source_document_id"] = (
+                verification_outbox.payload_json.get("source_document_id")
+                if verification_outbox is not None
+                else None
+            )
+            observed["source_media_asset_id"] = (
+                verification_outbox.payload_json.get("source_media_asset_id")
+                if verification_outbox is not None
+                else None
+            )
+            observed["ledger_source_type"] = (
+                verification_outbox.payload_json.get("ledger_source_type")
+                if verification_outbox is not None
+                else None
+            )
+            observed["ledger_source_id"] = (
+                verification_outbox.payload_json.get("ledger_source_id")
+                if verification_outbox is not None
+                else None
+            )
+        finally:
+            verification_session.close()
+        return True
+
+    monkeypatch.setattr(v2_conversation, "enqueue_v2_outbox_drain", fake_enqueue_v2_outbox_drain)
+
+    approved = approve_v2_confirmation(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        confirmation_id=confirmation.confirmation_id,
+        resolution_payload={
+            "fields": {"item_name": "Cola", "quantity": 2, "unit": "box", "price": 18.5}
+        },
+        approved_by_account_id="acct_001",
+    )
+
+    assert approved.status == "approved"
+    assert observed == {
+        "tenant_id": "tenant_a",
+        "shop_id": "shop_a1",
+        "batch_limit": 50,
+        "max_batches": 10,
+        "retry_after_seconds": 60,
+        "task_status": "committed",
+        "outbox_status": "pending",
+        "source_type": "receipt-document",
+        "source_id": "vdoc_receipt_001",
+        "source_document_id": "vdoc_receipt_001",
+        "source_media_asset_id": "vmedia_receipt_001",
+        "ledger_source_type": "task_run",
+        "ledger_source_id": task_run_id,
+    }
+
+
 def test_v2_approve_manual_review_confirmation_does_not_enqueue_outbox_drain(
     db_session, monkeypatch
 ) -> None:

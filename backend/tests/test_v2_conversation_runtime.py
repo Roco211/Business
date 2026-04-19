@@ -328,6 +328,30 @@ def test_v2_post_receipt_message_defaults_to_receipt_extraction_intent(client, d
     assert task_response.json()["data"]["intent_type"] == "document.receipt.extract"
 
 
+def test_v2_post_message_rejects_receipt_extraction_intent_for_non_receipt_message(client, db_session) -> None:
+    token, context_token = seed_v2_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "workgroup", "title": "工作群"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+
+    response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "text",
+            "payload_json": {"text": "extract receipt"},
+            "client_request_id": "v2_msg_invalid_receipt_intent",
+            "intent_type": "document.receipt.extract",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+
+
 def test_v2_post_message_rejects_unknown_intent_type(client, db_session) -> None:
     token, context_token = seed_v2_login_and_context(client, db_session)
     session_response = client.post(

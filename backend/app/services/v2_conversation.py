@@ -299,10 +299,14 @@ def create_v2_message_and_task_run(
 
 
 def _normalize_v2_message_intent(intent_type: str | None, *, message_kind: str) -> str:
+    normalized_message_kind = message_kind.strip().lower() if isinstance(message_kind, str) else ""
     normalized = intent_type.strip() if isinstance(intent_type, str) else ""
     if not normalized:
-        normalized_message_kind = message_kind.strip().lower() if isinstance(message_kind, str) else ""
         normalized = DEFAULT_MESSAGE_KIND_INTENTS.get(normalized_message_kind, DEFAULT_MESSAGE_INTENT_TYPE)
+    if normalized == RECEIPT_EXTRACTION_INTENT_TYPE and normalized_message_kind != "receipt-image":
+        raise V2UnsupportedIntentTypeError(
+            f"Intent type '{RECEIPT_EXTRACTION_INTENT_TYPE}' requires message_kind 'receipt-image'."
+        )
     if normalized not in ALLOWED_V2_MESSAGE_INTENTS:
         raise V2UnsupportedIntentTypeError(f"Unsupported intent_type '{normalized}'.")
     return normalized

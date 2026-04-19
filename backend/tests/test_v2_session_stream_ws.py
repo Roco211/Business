@@ -342,6 +342,22 @@ class _StubWsReceiptOcrGateway:
         )
 
 
+class _StubWsEmptyReceiptOcrGateway:
+    def extract_purchase_receipt(self, media_input):
+        from app.services.ocr_types import OcrExtraction
+
+        return OcrExtraction(
+            document_type="purchase-receipt",
+            provider_name="stub-ocr",
+            raw_text="Unreadable receipt text",
+            line_items=[],
+            total_amount=None,
+            low_confidence_fields=["items"],
+            used_fallback=False,
+            raw_payload={"provider": "stub", "items": []},
+        )
+
+
 def _seed_v2_uploaded_receipt_media_asset_for_ws(*, context_session_id: str) -> str:
     from app.db.session import get_session_factory
     from app.services.v2_media_assets import create_v2_media_asset_upload, mark_v2_media_asset_uploaded
@@ -679,3 +695,62 @@ def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_wait
     assert third_event["data"]["payload_json"]["source_type"] == "receipt-document"
     assert third_event["data"]["payload_json"]["source_document_id"] == extraction_response.json()["data"]["document_id"]
     assert third_event["data"]["payload_json"]["source_media_asset_id"] == media_asset_id
+
+
+def test_v2_session_stream_ws_pushes_receipt_extraction_clarification_without_waiting_for_keepalive(
+    monkeypatch, tmp_path
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    with _create_v2_websocket_client(
+        monkeypatch,
+        tmp_path,
+        keepalive_seconds="5",
+        pending_poll_seconds="0.5",
+    ) as client:
+        token, context_token = _seed_v2_login_and_context_for_ws(client)
+        session_id = _create_v2_ws_session(client, token=token, context_token=context_token)
+        message_response = client.post(
+            f"/api/v2/sessions/{session_id}/messages",
+            headers=_v2_headers(token, context_token),
+            json={
+                "message_kind": "receipt-image",
+                "payload_json": {"text": "extract unclear receipt"},
+                "client_request_id": "v2_ws_receipt_extract_clarification_001",
+            },
+        )
+        assert message_response.status_code == 201
+        task_run_id = message_response.json()["data"]["task_run_id"]
+        media_asset_id = _seed_v2_uploaded_receipt_media_asset_for_ws(context_session_id=context_token)
+        monkeypatch.setattr(
+            receipt_documents_service,
+            "get_default_ocr_gateway",
+            lambda: _StubWsEmptyReceiptOcrGateway(),
+        )
+
+        with client.websocket_connect(
+            f"/api/v2/ws/sessions/{session_id}?token={token}&context_token={context_token}"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            assert ready_event["event_type"] == "session.ready"
+
+            started = time.perf_counter()
+            extraction_response = client.post(
+                "/api/v2/documents/receipt-extractions",
+                headers=_v2_headers(token, context_token),
+                json={
+                    "media_asset_id": media_asset_id,
+                    "task_run_id": task_run_id,
+                    "conversation_session_id": session_id,
+                },
+            )
+            task_event = websocket.receive_json()
+            elapsed = time.perf_counter() - started
+
+    assert extraction_response.status_code == 201
+    assert extraction_response.json()["data"]["extracted_fields"]["items"] == []
+    assert elapsed < 0.4
+    assert task_event["event_type"] == "task.updated"
+    assert task_event["task_run_id"] == task_run_id
+    assert task_event["data"]["status"] == "needs_clarification"
+    assert task_event["data"]["intent_type"] == "document.receipt.extract"

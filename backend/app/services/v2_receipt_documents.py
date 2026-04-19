@@ -11,13 +11,19 @@ from app.services.v2_documents import (
 )
 from app.services.v2_media_assets import V2MediaAssetNotReadyError, get_ready_v2_media_asset
 from app.services.v2_model_call_logs import append_v2_model_call_log
-from app.services.v2_receipt_stock_in_drafts import create_v2_receipt_stock_in_confirmation_from_document
+from app.services.v2_receipt_stock_in_drafts import (
+    V2ReceiptStockInDraftValidationError,
+    create_v2_receipt_stock_in_clarification_from_document,
+    create_v2_receipt_stock_in_confirmation_from_document,
+)
 
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
 RECEIPT_EXTRACTION_STATUS = "completed"
+RECEIPT_EXTRACTION_INTENT_TYPE = "document.receipt.extract"
 RECEIPT_PROMPT_VERSION = "receipt-extract@v1"
 RECEIPT_SCHEMA_VERSION = "purchase-receipt@v1"
 RECEIPT_MEDIA_TYPES = {"receipt-image"}
+GENERIC_RECEIPT_TASK_INTENT_TYPES = {"conversation.capture", RECEIPT_EXTRACTION_INTENT_TYPE}
 
 
 def extract_v2_receipt_document(
@@ -138,15 +144,51 @@ def extract_v2_receipt_document(
         confidence_summary=confidence_summary,
     )
     if normalized_task_run_id is not None:
-        create_v2_receipt_stock_in_confirmation_from_document(
+        _specialize_task_run_for_receipt_extraction(
             db_session,
             tenant_id=tenant_id,
             shop_id=shop_id,
             task_run_id=normalized_task_run_id,
-            document_id=document.document_id,
-            created_by_account_id=requested_by_account_id,
         )
+        try:
+            create_v2_receipt_stock_in_confirmation_from_document(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                task_run_id=normalized_task_run_id,
+                document_id=document.document_id,
+                created_by_account_id=requested_by_account_id,
+            )
+        except V2ReceiptStockInDraftValidationError:
+            create_v2_receipt_stock_in_clarification_from_document(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                task_run_id=normalized_task_run_id,
+                document_id=document.document_id,
+            )
     return document
+
+
+def _specialize_task_run_for_receipt_extraction(
+    db_session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+) -> None:
+    task_run = db_session.scalar(
+        select(V2TaskRun).where(
+            V2TaskRun.task_run_id == task_run_id,
+            V2TaskRun.tenant_id == tenant_id,
+            V2TaskRun.shop_id == shop_id,
+        )
+    )
+    if task_run is None:
+        return
+    if task_run.intent_type in GENERIC_RECEIPT_TASK_INTENT_TYPES:
+        task_run.intent_type = RECEIPT_EXTRACTION_INTENT_TYPE
+        db_session.flush()
 
 
 def _build_confidence_summary(extraction) -> dict[str, object]:

@@ -183,6 +183,22 @@ class _StubOcrGateway:
         )
 
 
+class _StubEmptyReceiptOcrGateway:
+    def extract_purchase_receipt(self, media_input):
+        from app.services.ocr_types import OcrExtraction
+
+        return OcrExtraction(
+            document_type="purchase-receipt",
+            provider_name="stub-ocr",
+            raw_text="Unreadable receipt text",
+            line_items=[],
+            total_amount=None,
+            low_confidence_fields=["items"],
+            used_fallback=False,
+            raw_payload={"provider": "stub", "items": []},
+        )
+
+
 def _seed_v2_uploaded_media_asset(
     db_session,
     *,
@@ -1072,3 +1088,88 @@ def test_v2_extract_receipt_document_links_task_run_and_session(client, db_sessi
         "ready for confirmation"
         in messages_response.json()["data"]["messages"][-1]["payload_json"]["text"].lower()
     )
+
+
+def test_v2_extract_receipt_document_without_line_items_falls_back_to_clarification(
+    client, db_session, monkeypatch
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "receipt", "title": "Receipt Clarification"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+    message_response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "receipt-image",
+            "payload_json": {"text": "extract unclear receipt"},
+            "client_request_id": "receipt_extract_needs_clarification",
+        },
+    )
+    task_run_id = message_response.json()["data"]["task_run_id"]
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+    monkeypatch.setattr(
+        receipt_documents_service,
+        "get_default_ocr_gateway",
+        lambda: _StubEmptyReceiptOcrGateway(),
+    )
+
+    response = client.post(
+        "/api/v2/documents/receipt-extractions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "media_asset_id": media_asset_id,
+            "task_run_id": task_run_id,
+            "conversation_session_id": session_id,
+        },
+    )
+    task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    clarifications_response = client.get(
+        "/api/v2/clarifications?status=pending&limit=20",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    pending_confirmations_response = client.get(
+        "/api/v2/confirmations?status=pending&limit=20",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    stream_response = client.get(
+        f"/api/v2/sessions/{session_id}/stream-events?after_seq=0",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["data"]["extracted_fields"]["items"] == []
+    assert response.json()["data"]["confidence_summary"]["low_confidence_fields"] == ["items"]
+    assert task_response.status_code == 200
+    assert task_response.json()["data"]["status"] == "needs_clarification"
+    assert task_response.json()["data"]["intent_type"] == "document.receipt.extract"
+    assert task_response.json()["data"]["draft_payload"] is None
+    assert clarifications_response.status_code == 200
+    assert clarifications_response.json()["data"]["count"] == 1
+    clarification = clarifications_response.json()["data"]["clarifications"][0]
+    assert clarification["task_run_id"] == task_run_id
+    assert clarification["reason_code"] == "receipt_stock_in_fields_missing"
+    assert clarification["requested_fields"] == ["item_name", "quantity", "unit", "price"]
+    assert clarification["draft_payload"] == {
+        "raw_text": "Unreadable receipt text",
+        "source_type": "receipt-document",
+        "source_document_id": response.json()["data"]["document_id"],
+        "source_media_asset_id": media_asset_id,
+    }
+    assert pending_confirmations_response.status_code == 200
+    assert pending_confirmations_response.json()["data"]["count"] == 0
+    assert stream_response.status_code == 200
+    assert [event["event_type"] for event in stream_response.json()["data"]["events"]] == [
+        "message.created",
+        "task.updated",
+        "task.updated",
+    ]
+    assert stream_response.json()["data"]["events"][-1]["data"]["status"] == "needs_clarification"

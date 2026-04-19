@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.services.v2_conversation import (
     append_v2_system_result_message,
+    create_v2_clarification,
     get_v2_task_run,
     request_v2_confirmation_from_task_draft,
     upsert_v2_task_draft,
@@ -11,6 +12,11 @@ from app.services.v2_documents import get_v2_document
 RECEIPT_DOCUMENT_TYPE = "purchase-receipt"
 COMPLETED_EXTRACTION_STATUS = "completed"
 RECEIPT_STOCK_IN_DRAFT_TYPE = "inventory.stock_in"
+RECEIPT_CLARIFICATION_REASON_CODE = "receipt_stock_in_fields_missing"
+RECEIPT_CLARIFICATION_QUESTION = (
+    "I could not identify a complete receipt line item. Please confirm item name, quantity, unit, and price."
+)
+RECEIPT_CLARIFICATION_REQUESTED_FIELDS = ["item_name", "quantity", "unit", "price"]
 
 
 class V2ReceiptStockInDraftValidationError(ValueError):
@@ -98,6 +104,49 @@ def create_v2_receipt_stock_in_confirmation_from_document(
         )
         db_session.commit()
     return confirmation
+
+
+def create_v2_receipt_stock_in_clarification_from_document(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    task_run_id: str,
+    document_id: str,
+):
+    document = get_v2_document(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        document_id=document_id,
+    )
+    if document.document_type != RECEIPT_DOCUMENT_TYPE:
+        raise V2ReceiptStockInDraftValidationError("document_type must be purchase-receipt")
+    if document.extraction_status != COMPLETED_EXTRACTION_STATUS:
+        raise V2ReceiptStockInDraftValidationError("document extraction is not completed")
+
+    raw_text = None
+    if isinstance(document.extracted_fields, dict):
+        raw_text_value = document.extracted_fields.get("raw_text")
+        if isinstance(raw_text_value, str):
+            raw_text = raw_text_value
+
+    clarification_draft_payload = {
+        "raw_text": raw_text,
+        "source_type": "receipt-document",
+        "source_document_id": document.document_id,
+        "source_media_asset_id": document.media_asset_id,
+    }
+    return create_v2_clarification(
+        db_session,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+        task_run_id=task_run_id,
+        reason_code=RECEIPT_CLARIFICATION_REASON_CODE,
+        question_text=RECEIPT_CLARIFICATION_QUESTION,
+        requested_fields=list(RECEIPT_CLARIFICATION_REQUESTED_FIELDS),
+        draft_payload=clarification_draft_payload,
+    )
 
 
 def _require_first_receipt_item(extracted_fields: dict[str, object]) -> dict[str, object]:

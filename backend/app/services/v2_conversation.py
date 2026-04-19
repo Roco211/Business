@@ -38,9 +38,13 @@ ANSWERED_STATUS = "answered"
 SYSTEM_ACTOR_TYPE = "system"
 RUNTIME_SYSTEM_ACTOR_ID = "runtime_system"
 SYSTEM_RESULT_MESSAGE_KIND = "system_result"
-GENERIC_DRAFT_TYPES = {"conversation.capture", "document.receipt.extract"}
+DEFAULT_MESSAGE_INTENT_TYPE = "conversation.capture"
+RECEIPT_EXTRACTION_INTENT_TYPE = "document.receipt.extract"
+DEFAULT_MESSAGE_KIND_INTENTS = {"receipt-image": RECEIPT_EXTRACTION_INTENT_TYPE}
+GENERIC_DRAFT_TYPES = {DEFAULT_MESSAGE_INTENT_TYPE, RECEIPT_EXTRACTION_INTENT_TYPE}
 ALLOWED_V2_MESSAGE_INTENTS = {
-    "conversation.capture",
+    DEFAULT_MESSAGE_INTENT_TYPE,
+    RECEIPT_EXTRACTION_INTENT_TYPE,
     "inventory.stock_in",
     "inventory.stock_out",
 }
@@ -256,7 +260,7 @@ def create_v2_message_and_task_run(
     if session is None:
         return None
 
-    normalized_intent_type = _normalize_v2_message_intent(intent_type)
+    normalized_intent_type = _normalize_v2_message_intent(intent_type, message_kind=message_kind)
     now = utc_now_naive()
     message = V2Message(
         message_id=f"vmsg_{uuid.uuid4().hex}"[:40],
@@ -294,8 +298,11 @@ def create_v2_message_and_task_run(
     return message, task_run
 
 
-def _normalize_v2_message_intent(intent_type: str | None) -> str:
-    normalized = (intent_type or "conversation.capture").strip()
+def _normalize_v2_message_intent(intent_type: str | None, *, message_kind: str) -> str:
+    normalized = intent_type.strip() if isinstance(intent_type, str) else ""
+    if not normalized:
+        normalized_message_kind = message_kind.strip().lower() if isinstance(message_kind, str) else ""
+        normalized = DEFAULT_MESSAGE_KIND_INTENTS.get(normalized_message_kind, DEFAULT_MESSAGE_INTENT_TYPE)
     if normalized not in ALLOWED_V2_MESSAGE_INTENTS:
         raise V2UnsupportedIntentTypeError(f"Unsupported intent_type '{normalized}'.")
     return normalized

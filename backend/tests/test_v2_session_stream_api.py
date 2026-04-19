@@ -251,6 +251,22 @@ def _dispatch_v2_outbox_scope(db_session) -> None:
     assert result.completed_count == 1
 
 
+def _drain_due_v2_outbox_scope(db_session) -> None:
+    from app.services.v2_outbox_due_scopes import drain_due_v2_outbox_scopes
+
+    result = drain_due_v2_outbox_scopes(
+        db_session,
+        scope_limit=10,
+        batch_limit_per_scope=10,
+        max_batches_per_scope=2,
+    )
+    db_session.commit()
+
+    assert result.scope_count == 1
+    assert result.claimed_count == 1
+    assert result.completed_count == 1
+
+
 def test_v2_session_stream_api_replays_message_and_task_events(client, db_session) -> None:
     token, context_token = _seed_v2_login_and_context(client, db_session)
     session_response = client.post(
@@ -418,3 +434,44 @@ def test_v2_session_stream_api_replays_receipt_clarification_inventory_update_pr
     ]
     assert [event["seq"] for event in after_committed_events] == [inventory_event["seq"]]
     assert [event["event_type"] for event in after_committed_events] == ["inventory.updated"]
+
+
+def test_v2_session_stream_api_replays_receipt_clarification_inventory_update_from_due_scope_sweep(
+    client, db_session, monkeypatch
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    token, context_token = _seed_v2_login_and_context(client, db_session)
+    monkeypatch.setattr(
+        receipt_documents_service,
+        "get_default_ocr_gateway",
+        lambda: _StubEmptyReceiptOcrGateway(),
+    )
+    session_id, task_run_id, document_id, media_asset_id = _create_receipt_clarification_committed_session(
+        client,
+        db_session,
+        token=token,
+        context_token=context_token,
+    )
+
+    _drain_due_v2_outbox_scope(db_session)
+    replay_response = client.get(
+        f"/api/v2/sessions/{session_id}/stream-events?after_seq=0&limit=20",
+        headers=_headers(token, context_token),
+    )
+
+    assert replay_response.status_code == 200
+    events = replay_response.json()["data"]["events"]
+    inventory_events = [event for event in events if event["event_type"] == "inventory.updated"]
+    assert len(inventory_events) == 1
+    inventory_event = inventory_events[0]
+    assert inventory_event["session_id"] == session_id
+    assert inventory_event["task_run_id"] == task_run_id
+    assert inventory_event["data"]["event_type"] == "stock_in"
+    assert inventory_event["data"]["quantity_after"] == "2"
+    assert inventory_event["data"]["source_type"] == "receipt-document"
+    assert inventory_event["data"]["source_id"] == document_id
+    assert inventory_event["data"]["source_document_id"] == document_id
+    assert inventory_event["data"]["source_media_asset_id"] == media_asset_id
+    assert inventory_event["data"]["ledger_source_type"] == "task_run"
+    assert inventory_event["data"]["ledger_source_id"] == task_run_id

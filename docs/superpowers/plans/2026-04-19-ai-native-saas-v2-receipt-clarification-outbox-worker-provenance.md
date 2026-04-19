@@ -82,7 +82,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_outbox_worker.
 
 Expected: `test_v2_outbox_worker.py` 全绿，确认新增 helper 未破坏既有 batch / limit / 空批次行为。
 
-- [ ] **Step 2: 检查 diff 与工作区状态**
+- [x] **Step 2: 检查 diff 与工作区状态**
 
 Run:
 
@@ -93,7 +93,7 @@ git status --short --branch --untracked-files=no
 
 Expected: 无格式错误；变更只包含本次 plan 文档与 worker 测试。
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

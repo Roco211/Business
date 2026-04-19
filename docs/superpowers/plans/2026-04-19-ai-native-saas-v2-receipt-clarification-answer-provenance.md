@@ -128,7 +128,7 @@ git status --short --branch --untracked-files=no
 
 Expected: 无格式错误，只包含本刀相关改动。
 
-- [ ] **Step 3: 提交本刀**
+- [x] **Step 3: 提交本刀**
 
 Run:
 

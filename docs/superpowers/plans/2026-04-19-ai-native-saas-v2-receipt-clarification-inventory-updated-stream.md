@@ -98,7 +98,7 @@ git status --short --branch --untracked-files=no
 
 Expected: 无格式错误，只包含本刀相关变更。
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

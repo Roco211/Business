@@ -96,7 +96,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_session_stream_ws.py backend/tests/test_v2_session_stream_api.py backend/tests/test_v2_media_ai_platform.py -q
 ```
 
-- [ ] **Step 2: 检查 diff 与工作区状态**
+- [x] **Step 2: 检查 diff 与工作区状态**
 
 Run:
 
@@ -105,7 +105,7 @@ git diff --check
 git status --short
 ```
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

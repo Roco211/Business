@@ -332,9 +332,10 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_identity_context.py backend/tests/test_v2_conversation_runtime.py backend/tests/test_v2_clarification_confirmation.py backend/tests/test_v2_media_ai_platform.py -q
 ```
 
-- [ ] **Step 3: 完整 backend 测试**
+- [x] **Step 3: 完整 backend 测试**
 
 说明：根据当前协作约定，此步骤不是每轮必跑项；仅在需要做全量回归时执行，并在执行后单独记录结果。
+验证结果：`backend/tests` 全量分片回归已完成，`619 passed`。
 
 Run:
 
@@ -342,7 +343,7 @@ Run:
 $env:PYTHONPATH="backend"; python -m pytest backend/tests -q
 ```
 
-- [ ] **Step 4: 检查 git 状态并提交**
+- [x] **Step 4: 检查 git 状态并提交**
 
 Run:
 

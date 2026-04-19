@@ -80,7 +80,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_conversation_r
 
 Expected: PASS。只验证受本次默认 intent 变化影响的 receipt / conversation 切片。
 
-- [ ] **Step 2: 检查 diff 与工作区状态**
+- [x] **Step 2: 检查 diff 与工作区状态**
 
 Run:
 

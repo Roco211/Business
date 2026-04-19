@@ -106,7 +106,15 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_session_stream
 
 Expected: PASS。按用户要求只跑本次改动涉及的 API / stream 相关切片，不做完整 backend 回归。
 
-- [ ] **Step 2: 检查 diff 与工作区状态**
+补充验证：
+
+```powershell
+$env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_session_stream_ws.py::test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_waiting_for_keepalive backend/tests/test_v2_session_stream_ws.py::test_v2_session_stream_ws_pushes_receipt_extraction_clarification_without_waiting_for_keepalive -q
+```
+
+Expected: PASS。确保 receipt extraction 的确认路径与澄清路径都能在 websocket 中即时可见。
+
+- [x] **Step 2: 检查 diff 与工作区状态**
 
 Run:
 

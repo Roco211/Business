@@ -427,6 +427,120 @@ def test_dispatch_v2_outbox_events_appends_receipt_provenance_to_inventory_updat
     assert stream_event.payload_json["ledger_source_id"] == "vtask_001"
 
 
+def test_dispatch_v2_outbox_events_appends_stock_out_inventory_updated_stream_event(
+    db_session,
+) -> None:
+    from app.models import V2ConversationSession, V2InventoryStockSnapshot, V2OutboxEvent, V2SessionStreamEvent
+
+    dispatch_service = _load_v2_outbox_dispatch_service()
+    _seed_dispatch_scope(db_session)
+    _seed_conversation_task(db_session)
+    _seed_inventory_item(db_session, inventory_item_id="vitem_cola", name="Cola")
+    _seed_inventory_snapshot(
+        db_session,
+        snapshot_id="vsnapshot_cola",
+        inventory_item_id="vitem_cola",
+        current_quantity=Decimal("99"),
+        current_price=Decimal("99"),
+        updated_at=_dt("2026-04-18T09:00:00"),
+    )
+    _seed_inventory_event(
+        db_session,
+        event_id="vevent_cola_in",
+        inventory_item_id="vitem_cola",
+        event_type="stock_in",
+        quantity_delta=Decimal("3"),
+        quantity_after=Decimal("3"),
+        price=Decimal("18.50"),
+        occurred_at=_dt("2026-04-18T10:00:00"),
+    )
+    _seed_inventory_event(
+        db_session,
+        event_id="vevent_cola_out",
+        inventory_item_id="vitem_cola",
+        event_type="stock_out",
+        quantity_delta=Decimal("-1"),
+        quantity_after=Decimal("2"),
+        price=Decimal("18.50"),
+        occurred_at=_dt("2026-04-18T11:00:00"),
+    )
+    _seed_outbox_event(
+        db_session,
+        outbox_event_id="evt_inventory_stock_out_commit",
+        event_type="inventory.stock_out.committed",
+        payload_json={
+            "session_id": "vsess_001",
+            "task_run_id": "vtask_001",
+            "inventory_item_id": "vitem_cola",
+            "inventory_event_id": "vevent_cola_out",
+            "event_type": "stock_out",
+            "quantity_after": "2",
+            "unit": "box",
+            "source_type": "receipt-document",
+            "source_id": "vdoc_receipt_001",
+            "source_document_id": "vdoc_receipt_001",
+            "source_media_asset_id": "vmedia_receipt_001",
+            "ledger_source_type": "task_run",
+            "ledger_source_id": "vtask_001",
+        },
+    )
+    db_session.commit()
+
+    result = dispatch_service.dispatch_v2_outbox_events(
+        db_session,
+        tenant_id="tenant_a",
+        shop_id="shop_a1",
+        limit=10,
+        now=_dt("2026-04-18T11:30:00"),
+    )
+
+    db_session.expire_all()
+    session = db_session.get(V2ConversationSession, "vsess_001")
+    snapshot = db_session.scalar(
+        select(V2InventoryStockSnapshot).where(V2InventoryStockSnapshot.inventory_item_id == "vitem_cola")
+    )
+    outbox = db_session.scalar(
+        select(V2OutboxEvent).where(V2OutboxEvent.outbox_event_id == "evt_inventory_stock_out_commit")
+    )
+    stream_event = db_session.scalar(
+        select(V2SessionStreamEvent)
+        .where(V2SessionStreamEvent.event_id.like("vsevt_%"))
+        .order_by(V2SessionStreamEvent.seq.desc())
+    )
+
+    assert result.claimed_count == 1
+    assert result.completed_count == 1
+    assert result.retried_count == 0
+    assert result.failed_count == 0
+    assert session is not None
+    assert session.last_event_seq == 1
+    assert snapshot is not None
+    assert snapshot.current_quantity == Decimal("2")
+    assert snapshot.current_price == Decimal("18.50")
+    assert outbox is not None
+    assert outbox.status == "completed"
+    assert outbox.attempt_count == 1
+    assert outbox.last_error_code is None
+    assert outbox.processed_at == _dt("2026-04-18T11:30:00")
+    assert stream_event is not None
+    assert stream_event.event_type == "inventory.updated"
+    assert stream_event.seq == 1
+    assert stream_event.task_run_id == "vtask_001"
+    assert stream_event.payload_json == {
+        "inventory_item_id": "vitem_cola",
+        "inventory_event_id": "vevent_cola_out",
+        "event_type": "stock_out",
+        "quantity_after": "2",
+        "unit": "box",
+        "source_type": "receipt-document",
+        "source_id": "vdoc_receipt_001",
+        "source_document_id": "vdoc_receipt_001",
+        "source_media_asset_id": "vmedia_receipt_001",
+        "ledger_source_type": "task_run",
+        "ledger_source_id": "vtask_001",
+    }
+
+
 def test_dispatch_v2_outbox_events_marks_unsupported_event_failed_without_retry(db_session) -> None:
     from app.models import V2OutboxEvent
 

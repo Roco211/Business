@@ -754,3 +754,132 @@ def test_v2_session_stream_ws_pushes_receipt_extraction_clarification_without_wa
     assert task_event["task_run_id"] == task_run_id
     assert task_event["data"]["status"] == "needs_clarification"
     assert task_event["data"]["intent_type"] == "document.receipt.extract"
+
+
+def test_v2_session_stream_ws_pushes_receipt_clarification_answer_progression_without_waiting_for_keepalive(
+    monkeypatch, tmp_path
+) -> None:
+    import app.services.v2_receipt_documents as receipt_documents_service
+
+    with _create_v2_websocket_client(
+        monkeypatch,
+        tmp_path,
+        keepalive_seconds="5",
+        pending_poll_seconds="0.5",
+    ) as client:
+        token, context_token = _seed_v2_login_and_context_for_ws(client)
+        session_response = client.post(
+            "/api/v2/sessions",
+            headers=_v2_headers(token, context_token),
+            json={"session_type": "receipt", "title": "Receipt Clarification Progression"},
+        )
+        assert session_response.status_code == 201
+        session_id = session_response.json()["data"]["session_id"]
+        message_response = client.post(
+            f"/api/v2/sessions/{session_id}/messages",
+            headers=_v2_headers(token, context_token),
+            json={
+                "message_kind": "receipt-image",
+                "payload_json": {"text": "extract unclear receipt for websocket progression"},
+                "client_request_id": "v2_ws_receipt_clarification_progression_001",
+            },
+        )
+        assert message_response.status_code == 201
+        task_run_id = message_response.json()["data"]["task_run_id"]
+        media_asset_id = _seed_v2_uploaded_receipt_media_asset_for_ws(context_session_id=context_token)
+        monkeypatch.setattr(
+            receipt_documents_service,
+            "get_default_ocr_gateway",
+            lambda: _StubWsEmptyReceiptOcrGateway(),
+        )
+
+        extraction_response = client.post(
+            "/api/v2/documents/receipt-extractions",
+            headers=_v2_headers(token, context_token),
+            json={
+                "media_asset_id": media_asset_id,
+                "task_run_id": task_run_id,
+                "conversation_session_id": session_id,
+            },
+        )
+        assert extraction_response.status_code == 201
+        document_id = extraction_response.json()["data"]["document_id"]
+        clarifications_response = client.get(
+            "/api/v2/clarifications?status=pending&limit=20",
+            headers=_v2_headers(token, context_token),
+        )
+        assert clarifications_response.status_code == 200
+        clarification_id = clarifications_response.json()["data"]["clarifications"][0]["clarification_id"]
+        answer_payload = {
+            "item_name": "Sprite 330ml",
+            "quantity": 2,
+            "unit": "can",
+            "price": 6.5,
+        }
+
+        with client.websocket_connect(
+            f"/api/v2/ws/sessions/{session_id}?token={token}&context_token={context_token}"
+        ) as websocket:
+            ready_event = websocket.receive_json()
+            assert ready_event["event_type"] == "session.ready"
+
+            started = time.perf_counter()
+            answer_response = client.post(
+                f"/api/v2/clarifications/{clarification_id}/answer",
+                headers=_v2_headers(token, context_token),
+                json={"answer_payload": answer_payload},
+            )
+            answer_event = websocket.receive_json()
+            answer_elapsed = time.perf_counter() - started
+
+            started = time.perf_counter()
+            confirmation_response = client.post(
+                f"/api/v2/task-runs/{task_run_id}/confirmations",
+                headers=_v2_headers(token, context_token),
+                json={"confirmation_type": "inventory.stock_in"},
+            )
+            confirmation_event = websocket.receive_json()
+            confirmation_elapsed = time.perf_counter() - started
+
+            confirmation_id = confirmation_response.json()["data"]["confirmation_id"]
+            started = time.perf_counter()
+            approve_response = client.post(
+                f"/api/v2/confirmations/{confirmation_id}/approve",
+                headers=_v2_headers(token, context_token),
+                json={"resolution_payload": {"fields": dict(answer_payload)}},
+            )
+            system_result_event = websocket.receive_json()
+            committed_event = websocket.receive_json()
+            approve_elapsed = time.perf_counter() - started
+
+    assert answer_response.status_code == 200
+    assert answer_elapsed < 0.4
+    assert answer_event["event_type"] == "task.updated"
+    assert answer_event["task_run_id"] == task_run_id
+    assert answer_event["data"]["status"] == "drafted"
+    assert answer_event["data"]["intent_type"] == "document.receipt.extract"
+
+    assert confirmation_response.status_code == 201
+    assert confirmation_elapsed < 0.4
+    assert confirmation_event["event_type"] == "task.updated"
+    assert confirmation_event["task_run_id"] == task_run_id
+    assert confirmation_event["data"]["status"] == "awaiting_confirmation"
+    assert confirmation_event["data"]["intent_type"] == "inventory.stock_in"
+
+    assert approve_response.status_code == 200
+    assert approve_elapsed < 0.4
+    assert system_result_event["event_type"] == "message.created"
+    assert system_result_event["task_run_id"] == task_run_id
+    assert system_result_event["data"]["message_kind"] == "system_result"
+    assert system_result_event["data"]["payload_json"]["task_run_id"] == task_run_id
+    assert system_result_event["data"]["payload_json"]["confirmation_id"] == confirmation_id
+    assert system_result_event["data"]["payload_json"]["confirmation_type"] == "inventory.stock_in"
+    assert system_result_event["data"]["payload_json"]["source_type"] == "receipt-document"
+    assert system_result_event["data"]["payload_json"]["source_document_id"] == document_id
+    assert system_result_event["data"]["payload_json"]["source_media_asset_id"] == media_asset_id
+    assert "receipt stock-in committed" in system_result_event["data"]["payload_json"]["text"].lower()
+
+    assert committed_event["event_type"] == "task.updated"
+    assert committed_event["task_run_id"] == task_run_id
+    assert committed_event["data"]["status"] == "committed"
+    assert committed_event["data"]["intent_type"] == "inventory.stock_in"

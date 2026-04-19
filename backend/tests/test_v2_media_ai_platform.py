@@ -1173,3 +1173,147 @@ def test_v2_extract_receipt_document_without_line_items_falls_back_to_clarificat
         "task.updated",
     ]
     assert stream_response.json()["data"]["events"][-1]["data"]["status"] == "needs_clarification"
+
+
+def test_v2_receipt_clarification_answer_preserves_provenance_through_confirmation_and_commit(
+    client, db_session, monkeypatch
+) -> None:
+    from sqlalchemy import select
+
+    import app.services.v2_receipt_documents as receipt_documents_service
+    from app.models import V2AuditLog, V2OutboxEvent
+
+    token, context_token = _seed_v2_media_login_and_context(client, db_session)
+    session_response = client.post(
+        "/api/v2/sessions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"session_type": "receipt", "title": "Receipt Clarification Provenance"},
+    )
+    session_id = session_response.json()["data"]["session_id"]
+    message_response = client.post(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "message_kind": "receipt-image",
+            "payload_json": {"text": "extract unclear receipt for provenance"},
+            "client_request_id": "receipt_extract_provenance_chain",
+        },
+    )
+    task_run_id = message_response.json()["data"]["task_run_id"]
+    media_asset_id = _seed_v2_uploaded_media_asset(db_session, context_session_id=context_token)
+    monkeypatch.setattr(
+        receipt_documents_service,
+        "get_default_ocr_gateway",
+        lambda: _StubEmptyReceiptOcrGateway(),
+    )
+
+    extraction_response = client.post(
+        "/api/v2/documents/receipt-extractions",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={
+            "media_asset_id": media_asset_id,
+            "task_run_id": task_run_id,
+            "conversation_session_id": session_id,
+        },
+    )
+    clarifications_response = client.get(
+        "/api/v2/clarifications?status=pending&limit=20",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    clarification_id = clarifications_response.json()["data"]["clarifications"][0]["clarification_id"]
+    document_id = extraction_response.json()["data"]["document_id"]
+    answer_payload = {
+        "item_name": "Sprite 330ml",
+        "quantity": 2,
+        "unit": "can",
+        "price": 6.5,
+    }
+    expected_draft_payload = {
+        "raw_text": "Unreadable receipt text",
+        "source_type": "receipt-document",
+        "source_document_id": document_id,
+        "source_media_asset_id": media_asset_id,
+        **answer_payload,
+    }
+
+    answer_response = client.post(
+        f"/api/v2/clarifications/{clarification_id}/answer",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"answer_payload": answer_payload},
+    )
+    drafted_task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+    confirmation_response = client.post(
+        f"/api/v2/task-runs/{task_run_id}/confirmations",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"confirmation_type": "inventory.stock_in"},
+    )
+    awaiting_task_response = client.get(
+        f"/api/v2/task-runs/{task_run_id}",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    confirmation_id = confirmation_response.json()["data"]["confirmation_id"]
+    approve_response = client.post(
+        f"/api/v2/confirmations/{confirmation_id}/approve",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+        json={"resolution_payload": {"fields": dict(answer_payload)}},
+    )
+    messages_response = client.get(
+        f"/api/v2/sessions/{session_id}/messages",
+        headers={"Authorization": f"Bearer {token}", "X-Context-Token": context_token},
+    )
+
+    db_session.expire_all()
+    audit_log = db_session.scalars(
+        select(V2AuditLog)
+        .where(V2AuditLog.task_run_id == task_run_id)
+        .order_by(V2AuditLog.created_at.desc(), V2AuditLog.audit_log_id.desc())
+    ).first()
+    outbox_event = db_session.scalars(
+        select(V2OutboxEvent)
+        .where(
+            V2OutboxEvent.aggregate_type == "task_run",
+            V2OutboxEvent.aggregate_id == task_run_id,
+        )
+        .order_by(V2OutboxEvent.created_at.desc(), V2OutboxEvent.outbox_event_id.desc())
+    ).first()
+    messages = messages_response.json()["data"]["messages"]
+
+    assert extraction_response.status_code == 201
+    assert answer_response.status_code == 200
+    assert drafted_task_response.status_code == 200
+    assert drafted_task_response.json()["data"]["status"] == "drafted"
+    assert drafted_task_response.json()["data"]["intent_type"] == "document.receipt.extract"
+    assert drafted_task_response.json()["data"]["draft_payload"] == expected_draft_payload
+    assert confirmation_response.status_code == 201
+    assert confirmation_response.json()["data"]["draft_payload"] == expected_draft_payload
+    assert awaiting_task_response.status_code == 200
+    assert awaiting_task_response.json()["data"]["status"] == "awaiting_confirmation"
+    assert awaiting_task_response.json()["data"]["intent_type"] == "inventory.stock_in"
+    assert approve_response.status_code == 200
+    assert approve_response.json()["data"]["draft_payload"] == expected_draft_payload
+    assert approve_response.json()["data"]["resolution_payload"] == {"fields": answer_payload}
+    assert audit_log is not None
+    assert audit_log.metadata_json["source_type"] == "receipt-document"
+    assert audit_log.metadata_json["source_id"] == document_id
+    assert audit_log.metadata_json["source_document_id"] == document_id
+    assert audit_log.metadata_json["source_media_asset_id"] == media_asset_id
+    assert audit_log.metadata_json["ledger_source_type"] == "task_run"
+    assert audit_log.metadata_json["ledger_source_id"] == task_run_id
+    assert outbox_event is not None
+    assert outbox_event.payload_json["source_type"] == "receipt-document"
+    assert outbox_event.payload_json["source_id"] == document_id
+    assert outbox_event.payload_json["source_document_id"] == document_id
+    assert outbox_event.payload_json["source_media_asset_id"] == media_asset_id
+    assert outbox_event.payload_json["ledger_source_type"] == "task_run"
+    assert outbox_event.payload_json["ledger_source_id"] == task_run_id
+    assert messages_response.status_code == 200
+    assert messages[-1]["message_kind"] == "system_result"
+    assert messages[-1]["payload_json"]["source_type"] == "receipt-document"
+    assert messages[-1]["payload_json"]["source_document_id"] == document_id
+    assert messages[-1]["payload_json"]["source_media_asset_id"] == media_asset_id
+    assert "receipt stock-in committed" in messages[-1]["payload_json"]["text"].lower()

@@ -74,7 +74,7 @@ $env:PYTHONPATH="backend"; python -m pytest backend/tests/test_v2_outbox_due_tas
 
 Expected: fake wrapper 行为测试与真实 DB entrypoint 测试都通过。
 
-- [ ] **Step 2: 检查 diff 与工作区状态**
+- [x] **Step 2: 检查 diff 与工作区状态**
 
 Run:
 
@@ -85,7 +85,7 @@ git status --short --branch --untracked-files=no
 
 Expected: 无格式错误；变更只包含本次 plan 文档与 due task 测试。
 
-- [ ] **Step 3: 提交并推送**
+- [x] **Step 3: 提交并推送**
 
 Run:
 

@@ -402,7 +402,7 @@ Confirm visually and in code that:
 - ledger was not unintentionally redesigned
 ```
 
-- [ ] **Step 4: Commit the verification pass**
+- [x] **Step 4: Commit the verification pass**
 
 ```bash
 git add apps/mobile

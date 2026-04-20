@@ -13,6 +13,7 @@ Phase 17B trial-shell manual verification for:
 - [x] In `apps/mobile`, dependencies are installed.
 - [x] Expo is running on the LAN host for the current workspace.
 - [x] Backend health is reachable from the same LAN as the mobile device.
+- [x] Local-demo API smoke passes against the sqlite backend.
 - [ ] The app launches to the login screen without a crash or red screen.
 
 ## Current Local Endpoints

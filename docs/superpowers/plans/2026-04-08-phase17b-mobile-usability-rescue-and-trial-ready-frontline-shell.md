@@ -55,7 +55,7 @@
 - Modify: `apps/mobile/src/shared/copy/getFriendlyStatusMessage.ts`
 - Modify: `apps/mobile/__tests__/getFriendlyStatusMessage.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/mobile/src/shared/copy/__tests__/frontlineStatus.test.ts
@@ -103,7 +103,7 @@ Run: `npm.cmd test -- src/shared/copy/__tests__/frontlineStatus.test.ts __tests_
 
 Expected: FAIL because `frontlineStatus.ts` does not exist and the current helper still returns mojibake/raw mock wording.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```ts
 // apps/mobile/src/shared/copy/frontlineStatus.ts
@@ -155,13 +155,13 @@ export function getFriendlyStatusMessage(message: string | null | undefined, fal
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm.cmd test -- src/shared/copy/__tests__/frontlineStatus.test.ts __tests__/getFriendlyStatusMessage.test.ts --runInBand`
 
 Expected: PASS for both suites.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/mobile/src/shared/copy/frontlineStatus.ts apps/mobile/src/shared/copy/__tests__/frontlineStatus.test.ts apps/mobile/src/shared/copy/getFriendlyStatusMessage.ts apps/mobile/__tests__/getFriendlyStatusMessage.test.ts
@@ -182,7 +182,7 @@ git commit -m "feat: add frontline status copy foundation"
 - Modify: `apps/mobile/src/features/chat/components/WorkbenchHeader.tsx`
 - Modify: `apps/mobile/src/features/chat/screens/ChatScreen.test.tsx`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/mobile/src/shared/api/__tests__/resolveApiBaseUrl.test.ts
@@ -237,7 +237,7 @@ Run: `npm.cmd test -- src/shared/api/__tests__/resolveApiBaseUrl.test.ts src/fea
 
 Expected: FAIL because `resolveApiBaseUrl.ts` does not exist and the workbench state copy still relies on inline mojibake.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```ts
 // apps/mobile/src/shared/api/resolveApiBaseUrl.ts
@@ -301,13 +301,13 @@ export function getWorkbenchConnectionCopy(input: {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm.cmd test -- src/shared/api/__tests__/resolveApiBaseUrl.test.ts src/features/chat/screens/ChatScreen.test.tsx --runInBand`
 
 Expected: PASS, with host inference and bootstrap-specific workbench copy covered.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/mobile/src/shared/api/resolveApiBaseUrl.ts apps/mobile/src/shared/api/__tests__/resolveApiBaseUrl.test.ts apps/mobile/src/shared/api/client.ts apps/mobile/src/shared/session/getWorkbenchConnectionCopy.ts apps/mobile/src/shared/session/useBootstrapSession.ts apps/mobile/src/shared/session/SessionStreamProvider.tsx apps/mobile/src/features/chat/components/WorkbenchHeader.tsx apps/mobile/src/features/chat/screens/ChatScreen.test.tsx
@@ -324,7 +324,7 @@ git commit -m "feat: add mobile connectivity baseline"
 - Modify: `apps/mobile/src/features/dashboard/screens/DashboardScreen.tsx`
 - Modify: `apps/mobile/src/features/dashboard/screens/DashboardScreen.test.tsx`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/mobile/src/features/auth/screens/LoginScreen.test.tsx
@@ -350,7 +350,7 @@ Run: `npm.cmd test -- src/features/auth/screens/LoginScreen.test.tsx src/feature
 
 Expected: FAIL because the current screens still render mojibake copy and do not foreground app health/next action wording.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```tsx
 // apps/mobile/src/features/auth/screens/LoginScreen.tsx
@@ -385,13 +385,13 @@ const COPY = {
 </AppScreen>
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm.cmd test -- src/features/auth/screens/LoginScreen.test.tsx src/features/dashboard/screens/DashboardScreen.test.tsx --runInBand`
 
 Expected: PASS with corrected copy and dashboard health emphasis.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/mobile/src/features/auth/screens/LoginScreen.tsx apps/mobile/src/features/auth/screens/LoginScreen.test.tsx apps/mobile/src/features/dashboard/screens/DashboardScreen.tsx apps/mobile/src/features/dashboard/screens/DashboardScreen.test.tsx
@@ -410,7 +410,7 @@ git commit -m "feat: rescue login and dashboard trial shell"
 - Modify: `apps/mobile/src/features/chat/screens/ChatScreen.tsx`
 - Modify: `apps/mobile/src/features/chat/screens/ChatScreen.test.tsx`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/mobile/src/features/chat/utils/presentRuntimeMessageText.test.ts
@@ -448,7 +448,7 @@ Run: `npm.cmd test -- src/features/chat/utils/presentRuntimeMessageText.test.ts 
 
 Expected: FAIL because the helper does not exist and the default workbench dock still uses demo-oriented labels.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```ts
 // apps/mobile/src/features/chat/utils/presentRuntimeMessageText.ts
@@ -498,13 +498,13 @@ const COPY = {
 />
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm.cmd test -- src/features/chat/utils/presentRuntimeMessageText.test.ts src/features/chat/screens/ChatScreen.test.tsx --runInBand`
 
 Expected: PASS with business-language default actions and debug-only legacy panel wording.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/mobile/src/features/chat/utils/presentRuntimeMessageText.ts apps/mobile/src/features/chat/utils/presentRuntimeMessageText.test.ts apps/mobile/src/features/chat/components/GuidedEntryDock.tsx apps/mobile/src/features/chat/components/MockMediaEntryPanel.tsx apps/mobile/src/features/chat/screens/ChatScreen.tsx apps/mobile/src/features/chat/screens/ChatScreen.test.tsx
@@ -526,7 +526,7 @@ git commit -m "feat: de-demoize workbench default path"
 - Modify: `backend/tests/test_runtime_processor.py`
 - Modify: `backend/tests/test_inventory_commit_service.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # backend/tests/test_runtime_processor.py
@@ -554,7 +554,7 @@ Run: `$env:PYTHONPATH='backend'; python -m pytest backend/tests/test_runtime_pro
 
 Expected: FAIL because the current backend summaries and runtime messages still emit `Mock runtime` wording.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```python
 # backend/app/runtime/summarizer.py
@@ -601,13 +601,13 @@ text = "\u8bf7\u786e\u8ba4\u51fa\u5e93\u4fe1\u606f\u540e\u518d\u63d0\u4ea4\u3002
 text = "\u8bf7\u786e\u8ba4\u5165\u5e93\u4fe1\u606f\u540e\u518d\u63d0\u4ea4\u3002"
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `$env:PYTHONPATH='backend'; python -m pytest backend/tests/test_runtime_processor.py backend/tests/test_inventory_commit_service.py -q`
 
 Expected: PASS with no remaining `Mock runtime` strings in the exercised user-facing paths.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/app/runtime/summarizer.py backend/app/runtime/processor.py backend/app/api/routes/confirmations.py backend/app/services/approved_stock_in_commits.py backend/app/services/approved_stock_out_commits.py backend/app/services/approved_receipt_stock_in_commits.py backend/tests/test_runtime_processor.py backend/tests/test_inventory_commit_service.py
@@ -624,7 +624,7 @@ git commit -m "feat: replace mock runtime user copy"
 - Modify: `apps/mobile/src/shared/ui/DebugDisclosure.tsx`
 - Create: `project_docs/mobile-trial-shell-checklist.md`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/mobile/src/features/ledger/screens/LedgerScreen.test.tsx
@@ -648,7 +648,7 @@ Run: `npm.cmd test -- src/features/ledger/screens/LedgerScreen.test.tsx --runInB
 
 Expected: FAIL because the ledger still contains mojibake copy and the debug treatment is not yet explicitly secondary enough.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```tsx
 // apps/mobile/src/features/ledger/screens/LedgerScreen.tsx

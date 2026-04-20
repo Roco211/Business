@@ -11,8 +11,8 @@ Phase 17B trial-shell manual verification for:
 ## Environment Setup
 - [ ] Android device or emulator is available. Real device + Expo Go is preferred.
 - [x] In `apps/mobile`, dependencies are installed.
-- [ ] Expo is running on the LAN host for the current workspace.
-- [ ] Backend health is reachable from the same LAN as the mobile device.
+- [x] Expo is running on the LAN host for the current workspace.
+- [x] Backend health is reachable from the same LAN as the mobile device.
 - [ ] The app launches to the login screen without a crash or red screen.
 
 ## Current Local Endpoints

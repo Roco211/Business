@@ -4,6 +4,10 @@
 
 **Goal:** Make the Android Expo app readable, connectable, and trustworthy enough for guided trial rehearsal before integrating `coding plan` or real multimodal providers.
 
+> **状态：已废弃 / superseded**
+> 当前主线已经切换为 CLI 系统可用性验证。本文仅保留历史记录，不再作为后续工作的执行依据。
+> 请改看 `project_docs/system-cli-validation-checklist.md`、`project_docs/05-sprint-plan.md` 和 `project_docs/09-implementation-scope.md`。
+
 **Architecture:** Keep the existing Expo shell, auth/session bootstrap flow, bottom-tab navigation, and backend contracts, but add a stricter frontline presentation layer for copy, connectivity, and non-demo default paths. Implement the rescue in layers: shared copy/status normalization, Expo/device API resolution, login/dashboard/workbench/ledger hardening, then backend user-facing runtime copy cleanup.
 
 **Tech Stack:** Expo 53, React Native 0.79, React Navigation, Jest + Testing Library, FastAPI, pytest

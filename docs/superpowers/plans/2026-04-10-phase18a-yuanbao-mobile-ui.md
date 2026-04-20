@@ -4,6 +4,10 @@
 
 **Goal:** Blend a Yuanbao-inspired soft mobile visual language into the existing mobile shell while keeping login reliable, dashboard overview-first, and workbench behavior unchanged.
 
+> **状态：已废弃 / superseded**
+> 当前主线已经切换为 CLI 系统可用性验证。本文仅保留历史记录，不再作为后续工作的执行依据。
+> 请改看 `project_docs/system-cli-validation-checklist.md`、`project_docs/05-sprint-plan.md` 和 `project_docs/09-implementation-scope.md`。
+
 **Architecture:** Refresh the shared mobile theme and primitives first so the login screen, dashboard, and workbench can inherit one coherent surface language. Then update each target surface with test-first changes, keeping navigation structure, backend contracts, and ledger workflows untouched.
 
 **Tech Stack:** Expo 53, React Native 0.79, React Navigation bottom tabs, Jest, Testing Library

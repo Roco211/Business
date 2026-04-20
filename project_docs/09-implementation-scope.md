@@ -1,27 +1,31 @@
-# 09. 当前施工范围与落地边界
+# 09. 当前实施范围与落地边界
 
-本文件解决的问题不是“产品最终会变成什么”，而是：
+本文只回答一个问题：
 
-**基于当前 `project_docs`，下一轮工程落地到底先做什么、不做什么，以及什么叫“已经可以开工”。**
+**在当前 `project_docs` 与后端脚本已经存在的前提下，下一阶段到底应该把什么当作“可落地”，什么不该再推进。**
 
 ---
 
-## 1. 当前施工目标
+## 1. 当前实施目标
 
-当前这轮实现目标统一定义为：
+当前实施目标统一为：
 
-**做一个“可演示的端到端 mock 闭环 MVP 骨架”，而不是一步到位接入全部真实 AI 能力。**
+**做一个可复现的 CLI 系统可用性验证闭环，并补一层薄包装器。**
 
 换句话说：
 
-- 基础工程和业务骨架要真实存在
-- 数据库、对象存储、任务编排、WebSocket 都按真实系统方式搭
-- ASR / OCR / 识图 / 自由推理能力，当前阶段先通过可替换的 mock provider 承接
+- 后端真实存在
+- 数据库、对象存储、任务编排、WebSocket、summary / preflight 逻辑都继续按真实系统方式运行
+- 但当前验收入口是 CLI，不是 Android/Expo
+- 当前希望有一个统一入口 `backend/scripts/run_system_check.py`，其余脚本作为 leaf commands
 
-这样做的目的有两个：
+当前应把这些脚本视为正式能力：
 
-1. 先验证整个系统链路和边界是否成立
-2. 避免在状态机、确认链、账本和审计还没稳住前，就被供应商接入细节拖慢
+- `backend/scripts/run_local_demo_smoke.py`
+- `backend/scripts/run_trial_readiness_check.py`
+- `backend/scripts/run_live_pilot_preflight.py`
+- `backend/scripts/run_pilot_summary_check.py`
+- `backend/scripts/export_pilot_shift_bundle.py`
 
 ---
 
@@ -29,256 +33,130 @@
 
 ### 2.1 实施层级
 
-当前实施层级默认定为：
+当前默认实施层级定义为：
 
-- `B. 可演示的端到端 mock 闭环`
+- `B. 可复现的端到端 CLI 验证闭环 + 薄包装器`
 
 不是：
 
-- 只做文档或空骨架
-- 也不是直接接真实 ASR / OCR / 识图供应商
+- 只写文档
+- 重新做 Android/Expo 试点壳
+- 再开一个新的移动端 UI 重构线
 
-### 2.2 AI 能力策略
+### 2.2 交付姿势
 
-当前阶段统一采用：
+当前阶段优先交付：
 
-- `mock-first provider strategy`
+- 稳定的 CLI 命令
+- 稳定的 JSON 输出
+- 稳定的退出码
+- 可直接执行的操作员清单
+- 一个薄的统一入口命令（若 wrapper 落地）
 
-即：
-
-- 路由、ASR、OCR、识图、总结都先有稳定接口
-- 默认实现先走 mock / fixture
-- 后续可以无痛替换成真实 provider
-
-### 2.3 认证策略
+### 2.3 验证姿势
 
 当前阶段继续使用：
 
-- `Mock Auth + 单店单老板`
+- SQLite / 本地 demo
+- trial readiness
+- live preflight
+- pilot summary
+- shift bundle
 
-默认上下文：
-
-- 只有一个默认店铺
-- 只有一个老板账号
-- 所有会话默认落在一个工作群里
-
-### 2.4 落地顺序
-
-当前阶段推荐：
-
-- **后端骨架优先**
-- React Native 最小壳层随后接入
-
-原因：
-
-- 这个产品的核心复杂度在会话、任务、确认、账本和审计
-- 如果后端合同不先钉死，前端很容易做成“看起来像聊天，实际上没有真相层”的假壳
+但不再把 Android 设备、Expo Go、模拟器当作当前验收前提。
 
 ---
 
-## 3. 当前阶段明确纳入范围的内容
+## 3. 当前范围内必须完成的内容
 
-### P0 业务闭环
+### P0 - CLI 验证闭环
 
 必须先做成：
 
-- 默认工作群 session bootstrap
-- 媒体上传申请
-- 发送消息
-- `voice-stock-in`
-- `voice-stock-query`
-- 确认链路
-- `InventoryEvent` 写入
-- `AuditLog` 写入
-- WebSocket 回写聊天状态
+- 本地 demo smoke
+- trial readiness
+- live pilot preflight
+- pilot summary check
+- shift bundle export
 
-### P1 多模态闭环
+### P1 - 薄包装器
 
-在 P0 稳定后纳入：
+必须补齐：
 
-- `photo-stock-in`
-- `photo-stock-query`
-- `receipt-ocr`
-- OCR 低置信字段高亮
-- 新商品 / 低置信识别进入确认态
+- 一个统一入口 `run_system_check.py`
+- 统一的 JSON verdict
+- 统一的 exit code
+- 对 local-demo / trial / pilot 场景的固定编排
 
-### P2 账本闭环
+### P2 - 操作员清单
 
-在 P0/P1 后补齐：
+必须补齐：
 
-- 库存列表
-- 审计时间线
-- 人工纠错
-- 低库存提醒
+- 每个 CLI 命令的用途
+- 每个命令的运行前置条件
+- 每个命令的预期输出
+- 每个命令的失败判读方式
 
-### 工程骨架
+### P3 - 历史路线退场
 
-当前阶段必须一起落地：
+必须明确：
 
-- FastAPI API 工程
-- SQLAlchemy + Alembic
-- Celery + Redis Worker 骨架
-- MinIO 上传链路
-- WebSocket session stream
-- React Native 工程骨架
+- Android/Expo trial shell 已不是当前主线
+- 旧 mobile checklist 只保留历史记录
+- 旧 mobile plan 只保留历史记录
 
 ---
 
-## 4. 当前阶段明确不纳入范围的内容
+## 4. 当前范围明确不纳入
 
-以下内容统一视为后续阶段，不阻塞当前开工：
+以下内容统一视为后续阶段，不阻塞当前工作：
 
-- 多店铺
-- 多角色账号体系
-- 手机号 OTP
-- 多供应商并行路由
-- 流式模型输出
-- 第三方插件市场
-- 平台化员工包 / 能力包市场
-- 复杂离线同步
-- 真正的实时通话
-- 任意自由子代理
+- Android 端新页面
+- Expo shell 继续扩展
+- 新的移动端交互重构
+- 多店铺 / 多角色 / 复杂权限体系
+- 真正实时的复杂前端协作
+- 流式模型输出在客户端的高级可视化
+- 新的第三方插件市场
+- 跨账号复杂同步
 
 ---
 
-## 5. 建议的仓库落地结构
+## 5. 当前推荐落地顺序
 
-当前工作区还没有真正的移动端和业务后端工程，因此建议按下面结构开始施工：
+### 第 1 步：先把 CLI 当成正式验收面
 
-```text
-apps/
-  mobile/
-backend/
-  app/
-    api/
-    agent_runtime/
-    db/
-    models/
-    repositories/
-    services/
-    workers/
-    websocket/
-  tests/
-infra/
-  docker/
-project_docs/
-showcase_app/
-```
+先确认：
 
-说明：
+- `run_local_demo_smoke.py` 能证明本地 demo 可用
+- `run_trial_readiness_check.py` 能证明 trial readiness 可用
 
-- `apps/mobile` 负责 React Native 客户端
-- `backend` 负责 FastAPI、数据库、runtime 和 worker
-- `infra` 负责 Docker Compose、环境模板和本地依赖编排
-- `showcase_app` 保持为蓝图展示入口，不作为业务后端本体
+### 第 2 步：再补试运行 gate
+
+然后确认：
+
+- `run_live_pilot_preflight.py` 能卡住 cutover 不一致
+- `run_pilot_summary_check.py` 能给出日常复核结果
+
+### 第 3 步：最后把交接打通
+
+补齐：
+
+- `export_pilot_shift_bundle.py`
+- 操作员清单
+- 归档说明
 
 ---
 
-## 6. 推荐施工顺序
+## 6. 这轮不再等待的决定
 
-### 第 1 步：先立服务端骨架
+下面这些问题在当前阶段不再阻塞推进：
 
-先完成：
+- 是否先做 Android app
+- 是否继续加 Expo UI
+- 是否先做更复杂的移动端视觉
+- 是否先把所有终端体验都做完整
 
-- FastAPI app 结构
-- MySQL 模型与 Alembic
-- Mock Auth
-- `/health`
-- `/api/v1/sessions/bootstrap`
+原因很简单：
 
-### 第 2 步：把消息与任务账本立起来
-
-完成：
-
-- `sessions`
-- `messages`
-- `task_runs`
-- `confirmations`
-
-### 第 3 步：把 runtime loop 跑通
-
-完成：
-
-- Router
-- Policy Guard
-- Tool Runner
-- Summarizer
-- Mock ASR / OCR / 识图 provider
-
-### 第 4 步：打通 P0 闭环
-
-完成：
-
-- 语音入库
-- 语音查询
-- 待确认生成
-- 确认后写库存事件
-- 审计写入
-- WebSocket 回写
-
-### 第 5 步：接 React Native 最小壳层
-
-先做：
-
-- 3 个主页面
-- session bootstrap
-- 消息流拉取
-- WebSocket 订阅
-- 结果卡 / 确认卡渲染
-
-### 第 6 步：再补多模态与账本
-
-最后补：
-
-- 拍照建档
-- 拍照查询
-- OCR
-- 账本
-- 人工纠错
-
----
-
-## 7. 当前阶段的完成定义
-
-只有同时满足下面这些条件，才算“当前蓝图已经被落成第一版工程骨架”：
-
-- 能启动 FastAPI、Worker、MySQL、Redis、MinIO
-- 能 bootstrap 出默认工作群 session
-- 能通过消息接口创建 `TaskRun`
-- `voice-stock-in` 能走到确认态
-- 确认通过后能写入 `InventoryEvent` 和 `AuditLog`
-- `voice-stock-query` 能返回只读结果卡
-- 聊天页能通过 WebSocket 收到状态更新
-- 所有 AI 能力都经过 provider interface，而不是散落在业务代码里
-
----
-
-## 8. 当前阶段不需要再等待的决策
-
-以下问题在当前施工阶段不再阻塞开工：
-
-- 真实 ASR 最终选哪家
-- 真实 OCR 最终选哪家
-- 真实识图最终选哪家
-- 是否做正式登录系统
-
-因为本阶段默认答案已经确定：
-
-- 先 mock
-- 先单店单老板
-- 先把系统骨架和闭环做稳
-
----
-
-## 9. 真正会阻塞下一阶段的事项
-
-进入真实试点前，仍然需要补充：
-
-- 真实 provider 选型与评测
-- 正式账号与店铺上下文
-- 生产环境对象存储与密钥管理
-- 更严格的风控规则与运营策略
-
-本文件的结论可以总结成一句话：
-
-**当前阶段先落一个“真实骨架 + mock AI 能力”的闭环系统，用它验证蓝图，而不是一开始就追求供应商接入完成度。**
+**当前阶段的价值判断不是“界面做得多像产品”，而是“整个系统能不能被 CLI 验证成可用”。**

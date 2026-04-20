@@ -1,215 +1,92 @@
-# 05. Sprint 计划与开发拆解
+# 05. Sprint 计划与执行顺序
 
-## 1. 目标
+## 1. 当前总目标
 
-把当前 PRD 和原型拆成 4 个可执行阶段，保证首版先跑通，再逐步补强。
+把当前交付主线切换为 **CLI 系统可用性验证**。当前要做的不是 Android/Expo trial shell，而是把后端已有脚本加上一层薄包装，形成一条真正给操作员用的命令入口。
 
-默认节奏：
+## 2. 当前默认执行顺序
 
-- 每个 Sprint 1 到 2 周
-- 以移动端 + 服务端并行推进
+1. `backend/scripts/run_system_check.py`（目标入口）
+2. 如果 wrapper 还未落地，则按下面的 leaf scripts 顺序手工执行：
+   - `backend/scripts/run_local_demo_smoke.py`
+   - `backend/scripts/run_trial_readiness_check.py`
+   - `backend/scripts/run_live_pilot_preflight.py`
+   - `backend/scripts/run_pilot_summary_check.py`
+   - `backend/scripts/export_pilot_shift_bundle.py`
 
-## 2. Sprint 0 - 工程基础
+## 3. 当前 Sprint 切分
+
+### Sprint 0 - CLI 主线切换与薄包装器
 
 目标：
 
-- 建立 React Native 工程骨架
-- 建立 API 工程骨架
-- 跑通基础导航和假数据页面
+- 把现有后端脚本定义为正式验证能力
+- 补一层 `run_system_check.py` 薄包装器
+- 把移动端 trial shell 明确降级为历史路线
 
 交付：
 
-- Expo 工程初始化
-- TypeScript 配置
-- React Navigation
-- Query Client
-- Zustand Store
-- 基础 UI 主题
-- 3 个空页面
+- `backend/scripts/run_system_check.py`
+- `project_docs/system-cli-validation-checklist.md`
+- `project_docs/05-sprint-plan.md`
+- `project_docs/09-implementation-scope.md`
+- 历史移动端计划的 superseded 标记
 
 验收：
 
-- 能打开工作台、工作群、账本
-- 可切换页面
-- 假数据能渲染
+- 操作员能用一条命令启动系统可用性验证
+- 如果 wrapper 尚未落地，至少能按固定顺序手工执行 leaf scripts
+- 文档中不再把 Android/Expo 写成当前主线
 
-## 3. Sprint 1 - 语音主链路
+### Sprint 1 - 本地演示与 readiness
 
 目标：
 
-- 把“语音是主入口”真正做起来
-
-移动端任务：
-
-- 工作台语音入口
-- 聊天页微信式输入栏
-- 录音采集与上传
-- 语音消息渲染
-- 语音入库结果卡
-- 语音查询结果卡
-
-服务端任务：
-
-- session bootstrap
-- media upload
-- send message
-- 基础 ASR 接口编排
-- 语音入库 TaskRun
-- 语音查询 TaskRun
+- 确认本地 demo smoke 可重复执行
+- 确认 trial readiness 的 JSON 输出、退出码和登录路径稳定
 
 验收：
 
-- 语音入库能跑通
-- 语音查询能跑通
-- 聊天页能收到结果卡
+- `run_local_demo_smoke.py` 返回稳定的演示摘要
+- `run_trial_readiness_check.py` 返回清晰的 ready / degraded 结果
 
-## 4. Sprint 2 - 多模态补盲
+### Sprint 2 - 试运行 preflight 与日常复核
 
 目标：
 
-- 把拍照和 OCR 加入首版闭环
-
-移动端任务：
-
-- 相机拍照入口
-- 图片预览
-- `+` 工具面板
-- OCR 结果卡 UI
-- 拍照查询结果卡 UI
-
-服务端任务：
-
-- 商品识别接口
-- 拍照查询接口
-- OCR 抽取接口
-- 低置信字段标记
-- 待确认任务生成
+- 把 live preflight 和 pilot summary 变成上线前与日常复核的标准检查
 
 验收：
 
-- 拍照建档能进入确认态
-- 拍照查询能返回商品和库存
-- OCR 能返回结构化字段
+- `run_live_pilot_preflight.py` 能验证 trial profile、cutover mode 和 approved artifact 的一致性
+- `run_pilot_summary_check.py` 能输出单行 JSON 并给出明确 verdict
 
-## 5. Sprint 3 - 确认与账本
+### Sprint 3 - 交接与归档
 
 目标：
 
-- 把写操作做稳，把错误改回来
-
-移动端任务：
-
-- 待确认列表
-- 确认卡编辑
-- 账本列表
-- 审计时间线
-- 人工纠错表单
-
-服务端任务：
-
-- confirmation approve/reject
-- inventory event write
-- correction event write
-- audit log write
-- low stock alert query
+- 把 shift bundle 导出固定为交接与事故复盘入口
+- 保证操作员不需要回到移动端流程才能完成验证
 
 验收：
 
-- 新商品确认后能正式入账
-- 人工纠错能回写账本和聊天
-- 审计链路完整
+- `export_pilot_shift_bundle.py` 可生成完整可归档包
+- `project_docs/system-cli-validation-checklist.md` 可以直接作为操作手册
 
-## 6. Sprint 4 - 稳定性与体验优化
+## 4. 已废弃路线
 
-目标：
+以下内容只保留历史参考，不再作为当前主线：
 
-- 把 MVP 从“能跑”提升到“能演示、能试点”
+- Android/Expo trial shell
+- `project_docs/mobile-trial-shell-checklist.md`
+- `docs/superpowers/plans/2026-04-08-phase17b-mobile-usability-rescue-and-trial-ready-frontline-shell.md`
+- `docs/superpowers/plans/2026-04-10-phase18a-yuanbao-mobile-ui.md`
 
-移动端任务：
+## 5. 现在的判断标准
 
-- 弱网状态
-- 上传中状态
-- 错误文案优化
-- 微信感细节优化
-- 空状态与引导
+只要当前迭代能稳定满足下面四点，就算 CLI 主线成立：
 
-服务端任务：
-
-- 错误码标准化
-- 重试机制
-- 基础监控与日志
-- 延迟优化
-
-验收：
-
-- 演示时不容易卡死
-- 关键失败路径有可理解反馈
-- 首响应速度接近目标
-
-## 7. 角色分工建议
-
-### 移动端
-
-- React Native 架构
-- 页面开发
-- 录音、相机、上传
-- 状态管理
-
-### 服务端
-
-- REST API
-- 会话编排
-- 库存写入与查询
-- 审计链路
-
-### AI / 多模态
-
-- ASR 接入
-- 商品识别策略
-- OCR 抽取策略
-- 低置信规则
-
-## 8. 开发优先级清单
-
-P0：
-
-- 语音入库
-- 语音查询
-- 工作群聊天页
-
-P1：
-
-- 拍照建档
-- 拍照查询
-- OCR 抽取
-
-P2：
-
-- 确认链路
-- 账本
-- 审计
-
-P3：
-
-- 体验优化
-- 引导与降级
-
-## 9. 出 Demo 的最小集合
-
-如果你要尽快做一个能演示给别人看的版本，最小范围是：
-
-- 工作台
-- 微信感工作群
-- 语音入库
-- 语音查询
-- 拍照建档
-- OCR 结果卡
-- 简化账本
-
-这套足够展示：
-
-- 核心差异化
-- 多模态能力
-- 风控确认
-- 可追溯感
-
+- 本地 demo smoke 稳定
+- trial readiness 稳定
+- live preflight 稳定
+- pilot summary / shift bundle 稳定

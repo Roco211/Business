@@ -65,9 +65,25 @@ def test_run_system_check_cli_prints_compact_json_and_exits_zero_for_local_demo_
         shop_id="shop_default",
         session_id="sess_default",
         inventory_item_count=3,
+        inventory_item_names=["Coca Cola 500ml", "Cola", "Red Bull 250ml"],
         pending_confirmation_count=2,
+        pending_confirmation_types=["receipt-stock-in-batch", "stock-out"],
         open_low_stock_alert_count=1,
+        open_low_stock_item_names=["Cola"],
         message_count=10,
+        task_run_count=4,
+        recent_messages=[
+            {
+                "actor_type": "system",
+                "message_type": "text",
+                "text": "Please confirm the receipt line items before committing inventory.",
+            },
+            {
+                "actor_type": "owner",
+                "message_type": "receipt-image",
+                "text": None,
+            },
+        ],
         replay_event_count=34,
         latest_replay_seq=34,
     )

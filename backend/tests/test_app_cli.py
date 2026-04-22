@@ -57,9 +57,25 @@ def test_app_cli_demo_runs_local_demo_smoke_and_prints_snapshot(monkeypatch, cap
                 "shop_id": "shop_default",
                 "session_id": "sess_default",
                 "inventory_item_count": 3,
+                "inventory_item_names": ["Coca Cola 500ml", "Cola", "Red Bull 250ml"],
                 "pending_confirmation_count": 2,
+                "pending_confirmation_types": ["receipt-stock-in-batch", "stock-out"],
                 "open_low_stock_alert_count": 1,
+                "open_low_stock_item_names": ["Cola"],
                 "message_count": 10,
+                "task_run_count": 4,
+                "recent_messages": [
+                    {
+                        "actor_type": "system",
+                        "message_type": "text",
+                        "text": "Please confirm the receipt line items before committing inventory.",
+                    },
+                    {
+                        "actor_type": "owner",
+                        "message_type": "receipt-image",
+                        "text": None,
+                    },
+                ],
                 "replay_event_count": 4,
                 "latest_replay_seq": 4,
             }
@@ -112,9 +128,25 @@ def test_app_cli_demo_runs_local_demo_smoke_and_prints_snapshot(monkeypatch, cap
         "shop_id": "shop_default",
         "session_id": "sess_default",
         "inventory_item_count": 3,
+        "inventory_item_names": ["Coca Cola 500ml", "Cola", "Red Bull 250ml"],
         "pending_confirmation_count": 2,
+        "pending_confirmation_types": ["receipt-stock-in-batch", "stock-out"],
         "open_low_stock_alert_count": 1,
+        "open_low_stock_item_names": ["Cola"],
         "message_count": 10,
+        "task_run_count": 4,
+        "recent_messages": [
+            {
+                "actor_type": "system",
+                "message_type": "text",
+                "text": "Please confirm the receipt line items before committing inventory.",
+            },
+            {
+                "actor_type": "owner",
+                "message_type": "receipt-image",
+                "text": None,
+            },
+        ],
         "replay_event_count": 4,
         "latest_replay_seq": 4,
     }

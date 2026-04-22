@@ -20,6 +20,7 @@ EXPECTED_DEMO_SUMMARY = {
     "message_count": 10,
     "task_run_count": 4,
 }
+RECENT_MESSAGE_PREVIEW_LIMIT = 4
 
 
 DEFAULT_LOGIN_EMAIL = "owner@example.com"
@@ -49,9 +50,14 @@ class LocalDemoSmokeResult:
     shop_id: str
     session_id: str
     inventory_item_count: int
+    inventory_item_names: list[str]
     pending_confirmation_count: int
+    pending_confirmation_types: list[str]
     open_low_stock_alert_count: int
+    open_low_stock_item_names: list[str]
     message_count: int
+    task_run_count: int
+    recent_messages: list[dict[str, str | None]]
     replay_event_count: int
     latest_replay_seq: int | None
 
@@ -105,6 +111,12 @@ def _expect_data_envelope(*, status_code: int, body: object, label: str) -> obje
     return payload["data"]
 
 
+def _expect_object(value: object, *, label: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise LocalDemoSmokeError(f"{label} was not an object")
+    return value
+
+
 def _expect_int(value: object, *, label: str) -> int:
     if not isinstance(value, int):
         raise LocalDemoSmokeError(f"{label} was not an integer")
@@ -115,6 +127,37 @@ def _expect_list(value: object, *, label: str) -> list[object]:
     if not isinstance(value, list):
         raise LocalDemoSmokeError(f"{label} was not a list")
     return value
+
+
+def _expect_string(value: object, *, label: str) -> str:
+    if not isinstance(value, str):
+        raise LocalDemoSmokeError(f"{label} was not a string")
+    return value
+
+
+def _expect_optional_string(value: object, *, label: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise LocalDemoSmokeError(f"{label} was not a string or null")
+    return value
+
+
+def _build_recent_message_preview(messages: list[object]) -> list[dict[str, str | None]]:
+    preview: list[dict[str, str | None]] = []
+    for index, raw_message in enumerate(messages[:RECENT_MESSAGE_PREVIEW_LIMIT]):
+        message = _expect_object(raw_message, label=f"Session message[{index}]")
+        preview.append(
+            {
+                "actor_type": _expect_string(message.get("actor_type"), label=f"Session message[{index}].actor_type"),
+                "message_type": _expect_string(
+                    message.get("message_type"),
+                    label=f"Session message[{index}].message_type",
+                ),
+                "text": _expect_optional_string(message.get("text"), label=f"Session message[{index}].text"),
+            }
+        )
+    return preview
 
 
 def run_local_demo_smoke(
@@ -251,6 +294,7 @@ def run_local_demo_smoke(
     messages = _expect_list(messages_data, label="Session messages")
     if len(messages) != EXPECTED_DEMO_SUMMARY["message_count"]:
         raise LocalDemoSmokeError("Message count drifted from the demo state")
+    recent_messages = _build_recent_message_preview(messages)
 
     replay_status_code, replay_body = request(
         "GET",
@@ -277,9 +321,14 @@ def run_local_demo_smoke(
         shop_id=str(EXPECTED_DEMO_SUMMARY["shop_id"]),
         session_id=str(session_id),
         inventory_item_count=int(EXPECTED_DEMO_SUMMARY["inventory_item_count"]),
+        inventory_item_names=list(EXPECTED_DEMO_SUMMARY["inventory_item_names"]),
         pending_confirmation_count=int(EXPECTED_DEMO_SUMMARY["pending_confirmation_count"]),
+        pending_confirmation_types=list(EXPECTED_DEMO_SUMMARY["pending_confirmation_types"]),
         open_low_stock_alert_count=int(EXPECTED_DEMO_SUMMARY["open_low_stock_alert_count"]),
+        open_low_stock_item_names=list(EXPECTED_DEMO_SUMMARY["open_low_stock_item_names"]),
         message_count=int(EXPECTED_DEMO_SUMMARY["message_count"]),
+        task_run_count=int(EXPECTED_DEMO_SUMMARY["task_run_count"]),
+        recent_messages=recent_messages,
         replay_event_count=len(replay_events),
         latest_replay_seq=replay_seqs[-1] if replay_seqs else None,
     )

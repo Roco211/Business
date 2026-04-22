@@ -16,7 +16,7 @@ python backend/scripts/app_cli.py demo
 python backend/scripts/app_cli.py check --mode local-demo
 ```
 
-`demo` 会直接打印当前运行中的本地 demo 快照，方便先看见应用状态，再进入检查。
+`demo` 会直接打印当前运行中的本地 demo 快照，里面除了健康状态和计数，还会带商品名、待确认类型、低库存商品和最近消息预览，方便先看见应用状态，再进入检查。
 
 如果你要体验 trial / pilot 路线，再继续：
 

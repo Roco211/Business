@@ -49,9 +49,35 @@ def test_run_local_demo_smoke_validates_known_good_demo_state(client) -> None:
     assert result.shop_id == "shop_default"
     assert result.session_id == "sess_default"
     assert result.inventory_item_count == 3
+    assert result.inventory_item_names == ["Coca Cola 500ml", "Cola", "Red Bull 250ml"]
     assert result.pending_confirmation_count == 2
+    assert result.pending_confirmation_types == ["receipt-stock-in-batch", "stock-out"]
     assert result.open_low_stock_alert_count == 1
+    assert result.open_low_stock_item_names == ["Cola"]
     assert result.message_count == 10
+    assert result.task_run_count == 4
+    assert result.recent_messages == [
+        {
+            "actor_type": "system",
+            "message_type": "text",
+            "text": "Please confirm the receipt line items before committing inventory.",
+        },
+        {
+            "actor_type": "owner",
+            "message_type": "receipt-image",
+            "text": None,
+        },
+        {
+            "actor_type": "system",
+            "message_type": "text",
+            "text": "Please confirm the stock-out details before commit.",
+        },
+        {
+            "actor_type": "owner",
+            "message_type": "text",
+            "text": "stock out red bull for breakage",
+        },
+    ]
     assert result.replay_event_count > 0
     assert result.latest_replay_seq is not None
 

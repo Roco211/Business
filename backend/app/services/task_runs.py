@@ -1,4 +1,5 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+UTC = timezone.utc
 from dataclasses import dataclass
 
 from sqlalchemy import select, update

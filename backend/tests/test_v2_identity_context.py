@@ -1,5 +1,6 @@
 import hashlib
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+UTC = timezone.utc
 
 from app.models import V2Account, V2Shop, V2ShopAccess, V2Tenant, V2TenantMembership
 

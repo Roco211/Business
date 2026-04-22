@@ -1,7 +1,8 @@
 import asyncio
 from collections import defaultdict
 from contextlib import suppress
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+UTC = timezone.utc
 from typing import Any, Callable
 
 from fastapi import FastAPI, WebSocket

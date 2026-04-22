@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone
+UTC = timezone.utc, timedelta
 import hashlib
 import hmac
 import secrets

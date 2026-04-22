@@ -17,7 +17,7 @@
 - 后端真实存在
 - 数据库、对象存储、任务编排、WebSocket、summary / preflight 逻辑都继续按真实系统方式运行
 - 但当前验收入口是 CLI，不是 Android/Expo
-- 当前希望有一个统一入口 `backend/scripts/run_system_check.py`，其余脚本作为 leaf commands
+- 当前统一入口已经是 `backend/scripts/run_system_check.py`，其余脚本作为 leaf commands
 
 当前应把这些脚本视为正式能力：
 
@@ -51,7 +51,7 @@
 - 稳定的 JSON 输出
 - 稳定的退出码
 - 可直接执行的操作员清单
-- 一个薄的统一入口命令（若 wrapper 落地）
+- 一个薄的统一入口命令
 
 ### 2.3 验证姿势
 

@@ -1,8 +1,16 @@
-# AI数字店铺大管家 - 开发蓝图索引
+# AI数字店铺大管家 - 蓝图与 CLI 验证索引
 
-这套文档把当前 PRD 和原型拆成可开发的 React Native 首版方案。
+这套文档同时保留历史的 React Native 首版蓝图和当前的系统 CLI 可用性验证主线。若你的目标是判断整套系统是否可用，请先看下面的“当前主线”；如果你只是回看原始蓝图，再看后面的历史阅读顺序。
 
-已选定的基础假设：
+## 当前主线
+
+1. [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)
+2. [试运行就绪运行手册](./trial-readiness-runbook.md)
+3. [Pilot 执行运行手册](./pilot-execution-runbook.md)
+
+## 历史蓝图假设
+
+以下内容保留原 React Native 首版方案的前提，只作为历史背景：
 
 - 首版客户端使用 `React Native + TypeScript`
 - 使用 `Expo Managed + EAS`
@@ -10,7 +18,9 @@
 - 语音、多模态、OCR 都通过服务端编排
 - 客户端负责采集、上传、展示、确认和回执
 
-推荐阅读顺序：
+## 历史蓝图阅读顺序
+
+以下顺序对应原始蓝图脉络，它不代表当前系统验收的执行顺序。
 
 1. [00-final-tech-stack.md](./00-final-tech-stack.md)
 2. [01-react-native-architecture.md](./01-react-native-architecture.md)
@@ -47,4 +57,4 @@
 本目录不替代 PRD。
 
 - `AI_Store_Manager_PRD.md` 继续负责产品目标和范围
-- `project_docs/*` 负责工程落地
+- `project_docs/*` 负责工程落地与系统 CLI 验证

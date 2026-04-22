@@ -6,8 +6,8 @@
 
 ## 2. 当前默认执行顺序
 
-1. `backend/scripts/run_system_check.py`（目标入口）
-2. 如果 wrapper 还未落地，则按下面的 leaf scripts 顺序手工执行：
+1. `backend/scripts/run_system_check.py`（当前入口）
+2. 如果 wrapper 返回 degraded 或需要 drill-down，则按下面的 leaf scripts 顺序手工执行：
    - `backend/scripts/run_local_demo_smoke.py`
    - `backend/scripts/run_trial_readiness_check.py`
    - `backend/scripts/run_live_pilot_preflight.py`
@@ -35,7 +35,7 @@
 验收：
 
 - 操作员能用一条命令启动系统可用性验证
-- 如果 wrapper 尚未落地，至少能按固定顺序手工执行 leaf scripts
+- wrapper degraded 时，操作员仍能按固定顺序手工执行 leaf scripts
 - 文档中不再把 Android/Expo 写成当前主线
 
 ### Sprint 1 - 本地演示与 readiness

@@ -1,25 +1,30 @@
-# Pilot Execution Runbook
+# Pilot 执行运行手册
 
-This runbook covers the operator loop after trial readiness is green and the approved calibration artifact has already been applied.
+## 当前主线
 
-## Daily Pilot Review Flow
+整套系统的主验收先看 [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)。`backend/scripts/run_system_check.py` 已经是当前推荐入口；需要 drill-down 时，再按下面的 leaf commands 串起来执行。
 
-1. Confirm the API is up and the trial profile is still configured.
-2. Run the readiness CLI.
-3. Run the pilot summary CLI for the current review window.
-4. Export one shift bundle JSON package for handoff or incident review.
-5. Record the bundle manifest path in the pilot handoff log or incident ticket.
-6. Continue pilot traffic only when readiness, summary, and shift bundle export are all successful.
+本页继续保留 pilot summary、shift bundle 和回滚姿态，属于 CLI 路线里的 leaf 运行手册，不再以 Android/Expo 为主线。
 
-Baseline commands:
+## 每日 Pilot 复核流程
+
+1. 优先运行系统 CLI wrapper；若 wrapper 返回 degraded，再按下面的 leaf commands 逐项定位。
+2. 确认 API 已启动，trial profile 仍然配置正确。
+3. 运行 readiness CLI。
+4. 运行当前复核窗口的 pilot summary CLI。
+5. 导出一份 shift bundle JSON 包，用于交接或事故复盘。
+6. 只有在 readiness、summary 和 shift bundle export 都成功后，才继续 pilot traffic。
+
+常用命令：
 
 ```powershell
+python backend/scripts/run_system_check.py --mode pilot --api-base-url http://127.0.0.1:8001 --hours 24 --output-dir C:\secure\pilot\shift-bundles
 python backend/scripts/run_trial_readiness_check.py
 python backend/scripts/run_pilot_summary_check.py
 python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles
 ```
 
-Useful overrides:
+常用覆盖参数：
 
 ```powershell
 python backend/scripts/run_pilot_summary_check.py --hours 24
@@ -27,17 +32,17 @@ python backend/scripts/run_pilot_summary_check.py --max-fallback-rate 0.05 --max
 python backend/scripts/export_pilot_shift_bundle.py --hours 8 --api-base-url http://127.0.0.1:8001
 ```
 
-## Cutover Mode Meanings
+## 切换模式含义
 
-- `closed`: guardrails block live cutover behavior and operators should treat pilot traffic as halted
-- `shadow`: providers are observed under guardrails and state-changing actions are forced through confirmations
-- `open`: cutover is live under the approved profile/artifact/preflight alignment
+- `closed`：guardrails 会阻断 live cutover 行为，操作员应把 pilot traffic 视为已暂停
+- `shadow`：在 guardrails 之下观察 providers，任何状态变更都必须通过确认
+- `open`：在已批准的档位、artifact 和预检对齐后，cutover 进入 live 状态
 
-When in doubt, roll back from `open` to `shadow`. If the incident is severe or unresolved, roll back to `closed`.
+如果不确定，先从 `open` 回退到 `shadow`。若事故严重或未解决，就回退到 `closed`。
 
-## Pilot Summary CLI Contract
+## Pilot Summary CLI 契约
 
-The CLI runs readiness first and the protected pilot summary route second. It prints one compact JSON object with:
+CLI 会先跑 readiness，再跑受保护的 pilot summary route。它会输出一个紧凑 JSON 对象，字段包括：
 
 - `overall_status`
 - `readiness`
@@ -57,90 +62,90 @@ The CLI runs readiness first and the protected pilot summary route second. It pr
 - `pilot_summary.reasons`
 - `thresholds`
 
-Exit behavior:
+退出行为：
 
-- Exit `0`: readiness is green and the pilot summary verdict is green
-- Exit `1`: readiness degraded, pilot summary degraded, missing trial profile metadata, provider failures present, threshold breach, auth failure, non-200 response, or malformed envelope
+- 退出 `0`：readiness 为绿且 pilot summary verdict 为绿
+- 退出 `1`：readiness 降级、pilot summary 降级、缺少 trial profile 元数据、出现 provider failures、阈值被突破、认证失败、非 200 响应，或返回封装异常
 
-## How To Read A Degraded Result
+## 如何解读降级结果
 
-Treat the pilot summary as degraded when any of the following appears in `pilot_summary.reasons`:
+当 `pilot_summary.reasons` 中出现以下任一项时，把 pilot summary 视为 degraded：
 
 - `trial_provider_profile_missing`
 - `provider_failures_present`
 - `fallback_rate_exceeded`
 - `low_confidence_rate_exceeded`
 
-The CLI also degrades when readiness is not green, even if the pilot summary metrics are otherwise within threshold.
+即使 pilot summary 的指标都在阈值内，只要 readiness 不是绿，CLI 也会判定为 degraded。
 
-Rate denominator note:
+分母说明：
 
-- `confirmation_rate` continues to use `total_task_count`
-- `fallback_rate` and `low_confidence_rate` use `telemetry_task_count`, which is the count of distinct in-window task runs with telemetry for the current `trial_provider_profile`
+- `confirmation_rate` 继续使用 `total_task_count`
+- `fallback_rate` 和 `low_confidence_rate` 使用 `telemetry_task_count`，也就是当前 `trial_provider_profile` 在窗口内带 telemetry 的独立 task run 数
 
-## Suggested Daily Review Cadence
+## 建议的每日复核节奏
 
-- Start of day: run readiness and a 24-hour pilot summary before opening pilot traffic.
-- Mid-shift: re-run the pilot summary after any provider incident or threshold alert.
-- End of day: export and archive a final shift bundle with the calibration artifact id that was active during the shift.
+- 日初：在打开 pilot traffic 前先跑 readiness 和 24 小时 pilot summary。
+- 班中：任何 provider 事故或阈值告警之后，重新跑 pilot summary。
+- 日终：导出并归档最终 shift bundle，保留当班生效的 calibration artifact id。
 
-## Required Shift Bundle Export Workflow
+## 必需的 Shift Bundle 导出流程
 
-Run once per handoff and for every incident timeline:
+每次交接和每条事故时间线都要运行一次：
 
 ```powershell
 python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles
 ```
 
-Bundle contents:
+Bundle 内容：
 
-- readiness JSON (`run_trial_readiness_check` equivalent payload)
-- preflight JSON (`run_live_pilot_preflight` equivalent payload)
-- current `GET /api/v1/system/pilot-control` JSON
-- pilot summary JSON (`run_pilot_summary_check` equivalent payload)
-- compact manifest with file names, timestamps, shop id, mode, profile, and artifact id
+- readiness JSON（等同于 `run_trial_readiness_check` 的 payload）
+- preflight JSON（等同于 `run_live_pilot_preflight` 的 payload）
+- 当前 `GET /api/v1/system/pilot-control` JSON
+- pilot summary JSON（等同于 `run_pilot_summary_check` 的 payload）
+- 紧凑 manifest，包含文件名、时间戳、shop id、mode、profile 和 artifact id
 
-Destination requirements:
+目标位置要求：
 
-- use a private location outside the repo (recommended), or
-- use a repository path that is explicitly gitignored
+- 使用仓库外的私有位置（推荐），或者
+- 使用已明确加入 gitignore 的仓库路径
 
-If any upstream artifact is degraded, export still succeeds but marks bundle `overall_status=degraded` and includes `degraded_reasons`.
+如果上游 artifact 有任何降级，导出仍然会成功，但 bundle 会标记 `overall_status=degraded` 并附带 `degraded_reasons`。
 
-## Rollback Posture
+## 回滚姿态
 
-If either operator CLI exits non-zero:
+如果任一操作员 CLI 退出码非 0：
 
-1. Stop opening new pilot traffic until the cause is understood.
-2. Move cutover back to `shadow` first while investigation continues:
+1. 在原因查清前，停止开启新的 pilot traffic。
+2. 调查期间先把 cutover 回退到 `shadow`：
 
 ```powershell
 python backend/scripts/set_pilot_cutover.py --mode shadow --note "rollback: investigating incident"
 ```
 
-3. If the incident remains unresolved, close cutover completely:
+3. 如果事故仍未解决，就把 cutover 完全关闭：
 
 ```powershell
 python backend/scripts/set_pilot_cutover.py --mode closed --note "rollback: cutover closed pending fix"
 ```
 
-4. Preserve and attach a fresh shift bundle export to the incident ticket.
-5. If the issue is calibration-rule related, re-apply the previous approved calibration report:
+4. 保留并把最新的 shift bundle 导出附到事故工单。
+5. 如果问题和 calibration rule 有关，重新应用上一份已批准的 calibration report：
 
 ```powershell
 python backend/scripts/apply_trial_calibration.py --report C:\secure\pilot\artifacts\last-known-good.json
 ```
 
-6. Re-run `run_trial_readiness_check.py`, `run_live_pilot_preflight.py`, and `run_pilot_summary_check.py` before resuming.
-7. Open cutover again only through the controlled path:
+6. 恢复前重新运行 `run_trial_readiness_check.py`、`run_live_pilot_preflight.py` 和 `run_pilot_summary_check.py`。
+7. 只通过受控路径重新打开 cutover：
 
 ```powershell
 python backend/scripts/set_pilot_cutover.py --mode open --artifact-path C:\secure\pilot\artifacts\last-known-good.json --note "resume after rollback"
 ```
 
-Notes:
+备注：
 
-- Do not use `/api/v1/system/demo/bootstrap` as a recovery step for trial mode.
-- Any non-empty `provider_failures` map should be treated as a pilot incident until the underlying provider issue is explained.
-- Missing or empty `trial_provider_profile` means the run is not safe to treat as calibrated pilot traffic.
-- For a full incident-response loop after a degraded summary or rollback signal, continue in `project_docs/pilot-incident-recovery-runbook.md`.
+- 不要把 `/api/v1/system/demo/bootstrap` 当成 trial 模式的恢复步骤。
+- 任何非空的 `provider_failures` map 在说明根因之前，都应视为 pilot 事故。
+- 如果 `trial_provider_profile` 缺失或为空，就不能把这次运行当作已校准的 pilot traffic。
+- 如果 summary 降级或收到回滚信号，完整的事故响应流程请继续看 [pilot 事故恢复运行手册](./pilot-incident-recovery-runbook.md)。

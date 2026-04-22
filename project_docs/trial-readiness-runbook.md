@@ -1,21 +1,25 @@
-# Trial Readiness Runbook
+# 试运行就绪运行手册
 
-This runbook is for operator-facing checks before trial usage.
+## 当前主线
 
-## Scope
+整套系统的主验收已经切到 CLI 路线。优先阅读 [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)，把它当作总入口；本页只展开 `run_trial_readiness_check.py` 这一 leaf command 及其运行约束。
 
-The trial readiness CLI verifies:
+`backend/scripts/run_system_check.py` 已落地。当前推荐先运行 `python backend/scripts/run_system_check.py --mode trial`；只有在需要单独复核 readiness 或定位失败原因时，才直接执行本页 leaf command。当前不再把 Android/Expo 当作主验收路径。
+
+## 范围
+
+试运行就绪 CLI 验证以下内容：
 
 - `GET /health`
-- `GET /api/v1/system/readiness` (authenticated)
+- `GET /api/v1/system/readiness`（需要认证）
 
-It does not mutate demo state and does not call `/api/v1/system/demo/bootstrap`.
+它不会修改 demo 状态，也不会调用 `/api/v1/system/demo/bootstrap`。
 
-## Configuration Profiles
+## 配置档位
 
-### Local Demo Profile
+### 本地 Demo 档位
 
-Use for development and local smoke resets.
+用于开发和本地 smoke 重置。
 
 - `APP_RUNTIME_MODE=local-demo`
 - `OBJECT_STORAGE_PROVIDER=mock`
@@ -26,9 +30,9 @@ Use for development and local smoke resets.
 - `OCR_ALLOW_MOCK_FALLBACK=1`
 - `VISION_ALLOW_MOCK_FALLBACK=1`
 
-### Trial Profile
+### 试运行档位
 
-Use for trial readiness and operator preflight checks.
+用于试运行就绪和操作员预检。
 
 - `APP_RUNTIME_MODE=trial`
 - `OBJECT_STORAGE_PROVIDER=s3-compatible`
@@ -39,15 +43,17 @@ Use for trial readiness and operator preflight checks.
 - `OCR_ALLOW_MOCK_FALLBACK=0`
 - `VISION_ALLOW_MOCK_FALLBACK=0`
 
-The `*_ALLOW_MOCK_FALLBACK=0` settings are required in trial mode.
+`*_ALLOW_MOCK_FALLBACK=0` 在试运行模式下是必须的。
 
-## Command
+## 命令
+
+这是 readiness 的 leaf command。若你正在执行系统级验收，先看系统 CLI 清单；只有需要单独复核 readiness 时才直接运行这里的命令。
 
 ```powershell
 python backend/scripts/run_trial_readiness_check.py
 ```
 
-Optional flags:
+可选参数：
 
 ```powershell
 python backend/scripts/run_trial_readiness_check.py --api-base-url http://10.0.2.2:8001
@@ -55,11 +61,11 @@ python backend/scripts/run_trial_readiness_check.py --auth-token <access_token>
 python backend/scripts/run_trial_readiness_check.py --login-email owner@example.com --login-password dev-password
 ```
 
-When `--auth-token` is omitted, the CLI logs in via `POST /api/v1/auth/login` and uses the returned bearer token.
+如果未传入 `--auth-token`，CLI 会通过 `POST /api/v1/auth/login` 登录，并使用返回的 bearer token。
 
-## Output Contract
+## 输出契约
 
-The CLI prints compact JSON with:
+CLI 会输出紧凑 JSON，字段包括：
 
 - `api_base_url`
 - `health_status`
@@ -69,20 +75,20 @@ The CLI prints compact JSON with:
 - `object_storage` (`status`, `mode`)
 - `providers.asr|ocr|vision` (`status`, `mode`)
 
-Example:
+示例：
 
 ```json
 {"api_base_url":"http://127.0.0.1:8001","health_status":"ok","runtime_mode":"trial","readiness_status":"ready","overall_status":"ready","object_storage":{"status":"ready","mode":"s3-compatible"},"providers":{"asr":{"status":"ready","mode":"real-provider"},"ocr":{"status":"ready","mode":"real-provider"},"vision":{"status":"ready","mode":"real-provider"}}}
 ```
 
-## Exit Code
+## 退出码
 
-- Exit `0`: `runtime_mode == "trial"` and `readiness_status == "ready"` (`overall_status == "ready"`)
-- Exit `1`: degraded/not-ready readiness, auth failures, health failures, non-200 responses, or malformed envelopes
+- 退出 `0`：`runtime_mode == "trial"` 且 `readiness_status == "ready"`（`overall_status == "ready"`）
+- 退出 `1`：就绪降级或未就绪、认证失败、health 失败、非 200 响应，或返回封装格式异常
 
-## Trial Metadata Checklist
+## 试运行元数据检查清单
 
-Before the first pilot shift, confirm that the readiness payload reports a populated `trial_profile` check with:
+在第一次 pilot 执行前，确认 readiness payload 中的 `trial_profile` 检查项已填充：
 
 - `trial_provider_profile`
 - `asr_provider_label`
@@ -91,18 +97,18 @@ Before the first pilot shift, confirm that the readiness payload reports a popul
 - `trial_calibration_dataset_dir`
 - `trial_calibration_artifacts_dir`
 
-If any of those values are missing in trial mode, treat the environment as degraded and fix configuration before running live traffic.
+如果试运行模式下缺少这些值，先把环境视为降级并修正配置，再跑 live traffic。
 
-## Private Calibration Dataset Preparation
+## 私有校准数据准备
 
-Keep the pilot calibration dataset outside the repo and point `TRIAL_CALIBRATION_DATASET_DIR` at that private directory.
+把 pilot 校准数据放在仓库外，并将 `TRIAL_CALIBRATION_DATASET_DIR` 指向那个私有目录。
 
-- Store only operator-approved pilot samples. Do not commit raw trial media into source control.
-- Prefer de-identified or least-privilege media exports when possible.
-- Keep stable file paths so the manifest can reference them without manual renaming on every run.
-- Restrict directory access to the pilot operator group because the manifest may point at sensitive receipts, photos, or recordings.
+- 只保留经过操作员批准的 pilot 样本，不要把原始试运行媒体提交到源代码管理。
+- 能做去标识化或最小权限导出时，优先这么做。
+- 保持稳定的文件路径，避免每次运行都要手工改名，方便 manifest 直接引用。
+- 限制目录访问到 pilot 操作员组，因为 manifest 里可能包含敏感收据、照片或录音。
 
-Recommended manifest shape:
+推荐的 manifest 形状：
 
 ```json
 {
@@ -140,15 +146,15 @@ Recommended manifest shape:
 }
 ```
 
-## Calibration Run And Apply Flow
+## 校准运行与应用流程
 
-1. Load the trial environment profile and confirm the readiness CLI is using the intended `trial_provider_profile`.
-2. Run the live calibration against the private manifest.
-3. Review the generated JSON and Markdown artifacts under `TRIAL_CALIBRATION_ARTIFACTS_DIR`.
-4. Apply the approved JSON report to shop rules.
-5. Re-run readiness before opening the pilot day.
+1. 加载试运行环境档位，确认 readiness CLI 使用的是预期的 `trial_provider_profile`。
+2. 使用私有 manifest 运行 live calibration。
+3. 检查 `TRIAL_CALIBRATION_ARTIFACTS_DIR` 下生成的 JSON 和 Markdown 产物。
+4. 将批准过的 JSON 报告应用到 shop rules。
+5. 在打开 pilot 日之前重新运行 readiness。
 
-Commands:
+命令：
 
 ```powershell
 python backend/scripts/run_live_trial_calibration.py --manifest C:\secure\pilot\manifest.json
@@ -156,59 +162,59 @@ python backend/scripts/apply_trial_calibration.py --report C:\secure\pilot\artif
 python backend/scripts/run_trial_readiness_check.py
 ```
 
-Notes:
+备注：
 
-- `run_live_trial_calibration.py` writes a machine-readable JSON report plus a Markdown operator summary.
-- `apply_trial_calibration.py` updates the target shop's `low_confidence_threshold`, `require_price_confirmation`, and `require_new_item_confirmation`.
-- Calibration apply writes an audit log entry tied to the report `artifact_id` and `trial_provider_profile`.
-- If the applied rules are not acceptable, re-apply the last known-good report before running the next readiness check.
+- `run_live_trial_calibration.py` 会写出一份机器可读的 JSON 报告和一份 Markdown 操作员摘要。
+- `apply_trial_calibration.py` 会更新目标 shop 的 `low_confidence_threshold`、`require_price_confirmation` 和 `require_new_item_confirmation`。
+- 校准应用会写入一条审计日志，关联报告 `artifact_id` 和 `trial_provider_profile`。
+- 如果应用后的规则不可接受，就在下一次 readiness 检查前重新应用最后一份已知可用的报告。
 
-## Live Pilot Preflight CLI Contract
+## 线上 Pilot 预检 CLI 契约
 
-Run preflight immediately before any `shadow -> open` transition:
+在任何 `shadow -> open` 切换前，立即运行预检：
 
 ```powershell
 python backend/scripts/run_live_pilot_preflight.py --artifact-path C:\secure\pilot\artifacts\pilot-v1_report_20260407T090000000000Z.json
 ```
 
-Optional flags:
+可选参数：
 
 ```powershell
 python backend/scripts/run_live_pilot_preflight.py --api-base-url http://10.0.2.2:8001
 python backend/scripts/run_live_pilot_preflight.py --auth-token <access_token>
 ```
 
-Output contract (compact JSON):
+输出契约（紧凑 JSON）：
 
-- `overall_status`: `ready` or `degraded`
+- `overall_status`：`ready` 或 `degraded`
 - `runtime_mode`
 - `trial_provider_profile`
 - `cutover_mode`
 - `approved_calibration_artifact_id`
-- `reasons` (array of degraded reasons, empty when ready)
+- `reasons`：降级原因数组，ready 时为空
 
-Exit behavior:
+退出行为：
 
-- Exit `0`: all preflight gates are green
-- Exit `1`: readiness mismatch, profile/label drift, artifact mismatch, allowlist mismatch, path safety issue, auth failure, or malformed payload
+- 退出 `0`：所有预检门禁都通过
+- 退出 `1`：readiness 不一致、档位/标签漂移、artifact 不一致、allowlist 不一致、路径安全问题、认证失败，或 payload 异常
 
-Preflight contract notes:
+预检契约说明：
 
-- the CLI uses protected routes and validates alignment across:
+- CLI 使用受保护路由，并校验以下内容是否对齐：
   - `GET /api/v1/system/readiness`
   - `GET /api/v1/system/pilot-control`
-  - approved artifact JSON content
-- if `reasons` is non-empty, treat the environment as not safe for `open` cutover
-- preflight status is not sticky; rerun it for each new cutover window
+  - 已批准 artifact 的 JSON 内容
+- 如果 `reasons` 非空，就不要把环境视为可安全切到 `open`
+- 预检状态不是粘性的；每个新的切换窗口都要重新运行
 
-## Cutover Mode Meanings
+## 切换模式含义
 
-- `closed`: live pilot traffic is blocked by cutover policy
-- `shadow`: live providers run, but guardrails force confirmation before state-changing actions
-- `open`: live providers and guardrails are aligned for controlled live cutover
+- `closed`：live pilot traffic 由切换策略阻断
+- `shadow`：live providers 运行，但 guardrails 会强制在状态变更前确认
+- `open`：live providers 和 guardrails 已对齐，可以进行受控的 live cutover
 
-Only move to `open` after a fresh preflight result is `ready`.
+只有在拿到新的 `ready` 预检结果后，才可以进入 `open`。
 
-## Handoff To Daily Pilot Review
+## 交接到每日 Pilot 复核
 
-Once readiness is green and the approved calibration report has been applied, use the daily flow in `project_docs/pilot-execution-runbook.md` for ongoing operator checks. That runbook covers the pilot summary CLI, threshold overrides, and rollback posture.
+在 readiness 变绿并且已应用批准过的校准报告后，就切到 [Pilot 执行运行手册](./pilot-execution-runbook.md) 继续做日常操作员检查。那份手册覆盖 pilot summary CLI、阈值覆盖和回滚姿态。

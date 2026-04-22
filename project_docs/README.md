@@ -13,10 +13,11 @@
 ```powershell
 python backend/scripts/app_cli.py up --profile local-demo
 python backend/scripts/app_cli.py demo
+python backend/scripts/app_cli.py ask --text "restock apples today"
 python backend/scripts/app_cli.py check --mode local-demo
 ```
 
-`demo` 会直接打印当前运行中的本地 demo 快照，里面除了健康状态和计数，还会带商品名、待确认类型、低库存商品和最近消息预览，方便先看见应用状态，再进入检查。
+`demo` 会直接打印当前运行中的本地 demo 快照，里面除了健康状态和计数，还会带商品名、待确认类型、低库存商品和最近消息预览，方便先看见应用状态，再进入检查。`ask` 会把一条文本消息发进默认会话，并回显 task run 与最近消息；在 `local-demo` 档位下，运行时任务会以内联 eager 模式执行，所以可以直接看到待确认结果。
 
 如果你要体验 trial / pilot 路线，再继续：
 

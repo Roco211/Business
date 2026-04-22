@@ -19,6 +19,7 @@
 ```powershell
 python backend/scripts/app_cli.py up --profile local-demo
 python backend/scripts/app_cli.py demo
+python backend/scripts/app_cli.py ask --text "restock apples today"
 python backend/scripts/app_cli.py check --mode local-demo
 ```
 
@@ -26,6 +27,7 @@ python backend/scripts/app_cli.py check --mode local-demo
 
 - `up` 会准备本地 runtime、迁移 SQLite，并启动 API 服务
 - `demo` 会调用本地 demo smoke 并输出紧凑 JSON 快照，里面包含健康状态、shop/session 标识、商品名、待确认类型、低库存商品和最近消息预览
+- `ask` 会把一条文本消息发进默认会话，并输出 message、task run 与最近消息；在 `local-demo` 档位下它应直接进入可读的运行结果，而不是停在 `dispatch_failed`
 - `check` 会调用底层统一检查入口并输出紧凑 JSON
 - 只有所选场景 ready 时退出码才为 `0`
 

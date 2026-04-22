@@ -6,12 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.workers.celery_app import create_celery_app
 
 
-def test_celery_app_uses_redis_broker_defaults() -> None:
+def test_celery_app_uses_redis_broker_defaults(monkeypatch) -> None:
+    monkeypatch.delenv("CELERY_TASK_ALWAYS_EAGER", raising=False)
     celery_app = create_celery_app()
 
     assert celery_app.main == "ai_store_manager"
     assert celery_app.conf.broker_url == "redis://redis:6379/0"
     assert celery_app.conf.result_backend == "redis://redis:6379/0"
+    assert celery_app.conf.task_always_eager is False
     assert celery_app.conf.include == (
         "app.workers.runtime_tasks",
         "app.workers.v2_outbox_tasks",
@@ -22,7 +24,8 @@ def test_celery_app_uses_redis_broker_defaults() -> None:
     assert "app.workers.v2_outbox_due_tasks.drain_due_v2_outbox_scopes" in celery_app.tasks
 
 
-def test_celery_app_registers_due_scope_beat_schedule_defaults() -> None:
+def test_celery_app_registers_due_scope_beat_schedule_defaults(monkeypatch) -> None:
+    monkeypatch.delenv("CELERY_TASK_ALWAYS_EAGER", raising=False)
     celery_app = create_celery_app()
 
     assert celery_app.conf.beat_schedule == {
@@ -40,6 +43,7 @@ def test_celery_app_registers_due_scope_beat_schedule_defaults() -> None:
 
 
 def test_celery_app_uses_due_scope_beat_schedule_env_overrides(monkeypatch) -> None:
+    monkeypatch.delenv("CELERY_TASK_ALWAYS_EAGER", raising=False)
     monkeypatch.setenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "45")
     monkeypatch.setenv("V2_OUTBOX_DUE_SWEEP_SCOPE_LIMIT", "7")
     monkeypatch.setenv("V2_OUTBOX_DUE_SWEEP_BATCH_LIMIT_PER_SCOPE", "8")
@@ -60,3 +64,12 @@ def test_celery_app_uses_due_scope_beat_schedule_env_overrides(monkeypatch) -> N
             },
         }
     }
+
+
+def test_celery_app_enables_eager_mode_when_env_requests_it(monkeypatch) -> None:
+    monkeypatch.setenv("CELERY_TASK_ALWAYS_EAGER", "1")
+
+    celery_app = create_celery_app()
+
+    assert celery_app.conf.task_always_eager is True
+    assert celery_app.conf.task_store_eager_result is False

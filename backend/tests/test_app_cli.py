@@ -152,6 +152,146 @@ def test_app_cli_demo_runs_local_demo_smoke_and_prints_snapshot(monkeypatch, cap
     }
 
 
+def test_app_cli_ask_submits_message_and_prints_task_snapshot(monkeypatch, capsys) -> None:
+    module = _load_app_cli_module()
+    calls: list[dict[str, object]] = []
+
+    class _FakeResponse:
+        def __init__(self, status_code: int, payload: dict[str, object]) -> None:
+            self.status_code = status_code
+            self._payload = payload
+
+        def json(self) -> dict[str, object]:
+            return self._payload
+
+    responses = {
+        ("POST", "http://127.0.0.1:8001/api/v1/auth/login"): _FakeResponse(
+            200,
+            {"data": {"access_token": "token-123"}},
+        ),
+        ("POST", "http://127.0.0.1:8001/api/v1/sessions/bootstrap"): _FakeResponse(
+            200,
+            {"data": {"session_id": "sess_default"}},
+        ),
+        ("POST", "http://127.0.0.1:8001/api/v1/sessions/sess_default/messages"): _FakeResponse(
+            201,
+            {
+                "data": {
+                    "message_id": "msg_123",
+                    "task_run_id": "task_123",
+                    "status": "created",
+                }
+            },
+        ),
+        ("GET", "http://127.0.0.1:8001/api/v1/task-runs/task_123"): _FakeResponse(
+            200,
+            {
+                "data": {
+                    "task_run_id": "task_123",
+                    "session_id": "sess_default",
+                    "source_message_id": "msg_123",
+                    "task_type": "voice-stock-in",
+                    "status": "awaiting-confirmation",
+                    "assigned_employee_id": "xiaoya",
+                    "result_summary": "Awaiting owner confirmation for stock-in details.",
+                    "error_code": None,
+                    "error_message": None,
+                    "confirmation_id": "conf_123",
+                    "created_at": "2026-04-22T12:46:50.202489",
+                    "updated_at": "2026-04-22T12:46:50.276489",
+                    "completed_at": None,
+                }
+            },
+        ),
+        ("GET", "http://127.0.0.1:8001/api/v1/sessions/sess_default/messages?limit=4"): _FakeResponse(
+            200,
+            {
+                "data": [
+                    {
+                        "actor_type": "system",
+                        "message_type": "text",
+                        "text": "Please confirm the stock-in details before commit.",
+                    },
+                    {
+                        "actor_type": "owner",
+                        "message_type": "text",
+                        "text": "restock apples today",
+                    },
+                ],
+                "meta": {"next_cursor": None},
+            },
+        ),
+    }
+
+    def _fake_httpx_request(method: str, url: str, **kwargs: object) -> _FakeResponse:
+        calls.append({"method": method, "url": url, "kwargs": kwargs})
+        return responses[(method, url)]
+
+    monkeypatch.setattr(module.httpx, "request", _fake_httpx_request)
+    monkeypatch.setattr(module.time, "sleep", lambda _seconds: None)
+
+    exit_code = module.main(
+        [
+            "ask",
+            "--api-base-url",
+            "http://127.0.0.1:8001",
+            "--text",
+            "restock apples today",
+            "--client-request-id",
+            "cli-ask-001",
+            "--wait-seconds",
+            "0",
+        ]
+    )
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert json.loads(captured.out) == {
+        "api_base_url": "http://127.0.0.1:8001",
+        "session_id": "sess_default",
+        "message": {
+            "message_id": "msg_123",
+            "task_run_id": "task_123",
+            "status": "created",
+        },
+        "task_run": {
+            "task_run_id": "task_123",
+            "session_id": "sess_default",
+            "source_message_id": "msg_123",
+            "task_type": "voice-stock-in",
+            "status": "awaiting-confirmation",
+            "assigned_employee_id": "xiaoya",
+            "result_summary": "Awaiting owner confirmation for stock-in details.",
+            "error_code": None,
+            "error_message": None,
+            "confirmation_id": "conf_123",
+            "created_at": "2026-04-22T12:46:50.202489",
+            "updated_at": "2026-04-22T12:46:50.276489",
+            "completed_at": None,
+        },
+        "recent_messages": [
+            {
+                "actor_type": "system",
+                "message_type": "text",
+                "text": "Please confirm the stock-in details before commit.",
+            },
+            {
+                "actor_type": "owner",
+                "message_type": "text",
+                "text": "restock apples today",
+            },
+        ],
+    }
+    assert calls[0]["url"] == "http://127.0.0.1:8001/api/v1/auth/login"
+    assert calls[2]["kwargs"]["json"] == {
+        "message_type": "text",
+        "text": "restock apples today",
+        "media_ids": [],
+        "client_request_id": "cli-ask-001",
+    }
+
+
 def test_app_cli_cutover_uses_latest_runtime_artifact_when_not_explicitly_provided(
     monkeypatch,
     tmp_path,
@@ -285,6 +425,7 @@ def test_app_cli_up_uses_local_demo_profile_without_trial_only_env(monkeypatch, 
                 "app_runtime_mode": module.os.environ["APP_RUNTIME_MODE"],
                 "trial_provider_profile": module.os.environ.get("TRIAL_PROVIDER_PROFILE", ""),
                 "object_storage_provider": module.os.environ["OBJECT_STORAGE_PROVIDER"],
+                "celery_task_always_eager": module.os.environ.get("CELERY_TASK_ALWAYS_EAGER", ""),
             }
         )
         return 0
@@ -310,6 +451,7 @@ def test_app_cli_up_uses_local_demo_profile_without_trial_only_env(monkeypatch, 
             "app_runtime_mode": "local-demo",
             "trial_provider_profile": "",
             "object_storage_provider": "mock",
+            "celery_task_always_eager": "1",
         }
     ]
 

@@ -2,11 +2,11 @@
 
 ## 1. 当前总目标
 
-把当前交付主线切换为 **CLI 系统可用性验证**。当前要做的不是 Android/Expo trial shell，而是把后端已有脚本加上一层薄包装，形成一条真正给操作员用的命令入口，让 `app_cli.py` 同时覆盖 `up`、`demo`、`check` 和 `cutover`。
+把当前交付主线切换为 **CLI 系统可用性验证**。当前要做的不是 Android/Expo trial shell，而是把后端已有脚本加上一层薄包装，形成一条真正给操作员用的命令入口，让 `app_cli.py` 同时覆盖 `up`、`demo`、`ask`、`check` 和 `cutover`。
 
 ## 2. 当前默认执行顺序
 
-1. `backend/scripts/app_cli.py`（当前顶层体验入口，负责 `up` / `demo` / `check` / `cutover`）
+1. `backend/scripts/app_cli.py`（当前顶层体验入口，负责 `up` / `demo` / `ask` / `check` / `cutover`）
 2. `backend/scripts/run_system_check.py`（当前底层统一检查入口）
 3. 如果顶层 CLI 或统一检查入口返回 degraded，按下面的 leaf scripts 顺序手工执行：
    - `backend/scripts/run_local_demo_smoke.py`
@@ -38,7 +38,7 @@
 验收：
 
 - 操作员能用顶层 CLI 启动系统可用性验证，并通过 `demo` 看到实际 demo 快照
-- 体验者能用顶层 CLI 完成启动、demo 体验与检查
+- 体验者能用顶层 CLI 完成启动、demo 体验、消息提交与检查
 - wrapper degraded 时，操作员仍能按固定顺序手工执行 leaf scripts
 - 文档中不再把 Android/Expo 写成当前主线
 

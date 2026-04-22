@@ -2,7 +2,7 @@
 
 ## 当前主线
 
-整套系统的主验收先看 [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)。`backend/scripts/run_system_check.py` 已经是当前推荐入口；需要 drill-down 时，再按下面的 leaf commands 串起来执行。
+整套系统的主验收先看 [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)。`backend/scripts/app_cli.py` 已经是当前推荐入口；需要 drill-down 时，再按 `run_system_check.py` 和下面的 leaf commands 串起来执行。
 
 本页继续保留 pilot summary、shift bundle 和回滚姿态，属于 CLI 路线里的 leaf 运行手册，不再以 Android/Expo 为主线。
 
@@ -18,7 +18,7 @@
 常用命令：
 
 ```powershell
-python backend/scripts/run_system_check.py --mode pilot --api-base-url http://127.0.0.1:8001 --hours 24 --output-dir C:\secure\pilot\shift-bundles
+python backend/scripts/app_cli.py check --mode pilot
 python backend/scripts/run_trial_readiness_check.py
 python backend/scripts/run_pilot_summary_check.py
 python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\secure\pilot\shift-bundles

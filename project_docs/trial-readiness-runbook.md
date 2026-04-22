@@ -4,7 +4,7 @@
 
 整套系统的主验收已经切到 CLI 路线。优先阅读 [系统 CLI 可用性验证清单](./system-cli-validation-checklist.md)，把它当作总入口；本页只展开 `run_trial_readiness_check.py` 这一 leaf command 及其运行约束。
 
-`backend/scripts/run_system_check.py` 已落地。当前推荐先运行 `python backend/scripts/run_system_check.py --mode trial`；只有在需要单独复核 readiness 或定位失败原因时，才直接执行本页 leaf command。当前不再把 Android/Expo 当作主验收路径。
+`backend/scripts/app_cli.py` 已落地。当前推荐先运行 `python backend/scripts/app_cli.py check --mode trial`；只有在需要单独复核 readiness 或定位失败原因时，才直接执行本页 leaf command。当前不再把 Android/Expo 当作主验收路径。
 
 ## 范围
 

@@ -10,17 +10,19 @@
 
 当前实施目标统一为：
 
-**做一个可复现的 CLI 系统可用性验证闭环，并补一层薄包装器。**
+**做一个可复现的 CLI 系统可用性验证闭环，并补一层薄包装器，让 `app_cli.py` 同时覆盖 `up`、`demo`、`check` 和 `cutover`。**
 
 换句话说：
 
 - 后端真实存在
 - 数据库、对象存储、任务编排、WebSocket、summary / preflight 逻辑都继续按真实系统方式运行
 - 但当前验收入口是 CLI，不是 Android/Expo
-- 当前统一入口已经是 `backend/scripts/run_system_check.py`，其余脚本作为 leaf commands
+- 当前顶层入口已经是 `backend/scripts/app_cli.py`
+- `backend/scripts/run_system_check.py` 作为底层统一检查入口，其余脚本作为 leaf commands
 
 当前应把这些脚本视为正式能力：
 
+- `backend/scripts/app_cli.py`
 - `backend/scripts/run_local_demo_smoke.py`
 - `backend/scripts/run_trial_readiness_check.py`
 - `backend/scripts/run_live_pilot_preflight.py`
@@ -51,7 +53,8 @@
 - 稳定的 JSON 输出
 - 稳定的退出码
 - 可直接执行的操作员清单
-- 一个薄的统一入口命令
+- 一个顶层体验 CLI，能够直接打印本地 demo 快照
+- 一个底层统一检查命令
 
 ### 2.3 验证姿势
 
@@ -74,6 +77,7 @@
 必须先做成：
 
 - 本地 demo smoke
+- 顶层 `app_cli.py demo`
 - trial readiness
 - live pilot preflight
 - pilot summary check
@@ -83,6 +87,7 @@
 
 必须补齐：
 
+- 一个顶层入口 `app_cli.py`
 - 一个统一入口 `run_system_check.py`
 - 统一的 JSON verdict
 - 统一的 exit code
@@ -128,7 +133,7 @@
 
 先确认：
 
-- `run_local_demo_smoke.py` 能证明本地 demo 可用
+- `run_local_demo_smoke.py` 能证明本地 demo 可用，`app_cli.py demo` 能把它包装成可直接体验的顶层入口
 - `run_trial_readiness_check.py` 能证明 trial readiness 可用
 
 ### 第 2 步：再补试运行 gate

@@ -8,6 +8,25 @@
 2. [试运行就绪运行手册](./trial-readiness-runbook.md)
 3. [Pilot 执行运行手册](./pilot-execution-runbook.md)
 
+当前推荐从顶层 CLI 开始，而不是直接拼 leaf scripts：
+
+```powershell
+python backend/scripts/app_cli.py up --profile local-demo
+python backend/scripts/app_cli.py demo
+python backend/scripts/app_cli.py check --mode local-demo
+```
+
+`demo` 会直接打印当前运行中的本地 demo 快照，方便先看见应用状态，再进入检查。
+
+如果你要体验 trial / pilot 路线，再继续：
+
+```powershell
+python backend/scripts/app_cli.py up --profile trial
+python backend/scripts/app_cli.py cutover --mode shadow
+python backend/scripts/app_cli.py check --mode trial
+python backend/scripts/app_cli.py check --mode pilot
+```
+
 ## 历史蓝图假设
 
 以下内容保留原 React Native 首版方案的前提，只作为历史背景：

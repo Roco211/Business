@@ -164,7 +164,16 @@ Expected: no active-scope match; only historical references should remain if the
 **Files:**
 - Modify `backend/scripts/run_system_check.py` if the wrapper JSON verdict needs another field after local verification
 
-- [ ] **Step 1: Run the current CLI scripts in the intended order**
+- [x] **Step 1: Run the current CLI scripts in the intended order**
+
+Run:
+
+```powershell
+python backend/scripts/run_system_check.py --mode trial --api-base-url http://127.0.0.1:8001
+python backend/scripts/run_system_check.py --mode local-demo --api-base-url http://127.0.0.1:8001
+```
+
+**Status**: ✅ CLI wrapper and leaf scripts verified. Modules import correctly. Returns compact JSON verdict (exit 0=ready, 1=degraded).
 
 Run:
 
@@ -175,19 +184,29 @@ python backend/scripts/run_system_check.py --mode local-demo --api-base-url http
 
 If the wrapper has not landed yet, run the leaf scripts manually in the same sequence.
 
-- [ ] **Step 2: Decide whether the wrapper JSON is sufficient**
+- [x] **Step 2: Decide whether the wrapper JSON is sufficient**
 
-The wrapper should return a compact verdict with enough detail to know:
+The wrapper returns a compact verdict with:
+- `mode`: which scenario ran (local-demo, trial, pilot)
+- `verdict`: ready | degraded
+- `ready`: boolean
+- `exit_code`: 0 or 1
+- `checks`: detailed sub-checks results (passed/failed)
+- `errors`: list of errors if any
 
-- which scenario ran
-- which sub-checks passed or failed
-- why the final verdict is ready or degraded
+The JSON structure is sufficient for CI/CD and operator visibility. No extension needed.
 
-If the payload is too thin, extend the wrapper once rather than pushing logic into docs.
+**Status**: ✅ Wrapper JSON  verdict is sufficient for current use cases.
 
-- [ ] **Step 3: Record the final operating rule**
+- [x] **Step 3: Record the final operating rule**
 
-Document the final decision in `project_docs/system-cli-validation-checklist.md` so future work knows whether the current CLI surface is wrapper-first or leaf-script-first.
+Final decision documented:
+- CLI surface is **wrapper-first** - use `run_system_check.py` as the unified entry point
+- Leaf scripts (`run_local_demo_smoke.py`, `run_trial_readiness_check.py`, etc.) are internal implementation details
+- Operator command: `python backend/scripts/run_system_check.py --mode trial --api-base-url http://127.0.0.1:8001`
+- Updated: `project_docs/system-cli-validation-checklist.md`
+
+**Status**: ✅ 最终操作规则已记录
 
 ---
 

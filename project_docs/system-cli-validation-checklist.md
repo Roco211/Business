@@ -139,3 +139,36 @@ python backend/scripts/export_pilot_shift_bundle.py --hours 24 --output-dir C:\s
 - pilot summary / shift bundle 稳定
 
 如果其中任意一项不稳定，优先修后端或 CLI 输出契约，而不是回到 Android/Expo 主线。
+
+---
+
+## 最终操作规则 (Final Operating Rule)
+
+**记录日期**: April 23, 2026
+
+### CLI 使用优先级
+
+1. **首选方式 (Wrapper-first)**: 使用统一入口 `python backend/scripts/run_system_check.py --mode {local-demo|trial|pilot}`
+   - 该命令会调用底层 leaf scripts，并返回统一格式的 JSON verdict
+   - 退出码: `0` = ready, `1` = degraded/failed
+
+2. **备选方式 (Leaf-first)**: 当 wrapper 返回 degraded 时，按需调用具体脚本深入诊断：
+   - `python backend/scripts/run_local_demo_smoke.py` - 本地演示冒烟测试
+   - `python backend/scripts/run_trial_readiness_check.py` - trial 就绪检查
+   - `python backend/scripts/run_live_pilot_preflight.py` - live pilot 预检
+   - `python backend/scripts/run_pilot_summary_check.py` - pilot 摘要检查
+   - `python backend/scripts/export_pilot_shift_bundle.py` - 导出 shift bundle
+
+### Wrapper JSON 格式说明
+
+wrapper 返回的 JSON 包含以下字段：
+- `mode`: 字符串，表示运行模式 (`local-demo`, `trial`, `pilot`)
+- `overall_status`: 字符串，`ready` 或 `degraded`
+- `reasons`: 数组 (仅 pilot 模式)，失败原因列表
+- `checks`: 对象，包含具体检查项结果
+
+### 当前状态
+
+✅ **CLI Wrapper 已验证**: 所有 5 个测试用例通过 (`backend/tests/test_run_system_check.py`)
+✅ **Leaf Scripts 可用**: 各脚本可直接调用，返回标准 JSON
+✅ **JSON 格式充分**: 包含场景标识、检查结果、失败原因

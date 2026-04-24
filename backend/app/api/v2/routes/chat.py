@@ -25,6 +25,12 @@ from app.services.v2_inventory import (
     commit_v2_inventory_stock_in,
     commit_v2_inventory_stock_out,
 )
+from app.services.v2_analytics import (
+    get_revenue_summary,
+    get_sales_ranking,
+    get_low_stock_alerts,
+    get_daily_revenue_series,
+)
 from app.models.v2_inventory import V2InventoryItem, V2InventoryStockSnapshot
 
 router = APIRouter(prefix="/api/v2", tags=["v2-chat"])
@@ -59,18 +65,18 @@ def chat_v2(
     tx_reply = _execute_stock_transaction(intent, db_session, context, account, user_message)
     
     # Query inventory if needed
-    query_result = _query_inventory_for_intent(intent, db_session, context.shop_id)
+    query_result = _query_inventory_for_intent(intent, db_session, context)
     
     # Generate response with history context
     if tx_reply:
         reply = tx_reply
-    elif query_result:
+    elif query_result and intent.intent_type not in ("revenue_query", "sales_query", "alert_query"):
         response = llm_service.generate_response(
             query_result, user_message, history=chat_session.to_messages()
         )
         reply = response.content
     else:
-        reply = _build_fallback_reply(intent)
+        reply = _build_fallback_reply(intent, query_result)
     
     # Save assistant response to history
     chat_session.add_turn("assistant", reply)
@@ -129,7 +135,7 @@ def chat_stream_v2(
         tx_reply = _execute_stock_transaction(intent, db_session, context, account, user_message)
         
         # 3. Query inventory
-        query_result = _query_inventory_for_intent(intent, db_session, context.shop_id)
+        query_result = _query_inventory_for_intent(intent, db_session, context)
         if query_result:
             yield _sse_event("inventory", {**query_result, "employee": role})
         
@@ -139,7 +145,7 @@ def chat_stream_v2(
             reply_text = tx_reply
             for event in _stream_text(reply_text):
                 yield event
-        elif query_result:
+        elif query_result and intent.intent_type not in ("revenue_query", "sales_query", "alert_query"):
             response = llm_service.generate_response(
                 query_result, user_message, history=chat_session.to_messages()
             )
@@ -147,7 +153,7 @@ def chat_stream_v2(
             for event in _stream_text(reply_text):
                 yield event
         else:
-            reply_text = _build_fallback_reply(intent)
+            reply_text = _build_fallback_reply(intent, query_result)
             for event in _stream_text(reply_text):
                 yield event
         
@@ -175,10 +181,69 @@ def chat_stream_v2(
 def _query_inventory_for_intent(
     intent,
     db_session: Session,
-    shop_id: str,
+    context,
 ) -> dict | None:
-    """Query inventory based on parsed intent."""
+    """Query inventory or analytics based on parsed intent."""
     from sqlalchemy import select
+    
+    if intent.intent_type == "revenue_query":
+        summary = get_revenue_summary(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            days=30,
+        )
+        return {
+            "type": "revenue_summary",
+            "total_revenue": summary.total_revenue,
+            "total_cost": summary.total_cost,
+            "gross_profit": summary.gross_profit,
+            "transaction_count": summary.transaction_count,
+            "items_sold": summary.items_sold,
+        }
+    
+    if intent.intent_type == "sales_query":
+        ranking = get_sales_ranking(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            days=30,
+            limit=5,
+        )
+        return {
+            "type": "sales_ranking",
+            "ranking": [
+                {
+                    "rank": item.rank,
+                    "item_name": item.item_name,
+                    "total_sold": item.total_sold,
+                    "total_revenue": item.total_revenue,
+                }
+                for item in ranking
+            ],
+        }
+    
+    if intent.intent_type == "alert_query":
+        alerts = get_low_stock_alerts(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            limit=10,
+        )
+        return {
+            "type": "low_stock_alerts",
+            "alerts": [
+                {
+                    "item_name": alert.item_name,
+                    "current_quantity": alert.current_quantity,
+                    "threshold": alert.threshold,
+                    "shortage": alert.shortage,
+                    "unit": alert.unit,
+                }
+                for alert in alerts
+            ],
+            "count": len(alerts),
+        }
     
     if intent.intent_type not in ("stock_query", "stock_in", "stock_out"):
         return None
@@ -191,13 +256,14 @@ def _query_inventory_for_intent(
         select(V2InventoryItem, V2InventoryStockSnapshot)
         .join(V2InventoryStockSnapshot, V2InventoryStockSnapshot.inventory_item_id == V2InventoryItem.inventory_item_id)
         .where(
-            V2InventoryStockSnapshot.shop_id == shop_id,
+            V2InventoryStockSnapshot.shop_id == context.shop_id,
         )
     )
     
     for item, snapshot in db_session.execute(stmt).all():
         if intent.item_name in item.name or item.name in intent.item_name:
             return {
+                "type": "stock",
                 "item_id": item.inventory_item_id,
                 "item_name": item.name,
                 "sku": item.sku,
@@ -360,10 +426,41 @@ def _execute_stock_transaction(
     return None
 
 
-def _build_fallback_reply(intent) -> str:
+def _build_fallback_reply(intent, query_result: dict | None = None) -> str:
     """Build fallback reply when no inventory data is found."""
+    if intent.intent_type == "revenue_query":
+        if query_result:
+            return (
+                f"过去30天营业概况：\n"
+                f"总营业额：¥{query_result['total_revenue']:.2f}\n"
+                f"总成本：¥{query_result['total_cost']:.2f}\n"
+                f"毛利润：¥{query_result['gross_profit']:.2f}\n"
+                f"交易笔数：{query_result['transaction_count']}笔\n"
+                f"售出商品：{query_result['items_sold']:.0f}件"
+            )
+        return "暂无营收数据，请先进行销售出库操作。"
+    
+    if intent.intent_type == "sales_query":
+        if query_result and query_result.get("ranking"):
+            lines = ["过去30天热销排行："]
+            for item in query_result["ranking"]:
+                lines.append(f"{item['rank']}. {item['item_name']} - 售出{item['total_sold']:.0f}件 (¥{item['total_revenue']:.2f})")
+            return "\n".join(lines)
+        return "暂无销售数据，请先进行销售出库操作。"
+    
+    if intent.intent_type == "alert_query":
+        if query_result and query_result.get("alerts"):
+            lines = [f"⚠️ 发现{query_result['count']}个商品库存不足："]
+            for alert in query_result["alerts"]:
+                lines.append(
+                    f"• {alert['item_name']}: 当前{alert['current_quantity']}{alert['unit']}，"
+                    f"低于阈值{alert['threshold']}{alert['unit']}，缺{alert['shortage']}{alert['unit']}"
+                )
+            return "\n".join(lines)
+        return "✅ 所有商品库存充足，暂无预警。"
+    
     if intent.intent_type == "unknown":
-        return "抱歉，我不理解您的意思。您可以问我：查库存、进货、出货。"
+        return "抱歉，我不理解您的意思。您可以问我：查库存、进货、出货、查营业额、热销排行、库存预警。"
     elif intent.intent_type == "stock_query":
         if intent.item_name:
             return f"未找到商品 \"{intent.item_name}\"，请确认商品名称是否正确。"

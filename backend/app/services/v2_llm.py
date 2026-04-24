@@ -214,6 +214,33 @@ class LLMService:
                 confidence=0.7,
             )
         
+        # Detect revenue query patterns
+        if any(kw in text for kw in ["营业额", "营收", "赚了", "收入", "利润", "毛利", "赚多少", "卖了多少"]):
+            return ParsedIntent(
+                intent_type="revenue_query",
+                item_name=None,
+                quantity=None,
+                confidence=0.8,
+            )
+        
+        # Detect sales ranking patterns
+        if any(kw in text for kw in ["热销", "排行", "最好卖", "最畅销", "销量", "排行"]):
+            return ParsedIntent(
+                intent_type="sales_query",
+                item_name=None,
+                quantity=None,
+                confidence=0.8,
+            )
+        
+        # Detect low stock alert patterns
+        if any(kw in text for kw in ["预警", "缺货", "库存不足", "不够", "要进货", "低于"]):
+            return ParsedIntent(
+                intent_type="alert_query",
+                item_name=None,
+                quantity=None,
+                confidence=0.8,
+            )
+        
         # Detect stock query patterns (default)
         if any(kw in text for kw in ["多少", "几个", "还剩", "还有", "库存", "数量", "呢"]):
             item_name = self._extract_item_name(text)

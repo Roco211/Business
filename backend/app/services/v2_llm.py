@@ -64,26 +64,35 @@ class LLMService:
         self,
         text: str,
         db_session: Session | None = None,
+        history: list[dict] | None = None,
     ) -> ParsedIntent:
         """Parse user intent from transcribed text.
         
         Args:
             text: The transcribed user input
             db_session: Optional DB session for inventory lookup
+            history: Optional conversation history for context-aware parsing
             
         Returns:
             ParsedIntent with type, item_name, quantity, confidence
         """
         if self._use_mock:
-            return self._mock_parse_intent(text)
+            intent = self._mock_parse_intent(text)
+            # Apply context resolution if item_name is missing
+            return self._resolve_context(intent, text, history)
         
         try:
             provider = self._get_provider()
             
             messages = [
                 {"role": "system", "content": self.INTENT_PARSING_PROMPT},
-                {"role": "user", "content": f"分析输入：\"{text}\""},
             ]
+            
+            # Add history for context
+            if history:
+                messages.extend(history[-6:])  # Last 6 turns for context
+            
+            messages.append({"role": "user", "content": f"分析输入：\"{text}\""})
             
             response = provider.chat(messages, stream=False)
             content = response.content
@@ -114,22 +123,70 @@ class LLMService:
                 # Calculate confidence based on parsing success
                 confidence = 0.9 if intent_type != "unknown" else 0.5
                 
-                return ParsedIntent(
+                intent = ParsedIntent(
                     intent_type=intent_type,
                     item_name=item_name,
                     quantity=quantity,
                     confidence=confidence,
                 )
                 
+                # Apply context resolution
+                return self._resolve_context(intent, text, history)
+                
             except json.JSONDecodeError:
                 logger.warning("Failed to parse LLM response as JSON: %s", content)
                 # Fallback to rule-based
-                return self._rule_based_parse_intent(text)
+                intent = self._rule_based_parse_intent(text)
+                return self._resolve_context(intent, text, history)
                 
         except LLMProviderError as exc:
             logger.error("LLM parse intent failed: %s", exc.message)
             # Fallback to rule-based
-            return self._rule_based_parse_intent(text)
+            intent = self._rule_based_parse_intent(text)
+            return self._resolve_context(intent, text, history)
+    
+    def _resolve_context(
+        self,
+        intent: ParsedIntent,
+        text: str,
+        history: list[dict] | None,
+    ) -> ParsedIntent:
+        """Resolve missing item_name from conversation history.
+        
+        When user says things like "那扳手呢？" or "再查一下库存",
+        the item_name may be missing. Try to infer from history.
+        """
+        # If item_name is already present, no need to resolve
+        if intent.item_name:
+            return intent
+        
+        # If no history, can't resolve
+        if not history:
+            return intent
+        
+        # Look for context clues in current text
+        context_keywords = ["那", "再", "还", "呢", "它", "这个", "那个"]
+        has_context_reference = any(kw in text for kw in context_keywords)
+        
+        if not has_context_reference:
+            return intent
+        
+        # Search history backwards for the most recent item mention
+        for msg in reversed(history):
+            if msg.get("role") == "user":
+                content = msg.get("content", "")
+                # Try to extract item from historical message
+                historical_intent = self._rule_based_parse_intent(content)
+                if historical_intent.item_name:
+                    # Found an item in history, inherit it
+                    return ParsedIntent(
+                        intent_type=intent.intent_type,
+                        item_name=historical_intent.item_name,
+                        quantity=intent.quantity,
+                        confidence=intent.confidence * 0.85,  # Slightly lower due to inference
+                    )
+        
+        return intent
     
     def _rule_based_parse_intent(self, text: str) -> ParsedIntent:
         """Fallback rule-based intent parsing."""
@@ -158,7 +215,7 @@ class LLMService:
             )
         
         # Detect stock query patterns (default)
-        if any(kw in text for kw in ["多少", "几个", "还剩", "还有", "库存", "数量"]):
+        if any(kw in text for kw in ["多少", "几个", "还剩", "还有", "库存", "数量", "呢"]):
             item_name = self._extract_item_name(text)
             return ParsedIntent(
                 intent_type="stock_query",
@@ -184,11 +241,20 @@ class LLMService:
             if kw in text:
                 return kw
         
-        # Fallback: extract first noun-like word (2-4 chars)
+        # Fallback: extract first noun-like word (2-6 chars)
         import re
         nouns = re.findall(r'[\u4e00-\u9fa5]{2,6}', text)
+        
+        # Common words to exclude (actions, particles, pronouns)
+        exclude_words = [
+            "进货", "入库", "出库", "库存", "多少", "几个", "还剩", "还有",
+            "查询", "查一下", "查查看", "看看", "一下", "多少", "几个",
+            "这个", "那个", "什么", "怎么", "多少", "还有", "再查",
+            "查库存", "查一下", "查查看",
+        ]
+        
         for noun in nouns:
-            if noun not in ["进货", "入库", "出库", "库存", "多少", "几个", "还剩"]:
+            if noun not in exclude_words and not any(ew in noun for ew in exclude_words):
                 return noun
         
         return None

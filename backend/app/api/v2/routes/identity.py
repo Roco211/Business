@@ -53,7 +53,38 @@ def login_v2(
     settings: Settings = Depends(get_settings),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[V2LoginData] | JSONResponse:
-    account = authenticate_v2_account(db_session, payload.email, payload.password)
+    # Handle different auth methods
+    account = None
+    if payload.auth_method == "email_password":
+        if not payload.email or not payload.password:
+            return _unauthorized()
+        account = authenticate_v2_account(db_session, payload.email, payload.password)
+    elif payload.auth_method == "phone_code":
+        # Demo mode: accept any phone with code "888888"
+        if not payload.phone or payload.verification_code != "888888":
+            return _unauthorized()
+        # For demo: use default owner account directly without phone lookup
+        from app.core.config import get_settings
+        settings = get_settings()
+        from app.models import V2Account
+        # Try to find by default owner email in settings first, otherwise get first active account
+        demo_email = settings.seed_owner_email or "owner@example.com"
+        account = db_session.query(V2Account).filter(V2Account.email == demo_email).first()
+        if account is None:
+            # Fallback: get any active account
+            account = db_session.query(V2Account).filter(V2Account.status == "active").first()
+        if account is None:
+            return _unauthorized()
+    elif payload.auth_method == "phone_password":
+        # Phone + password auth
+        if not payload.phone or not payload.password:
+            return _unauthorized()
+        from app.models import V2Account
+        from app.services.password import verify_password
+        account = db_session.query(V2Account).filter(V2Account.phone == payload.phone).first()
+        if account is None or not verify_password(payload.password, account.password_hash):
+            return _unauthorized()
+    
     if account is None:
         return _unauthorized()
 

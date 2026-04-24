@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
-UTC = timezone.utc, timedelta
+from datetime import datetime, timedelta, timezone
+UTC = timezone.utc
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select

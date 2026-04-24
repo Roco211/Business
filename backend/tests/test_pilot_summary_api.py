@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-UTC = timezone.utc, timedelta
+from datetime import datetime, timedelta, timezone
+UTC = timezone.utc
 from decimal import Decimal
 
 from app.core.ids import new_prefixed_id

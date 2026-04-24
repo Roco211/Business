@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app.db.base import Base
 from app.db.alembic_config import resolve_alembic_database_url
-from app.models import SessionRecord, Shop  # noqa: F401
+from app.models import SessionRecord, Shop # noqa: F401
 
 config = context.config
 
@@ -16,7 +16,9 @@ target_metadata = Base.metadata
 
 
 def configure_database_url() -> str:
-    configured_url = resolve_alembic_database_url(config.get_main_option("sqlalchemy.url"))
+    configured_url = resolve_alembic_database_url(config.get_main_option("sqlalchemy.url") or "")
+    if configured_url is None:
+        configured_url = ""
     config.set_main_option("sqlalchemy.url", configured_url)
     return configured_url
 

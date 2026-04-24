@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timezone
-UTC = timezone.utc, timedelta
+from datetime import datetime, timedelta, timezone
+UTC = timezone.utc
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

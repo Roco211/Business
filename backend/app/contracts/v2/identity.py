@@ -1,9 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class V2LoginRequest(BaseModel):
-    email: str
-    password: str
+    # Support both email/password and phone/verification_code auth
+    email: str | None = None
+    password: str | None = None
+    phone: str | None = None
+    verification_code: str | None = None
+    auth_method: Literal["email_password", "phone_code", "phone_password"] = "email_password"
 
 
 class V2LoginData(BaseModel):

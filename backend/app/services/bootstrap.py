@@ -13,7 +13,7 @@ from app.core.config import Settings, get_settings
 from app.models import OwnerAccount, SessionRecord, Shop, ShopMembership
 
 _LOCAL_SEED_OWNER_EMAIL = "owner@example.com"
-_LOCAL_SEED_OWNER_PASSWORD = "dev-password"
+_LOCAL_SEED_OWNER_PASSWORD = "password123"
 
 
 @dataclass(frozen=True)

@@ -148,7 +148,7 @@ function App() {
         <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} />
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
-        {page === 'dashboard' && overview && <Dashboard overview={overview} onNavigate={setPage} />}
+        {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
         {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
@@ -204,9 +204,10 @@ function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; o
   )
 }
 
-function Dashboard({ overview, onNavigate }: { overview: Overview; onNavigate: (page: Page) => void }) {
+function Dashboard({ auth, overview, onNavigate, onChanged }: { auth: AuthState; overview: Overview; onNavigate: (page: Page) => void; onChanged: () => void }) {
   return (
     <div className="dashboard-layout">
+      <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
       <section className="kpi-grid">
         {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
       </section>
@@ -218,7 +219,7 @@ function Dashboard({ overview, onNavigate }: { overview: Overview; onNavigate: (
           <SuggestionList suggestions={overview.suggestions} />
         </Panel>
       </section>
-      <section className="dashboard-main-grid">
+      <section className="operations-grid">
         <Panel title="今日工作动态" action="查看报告">
           <ActivityList activities={overview.activities} />
         </Panel>
@@ -239,6 +240,92 @@ function Dashboard({ overview, onNavigate }: { overview: Overview; onNavigate: (
       </Panel>
     </div>
   )
+}
+
+type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string }
+
+function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void }) {
+  const quickCommands = ['今天卖了多少钱？', '哪些商品快没货了？', '帮我看看今天要补什么货', '卖出1把电动螺丝刀，单价99，客户老王']
+  const [command, setCommand] = useState(quickCommands[0])
+  const [result, setResult] = useState<CommandResult | null>(null)
+  const [running, setRunning] = useState(false)
+
+  function looksLikeSalesDraft(text: string) {
+    return /卖出|销售|开单|收款|客户/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
+  }
+
+  function normalizeQueryCommand(text: string) {
+    if (/卖了多少钱|营业额|营收|收入|流水|赚了|利润/.test(text)) return '今天营业额多少？'
+    if (/热销|排行|最好卖|卖得好/.test(text)) return '热销商品排行'
+    if (/快没货|缺货|库存不足|预警/.test(text)) return '库存预警'
+    return text
+  }
+
+  async function runCommand(text = command) {
+    const trimmed = text.trim()
+    if (!trimmed || running) return
+    setCommand(trimmed)
+    setRunning(true)
+    setResult({ kind: 'reply', title: 'AI运营协调官正在分派任务', body: '正在理解你的经营指令，并交给对应AI员工处理。' })
+    try {
+      if (looksLikeSalesDraft(trimmed)) {
+        const data = await api.createSalesOrderDraft(auth, trimmed)
+        setResult({
+          kind: 'draft',
+          title: '已生成销售单草稿，等待老板确认',
+          body: `待确认任务 ${data.confirmation.confirmation_id} 已创建。AI不会直接扣库存或记账，请到任务中心确认后再落账。`,
+          meta: data.confirmation.confirmation_type
+        })
+      } else {
+        const queryMessage = normalizeQueryCommand(trimmed)
+        const data = await api.chat(auth, queryMessage)
+        setResult({
+          kind: 'reply',
+          title: employeeNameForIntent(data.intent || '') + '已完成处理',
+          body: data.reply || '已收到指令，但暂时没有可展示的回复。',
+          meta: data.intent || 'general'
+        })
+      }
+      onChanged()
+    } catch (err) {
+      setResult({ kind: 'error', title: 'AI任务处理失败', body: err instanceof Error ? err.message : '请稍后重试。' })
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  return (
+    <section className="command-center-card">
+      <div className="command-copy">
+        <div className="ai-badge">AI Command Center</div>
+        <h1>老板，今天想让我帮你做什么？</h1>
+        <p>直接说经营目标。查询类任务由AI员工返回结果；开单、库存、采购等高风险动作先生成待确认草稿。</p>
+      </div>
+      <div className="command-console">
+        <div className="command-input-row">
+          <textarea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="例如：今天卖了多少钱？或者：卖出1把电动螺丝刀，单价99，客户老王" />
+          <button className="primary-button" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '处理中...' : '交给AI员工'}</button>
+        </div>
+        <div className="command-chips">
+          {quickCommands.map((text) => <button key={text} onClick={() => void runCommand(text)} disabled={running}>{text}</button>)}
+        </div>
+        {result && <div className={`command-result ${result.kind}`}>
+          <strong>{result.title}</strong>
+          <p>{result.body}</p>
+          {result.meta && <small>任务类型：{result.meta}</small>}
+          {result.kind === 'draft' && <button className="secondary-button" onClick={() => onNavigate('tasks')}>去任务中心确认</button>}
+        </div>}
+      </div>
+    </section>
+  )
+}
+
+function employeeNameForIntent(intent: string) {
+  if (intent.includes('revenue')) return '经营数据分析员'
+  if (intent.includes('sales')) return '销售分析员'
+  if (intent.includes('alert') || intent.includes('stock') || intent.includes('inventory')) return '库存风控专员'
+  if (intent.includes('purchase')) return '采购专员'
+  return 'AI运营协调官'
 }
 
 function KpiCard({ kpi, index }: { kpi: Overview['kpis'][number]; index: number }) {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -458,6 +459,79 @@ def _build_todos(*, low_stock_count: int, pending_confirmation_count: int) -> li
     ]
 
 
+def _build_notifications(
+    *,
+    pending_confirmation_count: int,
+    low_stock_alerts: list[object],
+    daily_advisor_report: dict[str, object],
+) -> dict[str, object]:
+    items: list[dict[str, object]] = []
+    now = datetime.utcnow().replace(microsecond=0).isoformat()
+
+    if pending_confirmation_count:
+        items.append(
+            {
+                "id": "notification_pending_confirmations",
+                "type": "confirmation",
+                "title": "有AI任务等待确认",
+                "summary": f"当前有{pending_confirmation_count}个AI草稿等待老板确认，确认前不会改库存、销售或财务事实。",
+                "severity": "high",
+                "source_employee": "AI运营协调官",
+                "route": "/tasks",
+                "action_label": "去确认",
+                "evidence": [f"待确认任务数: {pending_confirmation_count}", "所有高风险AI操作保持 confirmation-first"],
+                "created_at": now,
+                "read": False,
+            }
+        )
+
+    low_stock_count = len(low_stock_alerts)
+    if low_stock_count:
+        first_names = [str(getattr(alert, "item_name", "低库存商品")) for alert in low_stock_alerts[:3]]
+        items.append(
+            {
+                "id": "notification_low_stock",
+                "type": "inventory_risk",
+                "title": "库存风控专员发现低库存",
+                "summary": f"当前有{low_stock_count}个商品低于安全库存：{'、'.join(first_names)}。",
+                "severity": "high",
+                "source_employee": "库存风控专员",
+                "route": "/inventory?filter=low-stock",
+                "action_label": "看库存",
+                "evidence": [f"低库存商品数: {low_stock_count}", *first_names],
+                "created_at": now,
+                "read": False,
+            }
+        )
+
+    business_health = str(daily_advisor_report.get("business_health", "quiet"))
+    if not items and business_health in {"healthy", "quiet"}:
+        items.append(
+            {
+                "id": "notification_daily_report",
+                "type": "daily_advisor",
+                "title": "今日经营日报已生成",
+                "summary": str(daily_advisor_report.get("summary", "经营策略顾问已完成今日经营复盘。")),
+                "severity": "low",
+                "source_employee": "经营策略顾问",
+                "route": "/dashboard",
+                "action_label": "看日报",
+                "evidence": ["来源: pc-dashboard-overview"],
+                "created_at": now,
+                "read": False,
+            }
+        )
+
+    unread_count = sum(1 for item in items if not item.get("read"))
+    attention_count = sum(1 for item in items if item.get("severity") in {"high", "medium"})
+    return {
+        "unread_count": unread_count,
+        "attention_count": attention_count,
+        "generated_at": now,
+        "items": items[:8],
+    }
+
+
 def _build_daily_advisor_report(
     *,
     revenue,
@@ -629,7 +703,11 @@ def get_pc_dashboard_overview(
         "activities": activities,
         "todos": todos,
         "daily_advisor_report": daily_advisor_report,
-        "notifications": {"unread_count": 0},
+        "notifications": _build_notifications(
+            pending_confirmation_count=pending_confirmation_count,
+            low_stock_alerts=low_stock_alerts,
+            daily_advisor_report=daily_advisor_report,
+        ),
         "sales_ranking": [
             {
                 "rank": item.rank,

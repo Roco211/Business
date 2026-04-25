@@ -291,7 +291,17 @@ def test_pc_dashboard_overview_returns_ai_native_backend_backed_home_data(client
     assert payload["suggestions"][0]["requires_confirmation"] is True
     assert payload["activities"]
     assert payload["todos"]
-    assert payload["notifications"]["unread_count"] == 0
+    notifications = payload["notifications"]
+    assert notifications["unread_count"] == 2
+    assert notifications["attention_count"] == 2
+    assert notifications["generated_at"]
+    notification_items = {item["id"]: item for item in notifications["items"]}
+    assert notification_items["notification_pending_confirmations"]["source_employee"] == "AI运营协调官"
+    assert notification_items["notification_pending_confirmations"]["route"] == "/tasks"
+    assert notification_items["notification_pending_confirmations"]["action_label"] == "去确认"
+    assert notification_items["notification_low_stock"]["source_employee"] == "库存风控专员"
+    assert notification_items["notification_low_stock"]["route"] == "/inventory?filter=low-stock"
+    assert notification_items["notification_low_stock"]["evidence"]
 
     report = payload["daily_advisor_report"]
     assert report["title"] == "今日经营参谋日报"

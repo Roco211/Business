@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
-import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
+import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
 
 type Page = 'dashboard' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
@@ -44,6 +44,7 @@ function App() {
   const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null)
   const [confirmations, setConfirmations] = useState<Confirmation[]>([])
   const [guideSignal, setGuideSignal] = useState(0)
+  const [notificationOpen, setNotificationOpen] = useState(false)
 
   async function refresh(currentAuth = auth) {
     if (!currentAuth) return
@@ -146,7 +147,7 @@ function App() {
         <button className="ghost-button" onClick={handleLogout}>退出登录</button>
       </aside>
       <main className="main-panel">
-        <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} onGuide={() => { setPage('dashboard'); setGuideSignal((value) => value + 1) }} />
+        <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} onGuide={() => { setPage('dashboard'); setGuideSignal((value) => value + 1) }} onNotifications={() => setNotificationOpen(true)} />
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
@@ -159,6 +160,7 @@ function App() {
         {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} />}
         {page === 'tasks' && <TasksPage auth={auth} confirmations={confirmations} onChanged={() => void refresh()} />}
         {page === 'coming-soon' && <ComingSoon />}
+        {notificationOpen && overview && <NotificationCenter notifications={overview.notifications} onClose={() => setNotificationOpen(false)} onNavigate={(nextPage) => { setNotificationOpen(false); setPage(nextPage) }} />}
       </main>
     </div>
   )
@@ -182,7 +184,7 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
   )
 }
 
-function TopBar({ overview, onRefresh, loading, onGuide }: { overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void }) {
+function TopBar({ overview, onRefresh, loading, onGuide, onNotifications }: { overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void; onNotifications: () => void }) {
   return (
     <header className="top-bar">
       <div className="greeting-block">
@@ -191,7 +193,10 @@ function TopBar({ overview, onRefresh, loading, onGuide }: { overview: Overview 
       </div>
       <div className="top-actions">
         <button className="guide-button" onClick={onGuide}>新手引导</button>
-        <span className="notify-dot">○</span>
+        <button className="notification-trigger" onClick={onNotifications} aria-label="打开通知中心">
+          <span>○</span>
+          {(overview?.notifications.unread_count || 0) > 0 && <b>{overview?.notifications.unread_count}</b>}
+        </button>
         <div className="store-profile">
           <div className="store-avatar">五</div>
           <div>
@@ -202,6 +207,46 @@ function TopBar({ overview, onRefresh, loading, onGuide }: { overview: Overview 
         <button className="secondary-button" onClick={onRefresh} disabled={loading}>{loading ? '刷新中' : '刷新数据'}</button>
       </div>
     </header>
+  )
+}
+
+function NotificationCenter({ notifications, onClose, onNavigate }: { notifications: Overview['notifications']; onClose: () => void; onNavigate: (page: Page) => void }) {
+  const items = notifications.items || []
+  function severityLabel(severity: string) {
+    if (severity === 'high') return '高优先级'
+    if (severity === 'medium') return '需关注'
+    return '普通'
+  }
+  return (
+    <div className="notification-overlay">
+      <div className="notification-backdrop" onClick={onClose} />
+      <aside className="notification-drawer" role="dialog" aria-label="通知中心">
+        <header className="notification-drawer-head">
+          <div>
+            <div className="ai-badge">通知中心</div>
+            <h2>老板需要关注的事</h2>
+            <p>{notifications.attention_count || 0} 个重点事项 · {notifications.unread_count || 0} 条未读</p>
+          </div>
+          <button className="drawer-close" onClick={onClose}>×</button>
+        </header>
+        <div className="notification-list">
+          {items.length === 0 ? <div className="notification-empty">当前没有新的通知，AI员工会继续监控任务、库存和经营日报。</div> : items.map((item: NotificationItem) => (
+            <article className={`notification-card severity-${item.severity}`} key={item.id}>
+              <div className="notification-card-head">
+                <span>{item.source_employee}</span>
+                <b>{severityLabel(item.severity)}</b>
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.summary}</p>
+              <div className="notification-evidence">
+                {item.evidence.slice(0, 3).map((evidence) => <small key={evidence}>{evidence}</small>)}
+              </div>
+              <button className="secondary-button" onClick={() => onNavigate(routeToPage(item.route))}>{item.action_label}</button>
+            </article>
+          ))}
+        </div>
+      </aside>
+    </div>
   )
 }
 

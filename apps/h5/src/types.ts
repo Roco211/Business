@@ -42,6 +42,20 @@ export type DailyAdvisorReport = {
 }
 export type Activity = { id: string; time_label: string; actor_name: string; summary: string; impact: string; route: string }
 export type TodoItem = { key: string; title: string; count: number; severity: string; route: string }
+export type NotificationItem = {
+  id: string
+  type: string
+  title: string
+  summary: string
+  severity: string
+  source_employee: string
+  route: string
+  action_label: string
+  evidence: string[]
+  created_at: string
+  read?: boolean
+}
+export type Notifications = { unread_count: number; attention_count?: number; generated_at?: string; items?: NotificationItem[] }
 export type Overview = {
   store: { tenant_id: string; tenant_name?: string; shop_id: string; shop_name: string; plan_label: string }
   user: { account_id: string; display_name: string; role_label: string }
@@ -52,7 +66,7 @@ export type Overview = {
   activities: Activity[]
   daily_advisor_report?: DailyAdvisorReport
   todos: TodoItem[]
-  notifications: { unread_count: number }
+  notifications: Notifications
   low_stock?: { count: number; items: StockItem[] }
   sales_ranking?: SalesRank[]
   daily_revenue_series?: unknown[]

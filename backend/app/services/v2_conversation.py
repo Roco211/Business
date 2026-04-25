@@ -824,6 +824,12 @@ def _require_v2_confirmation_for_context(
     return confirmation
 
 
+def _resolve_v2_approved_fields(confirmation: V2Confirmation, resolution_payload: dict[str, object]) -> dict[str, object]:
+    draft_fields = dict(confirmation.draft_payload or {})
+    override_fields = dict(resolution_payload.get("fields") or {})
+    return {**draft_fields, **override_fields}
+
+
 def approve_v2_confirmation(
     db_session: Session,
     *,
@@ -859,13 +865,14 @@ def approve_v2_confirmation(
 
         now = utc_now_naive()
         confirmation.status = APPROVED_STATUS
-        confirmation.resolution_payload = resolution_payload
+        confirmation.resolution_payload = dict(resolution_payload)
         confirmation.approved_by_account_id = approved_by_account_id
         confirmation.resolved_at = now
 
         system_result_text: str | None = None
         if confirmation.confirmation_type == "inventory.stock_in":
-            resolved_fields = dict(resolution_payload.get("fields") or {})
+            resolved_fields = _resolve_v2_approved_fields(confirmation, resolution_payload)
+            confirmation.resolution_payload = {**dict(resolution_payload), "fields": resolved_fields}
             commit_result = commit_v2_inventory_stock_in(
                 db_session,
                 tenant_id=tenant_id,
@@ -892,7 +899,8 @@ def approve_v2_confirmation(
                 system_result_text = "Inventory stock-in committed."
             should_enqueue_outbox = True
         elif confirmation.confirmation_type == "inventory.stock_out":
-            resolved_fields = dict(resolution_payload.get("fields") or {})
+            resolved_fields = _resolve_v2_approved_fields(confirmation, resolution_payload)
+            confirmation.resolution_payload = {**dict(resolution_payload), "fields": resolved_fields}
             commit_result = commit_v2_inventory_stock_out(
                 db_session,
                 tenant_id=tenant_id,

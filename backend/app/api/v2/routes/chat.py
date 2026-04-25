@@ -20,11 +20,7 @@ from app.core.config import get_settings
 from app.db.session import get_db_session
 from app.services.v2_chat_session import get_chat_session_store
 from app.services.v2_llm import LLMService, get_llm_service
-from app.services.v2_conversation import create_v2_message_and_task_run
-from app.services.v2_inventory import (
-    commit_v2_inventory_stock_in,
-    commit_v2_inventory_stock_out,
-)
+from app.services.v2_conversation import create_v2_confirmation, create_v2_message_and_task_run
 from app.services.v2_analytics import (
     get_revenue_summary,
     get_sales_ranking,
@@ -282,148 +278,140 @@ def _execute_stock_transaction(
     account,
     user_message: str,
 ) -> str | None:
-    """Execute stock in/out transaction based on intent.
-    
-    Returns a reply message if transaction was executed, None otherwise.
+    """Create a pending confirmation for chat-driven stock writes.
+
+    Chat writes are AI-interpreted actions, so they must not mutate inventory
+    directly. They produce a task_run + pending confirmation; approval performs
+    the deterministic ledger commit.
     """
-    from sqlalchemy import select
     from decimal import Decimal
+    from sqlalchemy import select
+
     from app.models.v2_conversation import V2ConversationSession
     from app.services.v2_conversation import create_v2_session
-    
+
     if intent.intent_type not in ("stock_in", "stock_out"):
         return None
-    
+
     if not intent.item_name or not intent.quantity:
         return None
-    
-    # Find matching item
+
     stmt = (
         select(V2InventoryItem, V2InventoryStockSnapshot)
         .join(V2InventoryStockSnapshot, V2InventoryStockSnapshot.inventory_item_id == V2InventoryItem.inventory_item_id)
         .where(
+            V2InventoryItem.tenant_id == context.tenant_id,
+            V2InventoryStockSnapshot.tenant_id == context.tenant_id,
             V2InventoryStockSnapshot.shop_id == context.shop_id,
         )
     )
-    
+
     matched = None
     for item, snapshot in db_session.execute(stmt).all():
         if intent.item_name in item.name or item.name in intent.item_name:
             matched = (item, snapshot)
             break
-    
+
     if not matched:
         return None
-    
+
     item, snapshot = matched
-    
+    current_qty = Decimal(snapshot.current_quantity) if snapshot.current_quantity else Decimal(0)
+    quantity = Decimal(str(intent.quantity))
+
+    if intent.intent_type == "stock_out" and current_qty < quantity:
+        return (
+            f"❌ 出库失败！库存不足。\n"
+            f"商品：{item.name}\n"
+            f"当前库存：{float(current_qty)} {item.default_unit or '个'}\n"
+            f"请求出库：{intent.quantity} {item.default_unit or '个'}"
+        )
+
     try:
-        if intent.intent_type == "stock_in":
-            # Create/get conversation session for task run
-            chat_session_id = f"chat_tx_{account.account_id}"
+        chat_session_id = f"chat_tx_{account.account_id}"
+        session = db_session.scalar(
+            select(V2ConversationSession).where(
+                V2ConversationSession.session_id == chat_session_id,
+                V2ConversationSession.tenant_id == context.tenant_id,
+                V2ConversationSession.shop_id == context.shop_id,
+            )
+        )
+        if not session:
+            session_result = create_v2_session(
+                db_session,
+                tenant_id=context.tenant_id,
+                shop_id=context.shop_id,
+                title="Chat Stock Transaction",
+                initiated_by_account_id=account.account_id,
+                session_type="chat",
+            )
             session = db_session.scalar(
                 select(V2ConversationSession).where(
-                    V2ConversationSession.session_id == chat_session_id,
-                    V2ConversationSession.tenant_id == context.tenant_id,
-                    V2ConversationSession.shop_id == context.shop_id,
+                    V2ConversationSession.session_id == session_result.session_id,
                 )
             )
-            if not session:
-                session_result = create_v2_session(
-                    db_session,
-                    tenant_id=context.tenant_id,
-                    shop_id=context.shop_id,
-                    title="Chat Stock Transaction",
-                    initiated_by_account_id=account.account_id,
-                    session_type="chat",
-                )
-                session = db_session.scalar(
-                    select(V2ConversationSession).where(
-                        V2ConversationSession.session_id == session_result.session_id,
-                    )
-                )
-            
-            # Create task run for stock in
-            msg_task = create_v2_message_and_task_run(
-                db_session,
-                tenant_id=context.tenant_id,
-                shop_id=context.shop_id,
-                session_id=session.session_id,
-                actor_id=account.account_id,
-                message_kind="stock_in",
-                payload_json={
-                    "item_name": item.name,
-                    "quantity": intent.quantity,
-                    "unit": item.default_unit or "个",
-                    "price": float(snapshot.current_price) if snapshot.current_price else 0,
-                },
-                client_request_id=None,
-                intent_type="inventory.stock_in",
-            )
-            if not msg_task:
-                return None
-            
-            _, task_run = msg_task
-            
-            # Execute stock in
-            result = commit_v2_inventory_stock_in(
-                db_session,
-                tenant_id=context.tenant_id,
-                shop_id=context.shop_id,
-                task_run_id=task_run.task_run_id,
-                created_by_account_id=account.account_id,
-                payload={
-                    "item_id": item.inventory_item_id,
-                    "item_name": item.name,
-                    "quantity": intent.quantity,
-                    "unit": item.default_unit or "个",
-                    "price": float(snapshot.current_price) if snapshot.current_price else 0,
-                },
-            )
-            db_session.commit()
-            
-            return (
-                f"✅ 入库成功！\n"
-                f"商品：{result.item.name}\n"
-                f"入库数量：{intent.quantity} {item.default_unit or '个'}\n"
-                f"当前库存：{float(result.snapshot.current_quantity)} {item.default_unit or '个'}"
-            )
-        
-        elif intent.intent_type == "stock_out":
-            current_qty = Decimal(snapshot.current_quantity) if snapshot.current_quantity else Decimal(0)
-            
-            if current_qty < Decimal(intent.quantity):
-                return (
-                    f"❌ 出库失败！库存不足。\n"
-                    f"商品：{item.name}\n"
-                    f"当前库存：{float(current_qty)} {item.default_unit or '个'}\n"
-                    f"请求出库：{intent.quantity} {item.default_unit or '个'}"
-                )
-            
-            result = commit_v2_inventory_stock_out(
-                db_session,
-                tenant_id=context.tenant_id,
-                shop_id=context.shop_id,
-                inventory_item_id=item.inventory_item_id,
-                expected_quantity=current_qty,
-                stock_out_quantity=Decimal(intent.quantity),
-                reason="chat stock out",
-                created_by_account_id=account.account_id,
-            )
-            db_session.commit()
-            
-            return (
-                f"✅ 出库成功！\n"
-                f"商品：{item.name}\n"
-                f"出库数量：{intent.quantity} {item.default_unit or '个'}\n"
-                f"当前库存：{float(result.snapshot.current_quantity)} {item.default_unit or '个'}"
-            )
-    
+        if session is None:
+            return None
+
+        if intent.intent_type == "stock_in":
+            confirmation_type = "inventory.stock_in"
+            message_kind = "stock_in"
+            draft_payload = {
+                "item_id": item.inventory_item_id,
+                "item_name": item.name,
+                "quantity": intent.quantity,
+                "unit": item.default_unit or "个",
+                "price": float(snapshot.current_price) if snapshot.current_price else 0,
+                "source_text": user_message,
+            }
+        else:
+            confirmation_type = "inventory.stock_out"
+            message_kind = "stock_out"
+            draft_payload = {
+                "inventory_item_id": item.inventory_item_id,
+                "item_name": item.name,
+                "expected_quantity": float(current_qty),
+                "stock_out_quantity": intent.quantity,
+                "unit": item.default_unit or "个",
+                "reason": "chat stock out",
+                "source_text": user_message,
+            }
+
+        msg_task = create_v2_message_and_task_run(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            session_id=session.session_id,
+            actor_id=account.account_id,
+            message_kind=message_kind,
+            payload_json=draft_payload,
+            client_request_id=None,
+            intent_type=confirmation_type,
+        )
+        if not msg_task:
+            return None
+
+        _, task_run = msg_task
+        confirmation = create_v2_confirmation(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            task_run_id=task_run.task_run_id,
+            confirmation_type=confirmation_type,
+            draft_payload=draft_payload,
+        )
+
+        action_label = "入库" if intent.intent_type == "stock_in" else "出库"
+        return (
+            f"⏳ 已生成{action_label}待确认单，请确认后再落账。\n"
+            f"商品：{item.name}\n"
+            f"数量：{intent.quantity} {item.default_unit or '个'}\n"
+            f"确认单：{confirmation.confirmation_id}"
+        )
+
     except Exception as exc:
         db_session.rollback()
         return f"❌ 操作失败：{exc}"
-    
-    return None
 
 
 def _build_fallback_reply(intent, query_result: dict | None = None) -> str:

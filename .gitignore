@@ -6,6 +6,9 @@ showcase_app/__pycache__/
 apps/mobile/node_modules/
 apps/mobile/.expo/
 apps/mobile/dist/
+apps/h5/node_modules/
+apps/h5/dist/
+apps/h5/*.tsbuildinfo
 backend/.pytest_cache/
 backend/.venv/
 backend/devdata/pilot_shift_bundles/

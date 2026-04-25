@@ -35,6 +35,8 @@ REQUIRED_ARTIFACTS: tuple[tuple[str, str], ...] = (
     ("inventory_item_audit_regression", "backend/tests/test_v2_inventory_item_audit_http_flow.py"),
     ("inventory_item_crud_regression", "backend/tests/test_v2_inventory_item_crud_http_flow.py"),
     ("provider_trial_preflight_regression", "backend/tests/test_provider_trial_preflight.py"),
+    ("pc_dashboard_bff_regression", "backend/tests/test_v2_pc_dashboard_overview_http_flow.py"),
+    ("pc_h5_frontend_package", "apps/h5/package.json"),
 )
 
 

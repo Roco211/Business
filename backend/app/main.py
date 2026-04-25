@@ -1,5 +1,8 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.api.deps.auth import AuthUnauthorizedError
@@ -41,6 +44,34 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
 
+def register_h5_static_routes(app: FastAPI) -> None:
+    h5_root = Path(__file__).resolve().parent / "static" / "h5"
+    index_file = h5_root / "index.html"
+    assets_dir = h5_root / "assets"
+    if not index_file.exists():
+        return
+
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="h5-assets")
+
+    @app.get("/", include_in_schema=False)
+    def _serve_h5_index() -> FileResponse:
+        return FileResponse(index_file)
+
+    @app.head("/", include_in_schema=False)
+    def _head_h5_index() -> FileResponse:
+        return FileResponse(index_file)
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def _serve_h5_spa(full_path: str) -> FileResponse:
+        if full_path.startswith("api/") or full_path in {"health", "docs", "redoc", "openapi.json"}:
+            raise HTTPException(status_code=404)
+        candidate = h5_root / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(index_file)
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
@@ -57,6 +88,7 @@ def create_app() -> FastAPI:
     )
     register_exception_handlers(app)
     app.include_router(api_router)
+    register_h5_static_routes(app)
     return app
 
 

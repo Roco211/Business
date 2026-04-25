@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 RUN_DOCKER_ACCEPTANCE="${RUN_DOCKER_ACCEPTANCE:-0}"
 RUN_PROVIDER_TRIAL_PREFLIGHT="${RUN_PROVIDER_TRIAL_PREFLIGHT:-0}"
+RUN_H5_BUILD="${RUN_H5_BUILD:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 export PYTHONPATH="${PYTHONPATH:-backend}"
@@ -32,6 +33,7 @@ CORE_PYTEST_FILES=(
   backend/tests/test_v2_inventory_stock_in_http_flow.py
   backend/tests/test_v2_inventory_stock_out_http_flow.py
   backend/tests/test_v2_dashboard_analytics_isolation_http_flow.py
+  backend/tests/test_v2_pc_dashboard_overview_http_flow.py
   backend/tests/test_v2_chat_http_confirmation_flow.py
   backend/tests/test_v2_voice_photo_http_confirmation_flow.py
   backend/tests/test_v2_chat_confirmation_first.py
@@ -46,6 +48,18 @@ log "providers: LLM=$LLM_PROVIDER ASR=$ASR_PROVIDER OCR=$OCR_PROVIDER VISION=$VI
 
 run "$PYTHON_BIN" -m compileall -q backend/app backend/tests backend/scripts
 run "$PYTHON_BIN" -m pytest -vv "${CORE_PYTEST_FILES[@]}"
+if [[ "$RUN_H5_BUILD" == "1" ]]; then
+  log "building PC/H5 frontend"
+  (
+    cd apps/h5
+    if [[ ! -d node_modules ]]; then
+      npm ci --prefer-offline --no-audit --progress=false
+    fi
+    npm run build
+  )
+else
+  log "skipping PC/H5 build; set RUN_H5_BUILD=1 to enable"
+fi
 run "$PYTHON_BIN" backend/scripts/run_backend_readiness_summary.py
 
 if [[ "$RUN_PROVIDER_TRIAL_PREFLIGHT" == "1" ]]; then

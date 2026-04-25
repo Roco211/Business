@@ -55,7 +55,7 @@ log "removing old container if present"
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 
 log "building backend image"
-docker build -t "$IMAGE_NAME" -f "$BACKEND_DIR/Dockerfile" "$BACKEND_DIR"
+docker build -t "$IMAGE_NAME" -f "$BACKEND_DIR/Dockerfile" "$ROOT_DIR"
 
 log "starting backend container with mock providers"
 docker run -d \

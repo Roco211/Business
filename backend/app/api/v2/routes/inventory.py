@@ -10,7 +10,9 @@ from app.api.deps.v2_context import (
 )
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.contracts.v2.inventory import (
+    V2CreateInventoryItemRequest,
     V2InventoryItemData,
+    V2InventoryItemDetailData,
     V2InventoryItemListData,
     V2InventoryLedgerEventData,
     V2InventoryLedgerEventListData,
@@ -22,23 +24,30 @@ from app.contracts.v2.inventory import (
     V2SubmitInventoryStockInRequest,
     V2SubmitInventoryStockOutData,
     V2SubmitInventoryStockOutRequest,
+    V2UpdateInventoryItemRequest,
 )
 from app.db.session import get_db_session
 from app.services.v2_inventory import (
     V2InventoryCorrectionConflictError,
     V2InventoryCorrectionItemNotFoundError,
     V2InventoryCorrectionValidationError,
+    V2InventoryItemNotFoundError,
+    V2InventoryPayloadValidationError,
     V2InventoryStockInItemNotFoundError,
     V2InventoryStockInValidationError,
     V2InventoryStockOutConflictError,
     V2InventoryStockOutItemNotFoundError,
     V2InventoryStockOutValidationError,
+    create_v2_inventory_item,
+    delete_v2_inventory_item,
+    get_v2_inventory_item,
     list_v2_inventory_events,
     list_v2_inventory_items,
     list_v2_inventory_stock,
     submit_v2_inventory_correction,
     submit_v2_inventory_stock_in,
     submit_v2_inventory_stock_out,
+    update_v2_inventory_item,
 )
 
 router = APIRouter(prefix="/api/v2/inventory", tags=["v2-inventory"])
@@ -51,6 +60,119 @@ def _context_account_mismatch() -> JSONResponse:
             error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
         ).model_dump(),
     )
+
+
+def _inventory_item_not_found() -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content=V2ErrorEnvelope(
+            error=V2ErrorBody(code="inventory_item_not_found", message="Inventory item not found")
+        ).model_dump(),
+    )
+
+
+def _inventory_validation_error(exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=V2ErrorEnvelope(error=V2ErrorBody(code="validation_error", message=str(exc))).model_dump(),
+    )
+
+
+def _to_inventory_item_data(item) -> V2InventoryItemData:
+    return V2InventoryItemData(
+        inventory_item_id=item.inventory_item_id,
+        tenant_id=item.tenant_id,
+        sku=item.sku,
+        name=item.name,
+        barcode=item.barcode,
+        default_unit=item.default_unit,
+        status=item.status,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+    )
+
+
+@router.post("/items", response_model=V2DataEnvelope[V2InventoryItemDetailData])
+def create_inventory_item_v2(
+    payload: V2CreateInventoryItemRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        item = create_v2_inventory_item(
+            db_session,
+            tenant_id=context.tenant_id,
+            sku=payload.sku,
+            name=payload.name,
+            barcode=payload.barcode,
+            default_unit=payload.default_unit,
+        )
+    except V2InventoryPayloadValidationError as exc:
+        return _inventory_validation_error(exc)
+    return V2DataEnvelope(data=V2InventoryItemDetailData(item=_to_inventory_item_data(item)))
+
+
+@router.get("/items/{inventory_item_id}", response_model=V2DataEnvelope[V2InventoryItemDetailData])
+def get_inventory_item_v2(
+    inventory_item_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        item = get_v2_inventory_item(db_session, tenant_id=context.tenant_id, inventory_item_id=inventory_item_id)
+    except V2InventoryItemNotFoundError:
+        return _inventory_item_not_found()
+    return V2DataEnvelope(data=V2InventoryItemDetailData(item=_to_inventory_item_data(item)))
+
+
+@router.patch("/items/{inventory_item_id}", response_model=V2DataEnvelope[V2InventoryItemDetailData])
+def update_inventory_item_v2(
+    inventory_item_id: str,
+    payload: V2UpdateInventoryItemRequest,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        item = update_v2_inventory_item(
+            db_session,
+            tenant_id=context.tenant_id,
+            inventory_item_id=inventory_item_id,
+            **payload.model_dump(exclude_unset=True),
+        )
+    except V2InventoryItemNotFoundError:
+        return _inventory_item_not_found()
+    except V2InventoryPayloadValidationError as exc:
+        return _inventory_validation_error(exc)
+    return V2DataEnvelope(data=V2InventoryItemDetailData(item=_to_inventory_item_data(item)))
+
+
+@router.delete("/items/{inventory_item_id}", response_model=V2DataEnvelope[V2InventoryItemDetailData])
+def delete_inventory_item_v2(
+    inventory_item_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        item = delete_v2_inventory_item(db_session, tenant_id=context.tenant_id, inventory_item_id=inventory_item_id)
+    except V2InventoryItemNotFoundError:
+        return _inventory_item_not_found()
+    return V2DataEnvelope(data=V2InventoryItemDetailData(item=_to_inventory_item_data(item)))
 
 
 @router.get("/items", response_model=V2DataEnvelope[V2InventoryItemListData])

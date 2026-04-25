@@ -21,6 +21,24 @@ class V2InventoryItemListData(BaseModel):
     count: int
 
 
+class V2InventoryItemDetailData(BaseModel):
+    item: V2InventoryItemData
+
+
+class V2CreateInventoryItemRequest(BaseModel):
+    sku: str | None = None
+    name: str
+    barcode: str | None = None
+    default_unit: str
+
+
+class V2UpdateInventoryItemRequest(BaseModel):
+    sku: str | None = None
+    name: str | None = None
+    barcode: str | None = None
+    default_unit: str | None = None
+
+
 class V2InventoryStockData(BaseModel):
     snapshot_id: str
     tenant_id: str

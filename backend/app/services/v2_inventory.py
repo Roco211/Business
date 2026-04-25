@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from typing import Any
 import uuid
 
 from sqlalchemy import select
@@ -53,6 +54,9 @@ class V2InventoryStockInItemNotFoundError(LookupError):
     pass
 
 
+_UNSET = object()
+
+
 @dataclass(frozen=True)
 class V2ApprovedStockInPayload:
     item_id: str | None
@@ -97,6 +101,28 @@ class V2ApprovedStockOutPayload:
     reason: str
 
 
+def _normalize_optional_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _normalize_required_text(value: str | None, field_name: str) -> str:
+    normalized = _normalize_optional_text(value)
+    if normalized is None:
+        raise V2InventoryPayloadValidationError(f"{field_name} is required")
+    return normalized
+
+
+def _serialize_v2_inventory_item_not_deleted_query(tenant_id: str, inventory_item_id: str):
+    return select(V2InventoryItem).where(
+        V2InventoryItem.inventory_item_id == inventory_item_id,
+        V2InventoryItem.tenant_id == tenant_id,
+        V2InventoryItem.status == "active",
+    )
+
+
 def list_v2_inventory_items(
     db_session: Session,
     *,
@@ -115,6 +141,84 @@ def list_v2_inventory_items(
         safe_limit
     )
     return list(db_session.scalars(statement))
+
+
+def get_v2_inventory_item(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    inventory_item_id: str,
+) -> V2InventoryItem:
+    item = db_session.scalar(_serialize_v2_inventory_item_not_deleted_query(tenant_id, inventory_item_id))
+    if item is None:
+        raise V2InventoryItemNotFoundError(inventory_item_id)
+    return item
+
+
+def create_v2_inventory_item(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    sku: str | None,
+    name: str,
+    barcode: str | None,
+    default_unit: str,
+) -> V2InventoryItem:
+    now = utc_now_naive()
+    item = V2InventoryItem(
+        inventory_item_id=f"vitem_{uuid.uuid4().hex}"[:40],
+        tenant_id=tenant_id,
+        sku=_normalize_optional_text(sku),
+        name=_normalize_required_text(name, "name"),
+        barcode=_normalize_optional_text(barcode),
+        default_unit=_normalize_required_text(default_unit, "default_unit"),
+        status="active",
+        created_at=now,
+        updated_at=now,
+    )
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
+
+
+def update_v2_inventory_item(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    inventory_item_id: str,
+    sku: Any = _UNSET,
+    name: Any = _UNSET,
+    barcode: Any = _UNSET,
+    default_unit: Any = _UNSET,
+) -> V2InventoryItem:
+    item = get_v2_inventory_item(db_session, tenant_id=tenant_id, inventory_item_id=inventory_item_id)
+    if sku is not _UNSET:
+        item.sku = _normalize_optional_text(sku)
+    if name is not _UNSET:
+        item.name = _normalize_required_text(name, "name")
+    if barcode is not _UNSET:
+        item.barcode = _normalize_optional_text(barcode)
+    if default_unit is not _UNSET:
+        item.default_unit = _normalize_required_text(default_unit, "default_unit")
+    item.updated_at = utc_now_naive()
+    db_session.commit()
+    db_session.refresh(item)
+    return item
+
+
+def delete_v2_inventory_item(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    inventory_item_id: str,
+) -> V2InventoryItem:
+    item = get_v2_inventory_item(db_session, tenant_id=tenant_id, inventory_item_id=inventory_item_id)
+    item.status = "deleted"
+    item.updated_at = utc_now_naive()
+    db_session.commit()
+    db_session.refresh(item)
+    return item
 
 
 def list_v2_inventory_stock(

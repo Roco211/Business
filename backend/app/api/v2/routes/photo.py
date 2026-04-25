@@ -28,7 +28,7 @@ def _context_account_mismatch() -> JSONResponse:
     )
 
 
-async def _build_sse_stream(events):
+def _build_sse_stream(events):
     """Build SSE stream from async iterator.
 
     正确格式化SSE事件流:

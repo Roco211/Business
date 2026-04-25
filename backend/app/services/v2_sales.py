@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.models import V2Customer, V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot
 from app.models.v2_sales import V2SalesOrder, V2SalesOrderLine
+from app.services.v2_audit import append_v2_audit_log
 from app.services.v2_time import utc_now_naive
 from app.services.v2_commercial import add_finance_transaction
 
@@ -208,6 +209,16 @@ def create_v2_sales_order(
             counterparty_name=order.customer_name,
             note=order.note,
             created_by_account_id=created_by_account_id,
+        )
+        append_v2_audit_log(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            action="sales_order.create",
+            actor_id=created_by_account_id,
+            target_type="sales_order",
+            target_id=order.sales_order_id,
+            metadata={"order_no": order.order_no, "amount": str(order.total_amount), "items_count": len(result_lines)},
         )
         db_session.commit()
         return V2CreatedSalesOrderResult(order=order, lines=result_lines)

@@ -5,7 +5,7 @@ from decimal import Decimal
 from sqlalchemy import select
 
 from app.db.session import get_session_factory
-from app.models import V2Confirmation, V2InventoryLedgerEvent, V2InventoryStockSnapshot
+from app.models import V2AuditLog, V2Confirmation, V2InventoryLedgerEvent, V2InventoryStockSnapshot
 from app.models.v2_sales import V2SalesOrder
 from test_v2_sales_orders_http_flow import _login_and_select_context, _seed_v2_sales_order_context
 
@@ -48,6 +48,8 @@ def test_sales_order_detail_cancel_and_return_restore_stock_and_write_finance(cl
         assert snapshot.current_quantity == Decimal("8.000")
         reasons = [row.reason for row in session.scalars(select(V2InventoryLedgerEvent)).all()]
         assert "sales order cancelled" in reasons
+        audit_actions = [row.action for row in session.scalars(select(V2AuditLog).where(V2AuditLog.tenant_id == context["tenant_id"], V2AuditLog.shop_id == context["shop_id"])).all()]
+        assert "sales_order.cancel" in audit_actions
     finally:
         session.close()
 
@@ -59,6 +61,12 @@ def test_sales_order_detail_cancel_and_return_restore_stock_and_write_finance(cl
     )
     assert ret.status_code == 200
     assert ret.json()["data"]["order"]["status"] == "partially_refunded"
+
+    audit = client.get(f"/api/v2/audit-logs?shop_id={context['shop_id']}&limit=50", headers=headers)
+    assert audit.status_code == 200
+    actions = [row["action"] for row in audit.json()["data"]["logs"]]
+    assert "sales_order.cancel" in actions
+    assert "sales_order.return" in actions
 
     finance = client.get("/api/v2/finance/transactions?limit=50", headers=headers)
     assert finance.status_code == 200
@@ -107,6 +115,30 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
     revenue_only = client.get("/api/v2/finance/transactions?transaction_type=sales_revenue&limit=50", headers=headers)
     assert revenue_only.status_code == 200
     assert {tx["transaction_type"] for tx in revenue_only.json()["data"]["transactions"]} == {"sales_revenue"}
+
+    sales_export = client.get("/api/v2/exports/sales-orders", headers=headers)
+    assert sales_export.status_code == 200
+    assert sales_export.headers["content-type"].startswith("text/csv")
+    assert "order_no,customer_name,total_amount,status" in sales_export.text
+    assert order_with_customer["order_no"] in sales_export.text
+    finance_export = client.get("/api/v2/exports/finance-transactions", headers=headers)
+    assert finance_export.status_code == 200
+    assert "transaction_type,direction,amount" in finance_export.text
+    purchase_export = client.get("/api/v2/exports/purchase-orders", headers=headers)
+    assert purchase_export.status_code == 200
+    assert "order_no,supplier_id,total_amount,status" in purchase_export.text
+    assert po.json()["data"]["purchase_order"]["order_no"] in purchase_export.text
+    ledger_export = client.get("/api/v2/exports/inventory-ledger", headers=headers)
+    assert ledger_export.status_code == 200
+    assert "event_type,inventory_item_id,quantity_delta,quantity_after" in ledger_export.text
+    assert "purchase_order" in ledger_export.text
+
+    audit = client.get(f"/api/v2/audit-logs?shop_id={context['shop_id']}&limit=50", headers=headers)
+    assert audit.status_code == 200
+    audit_actions = [row["action"] for row in audit.json()["data"]["logs"]]
+    assert "supplier.create" in audit_actions
+    assert "purchase_order.create" in audit_actions
+    assert "customer.create" in audit_actions
 
     finance = client.get("/api/v2/finance/summary", headers=headers)
     assert finance.status_code == 200

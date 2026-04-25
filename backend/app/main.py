@@ -1,6 +1,8 @@
+import logging
 from pathlib import Path
+import uuid
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,8 +22,49 @@ from app.db.session import get_session_factory
 from app.api.router import api_router
 from app.realtime.connection_manager import SessionStreamConnectionManager
 
+logger = logging.getLogger(__name__)
+
+
+def register_error_logging_middleware(app: FastAPI) -> None:
+    @app.middleware("http")
+    async def _log_unhandled_errors(request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        except Exception:
+            logger.exception("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path)
+            return JSONResponse(
+                status_code=500,
+                content=ErrorEnvelope(
+                    error=ErrorBody(
+                        code="internal_server_error",
+                        message="Internal server error",
+                        details=[{"field": "request_id", "message": request_id}],
+                    )
+                ).model_dump(),
+                headers={"X-Request-ID": request_id},
+            )
+
 
 def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(Exception)
+    async def _handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+        request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
+        logger.exception("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path, exc_info=exc)
+        return JSONResponse(
+            status_code=500,
+            content=ErrorEnvelope(
+                error=ErrorBody(
+                    code="internal_server_error",
+                    message="Internal server error",
+                    details=[{"request_id": request_id}],
+                )
+            ).model_dump(),
+            headers={"X-Request-ID": request_id},
+        )
+
     @app.exception_handler(AuthUnauthorizedError)
     async def _handle_auth_unauthorized(_, __) -> JSONResponse:
         return JSONResponse(
@@ -94,7 +137,7 @@ def create_app() -> FastAPI:
             allow_origins=cors_origins,
             allow_credentials=True,
             allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-            allow_headers=["Authorization", "Content-Type", "X-V2-Context-Token"],
+            allow_headers=["Authorization", "Content-Type", "X-Context-Token", "X-V2-Context-Token", "X-Request-ID"],
         )
     if settings.security_headers_enabled:
         app.middleware("http")(security_headers_middleware)
@@ -107,6 +150,7 @@ def create_app() -> FastAPI:
         pending_poll_interval_seconds=settings.session_stream_pending_poll_seconds,
         session_factory=get_session_factory(),
     )
+    register_error_logging_middleware(app)
     register_exception_handlers(app)
     app.include_router(api_router)
     register_h5_static_routes(app)

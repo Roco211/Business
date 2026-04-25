@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "== Business production trial rehearsal =="
-echo "[1/5] Validate production compose file"
+echo "[1/6] Validate production compose file"
 python3 - <<'PY'
 from pathlib import Path
 import yaml
@@ -22,14 +22,17 @@ if not any('0.0.0.0:${HOST_PORT:-8001}:8001' in str(port) for port in ports):
 print('compose yaml ok')
 PY
 
-echo "[2/5] Validate backup/restore scripts syntax"
+echo "[2/6] Validate backup/restore scripts syntax"
 bash -n backend/scripts/backup_postgres.sh
 bash -n backend/scripts/restore_postgres.sh
 
-echo "[3/5] Validate production middleware/config regressions"
+echo "[3/6] Validate production middleware/config regressions"
 PYTHONPATH=backend pytest backend/tests/test_production_readiness_config.py -q
 
-echo "[4/5] Validate backend readiness summary"
+echo "[4/6] Run lightweight API stability check"
+PYTHONPATH=backend python3 backend/scripts/run_lightweight_stability_check.py
+
+echo "[5/6] Validate backend readiness summary"
 READINESS_JSON="$(PYTHONPATH=backend python3 backend/scripts/run_backend_readiness_summary.py)"
 READINESS_JSON="$READINESS_JSON" python3 - <<'PY'
 import json, os
@@ -43,7 +46,7 @@ if payload.get('overall_status') != 'ready' or payload.get('missing_count') != 0
     raise SystemExit('readiness summary is not ready')
 PY
 
-echo "[5/5] Optional Docker production image acceptance"
+echo "[6/6] Optional Docker production image acceptance"
 if [[ "${RUN_DOCKER_ACCEPTANCE:-0}" == "1" ]]; then
   RUN_PROVIDER_TRIAL_PREFLIGHT=0 RUN_DOCKER_ACCEPTANCE=1 bash backend/scripts/run_backend_preflight.sh
 else

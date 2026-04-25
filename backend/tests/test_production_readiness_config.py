@@ -47,3 +47,32 @@ def test_app_adds_cors_security_headers_and_rate_limit(monkeypatch):
     assert second.status_code == 200
     assert third.status_code == 429
     assert third.json()["error"]["code"] == "rate_limited"
+
+
+def test_app_logs_unhandled_errors_with_request_id(monkeypatch, caplog):
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
+
+    import app.core.config as config
+    import app.main as main
+
+    reload(config)
+    reload(main)
+    app = main.create_app()
+
+    @app.get("/boom-for-error-log-test")
+    def boom_for_error_log_test():
+        raise RuntimeError("boom for log")
+
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.get("/boom-for-error-log-test")
+
+    assert response.status_code == 500
+    body = response.json()
+    assert body["error"]["code"] == "internal_server_error"
+    assert body["error"]["message"] == "Internal server error"
+    assert body["error"]["details"][0]["field"] == "request_id"
+    request_id = body["error"]["details"][0]["message"]
+    assert request_id
+    assert response.headers["x-request-id"] == request_id
+    assert any("Unhandled request error" in record.message and request_id in record.message for record in caplog.records)

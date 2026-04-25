@@ -34,7 +34,7 @@ def list_suppliers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authe
 @purchasing_router.post("/suppliers")
 def create_supplier_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
-    supplier = create_supplier(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"))
+    supplier = create_supplier(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"), account_id=account.account_id)
     return V2DataEnvelope(data={"supplier": {"supplier_id": supplier.supplier_id, "tenant_id": supplier.tenant_id, "shop_id": supplier.shop_id, "name": supplier.name, "phone": supplier.phone, "status": supplier.status}})
 
 
@@ -65,7 +65,7 @@ def list_customers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authe
 @customers_router.post("")
 def create_customer_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
-    customer = create_customer(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"))
+    customer = create_customer(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"), account_id=account.account_id)
     return V2DataEnvelope(data={"customer": {"customer_id": customer.customer_id, "tenant_id": customer.tenant_id, "shop_id": customer.shop_id, "name": customer.name, "phone": customer.phone, "status": customer.status}})
 
 

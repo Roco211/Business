@@ -28,6 +28,23 @@ async function request<T>(path: string, options: RequestInit = {}, auth?: AuthSt
   return (payload as ApiEnvelope<T>).data
 }
 
+async function downloadCsv(path: string, filename: string, auth: AuthState): Promise<void> {
+  const headers: Record<string, string> = {}
+  if (auth.accessToken) headers.Authorization = `Bearer ${auth.accessToken}`
+  if (auth.contextToken) headers['X-Context-Token'] = auth.contextToken
+  const response = await fetch(`${API_BASE}${path}`, { headers })
+  if (!response.ok) throw new Error(`导出失败(${response.status})`)
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
 export async function loginWithPhone(phone: string, verificationCode: string): Promise<{ accessToken: string; refreshToken?: string; accountId?: string }> {
   const data = await request<{ accessToken?: string; access_token?: string; refreshToken?: string; refresh_token?: string; accountId?: string; account_id?: string }>('/api/v2/auth/login', {
     method: 'POST',
@@ -87,6 +104,10 @@ export const api = {
     return request<{ transactions: FinanceTransaction[]; count: number }>(`/api/v2/finance/transactions?${params.toString()}`, {}, auth)
   },
   getFinanceSummary: (auth: AuthState) => request<{ summary: FinanceSummary }>('/api/v2/finance/summary', {}, auth),
+  exportSalesOrders: (auth: AuthState) => downloadCsv('/api/v2/exports/sales-orders', 'sales-orders.csv', auth),
+  exportPurchaseOrders: (auth: AuthState) => downloadCsv('/api/v2/exports/purchase-orders', 'purchase-orders.csv', auth),
+  exportFinanceTransactions: (auth: AuthState) => downloadCsv('/api/v2/exports/finance-transactions', 'finance-transactions.csv', auth),
+  exportInventoryLedger: (auth: AuthState) => downloadCsv('/api/v2/exports/inventory-ledger', 'inventory-ledger.csv', auth),
   getAudit: (auth: AuthState, itemId: string) => request<{ events: LedgerEvent[]; count: number }>(`/api/v2/inventory/items/${itemId}/audit?limit=20`, {}, auth),
   stockIn: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-in', { method: 'POST', body: JSON.stringify(input) }, auth),
   stockOut: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-out', { method: 'POST', body: JSON.stringify(input) }, auth),

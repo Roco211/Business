@@ -50,6 +50,13 @@ async def list_audit_logs(
                 error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
             ).model_dump(),
         )
+    if shop_id != context.shop_id:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="context_shop_mismatch", message="Shop does not match current context")
+            ).model_dump(),
+        )
 
     # Default to last 7 days if not specified
     if not end_at:
@@ -58,7 +65,8 @@ async def list_audit_logs(
         start_at = end_at - timedelta(days=7)
 
     query = select(V2AuditLog).where(
-        V2AuditLog.shop_id == shop_id,
+        V2AuditLog.tenant_id == context.tenant_id,
+        V2AuditLog.shop_id == context.shop_id,
         V2AuditLog.created_at >= start_at,
         V2AuditLog.created_at <= end_at
     )

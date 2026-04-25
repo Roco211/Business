@@ -297,6 +297,7 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
         <p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}；选择客户后销售单会写入 customer_id，复购分析更准确。</p>
       </Panel>
       <Panel title="销售单列表">
+        <div className="inline-form"><button className="secondary-button" onClick={() => void api.exportSalesOrders(auth)}>导出销售单CSV</button></div>
         <DataTable rows={orders} columns={['order_no','customer_name','total_amount','items_count','status']} action={(row) => <button className="secondary-button" onClick={() => void openDetail(String(row.sales_order_id))}>查看/处理</button>} />
       </Panel>
       {selectedOrder && <Panel title={`销售单详情：${selectedOrder.order_no}`}>
@@ -338,7 +339,7 @@ function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: {
       <section className="kpi-grid"><div className="kpi-card"><span>供应商数量</span><strong>{suppliers.length}</strong><em>家</em><p>当前门店 active 供应商</p></div><div className="kpi-card"><span>采购单数量</span><strong>{purchaseOrders.length}</strong><em>单</em><p>当前门店采购记录</p></div><div className="kpi-card"><span>当前供应商采购</span><strong>{supplierOrders.length}</strong><em>单</em><p>{activeSupplier?.name || '未选择'}</p></div></section>
       <Panel title="供应商列表"><DataTable rows={suppliers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedSupplierId(String(row.supplier_id))}>查看采购记录</button>} /></Panel>
       <Panel title="当前供应商采购单"><DataTable rows={supplierOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
-      <Panel title="全部采购单列表"><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
+      <Panel title="全部采购单列表"><div className="inline-form"><button className="secondary-button" onClick={() => void api.exportPurchaseOrders(auth)}>导出采购单CSV</button></div><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
     </div>
   )
 }
@@ -373,7 +374,7 @@ function FinancePage({ auth, summary, transactions, onTransactionsChanged }: { a
     <div className="content-grid">
       <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，并支持按流水类型和收支方向筛选。</p></div></section>
       <section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section>
-      <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button></div></Panel>
+      <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button><button className="secondary-button" onClick={() => void api.exportFinanceTransactions(auth)}>导出财务CSV</button></div></Panel>
       <Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel>
     </div>
   )
@@ -391,7 +392,7 @@ function InventoryPage({ auth, items, stock, events, onChanged }: { auth: AuthSt
   const firstItem = items[0]
   async function stockIn() { if (!firstItem) return; await api.stockIn(auth, { inventory_item_id: firstItem.inventory_item_id, quantity: 1, unit: firstItem.default_unit, price: 1, reason: 'PC/H5手动入库' }); onChanged() }
   async function stockOut() { if (!firstItem) return; await api.stockOut(auth, { inventory_item_id: firstItem.inventory_item_id, quantity: 1, unit: firstItem.default_unit, price: 1, reason: 'PC/H5手动出库' }); onChanged() }
-  return <div className="content-grid"><Panel title="库存操作"><div className="inline-form"><button className="primary-button" disabled={!firstItem} onClick={() => void stockIn()}>对首个商品入库1</button><button className="secondary-button" disabled={!firstItem} onClick={() => void stockOut()}>对首个商品出库1</button></div></Panel><Panel title="库存快照"><DataTable rows={stock} columns={['item_name','current_quantity','low_stock_threshold','default_unit']} /></Panel><Panel title="库存流水"><DataTable rows={events} columns={['item_name','event_type','quantity_delta','quantity_after','reason']} /></Panel></div>
+  return <div className="content-grid"><Panel title="库存操作"><div className="inline-form"><button className="primary-button" disabled={!firstItem} onClick={() => void stockIn()}>对首个商品入库1</button><button className="secondary-button" disabled={!firstItem} onClick={() => void stockOut()}>对首个商品出库1</button><button className="secondary-button" onClick={() => void api.exportInventoryLedger(auth)}>导出库存流水CSV</button></div></Panel><Panel title="库存快照"><DataTable rows={stock} columns={['item_name','current_quantity','low_stock_threshold','default_unit']} /></Panel><Panel title="库存流水"><DataTable rows={events} columns={['item_name','event_type','quantity_delta','quantity_after','reason']} /></Panel></div>
 }
 
 function AiPage({ auth, overview, onChanged }: { auth: AuthState; overview: Overview | null; onChanged: () => void }) {

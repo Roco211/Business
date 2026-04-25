@@ -8,6 +8,7 @@ from app.api.v2.routes.commercial import customers_router, finance_router, purch
 from app.api.v2.routes.conversation import router as conversation_router
 from app.api.v2.routes.dashboard import router as dashboard_router
 from app.api.v2.routes.health import router as health_router
+from app.api.v2.routes.exports import router as exports_router
 from app.api.v2.routes.identity import router as identity_router
 from app.api.v2.routes.internal import router as internal_router
 from app.api.v2.routes.inventory import router as inventory_router
@@ -37,6 +38,7 @@ v2_router.include_router(photo_router)
 v2_router.include_router(voice_router)
 v2_router.include_router(alerts_router)
 v2_router.include_router(audit_router)
+v2_router.include_router(exports_router)
 v2_router.include_router(stock_checks_router)
 v2_router.include_router(purchase_router)
 v2_router.include_router(sales_router)

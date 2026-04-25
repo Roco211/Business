@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import V2Confirmation, V2ConversationSession, V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot, V2Message, V2TaskRun
+from app.services.v2_audit import append_v2_audit_log
 from app.models.v2_commercial import V2Customer, V2FinanceTransaction, V2PurchaseOrder, V2PurchaseOrderLine, V2SalesReturn, V2Supplier
 from app.models.v2_sales import V2SalesOrder, V2SalesOrderLine
 from app.services.v2_time import utc_now_naive
@@ -69,6 +70,7 @@ def cancel_sales_order(db: Session, *, tenant_id: str, shop_id: str, sales_order
                 db.add(V2InventoryLedgerEvent(event_id=f"vevent_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, inventory_item_id=line.inventory_item_id, event_type="stock_in", quantity_delta=line.quantity, quantity_after=snap.current_quantity, unit=line.unit, price=line.unit_price, source_type="sales_order_cancel", source_id=sales_order_id, reason="sales order cancelled", created_by_account_id=account_id, occurred_at=now))
         order.status = "cancelled"; order.updated_at = now
         add_finance_transaction(db, tenant_id=tenant_id, shop_id=shop_id, transaction_type="sales_refund", direction="expense", amount=order.total_amount, source_type="sales_order_cancel", source_id=sales_order_id, counterparty_name=order.customer_name, note=reason, created_by_account_id=account_id)
+        append_v2_audit_log(db, tenant_id=tenant_id, shop_id=shop_id, action="sales_order.cancel", actor_id=account_id, target_type="sales_order", target_id=sales_order_id, metadata={"reason": reason, "amount": str(order.total_amount)})
         db.commit(); return order, lines
     except Exception:
         db.rollback(); raise
@@ -95,6 +97,7 @@ def return_sales_order_items(db: Session, *, tenant_id: str, shop_id: str, sales
             db.add(V2SalesReturn(sales_return_id=f"vret_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, sales_order_id=sales_order_id, sales_order_line_id=line_id, inventory_item_id=line.inventory_item_id, quantity=quantity, refund_amount=refund, reason=reason, created_by_account_id=account_id, created_at=now))
         order.status = "refunded" if refund_total >= Decimal(order.total_amount) else "partially_refunded"; order.updated_at = now
         add_finance_transaction(db, tenant_id=tenant_id, shop_id=shop_id, transaction_type="sales_refund", direction="expense", amount=refund_total, source_type="sales_return", source_id=sales_order_id, counterparty_name=order.customer_name, note=reason, created_by_account_id=account_id)
+        append_v2_audit_log(db, tenant_id=tenant_id, shop_id=shop_id, action="sales_order.return", actor_id=account_id, target_type="sales_order", target_id=sales_order_id, metadata={"reason": reason, "refund_total": str(refund_total), "items_count": len(items)})
         db.commit(); return order, lines
     except Exception:
         db.rollback(); raise
@@ -104,9 +107,12 @@ def list_suppliers(db: Session, *, tenant_id: str, shop_id: str, limit: int):
     return list(db.scalars(select(V2Supplier).where(V2Supplier.tenant_id == tenant_id, V2Supplier.shop_id == shop_id, V2Supplier.status == "active").order_by(V2Supplier.created_at.desc(), V2Supplier.supplier_id.desc()).limit(limit)))
 
 
-def create_supplier(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None):
+def create_supplier(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None, account_id: str | None = None):
     now = utc_now_naive(); supplier = V2Supplier(supplier_id=f"vsup_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, name=name.strip(), phone=(phone or None), status="active", created_at=now, updated_at=now)
-    db.add(supplier); db.commit(); return supplier
+    db.add(supplier)
+    if account_id:
+        append_v2_audit_log(db, tenant_id=tenant_id, shop_id=shop_id, action="supplier.create", actor_id=account_id, target_type="supplier", target_id=supplier.supplier_id, metadata={"name": supplier.name})
+    db.commit(); return supplier
 
 
 def list_purchase_orders(db: Session, *, tenant_id: str, shop_id: str, limit: int):
@@ -131,6 +137,7 @@ def create_purchase_order(db: Session, *, tenant_id: str, shop_id: str, supplier
             db.add(V2InventoryLedgerEvent(event_id=f"vevent_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, inventory_item_id=item_id, event_type="stock_in", quantity_delta=qty, quantity_after=snap.current_quantity, unit=item.default_unit, price=cost, source_type="purchase_order", source_id=po.purchase_order_id, reason="purchase order received", created_by_account_id=account_id, occurred_at=now))
         po.total_amount = money(total)
         add_finance_transaction(db, tenant_id=tenant_id, shop_id=shop_id, transaction_type="purchase_payment", direction="expense", amount=po.total_amount, source_type="purchase_order", source_id=po.purchase_order_id, counterparty_name=supplier.name, note=note, created_by_account_id=account_id)
+        append_v2_audit_log(db, tenant_id=tenant_id, shop_id=shop_id, action="purchase_order.create", actor_id=account_id, target_type="purchase_order", target_id=po.purchase_order_id, metadata={"supplier_id": supplier_id, "amount": str(po.total_amount), "items_count": len(items)})
         db.commit(); return po
     except Exception:
         db.rollback(); raise
@@ -140,9 +147,12 @@ def list_customers(db: Session, *, tenant_id: str, shop_id: str, limit: int):
     return list(db.scalars(select(V2Customer).where(V2Customer.tenant_id == tenant_id, V2Customer.shop_id == shop_id, V2Customer.status == "active").order_by(V2Customer.created_at.desc(), V2Customer.customer_id.desc()).limit(limit)))
 
 
-def create_customer(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None):
+def create_customer(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None, account_id: str | None = None):
     now = utc_now_naive(); customer = V2Customer(customer_id=f"vcus_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, name=name.strip(), phone=(phone or None), status="active", created_at=now, updated_at=now)
-    db.add(customer); db.commit(); return customer
+    db.add(customer)
+    if account_id:
+        append_v2_audit_log(db, tenant_id=tenant_id, shop_id=shop_id, action="customer.create", actor_id=account_id, target_type="customer", target_id=customer.customer_id, metadata={"name": customer.name})
+    db.commit(); return customer
 
 
 def customer_repurchase_analysis(db: Session, *, tenant_id: str, shop_id: str):

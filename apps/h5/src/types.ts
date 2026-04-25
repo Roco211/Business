@@ -34,12 +34,29 @@ export type DailyAdvisorReport = {
   generated_by: string
   summary: string
   business_health: string
+  report_date?: string
+  generated_at?: string
   sections: { key: string; title: string; content: string; metrics: Record<string, number | string>; employee: string }[]
   next_actions: { title: string; reason: string; route: string; label: string }[]
   risk_notes: string[]
   suggestion_count: number
+  execution_recaps?: { id: string; summary: string; status: string; intent_type?: string; risk_level?: string; created_at?: string; route: string }[]
+  timeline?: { time_label: string; actor_name: string; summary: string; route: string }[]
+  history?: DailyReportHistoryItem[]
   evidence: Record<string, number | string>
 }
+export type DailyReportHistoryItem = {
+  report_date: string
+  title: string
+  summary: string
+  business_health: string
+  total_revenue: number
+  transaction_count: number
+  low_stock_count: number
+  pending_confirmation_count: number
+  route: string
+}
+export type DailyReportHistory = { items: DailyReportHistoryItem[] }
 export type Activity = { id: string; time_label: string; actor_name: string; summary: string; impact: string; route: string }
 export type TodoItem = { key: string; title: string; count: number; severity: string; route: string }
 export type NotificationItem = {

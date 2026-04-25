@@ -1,16 +1,17 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
-import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
+import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
 
-type Page = 'dashboard' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
+type Page = 'dashboard' | 'daily-report' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
 const navItems: { page: Page; label: string; icon: string; badge?: string }[] = [
   { page: 'dashboard', label: '工作台', icon: '⌂' },
   { page: 'ai', label: '我的员工', icon: '◇' },
+  { page: 'daily-report', label: '经营日报', icon: '◌', badge: 'AI' },
   { page: 'sales', label: '销售单', icon: '□' },
   { page: 'purchasing', label: '采购单', icon: '▣' },
   { page: 'customers', label: '客户复购', icon: '◎' },
@@ -32,6 +33,7 @@ function App() {
   const [state, setState] = useState<LoadState>('idle')
   const [error, setError] = useState('')
   const [overview, setOverview] = useState<Overview | null>(null)
+  const [dailyReport, setDailyReport] = useState<DailyAdvisorReport | null>(null)
   const [items, setItems] = useState<InventoryItem[]>([])
   const [stock, setStock] = useState<StockItem[]>([])
   const [events, setEvents] = useState<LedgerEvent[]>([])
@@ -51,8 +53,9 @@ function App() {
     setState('loading')
     setError('')
     try {
-      const [nextOverview, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
+      const [nextOverview, nextDailyReport, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
         api.getOverview(currentAuth),
+        api.getDailyReport(currentAuth),
         api.listItems(currentAuth),
         api.listStock(currentAuth),
         api.listEvents(currentAuth),
@@ -66,6 +69,7 @@ function App() {
         api.listConfirmations(currentAuth)
       ])
       setOverview(nextOverview)
+      setDailyReport(nextDailyReport)
       setItems(nextItems.items)
       setStock(nextStock.items)
       setEvents(nextEvents.events)
@@ -105,6 +109,7 @@ function App() {
     saveAuth(null)
     setAuth(null)
     setOverview(null)
+    setDailyReport(null)
     setItems([])
     setStock([])
     setEvents([])
@@ -151,6 +156,7 @@ function App() {
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
+        {page === 'daily-report' && dailyReport && <DailyReportPage report={dailyReport} onNavigate={setPage} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
         {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
@@ -472,6 +478,7 @@ function employeeNameForIntent(intent: string) {
 }
 
 function routeToPage(route: string): Page {
+  if (route.includes('/daily-report')) return 'daily-report'
   if (route.includes('/tasks')) return 'tasks'
   if (route.includes('/inventory')) return 'inventory'
   if (route.includes('/products')) return 'products'
@@ -508,12 +515,101 @@ function DailyAdvisorReportCard({ report, onNavigate }: { report: NonNullable<Ov
             <b>{action.title}</b>
             <small>{action.label}</small>
           </button>)}
+          <button onMouseDown={() => onNavigate('daily-report')} onTouchStart={() => onNavigate('daily-report')} onClick={() => onNavigate('daily-report')}>
+            <b>查看完整AI经营日报</b>
+            <small>看详情</small>
+          </button>
         </div>
         <div className="report-risk-notes">
           <span>风险提醒</span>
           {report.risk_notes.slice(0, 3).map((note) => <p key={note}>□ {note}</p>)}
         </div>
       </div>
+    </section>
+  )
+}
+
+function DailyReportPage({ report, onNavigate }: { report: DailyAdvisorReport; onNavigate: (page: Page) => void }) {
+  const healthLabel = report.business_health === 'attention_needed' ? '需要老板关注' : report.business_health === 'healthy' ? '经营平稳' : '数据较少'
+  const history = report.history || []
+  const recaps = report.execution_recaps || []
+  const timeline = report.timeline || []
+  return (
+    <section className="daily-detail-page">
+      <div className="page-heading daily-detail-hero">
+        <div>
+          <span className="ai-badge">{report.generated_by}</span>
+          <h1>AI经营日报</h1>
+          <p>{report.summary}</p>
+          <small>日报日期：{report.report_date || '今日'} · 生成时间：{report.generated_at || '实时生成'}</small>
+        </div>
+        <div className={`daily-health-orb ${report.business_health}`}>
+          <strong>{healthLabel}</strong>
+          <span>AI已完成复盘</span>
+        </div>
+      </div>
+      <div className="daily-detail-grid">
+        <div className="daily-detail-main">
+          <Panel title="多AI员工复盘">
+            <div className="daily-detail-sections">
+              {report.sections.map((section) => <article className="daily-detail-section" key={section.key}>
+                <small>{section.employee}</small>
+                <h3>{section.title}</h3>
+                <p>{section.content}</p>
+                <div className="mini-metrics">
+                  {Object.entries(section.metrics || {}).map(([key, value]) => <span key={key}>{key}<b>{value}</b></span>)}
+                </div>
+              </article>)}
+            </div>
+          </Panel>
+          <Panel title="AI执行复盘">
+            {recaps.length === 0 ? <div className="empty-state">今天暂无AI执行复盘，待老板确认的草稿不会自动落账。</div> : <div className="execution-recap-list compact">
+              {recaps.map((recap) => <article className="execution-recap-card" key={recap.id}>
+                <strong>{recap.summary}</strong>
+                <p>{recap.intent_type || 'AI任务'} · {recap.status} · 风险：{recap.risk_level || '未标记'}</p>
+                <button className="secondary-button" onClick={() => onNavigate(routeToPage(recap.route))}>查看任务</button>
+              </article>)}
+            </div>}
+          </Panel>
+        </div>
+        <aside className="daily-detail-side">
+          <Panel title="下一步建议">
+            <div className="report-next-actions vertical">
+              {report.next_actions.map((action) => <button key={`${action.title}-${action.route}`} onClick={() => onNavigate(routeToPage(action.route))}>
+                <b>{action.title}</b>
+                <small>{action.reason}</small>
+              </button>)}
+            </div>
+          </Panel>
+          <Panel title="风险提醒">
+            <div className="report-risk-notes detail">
+              {report.risk_notes.map((note) => <p key={note}>□ {note}</p>)}
+            </div>
+          </Panel>
+          <Panel title="日报时间线">
+            <div className="daily-timeline">
+              {timeline.map((item, index) => <button key={`${item.summary}-${index}`} onClick={() => onNavigate(routeToPage(item.route))}>
+                <span>{item.time_label}</span>
+                <strong>{item.actor_name}</strong>
+                <small>{item.summary}</small>
+              </button>)}
+            </div>
+          </Panel>
+          <Panel title="近7天历史日报">
+            <div className="daily-history-list">
+              {history.length === 0 ? <div className="empty-state">暂无历史日报。</div> : history.map((item) => <article className="daily-history-item" key={item.report_date}>
+                <div><strong>{item.report_date}</strong><small>{item.summary}</small></div>
+                <span>{formatMoney(item.total_revenue)}元</span>
+              </article>)}
+            </div>
+          </Panel>
+        </aside>
+      </div>
+      <Panel title="证据来源">
+        <div className="evidence-grid">
+          {Object.entries(report.evidence || {}).map(([key, value]) => <span key={key}>{key}<b>{value}</b></span>)}
+        </div>
+      </Panel>
     </section>
   )
 }

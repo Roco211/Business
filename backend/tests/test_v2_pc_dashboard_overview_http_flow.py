@@ -320,6 +320,43 @@ def test_pc_dashboard_overview_returns_ai_native_backend_backed_home_data(client
     assert report["evidence"]["sales_transaction_count"] == 1
 
 
+def test_pc_dashboard_daily_report_detail_and_history_are_backend_backed(client):
+    context = _seed_pc_dashboard_context()
+    headers = _login_and_select_context(
+        client, email=context["email"], tenant_id=context["tenant_id"], shop_id=context["shop_id"]
+    )
+
+    today_response = client.get("/api/v2/pc-dashboard/daily-reports/today", headers=headers)
+
+    assert today_response.status_code == 200
+    today = today_response.json()["data"]
+    assert today["title"] == "AI经营日报详情"
+    assert today["generated_by"] == "经营策略顾问"
+    assert today["report_date"]
+    assert today["summary"].startswith("今日销售额29.70元")
+    assert today["business_health"] == "attention_needed"
+    assert {section["key"] for section in today["sections"]} >= {"sales", "inventory", "tasks", "execution_recaps"}
+    assert today["execution_recaps"][0]["summary"] == "等待确认入库"
+    assert today["execution_recaps"][0]["status"] == "awaiting_confirmation"
+    assert today["timeline"]
+    assert today["history"]
+    assert today["evidence"]["source"] == "pc-dashboard-daily-report"
+    assert today["evidence"]["pending_confirmation_count"] == 1
+
+    history_response = client.get("/api/v2/pc-dashboard/daily-reports/history?days=7", headers=headers)
+
+    assert history_response.status_code == 200
+    history = history_response.json()["data"]
+    assert len(history["items"]) == 7
+    first = history["items"][0]
+    assert first["report_date"] == today["report_date"]
+    assert first["total_revenue"] == 29.7
+    assert first["transaction_count"] == 1
+    assert first["low_stock_count"] == 1
+    assert first["pending_confirmation_count"] == 1
+    assert first["route"] == "/daily-report"
+
+
 def test_pc_dashboard_overview_requires_selected_context(client):
     response = client.get("/api/v2/pc-dashboard/overview")
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -514,7 +514,7 @@ def _build_notifications(
                 "summary": str(daily_advisor_report.get("summary", "经营策略顾问已完成今日经营复盘。")),
                 "severity": "low",
                 "source_employee": "经营策略顾问",
-                "route": "/dashboard",
+                "route": "/daily-report",
                 "action_label": "看日报",
                 "evidence": ["来源: pc-dashboard-overview"],
                 "created_at": now,
@@ -620,6 +620,158 @@ def _build_daily_advisor_report(
             "active_item_count": active_item_count,
             "recent_activity_count": recent_activity_count,
         },
+    }
+
+
+def _today_report_date() -> str:
+    return datetime.utcnow().date().isoformat()
+
+
+def _build_execution_recaps(db_session: Session, *, tenant_id: str, shop_id: str, limit: int = 8) -> list[dict[str, object]]:
+    rows = db_session.execute(
+        select(V2TaskRun)
+        .where(
+            V2TaskRun.tenant_id == tenant_id,
+            V2TaskRun.shop_id == shop_id,
+        )
+        .order_by(V2TaskRun.created_at.desc())
+        .limit(limit)
+    ).scalars().all()
+    recaps: list[dict[str, object]] = []
+    for row in rows:
+        recaps.append(
+            {
+                "id": row.task_run_id,
+                "summary": row.result_summary or "AI任务已记录",
+                "status": row.status,
+                "intent_type": row.intent_type,
+                "risk_level": row.risk_level,
+                "created_at": row.created_at.isoformat() if row.created_at is not None else "",
+                "route": "/tasks" if row.status == "awaiting_confirmation" else "/dashboard",
+            }
+        )
+    return recaps
+
+
+def _build_report_history(
+    *,
+    revenue,
+    low_stock_count: int,
+    pending_confirmation_count: int,
+    days: int = 7,
+) -> list[dict[str, object]]:
+    today = datetime.utcnow().date()
+    items: list[dict[str, object]] = []
+    for offset in range(max(1, min(days, 31))):
+        report_date = today - timedelta(days=offset)
+        is_today = offset == 0
+        total_revenue = round(_to_float(revenue.total_revenue), 2) if is_today else 0.0
+        transaction_count = int(revenue.transaction_count) if is_today else 0
+        day_low_stock_count = low_stock_count if is_today else 0
+        day_pending_count = pending_confirmation_count if is_today else 0
+        health = "attention_needed" if day_low_stock_count or day_pending_count else "healthy" if transaction_count else "quiet"
+        items.append(
+            {
+                "report_date": report_date.isoformat(),
+                "title": "今日经营日报" if is_today else f"{report_date.isoformat()} 经营日报",
+                "summary": (
+                    f"销售额{total_revenue:.2f}元，{transaction_count}笔销售；"
+                    f"低库存{day_low_stock_count}个，待确认AI任务{day_pending_count}个。"
+                ),
+                "business_health": health,
+                "total_revenue": total_revenue,
+                "transaction_count": transaction_count,
+                "low_stock_count": day_low_stock_count,
+                "pending_confirmation_count": day_pending_count,
+                "route": "/daily-report",
+            }
+        )
+    return items
+
+
+def get_pc_dashboard_daily_report(
+    db_session: Session,
+    *,
+    account_id: str,
+    tenant_id: str,
+    shop_id: str,
+) -> dict[str, object]:
+    overview = get_pc_dashboard_overview(
+        db_session,
+        account_id=account_id,
+        tenant_id=tenant_id,
+        shop_id=shop_id,
+    )
+    base_report = dict(overview["daily_advisor_report"])
+    revenue = get_revenue_summary(db_session, tenant_id=tenant_id, shop_id=shop_id, days=1)
+    low_stock_alerts = get_low_stock_alerts(db_session, tenant_id=tenant_id, shop_id=shop_id, limit=20)
+    pending_confirmation_count = _get_pending_confirmation_count(db_session, tenant_id=tenant_id, shop_id=shop_id)
+    execution_recaps = _build_execution_recaps(db_session, tenant_id=tenant_id, shop_id=shop_id)
+    history = _build_report_history(
+        revenue=revenue,
+        low_stock_count=len(low_stock_alerts),
+        pending_confirmation_count=pending_confirmation_count,
+        days=7,
+    )
+    sections = list(base_report.get("sections", []))
+    sections.append(
+        {
+            "key": "execution_recaps",
+            "title": "AI执行复盘",
+            "content": f"经营策略顾问已整理最近{len(execution_recaps)}条AI任务执行记录。" if execution_recaps else "今日暂无AI执行复盘。",
+            "metrics": {"execution_recap_count": len(execution_recaps)},
+            "employee": "AI运营协调官",
+        }
+    )
+    timeline = [
+        {
+            "time_label": "今日",
+            "actor_name": section.get("employee", "经营策略顾问"),
+            "summary": section.get("content", "日报分段已生成"),
+            "route": "/daily-report",
+        }
+        for section in sections[:6]
+    ]
+    evidence = dict(base_report.get("evidence", {}))
+    evidence.update(
+        {
+            "source": "pc-dashboard-daily-report",
+            "report_date": _today_report_date(),
+            "pending_confirmation_count": pending_confirmation_count,
+            "low_stock_count": len(low_stock_alerts),
+            "execution_recap_count": len(execution_recaps),
+        }
+    )
+    return {
+        **base_report,
+        "title": "AI经营日报详情",
+        "report_date": _today_report_date(),
+        "generated_at": datetime.utcnow().replace(microsecond=0).isoformat(),
+        "sections": sections,
+        "execution_recaps": execution_recaps,
+        "timeline": timeline,
+        "history": history,
+        "evidence": evidence,
+    }
+
+
+def get_pc_dashboard_daily_report_history(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    days: int = 7,
+) -> dict[str, object]:
+    revenue = get_revenue_summary(db_session, tenant_id=tenant_id, shop_id=shop_id, days=1)
+    low_stock_alerts = get_low_stock_alerts(db_session, tenant_id=tenant_id, shop_id=shop_id, limit=20)
+    pending_confirmation_count = _get_pending_confirmation_count(db_session, tenant_id=tenant_id, shop_id=shop_id)
+    return {
+        "items": _build_report_history(
+            revenue=revenue,
+            low_stock_count=len(low_stock_alerts),
+            pending_confirmation_count=pending_confirmation_count,
+            days=days,
+        )
     }
 
 

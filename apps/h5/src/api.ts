@@ -1,5 +1,5 @@
 
-import type { ApiEnvelope, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, Shop, StockItem, Supplier, Tenant } from './types'
+import type { ApiEnvelope, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, DailyReportHistory, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, Shop, StockItem, Supplier, Tenant } from './types'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const AUTH_KEY = 'business_h5_auth'
@@ -78,6 +78,8 @@ export async function bootstrapContext(accessToken: string, refreshToken?: strin
 
 export const api = {
   getOverview: (auth: AuthState) => request<Overview>('/api/v2/pc-dashboard/overview', {}, auth),
+  getDailyReport: (auth: AuthState) => request<DailyAdvisorReport>('/api/v2/pc-dashboard/daily-reports/today', {}, auth),
+  getDailyReportHistory: (auth: AuthState, days = 7) => request<DailyReportHistory>(`/api/v2/pc-dashboard/daily-reports/history?days=${days}`, {}, auth),
   listItems: (auth: AuthState) => request<{ items: InventoryItem[]; count: number }>('/api/v2/inventory/items?limit=50', {}, auth),
   createItem: (auth: AuthState, input: { name: string; sku?: string; barcode?: string; default_unit: string }) => request<{ item: InventoryItem }>('/api/v2/inventory/items', { method: 'POST', body: JSON.stringify(input) }, auth),
   updateItem: (auth: AuthState, itemId: string, input: Partial<{ name: string; sku: string; barcode: string; default_unit: string }>) => request<{ item: InventoryItem }>(`/api/v2/inventory/items/${itemId}`, { method: 'PATCH', body: JSON.stringify(input) }, auth),

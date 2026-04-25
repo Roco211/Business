@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
 import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
@@ -43,6 +43,7 @@ function App() {
   const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([])
   const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null)
   const [confirmations, setConfirmations] = useState<Confirmation[]>([])
+  const [guideSignal, setGuideSignal] = useState(0)
 
   async function refresh(currentAuth = auth) {
     if (!currentAuth) return
@@ -145,10 +146,10 @@ function App() {
         <button className="ghost-button" onClick={handleLogout}>退出登录</button>
       </aside>
       <main className="main-panel">
-        <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} />
+        <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} onGuide={() => { setPage('dashboard'); setGuideSignal((value) => value + 1) }} />
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
-        {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} />}
+        {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
         {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
@@ -181,7 +182,7 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
   )
 }
 
-function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; onRefresh: () => void; loading: boolean }) {
+function TopBar({ overview, onRefresh, loading, onGuide }: { overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void }) {
   return (
     <header className="top-bar">
       <div className="greeting-block">
@@ -189,7 +190,7 @@ function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; o
         <p>AI员工们正在为你打理店铺，请查看今日经营概况</p>
       </div>
       <div className="top-actions">
-        <button className="guide-button">新手引导</button>
+        <button className="guide-button" onClick={onGuide}>新手引导</button>
         <span className="notify-dot">○</span>
         <div className="store-profile">
           <div className="store-avatar">五</div>
@@ -204,10 +205,15 @@ function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; o
   )
 }
 
-function Dashboard({ auth, overview, onNavigate, onChanged }: { auth: AuthState; overview: Overview; onNavigate: (page: Page) => void; onChanged: () => void }) {
+function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { auth: AuthState; overview: Overview; onNavigate: (page: Page) => void; onChanged: () => void; guideSignal: number }) {
+  const guideRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    if (guideSignal > 0) guideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [guideSignal])
   return (
     <div className="dashboard-layout">
       <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
+      <OnboardingDemoFlow refEl={guideRef} auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
       <section className="kpi-grid">
         {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
       </section>
@@ -345,6 +351,68 @@ function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onN
           {result.meta && <small>任务类型：{result.meta}</small>}
           {result.kind === 'draft' && <button className="secondary-button" onClick={() => onNavigate('tasks')}>去任务中心确认</button>}
         </div>}
+      </div>
+    </section>
+  )
+}
+
+type DemoFlowStep = {
+  key: string
+  title: string
+  description: string
+  status: 'ready' | 'done' | 'manual'
+}
+
+function OnboardingDemoFlow({ refEl, auth, onNavigate, onChanged }: { refEl: React.RefObject<HTMLElement | null>; auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void }) {
+  const [running, setRunning] = useState(false)
+  const [revenueReply, setRevenueReply] = useState('')
+  const [confirmationId, setConfirmationId] = useState('')
+  const [error, setError] = useState('')
+
+  async function runOneClickDemo() {
+    if (running) return
+    setRunning(true)
+    setError('')
+    setRevenueReply('')
+    setConfirmationId('')
+    try {
+      const revenue = await api.chat(auth, '今天营业额多少？')
+      setRevenueReply(revenue.reply || '经营数据分析员已完成营业额查询。')
+      const draft = await api.createSalesOrderDraft(auth, '卖出1把电动螺丝刀，单价99，客户老王')
+      setConfirmationId(draft.confirmation.confirmation_id)
+      await onChanged()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '一键演示失败，请稍后重试。')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  const steps: DemoFlowStep[] = [
+    { key: 'query', title: '1. 查经营结果', description: revenueReply || '先让经营数据分析员查询今日营业额。', status: revenueReply ? 'done' : 'ready' },
+    { key: 'draft', title: '2. 生成销售草稿', description: confirmationId ? `已生成待确认任务 ${confirmationId}` : '再让销售分析员生成销售单草稿。', status: confirmationId ? 'done' : 'ready' },
+    { key: 'confirm', title: '3. 老板确认执行', description: '进入任务中心，查看风险、证据和影响后手动确认。', status: confirmationId ? 'manual' : 'ready' },
+    { key: 'recap', title: '4. 查看执行复盘', description: '确认后页面会展示已创建销售单、已扣减库存、已记录销售收入。', status: 'manual' }
+  ]
+
+  return (
+    <section className="onboarding-demo-card" ref={refEl}>
+      <div className="onboarding-copy">
+        <div className="ai-badge">新手引导</div>
+        <h2>老板一分钟体验流程</h2>
+        <p>从一句话经营查询开始，自动生成销售草稿；真正落账前仍然必须由老板在任务中心确认。</p>
+        <div className="onboarding-actions">
+          <button className="primary-button" onClick={() => void runOneClickDemo()} disabled={running}>{running ? '演示中...' : '开始一键演示'}</button>
+          <button className="secondary-button" onClick={() => onNavigate('tasks')} disabled={!confirmationId}>去任务中心确认</button>
+        </div>
+        {error && <div className="onboarding-error">{error}</div>}
+      </div>
+      <div className="onboarding-steps">
+        {steps.map((step) => <div className={`onboarding-step ${step.status}`} key={step.key}>
+          <span>{step.status === 'done' ? '完成' : step.status === 'manual' ? '手动' : '准备'}</span>
+          <strong>{step.title}</strong>
+          <p>{step.description}</p>
+        </div>)}
       </div>
     </section>
   )

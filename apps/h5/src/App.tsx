@@ -540,10 +540,135 @@ function AiPage({ auth, overview, onChanged }: { auth: AuthState; overview: Over
   return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">AI运营协调官</div><h1>自然语言经营入口</h1><p>可查询营业数据、库存、热销排行；涉及业务写入时后端会生成待确认任务，审批后才落账。</p></div></section><Panel title="问AI运营协调官"><div className="chat-box"><textarea value={message} onChange={(e) => setMessage(e.target.value)} /><button className="primary-button" onClick={() => void send()}>发送</button>{reply && <div className="assistant-reply">{reply}</div>}</div></Panel><Panel title="AI生成销售单草稿"><div className="chat-box"><textarea value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} /><button className="primary-button" onClick={() => void createDraft()}>生成待确认销售单</button>{draftResult && <div className="assistant-reply">{draftResult}，请到任务中心审批。</div>}</div></Panel><Panel title="建议快捷入口"><SuggestionList suggestions={overview?.suggestions || []} /></Panel></div>
 }
 
+type TaskViewModel = {
+  employee: string
+  title: string
+  impact: string
+  risk: string
+  confidence: string
+  routeHint: string
+  evidence: string[]
+  summary: { label: string; value: string }[]
+}
+
+function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
+  const payload = confirmation.draft_payload || {}
+  const type = confirmation.confirmation_type
+  if (type.includes('sales.order_create')) {
+    const lines = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : []
+    const total = lines.reduce((sum, line) => sum + Number(line.line_amount || line.amount || 0), 0)
+    const names = lines.map((line) => String(line.item_name || line.name || line.inventory_item_id || '商品')).join('、')
+    return {
+      employee: '销售分析员',
+      title: '销售单草稿等待确认',
+      impact: '确认后会创建销售单、扣减库存，并写入销售收入流水。',
+      risk: '高风险：会改变库存和财务数据',
+      confidence: lines.length ? '已解析商品明细' : '需要老板复核明细',
+      routeHint: '销售单 / 库存 / 财务',
+      evidence: [`识别到 ${lines.length || 1} 条销售明细`, names ? `商品：${names}` : '商品信息来自AI草稿', total > 0 ? `预计金额：${formatMoney(total)} 元` : '金额以草稿明细为准'],
+      summary: [
+        { label: '客户', value: String(payload.customer_name || payload.customer_id || '未填写') },
+        { label: '明细数', value: String(lines.length || '-') },
+        { label: '付款方式', value: String(payload.payment_method || '未填写') }
+      ]
+    }
+  }
+  if (type.includes('inventory.stock_in')) {
+    return {
+      employee: '库存风控专员',
+      title: '入库草稿等待确认',
+      impact: '确认后会增加库存并写入库存流水。',
+      risk: '中风险：会改变库存数量',
+      confidence: '已生成入库草稿',
+      routeHint: '库存管理',
+      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || '待确认')}`, `数量：${String(payload.quantity || '-')}`],
+      summary: [
+        { label: '单位', value: String(payload.unit || '-') },
+        { label: '单价', value: String(payload.price || '-') },
+        { label: '原因', value: String(payload.reason || 'AI生成草稿') }
+      ]
+    }
+  }
+  if (type.includes('inventory.stock_out')) {
+    return {
+      employee: '库存风控专员',
+      title: '出库草稿等待确认',
+      impact: '确认后会扣减库存并写入库存流水。',
+      risk: '高风险：会减少库存',
+      confidence: '已生成出库草稿',
+      routeHint: '库存管理',
+      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || '待确认')}`, `数量：${String(payload.quantity || '-')}`],
+      summary: [
+        { label: '单位', value: String(payload.unit || '-') },
+        { label: '单价', value: String(payload.price || '-') },
+        { label: '原因', value: String(payload.reason || 'AI生成草稿') }
+      ]
+    }
+  }
+  return {
+    employee: 'AI运营协调官',
+    title: 'AI任务草稿等待确认',
+    impact: '确认后才会执行对应业务动作。',
+    risk: '需复核：业务影响以草稿内容为准',
+    confidence: '已生成待确认草稿',
+    routeHint: '任务中心',
+    evidence: [`类型：${type}`, `字段数：${Object.keys(payload).length}`],
+    summary: Object.entries(payload).slice(0, 3).map(([label, value]) => ({ label, value: String(value ?? '-') }))
+  }
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return '刚刚'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
 function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void }) {
   async function approve(id: string) { await api.approveConfirmation(auth, id); onChanged() }
   async function reject(id: string) { await api.rejectConfirmation(auth, id); onChanged() }
-  return <Panel title="AI待确认任务">{confirmations.length === 0 ? <Empty text="暂无待确认AI任务。" /> : <div className="stack-list">{confirmations.map((c) => <div className="task-card" key={c.confirmation_id}><b>{c.confirmation_type}</b><pre>{JSON.stringify(c.draft_payload, null, 2)}</pre><button className="primary-button" onClick={() => void approve(c.confirmation_id)}>批准落账</button><button className="secondary-button" onClick={() => void reject(c.confirmation_id)}>拒绝</button></div>)}</div>}</Panel>
+  return (
+    <div className="content-grid">
+      <section className="hero-card task-hero">
+        <div>
+          <div className="ai-badge">AI Task Flow</div>
+          <h1>AI任务中心</h1>
+          <p>每个高风险经营动作都会先进入任务流：AI理解与生成草稿，但必须老板确认后才落账。</p>
+        </div>
+        <div className="task-hero-count"><span>{confirmations.length}</span><small>待确认任务</small></div>
+      </section>
+      <Panel title="等待老板确认的AI任务">
+        {confirmations.length === 0 ? <Empty text="暂无待确认AI任务。你可以在首页 Command Center 里生成销售草稿来体验完整任务流。" /> : <div className="task-flow-list">
+          {confirmations.map((confirmation) => {
+            const vm = buildTaskViewModel(confirmation)
+            return <article className="task-flow-card" key={confirmation.confirmation_id}>
+              <div className="task-flow-head">
+                <div><span className="task-employee">{vm.employee}</span><h3>{vm.title}</h3><p>{vm.impact}</p></div>
+                <div className="task-status-pill">等待确认</div>
+              </div>
+              <div className="task-stage-rail" aria-label="AI任务阶段">
+                {['已发现', '已分析', '已生成草稿', '等待老板确认'].map((stage) => <span key={stage}>{stage}</span>)}
+              </div>
+              <div className="task-info-grid">
+                <div className="task-info-box"><small>风险边界</small><b>{vm.risk}</b></div>
+                <div className="task-info-box"><small>AI判断</small><b>{vm.confidence}</b></div>
+                <div className="task-info-box"><small>影响模块</small><b>{vm.routeHint}</b></div>
+                <div className="task-info-box"><small>创建时间</small><b>{formatDateTime(confirmation.created_at)}</b></div>
+              </div>
+              <div className="task-evidence"><strong>AI依据</strong>{vm.evidence.map((item) => <span key={item}>{item}</span>)}</div>
+              <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
+              <details className="task-raw-payload"><summary>查看原始草稿数据</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
+              <div className="task-actions">
+                <button className="primary-button" onClick={() => void approve(confirmation.confirmation_id)}>确认并执行</button>
+                <button className="secondary-button" onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
+                <span>任务ID：{confirmation.confirmation_id}</span>
+              </div>
+            </article>
+          })}
+        </div>}
+      </Panel>
+    </div>
+  )
 }
 
 const moduleRoadmap = [

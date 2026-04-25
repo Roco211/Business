@@ -105,7 +105,10 @@ def list_v2_inventory_items(
     limit: int,
 ) -> list[V2InventoryItem]:
     safe_limit = max(1, min(limit, 50))
-    statement = select(V2InventoryItem).where(V2InventoryItem.tenant_id == tenant_id)
+    statement = select(V2InventoryItem).where(
+        V2InventoryItem.tenant_id == tenant_id,
+        V2InventoryItem.status == "active",
+    )
     if query is not None and query.strip():
         statement = statement.where(V2InventoryItem.name.ilike(f"%{query.strip()}%"))
     statement = statement.order_by(V2InventoryItem.updated_at.desc(), V2InventoryItem.inventory_item_id.desc()).limit(
@@ -131,6 +134,8 @@ def list_v2_inventory_stock(
         .where(
             V2InventoryStockSnapshot.tenant_id == tenant_id,
             V2InventoryStockSnapshot.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
         )
         .order_by(V2InventoryStockSnapshot.updated_at.desc(), V2InventoryStockSnapshot.snapshot_id.desc())
         .limit(safe_limit)
@@ -155,6 +160,8 @@ def list_v2_inventory_events(
         .where(
             V2InventoryLedgerEvent.tenant_id == tenant_id,
             V2InventoryLedgerEvent.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
         )
         .order_by(V2InventoryLedgerEvent.occurred_at.desc(), V2InventoryLedgerEvent.event_id.desc())
         .limit(safe_limit)

@@ -378,7 +378,28 @@ function Panel({ title, action, children }: { title: string; action?: string; ch
 function PriorityCard({ item }: { item: { title: string; reason: string; severity: string; evidence: string[] } }) { return <div className={`priority-card ${item.severity}`}><span className="todo-check">□</span><div><strong>{item.title}</strong><p>{item.reason}</p><small>{item.evidence.join(' / ')}</small></div></div> }
 function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {
   const avatars = ['◉','◇','▣','□','◎']
-  return <div className="employee-grid">{employees.map((e, index) => <div className={`employee-card tone-${index % 5}`} key={e.key}><div className="employee-avatar">{avatars[index % avatars.length]}</div><b>{e.name}</b><span>{e.description}</span><em>{e.status === 'working' ? '员工工作中' : e.status}</em><div className="employee-metrics"><small>今日任务<strong>{index + 1}</strong></small><small>状态<strong>正常</strong></small></div><button className="detail-button">查看详情</button></div>)}</div>
+  return (
+    <div className="employee-grid">
+      {employees.map((e, index) => {
+        const visibleMetrics = e.metrics.slice(0, 3)
+        return (
+          <div className={`employee-card tone-${index % 5} status-${e.status}`} key={e.key}>
+            <div className="employee-avatar">{avatars[index % avatars.length]}</div>
+            <b>{e.name}</b>
+            <span>{e.description}</span>
+            <em>{e.status_label || (e.status === 'working' ? '员工工作中' : e.status)}</em>
+            <div className="employee-metrics">
+              {visibleMetrics.map((metric) => (
+                <small key={metric.label}>{metric.label}<strong>{metric.value}{metric.unit || ''}</strong></small>
+              ))}
+            </div>
+            <p className="employee-last">最近：{e.last_activity_label || '暂无新任务'}</p>
+            <button className="detail-button">{e.primary_action?.label || '查看详情'}</button>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s, index) => <div className={`suggestion-card suggestion-${index % 3}`} key={s.id}><div className="suggestion-title"><i>{['↑','◇','✧'][index % 3]}</i><b>{s.title}</b></div><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small><button>查看建议</button></div>)}</div> }
 function ActivityList({ activities }: { activities: Activity[] }) { return <div className="timeline-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><i></i><div><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div></div>)}</div> }

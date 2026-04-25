@@ -260,7 +260,8 @@ def test_pc_dashboard_overview_returns_ai_native_backend_backed_home_data(client
     assert kpis["low_stock_count"]["value"] == 1
     assert kpis["pending_confirmation_count"]["value"] == 1
 
-    employee_names = {employee["name"] for employee in payload["ai_employees"]}
+    employees = {employee["key"]: employee for employee in payload["ai_employees"]}
+    employee_names = {employee["name"] for employee in employees.values()}
     assert "AI运营协调官" in employee_names
     assert "经营数据分析员" in employee_names
     assert "库存风控专员" in employee_names
@@ -268,6 +269,20 @@ def test_pc_dashboard_overview_returns_ai_native_backend_backed_home_data(client
     assert "经营策略顾问" in employee_names
     informal_coordinator_name = "\u5c0f\u96c5"
     assert informal_coordinator_name not in employee_names
+
+    coordinator = employees["operations_coordinator"]
+    assert coordinator["status"] == "attention_needed"
+    assert coordinator["status_label"] == "等待老板确认"
+    assert coordinator["today_task_count"] == 1
+    assert coordinator["pending_confirmation_count"] == 1
+    assert coordinator["completed_task_count"] == 0
+    assert coordinator["last_activity_label"] == "等待确认入库"
+
+    inventory_employee = employees["inventory_risk_controller"]
+    assert inventory_employee["status_label"] == "等待老板确认"
+    assert inventory_employee["today_task_count"] == 1
+    assert inventory_employee["pending_confirmation_count"] == 1
+    assert {metric["label"] for metric in inventory_employee["metrics"]} >= {"今日任务", "待确认", "低库存商品"}
 
     assert payload["top_priorities"]
     assert payload["suggestions"]

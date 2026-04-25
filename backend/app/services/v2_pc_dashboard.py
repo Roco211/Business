@@ -12,6 +12,7 @@ from app.models import (
     V2InventoryLedgerEvent,
     V2InventoryStockSnapshot,
     V2Shop,
+    V2TaskRun,
     V2Tenant,
 )
 from app.services.v2_analytics import get_daily_revenue_series, get_low_stock_alerts, get_revenue_summary, get_sales_ranking
@@ -110,6 +111,132 @@ def _build_kpis(*, revenue, low_stock_count: int, pending_confirmation_count: in
     ]
 
 
+def _employee_key_for_intent(intent_type: str | None) -> str:
+    normalized = (intent_type or "").lower()
+    if normalized.startswith("sales") or "revenue" in normalized or "sales" in normalized:
+        return "business_data_analyst"
+    if normalized.startswith("purchase"):
+        return "purchase_replenishment_specialist"
+    if "inventory" in normalized or normalized in {"stock_in", "stock_out"} or "stock" in normalized:
+        return "inventory_risk_controller"
+    if "catalog" in normalized or "product" in normalized or "item" in normalized:
+        return "product_catalog_manager"
+    return "operations_coordinator"
+
+
+def _status_label(status: str, *, pending_count: int, failed_count: int) -> str:
+    if pending_count > 0 or status == "attention_needed":
+        return "等待老板确认"
+    if failed_count > 0 or status == "error":
+        return "需要处理异常"
+    if status == "working":
+        return "员工工作中"
+    if status == "ready":
+        return "已待命"
+    return "空闲待命"
+
+
+def _build_employee_runtime_stats(db_session: Session, *, tenant_id: str, shop_id: str) -> dict[str, dict[str, object]]:
+    stats: dict[str, dict[str, object]] = {}
+    task_runs = list(
+        db_session.scalars(
+            select(V2TaskRun)
+            .where(
+                V2TaskRun.tenant_id == tenant_id,
+                V2TaskRun.shop_id == shop_id,
+            )
+            .order_by(V2TaskRun.updated_at.desc(), V2TaskRun.created_at.desc())
+        )
+    )
+    pending_confirmations = list(
+        db_session.scalars(
+            select(V2Confirmation).where(
+                V2Confirmation.tenant_id == tenant_id,
+                V2Confirmation.shop_id == shop_id,
+                V2Confirmation.status == "pending",
+            )
+        )
+    )
+    task_key_by_id = {task.task_run_id: _employee_key_for_intent(task.intent_type) for task in task_runs}
+
+    def ensure(key: str) -> dict[str, object]:
+        return stats.setdefault(
+            key,
+            {
+                "today_task_count": 0,
+                "pending_confirmation_count": 0,
+                "completed_task_count": 0,
+                "failed_task_count": 0,
+                "last_activity_label": "暂无新任务",
+            },
+        )
+
+    for task in task_runs:
+        key = task_key_by_id[task.task_run_id]
+        entry = ensure(key)
+        entry["today_task_count"] = int(entry["today_task_count"]) + 1
+        if task.status in {"completed", "approved", "committed"} or task.completed_at is not None:
+            entry["completed_task_count"] = int(entry["completed_task_count"]) + 1
+        if task.status in {"failed", "error"} or task.error_code:
+            entry["failed_task_count"] = int(entry["failed_task_count"]) + 1
+        if entry["last_activity_label"] == "暂无新任务" and task.result_summary:
+            entry["last_activity_label"] = task.result_summary
+
+    coordinator = ensure("operations_coordinator")
+    if task_runs:
+        coordinator["today_task_count"] = len(task_runs)
+        coordinator["completed_task_count"] = sum(
+            1 for task in task_runs if task.status in {"completed", "approved", "committed"} or task.completed_at is not None
+        )
+        coordinator["failed_task_count"] = sum(1 for task in task_runs if task.status in {"failed", "error"} or task.error_code)
+        first_summary = next((task.result_summary for task in task_runs if task.result_summary), None)
+        if first_summary:
+            coordinator["last_activity_label"] = first_summary
+    for confirmation in pending_confirmations:
+        key = task_key_by_id.get(confirmation.task_run_id, "operations_coordinator")
+        ensure(key)["pending_confirmation_count"] = int(ensure(key)["pending_confirmation_count"]) + 1
+        coordinator["pending_confirmation_count"] = int(coordinator["pending_confirmation_count"]) + 1
+
+    if pending_confirmations and coordinator["last_activity_label"] == "暂无新任务":
+        coordinator["last_activity_label"] = "有AI草稿等待确认"
+    return stats
+
+
+def _merge_employee_runtime(employee: dict[str, object], stats: dict[str, dict[str, object]]) -> dict[str, object]:
+    key = str(employee["key"])
+    runtime = stats.get(
+        key,
+        {
+            "today_task_count": 0,
+            "pending_confirmation_count": 0,
+            "completed_task_count": 0,
+            "failed_task_count": 0,
+            "last_activity_label": "暂无新任务",
+        },
+    )
+    pending_count = int(runtime["pending_confirmation_count"])
+    failed_count = int(runtime["failed_task_count"])
+    status = "attention_needed" if pending_count else "error" if failed_count else str(employee.get("status", "idle"))
+    metrics = list(employee.get("metrics", []))
+    metrics = [
+        {"label": "今日任务", "value": int(runtime["today_task_count"]), "unit": "个"},
+        {"label": "待确认", "value": pending_count, "unit": "个"},
+        {"label": "已完成", "value": int(runtime["completed_task_count"]), "unit": "个"},
+        *metrics,
+    ]
+    return {
+        **employee,
+        "status": status,
+        "status_label": _status_label(status, pending_count=pending_count, failed_count=failed_count),
+        "today_task_count": int(runtime["today_task_count"]),
+        "pending_confirmation_count": pending_count,
+        "completed_task_count": int(runtime["completed_task_count"]),
+        "failed_task_count": failed_count,
+        "last_activity_label": str(runtime["last_activity_label"]),
+        "metrics": metrics,
+    }
+
+
 def _build_ai_employees(
     *,
     revenue,
@@ -117,8 +244,9 @@ def _build_ai_employees(
     pending_confirmation_count: int,
     active_item_count: int,
     recent_activity_count: int,
+    employee_stats: dict[str, dict[str, object]],
 ) -> list[dict[str, object]]:
-    return [
+    employees = [
         {
             "key": "operations_coordinator",
             "name": "AI运营协调官",
@@ -163,6 +291,7 @@ def _build_ai_employees(
             "primary_action": {"label": "查看建议", "route": "/dashboard#suggestions"},
         },
     ]
+    return [_merge_employee_runtime(employee, employee_stats) for employee in employees]
 
 
 def _build_top_priorities(*, low_stock_count: int, pending_confirmation_count: int, revenue) -> list[dict[str, object]]:
@@ -348,6 +477,7 @@ def get_pc_dashboard_overview(
     low_stock_count = len(low_stock_alerts)
     active_item_count = _get_active_item_count(db_session, tenant_id=tenant_id)
     recent_activity_count = _get_recent_activity_count(db_session, tenant_id=tenant_id, shop_id=shop_id)
+    employee_stats = _build_employee_runtime_stats(db_session, tenant_id=tenant_id, shop_id=shop_id)
 
     return {
         "store": {
@@ -373,6 +503,7 @@ def get_pc_dashboard_overview(
             pending_confirmation_count=pending_confirmation_count,
             active_item_count=active_item_count,
             recent_activity_count=recent_activity_count,
+            employee_stats=employee_stats,
         ),
         "top_priorities": _build_top_priorities(
             low_stock_count=low_stock_count,

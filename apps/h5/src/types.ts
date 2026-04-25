@@ -13,7 +13,20 @@ export type AuthState = {
 }
 
 export type Kpi = { key: string; label: string; value: number | string; unit?: string; trend_label?: string; status?: string }
-export type AiEmployee = { key: string; name: string; description: string; status: string; metrics: { label: string; value: number | string; unit?: string }[]; primary_action?: { label: string; route: string } }
+export type AiEmployee = {
+  key: string
+  name: string
+  description: string
+  status: string
+  status_label?: string
+  today_task_count?: number
+  pending_confirmation_count?: number
+  completed_task_count?: number
+  failed_task_count?: number
+  last_activity_label?: string
+  metrics: { label: string; value: number | string; unit?: string }[]
+  primary_action?: { label: string; route: string }
+}
 export type Priority = { id: string; title: string; reason: string; severity: string; evidence: string[]; action: { label: string; route: string } }
 export type Suggestion = { id: string; type: string; title: string; summary: string; evidence: string[]; risk: string; confidence: string; requires_confirmation: boolean; action: { label: string; route: string } }
 export type Activity = { id: string; time_label: string; actor_name: string; summary: string; impact: string; route: string }

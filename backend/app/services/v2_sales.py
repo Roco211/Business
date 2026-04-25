@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot
+from app.models import V2Customer, V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot
 from app.models.v2_sales import V2SalesOrder, V2SalesOrderLine
 from app.services.v2_time import utc_now_naive
 from app.services.v2_commercial import add_finance_transaction
@@ -75,6 +75,7 @@ def create_v2_sales_order(
     *,
     tenant_id: str,
     shop_id: str,
+    customer_id: str | None,
     customer_name: str | None,
     payment_method: str,
     items: list[object],
@@ -83,8 +84,21 @@ def create_v2_sales_order(
 ) -> V2CreatedSalesOrderResult:
     normalized_lines = _normalize_sales_order_lines(items)
     normalized_payment_method = (payment_method or "unknown").strip() or "unknown"
+    normalized_customer_id = (customer_id or "").strip() or None
     normalized_customer_name = (customer_name or "").strip() or None
     normalized_note = (note or "").strip() or None
+    if normalized_customer_id:
+        customer = db_session.scalar(
+            select(V2Customer).where(
+                V2Customer.customer_id == normalized_customer_id,
+                V2Customer.tenant_id == tenant_id,
+                V2Customer.shop_id == shop_id,
+                V2Customer.status == "active",
+            )
+        )
+        if customer is None:
+            raise V2SalesOrderValidationError("customer_id not found")
+        normalized_customer_name = normalized_customer_name or customer.name
 
     try:
         now = utc_now_naive()
@@ -95,6 +109,7 @@ def create_v2_sales_order(
             shop_id=shop_id,
             order_no=_generate_order_no(),
             status="paid",
+            customer_id=normalized_customer_id,
             customer_name=normalized_customer_name,
             payment_method=normalized_payment_method,
             total_amount=Decimal("0.00"),

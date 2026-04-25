@@ -137,10 +137,10 @@ function App() {
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard overview={overview} onNavigate={setPage} />}
-        {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} onChanged={() => void refresh()} />}
+        {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
-        {page === 'customers' && <CustomersPage auth={auth} customers={customers} repurchase={repurchase} onChanged={() => void refresh()} />}
-        {page === 'finance' && <FinancePage summary={financeSummary} transactions={financeTransactions} />}
+        {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
+        {page === 'finance' && <FinancePage auth={auth} summary={financeSummary} transactions={financeTransactions} onTransactionsChanged={setFinanceTransactions} />}
         {page === 'products' && <ProductsPage auth={auth} items={items} onChanged={() => void refresh()} />}
         {page === 'inventory' && <InventoryPage auth={auth} items={items} stock={stock} events={events} onChanged={() => void refresh()} />}
         {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} />}
@@ -219,25 +219,103 @@ function EmployeeGrid({ employees }: { employees: AiEmployee[] }) { return <div 
 function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s) => <div className="suggestion-card" key={s.id}><b>{s.title}</b><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small></div>)}</div> }
 function ActivityList({ activities }: { activities: Activity[] }) { return <div className="stack-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div>)}</div> }
 
-function SalesPage({ auth, stock, orders, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; onChanged: () => void }) {
+function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; customers: Customer[]; onChanged: () => void }) {
   const sellable = stock.find((item) => Number(item.current_quantity || 0) > 0)
   const [quantity, setQuantity] = useState('1')
   const [unitPrice, setUnitPrice] = useState('')
   const [customerName, setCustomerName] = useState('散客')
+  const [customerId, setCustomerId] = useState('')
+  const [selectedOrder, setSelectedOrder] = useState<SalesOrder | null>(null)
+  const [returnQuantity, setReturnQuantity] = useState('1')
+  const [operationMessage, setOperationMessage] = useState('')
+  const selectedLine = selectedOrder?.items?.[0]
+
   async function createOrder() {
     if (!sellable) return
+    const selectedCustomer = customers.find((customer) => customer.customer_id === customerId)
     const price = Number(unitPrice || sellable.current_price || 1)
     await api.createSalesOrder(auth, {
-      customer_name: customerName,
+      customer_id: selectedCustomer?.customer_id,
+      customer_name: selectedCustomer?.name || customerName,
       payment_method: 'cash',
       items: [{ inventory_item_id: sellable.inventory_item_id, quantity: Number(quantity || 1), unit_price: price }],
       note: 'PC/H5销售单'
     })
     setQuantity('1')
     setUnitPrice('')
+    setOperationMessage('销售单已创建，库存与财务流水已同步更新。')
     onChanged()
   }
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F1 已开放</div><h1>销售单/订单闭环</h1><p>创建销售单会写入真实订单、订单明细，并同步生成库存出库流水，营业额不再依赖假数据。</p></div><button className="primary-button" disabled={!sellable} onClick={() => void createOrder()}>创建销售单</button></section><Panel title="快速开销售单"><div className="inline-form"><input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="客户名称" /><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="数量" /><input value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder={`单价，默认${sellable?.current_price || 1}`} /></div><p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}</p></Panel><Panel title="销售单列表"><DataTable rows={orders} columns={['order_no','customer_name','payment_method','total_amount','items_count','status']} /></Panel></div>
+
+  async function openDetail(orderId: string) {
+    const data = await api.getSalesOrder(auth, orderId)
+    setSelectedOrder(data.order)
+    setReturnQuantity('1')
+    setOperationMessage('')
+  }
+
+  async function cancelOrder() {
+    if (!selectedOrder) return
+    if (!window.confirm('确认取消该销售单？取消后会回补库存并写入退款财务流水。')) return
+    const data = await api.cancelSalesOrder(auth, selectedOrder.sales_order_id, 'PC/H5取消销售单')
+    setSelectedOrder(data.order)
+    setOperationMessage('销售单已取消，库存已回补，财务退款流水已生成。')
+    onChanged()
+  }
+
+  async function returnOrder() {
+    if (!selectedOrder || !selectedLine) return
+    const data = await api.returnSalesOrder(auth, selectedOrder.sales_order_id, {
+      items: [{ sales_order_line_id: selectedLine.sales_order_line_id, quantity: Number(returnQuantity || 1) }],
+      reason: 'PC/H5退货退款'
+    })
+    setSelectedOrder(data.order)
+    setOperationMessage('退货退款已完成，库存已回补，财务流水已更新。')
+    onChanged()
+  }
+
+  return (
+    <div className="content-grid">
+      <section className="hero-card">
+        <div>
+          <div className="ai-badge">H1 已增强</div>
+          <h1>销售单生命周期管理</h1>
+          <p>支持创建销售单、查看详情、取消订单、退货退款，并联动库存回补与财务流水。</p>
+        </div>
+        <button className="primary-button" disabled={!sellable} onClick={() => void createOrder()}>创建销售单</button>
+      </section>
+      <Panel title="快速开销售单">
+        <div className="inline-form">
+          <select value={customerId} onChange={(e) => { setCustomerId(e.target.value); const customer = customers.find((c) => c.customer_id === e.target.value); if (customer) setCustomerName(customer.name) }}>
+            <option value="">散客/手填客户</option>
+            {customers.map((customer) => <option key={customer.customer_id} value={customer.customer_id}>{customer.name}</option>)}
+          </select>
+          <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="客户名称" />
+          <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="数量" />
+          <input value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder={`单价，默认${sellable?.current_price || 1}`} />
+        </div>
+        <p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}；选择客户后销售单会写入 customer_id，复购分析更准确。</p>
+      </Panel>
+      <Panel title="销售单列表">
+        <DataTable rows={orders} columns={['order_no','customer_name','total_amount','items_count','status']} action={(row) => <button className="secondary-button" onClick={() => void openDetail(String(row.sales_order_id))}>查看/处理</button>} />
+      </Panel>
+      {selectedOrder && <Panel title={`销售单详情：${selectedOrder.order_no}`}>
+        <section className="detail-grid">
+          <div><b>客户</b><p>{selectedOrder.customer_name || '散客'}</p></div>
+          <div><b>状态</b><p>{selectedOrder.status}</p></div>
+          <div><b>金额</b><p>{formatMoney(selectedOrder.total_amount)} 元</p></div>
+          <div><b>备注</b><p>{selectedOrder.note || '-'}</p></div>
+        </section>
+        <DataTable rows={selectedOrder.items || []} columns={['item_name','quantity','unit','unit_price','line_amount']} />
+        <div className="inline-form">
+          <input value={returnQuantity} onChange={(e) => setReturnQuantity(e.target.value)} placeholder="退货数量" />
+          <button className="secondary-button" disabled={!selectedLine || !['paid','partially_refunded'].includes(selectedOrder.status)} onClick={() => void returnOrder()}>退货/退款</button>
+          <button className="danger-button" disabled={!['paid','partially_refunded'].includes(selectedOrder.status)} onClick={() => void cancelOrder()}>取消整单</button>
+        </div>
+        {operationMessage && <div className="assistant-reply">{operationMessage}</div>}
+      </Panel>}
+    </div>
+  )
 }
 
 function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: { auth: AuthState; stock: StockItem[]; suppliers: Supplier[]; purchaseOrders: PurchaseOrder[]; onChanged: () => void }) {
@@ -247,20 +325,58 @@ function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: {
   const [supplierPhone, setSupplierPhone] = useState('')
   const [quantity, setQuantity] = useState('5')
   const [unitCost, setUnitCost] = useState('10')
+  const [selectedSupplierId, setSelectedSupplierId] = useState('')
+  const activeSupplier = suppliers.find((supplier) => supplier.supplier_id === selectedSupplierId) || firstSupplier
+  const supplierOrders = activeSupplier ? purchaseOrders.filter((order) => order.supplier_id === activeSupplier.supplier_id) : []
   async function createSupplier() { if (!supplierName.trim()) return; await api.createSupplier(auth, { name: supplierName, phone: supplierPhone }); setSupplierName('默认五金供应商'); setSupplierPhone(''); onChanged() }
-  async function createPurchase() { if (!firstSupplier || !firstStock) return; await api.createPurchaseOrder(auth, { supplier_id: firstSupplier.supplier_id, items: [{ inventory_item_id: firstStock.inventory_item_id, quantity: Number(quantity || 1), unit_cost: Number(unitCost || 0) }], note: 'PC/H5采购入库' }); onChanged() }
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F2 已开放</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水。</p></div><button className="primary-button" disabled={!firstSupplier || !firstStock} onClick={() => void createPurchase()}>创建采购入库单</button></section><Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createSupplier()}>新增供应商</button></div></Panel><Panel title="快速采购入库"><div className="inline-form"><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="采购数量" /><input value={unitCost} onChange={(e) => setUnitCost(e.target.value)} placeholder="采购单价" /></div><p className="helper-text">供应商：{firstSupplier?.name || '请先新增供应商'}；商品：{firstStock?.item_name || '暂无商品库存快照'}</p></Panel><Panel title="供应商列表"><DataTable rows={suppliers} columns={['name','phone','status']} /></Panel><Panel title="采购单列表"><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel></div>
+  async function createPurchase() { if (!activeSupplier || !firstStock) return; await api.createPurchaseOrder(auth, { supplier_id: activeSupplier.supplier_id, items: [{ inventory_item_id: firstStock.inventory_item_id, quantity: Number(quantity || 1), unit_cost: Number(unitCost || 0) }], note: 'PC/H5采购入库' }); onChanged() }
+  return (
+    <div className="content-grid">
+      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水；页面支持供应商采购记录聚合。</p></div><button className="primary-button" disabled={!activeSupplier || !firstStock} onClick={() => void createPurchase()}>创建采购入库单</button></section>
+      <Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createSupplier()}>新增供应商</button></div></Panel>
+      <Panel title="快速采购入库"><div className="inline-form"><select value={activeSupplier?.supplier_id || ''} onChange={(e) => setSelectedSupplierId(e.target.value)}><option value="">选择供应商</option>{suppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.name}</option>)}</select><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="采购数量" /><input value={unitCost} onChange={(e) => setUnitCost(e.target.value)} placeholder="采购单价" /></div><p className="helper-text">供应商：{activeSupplier?.name || '请先新增供应商'}；商品：{firstStock?.item_name || '暂无商品库存快照'}</p></Panel>
+      <section className="kpi-grid"><div className="kpi-card"><span>供应商数量</span><strong>{suppliers.length}</strong><em>家</em><p>当前门店 active 供应商</p></div><div className="kpi-card"><span>采购单数量</span><strong>{purchaseOrders.length}</strong><em>单</em><p>当前门店采购记录</p></div><div className="kpi-card"><span>当前供应商采购</span><strong>{supplierOrders.length}</strong><em>单</em><p>{activeSupplier?.name || '未选择'}</p></div></section>
+      <Panel title="供应商列表"><DataTable rows={suppliers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedSupplierId(String(row.supplier_id))}>查看采购记录</button>} /></Panel>
+      <Panel title="当前供应商采购单"><DataTable rows={supplierOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
+      <Panel title="全部采购单列表"><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
+    </div>
+  )
 }
 
-function CustomersPage({ auth, customers, repurchase, onChanged }: { auth: AuthState; customers: Customer[]; repurchase: CustomerRepurchaseAnalysis | null; onChanged: () => void }) {
+function CustomersPage({ auth, customers, orders, repurchase, onChanged }: { auth: AuthState; customers: Customer[]; orders: SalesOrder[]; repurchase: CustomerRepurchaseAnalysis | null; onChanged: () => void }) {
   const [name, setName] = useState('老王')
   const [phone, setPhone] = useState('')
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
+  const selectedCustomer = customers.find((customer) => customer.customer_id === selectedCustomerId) || customers[0]
+  const selectedCustomerOrders = selectedCustomer ? orders.filter((order) => order.customer_id === selectedCustomer.customer_id || order.customer_name === selectedCustomer.name) : []
   async function createCustomer() { if (!name.trim()) return; await api.createCustomer(auth, { name, phone }); setName('老王'); setPhone(''); onChanged() }
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F3 已开放</div><h1>客户档案与复购分析</h1><p>客户数据来自真实后端 API，复购统计基于销售单客户名称聚合，后续会升级为 customer_id 精准关联。</p></div></section><Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createCustomer()}>新增客户</button></div></Panel><section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>按客户姓名匹配</p></div></section><Panel title="客户列表"><DataTable rows={customers} columns={['name','phone','status']} /></Panel><Panel title="复购分析"><DataTable rows={repurchase?.customers || []} columns={['name','phone','order_count','total_amount']} /></Panel></div>
+  return (
+    <div className="content-grid">
+      <section className="hero-card"><div><div className="ai-badge">H2/H3 已增强</div><h1>客户档案与复购分析</h1><p>销售单已支持 customer_id 关联，复购分析优先按客户ID统计，避免同名客户误匹配。</p></div></section>
+      <Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createCustomer()}>新增客户</button></div></Panel>
+      <section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>优先按 customer_id 关联</p></div><div className="kpi-card"><span>当前客户订单</span><strong>{selectedCustomerOrders.length}</strong><em>笔</em><p>{selectedCustomer?.name || '未选择客户'}</p></div></section>
+      <Panel title="客户列表"><DataTable rows={customers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedCustomerId(String(row.customer_id))}>查看购买记录</button>} /></Panel>
+      <Panel title="当前客户购买记录"><p className="helper-text">客户：{selectedCustomer?.name || '暂无客户'}；销售单创建时选择客户后会自动关联 customer_id。</p><DataTable rows={selectedCustomerOrders} columns={['order_no','customer_name','total_amount','items_count','status']} /></Panel>
+      <Panel title="复购分析"><DataTable rows={repurchase?.customers || []} columns={['name','phone','order_count','total_amount']} /></Panel>
+    </div>
+  )
 }
 
-function FinancePage({ summary, transactions }: { summary: FinanceSummary | null; transactions: FinanceTransaction[] }) {
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F4 已开放</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，可查看收入、支出和净现金流。</p></div></section><section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section><Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel></div>
+function FinancePage({ auth, summary, transactions, onTransactionsChanged }: { auth: AuthState; summary: FinanceSummary | null; transactions: FinanceTransaction[]; onTransactionsChanged: (rows: FinanceTransaction[]) => void }) {
+  const [transactionType, setTransactionType] = useState('')
+  const [direction, setDirection] = useState('')
+  async function applyFilters() {
+    const data = await api.listFinanceTransactions(auth, { transaction_type: transactionType || undefined, direction: direction || undefined })
+    onTransactionsChanged(data.transactions)
+  }
+  return (
+    <div className="content-grid">
+      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，并支持按流水类型和收支方向筛选。</p></div></section>
+      <section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section>
+      <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button></div></Panel>
+      <Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel>
+    </div>
+  )
 }
 
 function ProductsPage({ auth, items, onChanged }: { auth: AuthState; items: InventoryItem[]; onChanged: () => void }) {

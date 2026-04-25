@@ -22,6 +22,7 @@ def test_backend_readiness_summary_reports_ready_when_required_artifacts_exist(t
         "backend/tests/test_production_readiness_config.py",
         "backend/scripts/backup_postgres.sh",
         "backend/scripts/restore_postgres.sh",
+        "backend/scripts/run_production_trial_rehearsal.sh",
         "docs/superpowers/guides/2026-04-25-production-trial-runbook.md",
     ]
     for relative_path in required_files:

@@ -16,6 +16,7 @@ class V2SalesOrder(Base):
     shop_id: Mapped[str] = mapped_column(ForeignKey("v2_shops.shop_id"), nullable=False, index=True)
     order_no: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="paid")
+    customer_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)
     customer_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     payment_method: Mapped[str] = mapped_column(String(32), nullable=False, default="unknown")
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=0)

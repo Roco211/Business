@@ -27,8 +27,13 @@ def add_finance_transaction(db: Session, *, tenant_id: str, shop_id: str, transa
     return tx
 
 
-def get_finance_transactions(db: Session, *, tenant_id: str, shop_id: str, limit: int):
-    return list(db.scalars(select(V2FinanceTransaction).where(V2FinanceTransaction.tenant_id == tenant_id, V2FinanceTransaction.shop_id == shop_id).order_by(V2FinanceTransaction.occurred_at.desc(), V2FinanceTransaction.finance_transaction_id.desc()).limit(limit)))
+def get_finance_transactions(db: Session, *, tenant_id: str, shop_id: str, limit: int, transaction_type: str | None = None, direction: str | None = None):
+    statement = select(V2FinanceTransaction).where(V2FinanceTransaction.tenant_id == tenant_id, V2FinanceTransaction.shop_id == shop_id)
+    if transaction_type:
+        statement = statement.where(V2FinanceTransaction.transaction_type == transaction_type)
+    if direction:
+        statement = statement.where(V2FinanceTransaction.direction == direction)
+    return list(db.scalars(statement.order_by(V2FinanceTransaction.occurred_at.desc(), V2FinanceTransaction.finance_transaction_id.desc()).limit(limit)))
 
 
 def finance_summary(db: Session, *, tenant_id: str, shop_id: str) -> dict:
@@ -143,11 +148,14 @@ def create_customer(db: Session, *, tenant_id: str, shop_id: str, name: str, pho
 def customer_repurchase_analysis(db: Session, *, tenant_id: str, shop_id: str):
     customers = list(db.scalars(select(V2Customer).where(V2Customer.tenant_id == tenant_id, V2Customer.shop_id == shop_id, V2Customer.status == "active")))
     orders = list(db.scalars(select(V2SalesOrder).where(V2SalesOrder.tenant_id == tenant_id, V2SalesOrder.shop_id == shop_id)))
-    by_name = {c.name: {"customer_id": c.customer_id, "name": c.name, "phone": c.phone, "order_count": 0, "total_amount": Decimal("0.00")} for c in customers}
+    by_id = {c.customer_id: {"customer_id": c.customer_id, "name": c.name, "phone": c.phone, "order_count": 0, "total_amount": Decimal("0.00")} for c in customers}
+    by_name = {c.name: c.customer_id for c in customers}
     for order in orders:
-        if order.customer_name in by_name:
-            by_name[order.customer_name]["order_count"] += 1; by_name[order.customer_name]["total_amount"] += Decimal(order.total_amount)
-    return {"summary": {"customer_count": len(customers), "matched_order_count": sum(v["order_count"] for v in by_name.values())}, "customers": list(by_name.values())}
+        matched_customer_id = getattr(order, "customer_id", None) or by_name.get(order.customer_name or "")
+        if matched_customer_id in by_id:
+            by_id[matched_customer_id]["order_count"] += 1
+            by_id[matched_customer_id]["total_amount"] += Decimal(order.total_amount)
+    return {"summary": {"customer_count": len(customers), "matched_order_count": sum(v["order_count"] for v in by_id.values())}, "customers": list(by_id.values())}
 
 
 def create_sales_order_confirmation_from_text(db: Session, *, tenant_id: str, shop_id: str, account_id: str, message: str):

@@ -10,16 +10,19 @@ from app.models.v2_sales import V2SalesOrder
 from test_v2_sales_orders_http_flow import _login_and_select_context, _seed_v2_sales_order_context
 
 
-def _create_order(client, headers, item_id: str) -> dict:
+def _create_order(client, headers, item_id: str, *, customer_id: str | None = None) -> dict:
+    payload = {
+        "customer_name": "老王",
+        "payment_method": "cash",
+        "items": [{"inventory_item_id": item_id, "quantity": "2", "unit_price": "150.00"}],
+        "note": "commercial regression",
+    }
+    if customer_id:
+        payload["customer_id"] = customer_id
     response = client.post(
         "/api/v2/sales/orders",
         headers=headers,
-        json={
-            "customer_name": "老王",
-            "payment_method": "cash",
-            "items": [{"inventory_item_id": item_id, "quantity": "2", "unit_price": "150.00"}],
-            "note": "commercial regression",
-        },
+        json=payload,
     )
     assert response.status_code == 200
     return response.json()["data"]["order"]
@@ -89,13 +92,21 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
 
     customer = client.post("/api/v2/customers", headers=headers, json={"name": "老王", "phone": "13900000000"})
     assert customer.status_code == 200
+    customer_id = customer.json()["data"]["customer"]["customer_id"]
     customers = client.get("/api/v2/customers", headers=headers)
     assert customers.status_code == 200
-    assert any(row["customer_id"] == customer.json()["data"]["customer"]["customer_id"] for row in customers.json()["data"]["customers"])
-    _create_order(client, headers, context["item_id"])
+    assert any(row["customer_id"] == customer_id for row in customers.json()["data"]["customers"])
+    order_with_customer = _create_order(client, headers, context["item_id"], customer_id=customer_id)
+    assert order_with_customer["customer_id"] == customer_id
     analysis = client.get("/api/v2/customers/repurchase-analysis", headers=headers)
     assert analysis.status_code == 200
-    assert analysis.json()["data"]["summary"]["customer_count"] >= 1
+    analysis_data = analysis.json()["data"]
+    assert analysis_data["summary"]["customer_count"] >= 1
+    assert any(row["customer_id"] == customer_id and row["order_count"] >= 1 for row in analysis_data["customers"])
+
+    revenue_only = client.get("/api/v2/finance/transactions?transaction_type=sales_revenue&limit=50", headers=headers)
+    assert revenue_only.status_code == 200
+    assert {tx["transaction_type"] for tx in revenue_only.json()["data"]["transactions"]} == {"sales_revenue"}
 
     finance = client.get("/api/v2/finance/summary", headers=headers)
     assert finance.status_code == 200

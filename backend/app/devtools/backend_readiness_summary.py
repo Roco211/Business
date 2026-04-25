@@ -43,6 +43,7 @@ REQUIRED_ARTIFACTS: tuple[tuple[str, str], ...] = (
     ("production_readiness_regression", "backend/tests/test_production_readiness_config.py"),
     ("postgres_backup_script", "backend/scripts/backup_postgres.sh"),
     ("postgres_restore_script", "backend/scripts/restore_postgres.sh"),
+    ("production_trial_rehearsal_script", "backend/scripts/run_production_trial_rehearsal.sh"),
     ("production_trial_runbook", "docs/superpowers/guides/2026-04-25-production-trial-runbook.md"),
 )
 

@@ -96,7 +96,7 @@ version = con.execute('select version_num from alembic_version').fetchone()[0]
 table_count = con.execute(\"select count(*) from sqlite_master where type='table'\").fetchone()[0]
 print(f'ALEMBIC_VERSION {version}')
 print(f'TABLE_COUNT {table_count}')
-if version != '20260425_02':
+if version != '20260425_03':
     raise SystemExit(f'unexpected alembic version: {version}')
 if table_count < 48:
     raise SystemExit(f'unexpected table count: {table_count}')

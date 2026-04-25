@@ -935,6 +935,7 @@ def approve_v2_confirmation(
                 db_session,
                 tenant_id=tenant_id,
                 shop_id=shop_id,
+                customer_id=resolved_fields.get("customer_id"),
                 customer_name=resolved_fields.get("customer_name"),
                 payment_method=str(resolved_fields.get("payment_method") or "unknown"),
                 items=list(resolved_fields.get("items") or []),

@@ -68,7 +68,10 @@ export const api = {
   listStock: (auth: AuthState) => request<{ items: StockItem[]; count: number }>('/api/v2/inventory/stock?limit=50', {}, auth),
   listEvents: (auth: AuthState) => request<{ events: LedgerEvent[]; count: number }>('/api/v2/inventory/events?limit=50', {}, auth),
   listSalesOrders: (auth: AuthState) => request<{ orders: SalesOrder[]; count: number }>('/api/v2/sales/orders?limit=50', {}, auth),
-  createSalesOrder: (auth: AuthState, input: { customer_name?: string; payment_method: string; items: { inventory_item_id: string; quantity: number; unit_price: number }[]; note?: string }) => request<{ order: unknown }>('/api/v2/sales/orders', { method: 'POST', body: JSON.stringify(input) }, auth),
+  getSalesOrder: (auth: AuthState, salesOrderId: string) => request<{ order: SalesOrder }>(`/api/v2/sales/orders/${salesOrderId}`, {}, auth),
+  createSalesOrder: (auth: AuthState, input: { customer_id?: string; customer_name?: string; payment_method: string; items: { inventory_item_id: string; quantity: number; unit_price: number }[]; note?: string }) => request<{ order: SalesOrder }>('/api/v2/sales/orders', { method: 'POST', body: JSON.stringify(input) }, auth),
+  cancelSalesOrder: (auth: AuthState, salesOrderId: string, reason: string) => request<{ order: SalesOrder }>(`/api/v2/sales/orders/${salesOrderId}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) }, auth),
+  returnSalesOrder: (auth: AuthState, salesOrderId: string, input: { items: { sales_order_line_id: string; quantity: number }[]; reason?: string }) => request<{ order: SalesOrder }>(`/api/v2/sales/orders/${salesOrderId}/returns`, { method: 'POST', body: JSON.stringify(input) }, auth),
   createSalesOrderDraft: (auth: AuthState, message: string) => request<{ confirmation: Confirmation }>('/api/v2/sales/order-drafts/from-text', { method: 'POST', body: JSON.stringify({ message }) }, auth),
   listSuppliers: (auth: AuthState) => request<{ suppliers: Supplier[]; count: number }>('/api/v2/purchasing/suppliers?limit=50', {}, auth),
   createSupplier: (auth: AuthState, input: { name: string; phone?: string }) => request<{ supplier: Supplier }>('/api/v2/purchasing/suppliers', { method: 'POST', body: JSON.stringify(input) }, auth),
@@ -77,7 +80,12 @@ export const api = {
   listCustomers: (auth: AuthState) => request<{ customers: Customer[]; count: number }>('/api/v2/customers?limit=50', {}, auth),
   createCustomer: (auth: AuthState, input: { name: string; phone?: string }) => request<{ customer: Customer }>('/api/v2/customers', { method: 'POST', body: JSON.stringify(input) }, auth),
   getCustomerRepurchaseAnalysis: (auth: AuthState) => request<CustomerRepurchaseAnalysis>('/api/v2/customers/repurchase-analysis', {}, auth),
-  listFinanceTransactions: (auth: AuthState) => request<{ transactions: FinanceTransaction[]; count: number }>('/api/v2/finance/transactions?limit=50', {}, auth),
+  listFinanceTransactions: (auth: AuthState, filters: { transaction_type?: string; direction?: string } = {}) => {
+    const params = new URLSearchParams({ limit: '50' })
+    if (filters.transaction_type) params.set('transaction_type', filters.transaction_type)
+    if (filters.direction) params.set('direction', filters.direction)
+    return request<{ transactions: FinanceTransaction[]; count: number }>(`/api/v2/finance/transactions?${params.toString()}`, {}, auth)
+  },
   getFinanceSummary: (auth: AuthState) => request<{ summary: FinanceSummary }>('/api/v2/finance/summary', {}, auth),
   getAudit: (auth: AuthState, itemId: string) => request<{ events: LedgerEvent[]; count: number }>(`/api/v2/inventory/items/${itemId}/audit?limit=20`, {}, auth),
   stockIn: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-in', { method: 'POST', body: JSON.stringify(input) }, auth),

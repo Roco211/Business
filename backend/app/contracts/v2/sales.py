@@ -11,6 +11,7 @@ class V2CreateSalesOrderLineRequest(BaseModel):
 
 
 class V2CreateSalesOrderRequest(BaseModel):
+    customer_id: str | None = None
     customer_name: str | None = None
     payment_method: str = "unknown"
     items: list[V2CreateSalesOrderLineRequest] = Field(min_length=1)
@@ -34,6 +35,7 @@ class V2SalesOrderData(BaseModel):
     shop_id: str
     order_no: str
     status: str
+    customer_id: str | None
     customer_name: str | None
     payment_method: str
     total_amount: Decimal
@@ -50,6 +52,7 @@ class V2SalesOrderSummaryData(BaseModel):
     shop_id: str
     order_no: str
     status: str
+    customer_id: str | None
     customer_name: str | None
     payment_method: str
     total_amount: Decimal

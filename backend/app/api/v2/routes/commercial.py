@@ -76,9 +76,9 @@ def customer_repurchase_analysis_v2(account: V2AuthenticatedAccount = Depends(re
 
 
 @finance_router.get("/transactions")
-def list_finance_transactions_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), db_session: Session = Depends(get_db_session)):
+def list_finance_transactions_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), transaction_type: str | None = Query(default=None), direction: str | None = Query(default=None), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
-    transactions = get_finance_transactions(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit)
+    transactions = get_finance_transactions(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit, transaction_type=transaction_type, direction=direction)
     return V2DataEnvelope(data={"transactions": [{"finance_transaction_id": tx.finance_transaction_id, "tenant_id": tx.tenant_id, "shop_id": tx.shop_id, "transaction_type": tx.transaction_type, "direction": tx.direction, "amount": tx.amount, "source_type": tx.source_type, "source_id": tx.source_id, "counterparty_name": tx.counterparty_name, "note": tx.note, "occurred_at": tx.occurred_at} for tx in transactions], "count": len(transactions)})
 
 

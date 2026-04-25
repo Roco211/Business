@@ -8,17 +8,17 @@ type Page = 'dashboard' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'pr
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
-const navItems: { page: Page; label: string }[] = [
-  { page: 'dashboard', label: '工作台' },
-  { page: 'sales', label: '销售单' },
-  { page: 'purchasing', label: '采购单' },
-  { page: 'customers', label: '客户复购' },
-  { page: 'finance', label: '财务流水' },
-  { page: 'products', label: '商品管理' },
-  { page: 'inventory', label: '库存管理' },
-  { page: 'ai', label: 'AI助手' },
-  { page: 'tasks', label: '任务中心' },
-  { page: 'coming-soon', label: '营销/售后' }
+const navItems: { page: Page; label: string; icon: string; badge?: string }[] = [
+  { page: 'dashboard', label: '工作台', icon: '⌂' },
+  { page: 'ai', label: '我的员工', icon: '◇' },
+  { page: 'sales', label: '销售单', icon: '□' },
+  { page: 'purchasing', label: '采购单', icon: '▣' },
+  { page: 'customers', label: '客户复购', icon: '◎' },
+  { page: 'products', label: '商品管理', icon: '▤' },
+  { page: 'inventory', label: '库存管理', icon: '▥' },
+  { page: 'finance', label: '财务流水', icon: '¥' },
+  { page: 'tasks', label: '任务中心', icon: '✓', badge: 'AI' },
+  { page: 'coming-soon', label: '营销/售后', icon: '✧' }
 ]
 
 function formatMoney(value: number | string) {
@@ -121,15 +121,27 @@ function App() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand-mark">Business</div>
-        <div className="brand-subtitle">AI 五金店大管家</div>
+        <div className="brand-block">
+          <div className="brand-logo">AI</div>
+          <div>
+            <div className="brand-mark">AI数字员工</div>
+            <div className="brand-subtitle">你的生意增长伙伴</div>
+          </div>
+        </div>
         <nav className="nav-list">
           {navItems.map((item) => (
             <button key={item.page} className={page === item.page ? 'nav-item active' : 'nav-item'} onClick={() => setPage(item.page)}>
-              <span>{item.label}</span>
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-label">{item.label}</span>
+              {item.badge && <span className="nav-badge">{item.badge}</span>}
             </button>
           ))}
         </nav>
+        <div className="upgrade-card">
+          <strong>升级老板版</strong>
+          <p>解锁全部AI员工和高级经营分析</p>
+          <button>立即升级 →</button>
+        </div>
         <button className="ghost-button" onClick={handleLogout}>退出登录</button>
       </aside>
       <main className="main-panel">
@@ -172,12 +184,20 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
 function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; onRefresh: () => void; loading: boolean }) {
   return (
     <header className="top-bar">
-      <div>
-        <div className="top-eyebrow">{overview?.store.plan_label || 'Business'}</div>
-        <h2>{overview?.store.shop_name || '当前门店'}</h2>
+      <div className="greeting-block">
+        <h2>早上好，老板！</h2>
+        <p>AI员工们正在为你打理店铺，请查看今日经营概况</p>
       </div>
       <div className="top-actions">
-        <span className="user-pill">{overview?.user.display_name || '店主'}</span>
+        <button className="guide-button">新手引导</button>
+        <span className="notify-dot">○</span>
+        <div className="store-profile">
+          <div className="store-avatar">五</div>
+          <div>
+            <strong>{overview?.store.shop_name || '当前门店'}</strong>
+            <small>{overview?.store.plan_label || '本地演示版'} · {overview?.user.display_name || '店主'}</small>
+          </div>
+        </div>
         <button className="secondary-button" onClick={onRefresh} disabled={loading}>{loading ? '刷新中' : '刷新数据'}</button>
       </div>
     </header>
@@ -186,25 +206,33 @@ function TopBar({ overview, onRefresh, loading }: { overview: Overview | null; o
 
 function Dashboard({ overview, onNavigate }: { overview: Overview; onNavigate: (page: Page) => void }) {
   return (
-    <div className="content-grid">
+    <div className="dashboard-layout">
+      <section className="kpi-grid">
+        {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
+      </section>
+      <section className="dashboard-main-grid">
+        <Panel title="我的AI员工" action="查看全部">
+          <EmployeeGrid employees={overview.ai_employees} />
+        </Panel>
+        <Panel title="AI智能建议" action="全部建议">
+          <SuggestionList suggestions={overview.suggestions} />
+        </Panel>
+      </section>
+      <section className="dashboard-main-grid">
+        <Panel title="今日工作动态" action="查看报告">
+          <ActivityList activities={overview.activities} />
+        </Panel>
+        <Panel title="待办事项" action={`${overview.top_priorities.length}项`}>
+          {overview.top_priorities.map((p) => <PriorityCard key={p.id} item={p} />)}
+        </Panel>
+      </section>
       <section className="hero-card">
         <div>
           <div className="ai-badge">AI运营协调官</div>
           <h1>今天门店最重要的事情已整理好</h1>
-          <p>所有经营指标来自后端真实API；订单、客户、营销等未实现模块暂不展示假数据。</p>
+          <p>所有经营指标来自后端真实API；未实现模块保持即将上线，不展示假数据。</p>
         </div>
-        <button className="primary-button" onClick={() => onNavigate('ai')}>交给AI运营协调官处理</button>
-      </section>
-      <section className="kpi-grid">
-        {overview.kpis.map((kpi) => <div className="kpi-card" key={kpi.key}><span>{kpi.label}</span><strong>{kpi.unit === '元' ? formatMoney(kpi.value) : kpi.value}</strong><em>{kpi.unit || ''}</em><p>{kpi.trend_label}</p></div>)}
-      </section>
-      <section className="two-column">
-        <Panel title="今日重点事项">{overview.top_priorities.map((p) => <PriorityCard key={p.id} item={p} />)}</Panel>
-        <Panel title="AI员工状态"><EmployeeGrid employees={overview.ai_employees} /></Panel>
-      </section>
-      <section className="two-column">
-        <Panel title="AI智能建议"><SuggestionList suggestions={overview.suggestions} /></Panel>
-        <Panel title="今日工作动态"><ActivityList activities={overview.activities} /></Panel>
+        <button className="primary-button" onClick={() => onNavigate('ai')}>交给AI处理</button>
       </section>
       <Panel title="商用版模块边界">
         <div className="coming-list">{overview.coming_soon_modules?.map((m) => <span key={m.key}>{m.label} 即将上线</span>)}</div>
@@ -213,11 +241,31 @@ function Dashboard({ overview, onNavigate }: { overview: Overview; onNavigate: (
   )
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <section className="panel"><h3>{title}</h3>{children}</section> }
-function PriorityCard({ item }: { item: { title: string; reason: string; severity: string; evidence: string[] } }) { return <div className={`priority-card ${item.severity}`}><strong>{item.title}</strong><p>{item.reason}</p><small>{item.evidence.join(' / ')}</small></div> }
-function EmployeeGrid({ employees }: { employees: AiEmployee[] }) { return <div className="employee-grid">{employees.map((e) => <div className="employee-card" key={e.key}><b>{e.name}</b><span>{e.description}</span><em>{e.status}</em></div>)}</div> }
-function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s) => <div className="suggestion-card" key={s.id}><b>{s.title}</b><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small></div>)}</div> }
-function ActivityList({ activities }: { activities: Activity[] }) { return <div className="stack-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div>)}</div> }
+function KpiCard({ kpi, index }: { kpi: Overview['kpis'][number]; index: number }) {
+  const icons = ['¥', '□', '◎', '☎']
+  const tone = ['purple', 'blue', 'green', 'orange'][index % 4]
+  return (
+    <div className={`kpi-card ${tone}`}>
+      <div>
+        <span>{kpi.label}</span>
+        <strong>{kpi.unit === '元' ? formatMoney(kpi.value) : kpi.value}</strong>
+        <p><b>{kpi.trend_label || '保持稳定'}</b></p>
+      </div>
+      <i>{icons[index % icons.length]}</i>
+    </div>
+  )
+}
+
+function Panel({ title, action, children }: { title: string; action?: string; children: React.ReactNode }) {
+  return <section className="panel"><div className="panel-header"><h3>{title}</h3>{action && <button>{action}</button>}</div>{children}</section>
+}
+function PriorityCard({ item }: { item: { title: string; reason: string; severity: string; evidence: string[] } }) { return <div className={`priority-card ${item.severity}`}><span className="todo-check">□</span><div><strong>{item.title}</strong><p>{item.reason}</p><small>{item.evidence.join(' / ')}</small></div></div> }
+function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {
+  const avatars = ['◉','◇','▣','□','◎']
+  return <div className="employee-grid">{employees.map((e, index) => <div className={`employee-card tone-${index % 5}`} key={e.key}><div className="employee-avatar">{avatars[index % avatars.length]}</div><b>{e.name}</b><span>{e.description}</span><em>{e.status === 'working' ? '员工工作中' : e.status}</em><div className="employee-metrics"><small>今日任务<strong>{index + 1}</strong></small><small>状态<strong>正常</strong></small></div><button className="detail-button">查看详情</button></div>)}</div>
+}
+function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s, index) => <div className={`suggestion-card suggestion-${index % 3}`} key={s.id}><div className="suggestion-title"><i>{['↑','◇','✧'][index % 3]}</i><b>{s.title}</b></div><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small><button>查看建议</button></div>)}</div> }
+function ActivityList({ activities }: { activities: Activity[] }) { return <div className="timeline-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><i></i><div><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div></div>)}</div> }
 
 function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; customers: Customer[]; onChanged: () => void }) {
   const sellable = stock.find((item) => Number(item.current_quantity || 0) > 0)

@@ -12,6 +12,7 @@ from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.contracts.v2.inventory import (
     V2CreateInventoryItemRequest,
     V2InventoryItemData,
+    V2InventoryItemAuditData,
     V2InventoryItemDetailData,
     V2InventoryItemListData,
     V2InventoryLedgerEventData,
@@ -41,7 +42,9 @@ from app.services.v2_inventory import (
     create_v2_inventory_item,
     delete_v2_inventory_item,
     get_v2_inventory_item,
+    get_v2_inventory_item_for_audit,
     list_v2_inventory_events,
+    list_v2_inventory_item_audit_events,
     list_v2_inventory_items,
     list_v2_inventory_stock,
     submit_v2_inventory_correction,
@@ -92,6 +95,26 @@ def _to_inventory_item_data(item) -> V2InventoryItemData:
     )
 
 
+def _to_inventory_ledger_event_data(event, *, item_name: str) -> V2InventoryLedgerEventData:
+    return V2InventoryLedgerEventData(
+        event_id=event.event_id,
+        tenant_id=event.tenant_id,
+        shop_id=event.shop_id,
+        inventory_item_id=event.inventory_item_id,
+        item_name=item_name,
+        event_type=event.event_type,
+        quantity_delta=event.quantity_delta,
+        quantity_after=event.quantity_after,
+        unit=event.unit,
+        price=event.price,
+        source_type=event.source_type,
+        source_id=event.source_id,
+        reason=event.reason,
+        created_by_account_id=event.created_by_account_id,
+        occurred_at=event.occurred_at,
+    )
+
+
 @router.post("/items", response_model=V2DataEnvelope[V2InventoryItemDetailData])
 def create_inventory_item_v2(
     payload: V2CreateInventoryItemRequest,
@@ -114,6 +137,43 @@ def create_inventory_item_v2(
     except V2InventoryPayloadValidationError as exc:
         return _inventory_validation_error(exc)
     return V2DataEnvelope(data=V2InventoryItemDetailData(item=_to_inventory_item_data(item)))
+
+
+@router.get("/items/{inventory_item_id}/audit", response_model=V2DataEnvelope[V2InventoryItemAuditData])
+def get_inventory_item_audit_v2(
+    inventory_item_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    limit: int = Query(default=20, ge=1, le=50),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2InventoryItemAuditData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+
+    try:
+        item = get_v2_inventory_item_for_audit(
+            db_session,
+            tenant_id=context.tenant_id,
+            inventory_item_id=inventory_item_id,
+        )
+        events = list_v2_inventory_item_audit_events(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            inventory_item_id=inventory_item_id,
+            limit=limit,
+        )
+    except V2InventoryItemNotFoundError:
+        return _inventory_item_not_found()
+
+    event_data = [_to_inventory_ledger_event_data(event, item_name=item.name) for event in events]
+    return V2DataEnvelope(
+        data=V2InventoryItemAuditData(
+            inventory_item_id=inventory_item_id,
+            events=event_data,
+            count=len(event_data),
+        )
+    )
 
 
 @router.get("/items/{inventory_item_id}", response_model=V2DataEnvelope[V2InventoryItemDetailData])

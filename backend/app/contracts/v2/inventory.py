@@ -80,6 +80,12 @@ class V2InventoryLedgerEventListData(BaseModel):
     count: int
 
 
+class V2InventoryItemAuditData(BaseModel):
+    inventory_item_id: str
+    events: list[V2InventoryLedgerEventData]
+    count: int
+
+
 class V2SubmitInventoryCorrectionRequest(BaseModel):
     inventory_item_id: str
     expected_quantity: Decimal

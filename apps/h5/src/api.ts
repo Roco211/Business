@@ -90,6 +90,7 @@ export const api = {
   cancelSalesOrder: (auth: AuthState, salesOrderId: string, reason: string) => request<{ order: SalesOrder }>(`/api/v2/sales/orders/${salesOrderId}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) }, auth),
   returnSalesOrder: (auth: AuthState, salesOrderId: string, input: { items: { sales_order_line_id: string; quantity: number }[]; reason?: string }) => request<{ order: SalesOrder }>(`/api/v2/sales/orders/${salesOrderId}/returns`, { method: 'POST', body: JSON.stringify(input) }, auth),
   createSalesOrderDraft: (auth: AuthState, message: string) => request<{ confirmation: Confirmation }>('/api/v2/sales/order-drafts/from-text', { method: 'POST', body: JSON.stringify({ message }) }, auth),
+  createPurchaseOrderDraft: (auth: AuthState, message: string) => request<{ confirmation: Confirmation }>('/api/v2/purchasing/order-drafts/from-text', { method: 'POST', body: JSON.stringify({ message }) }, auth),
   listSuppliers: (auth: AuthState) => request<{ suppliers: Supplier[]; count: number }>('/api/v2/purchasing/suppliers?limit=50', {}, auth),
   createSupplier: (auth: AuthState, input: { name: string; phone?: string }) => request<{ supplier: Supplier }>('/api/v2/purchasing/suppliers', { method: 'POST', body: JSON.stringify(input) }, auth),
   listPurchaseOrders: (auth: AuthState) => request<{ purchase_orders: PurchaseOrder[]; count: number }>('/api/v2/purchasing/orders?limit=50', {}, auth),

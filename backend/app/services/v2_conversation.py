@@ -12,6 +12,7 @@ from app.models import (
     V2TaskDraft,
     V2TaskRun,
 )
+from app.models.v2_commercial import V2Supplier
 from app.services.v2_confirmation_provenance import build_v2_confirmation_source_payload
 from app.services.v2_commit_records import append_v2_inventory_commit_records
 from app.services.v2_inventory import (
@@ -21,6 +22,7 @@ from app.services.v2_inventory import (
     validate_v2_stock_out_draft_payload,
 )
 from app.services.v2_sales import create_v2_sales_order
+from app.services.v2_commercial import create_purchase_order
 from app.services.v2_outbox_runtime_dispatch import enqueue_v2_outbox_drain
 from app.services.v2_session_stream import append_v2_session_event
 from app.services.v2_time import utc_now_naive
@@ -49,11 +51,13 @@ ALLOWED_V2_MESSAGE_INTENTS = {
     "inventory.stock_in",
     "inventory.stock_out",
     "sales.order_create",
+    "purchase.order_create",
 }
 ALLOWED_V2_TASK_DRAFT_TYPES = {
     "inventory.stock_in",
     "inventory.stock_out",
     "sales.order_create",
+    "purchase.order_create",
 }
 
 
@@ -946,6 +950,39 @@ def approve_v2_confirmation(
             task_run.result_summary = "Confirmation approved and sales order committed."
             task_run.completed_at = now
             system_result_text = "Sales order committed."
+            should_enqueue_outbox = True
+        elif confirmation.confirmation_type == "purchase.order_create":
+            resolved_fields = _resolve_v2_approved_fields(confirmation, resolution_payload)
+            confirmation.resolution_payload = {**dict(resolution_payload), "fields": resolved_fields}
+            supplier_id = str(resolved_fields.get("supplier_id") or "")
+            if supplier_id == "__new_supplier__":
+                supplier = V2Supplier(
+                    supplier_id=f"vsup_{uuid.uuid4().hex}"[:40],
+                    tenant_id=tenant_id,
+                    shop_id=shop_id,
+                    name=str(resolved_fields.get("supplier_name") or "默认五金供应商")[:160],
+                    phone=None,
+                    status="active",
+                    created_at=now,
+                    updated_at=now,
+                )
+                db_session.add(supplier)
+                db_session.flush()
+                supplier_id = supplier.supplier_id
+                resolved_fields["supplier_id"] = supplier_id
+            create_purchase_order(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                supplier_id=supplier_id,
+                items=list(resolved_fields.get("items") or []),
+                note=resolved_fields.get("note"),
+                account_id=approved_by_account_id,
+            )
+            task_run.status = COMMITTED_STATUS
+            task_run.result_summary = "Confirmation approved and purchase order committed."
+            task_run.completed_at = now
+            system_result_text = "Purchase order committed."
             should_enqueue_outbox = True
         else:
             task_run.status = EXECUTING_STATUS

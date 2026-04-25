@@ -245,13 +245,25 @@ function Dashboard({ auth, overview, onNavigate, onChanged }: { auth: AuthState;
 type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string }
 
 function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void }) {
-  const quickCommands = ['今天卖了多少钱？', '哪些商品快没货了？', '帮我看看今天要补什么货', '卖出1把电动螺丝刀，单价99，客户老王']
+  const quickCommands = ['今天卖了多少钱？', '卖出1把电动螺丝刀，单价99，客户老王', '向默认五金供应商采购5把电动螺丝刀，单价10', '出库1把电动螺丝刀']
   const [command, setCommand] = useState(quickCommands[0])
   const [result, setResult] = useState<CommandResult | null>(null)
   const [running, setRunning] = useState(false)
 
   function looksLikeSalesDraft(text: string) {
     return /卖出|销售|开单|收款|客户/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
+  }
+
+  function looksLikePurchaseDraft(text: string) {
+    return /采购|进货|补货|向.*供应商/.test(text) && /单价|进价|成本|把|个|件|箱|元|\d/.test(text)
+  }
+
+  function looksLikeInventoryDraft(text: string) {
+    return /入库|出库|盘出|盘入/.test(text) && /把|个|件|箱|\d/.test(text)
+  }
+
+  function extractConfirmationId(reply: string) {
+    return reply.match(/确认单[:：]\s*(\S+)/)?.[1]
   }
 
   function normalizeQueryCommand(text: string) {
@@ -268,13 +280,30 @@ function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onN
     setRunning(true)
     setResult({ kind: 'reply', title: 'AI运营协调官正在分派任务', body: '正在理解你的经营指令，并交给对应AI员工处理。' })
     try {
-      if (looksLikeSalesDraft(trimmed)) {
+      if (looksLikePurchaseDraft(trimmed)) {
+        const data = await api.createPurchaseOrderDraft(auth, trimmed)
+        setResult({
+          kind: 'draft',
+          title: '已生成采购入库草稿，等待老板确认',
+          body: `待确认任务 ${data.confirmation.confirmation_id} 已创建。AI不会直接入库或记采购支出，请到任务中心确认后再落账。`,
+          meta: data.confirmation.confirmation_type
+        })
+      } else if (looksLikeSalesDraft(trimmed)) {
         const data = await api.createSalesOrderDraft(auth, trimmed)
         setResult({
           kind: 'draft',
           title: '已生成销售单草稿，等待老板确认',
           body: `待确认任务 ${data.confirmation.confirmation_id} 已创建。AI不会直接扣库存或记账，请到任务中心确认后再落账。`,
           meta: data.confirmation.confirmation_type
+        })
+      } else if (looksLikeInventoryDraft(trimmed)) {
+        const data = await api.chat(auth, trimmed)
+        const confirmationId = extractConfirmationId(data.reply || '')
+        setResult({
+          kind: confirmationId ? 'draft' : 'reply',
+          title: confirmationId ? '已生成库存变动草稿，等待老板确认' : employeeNameForIntent(data.intent || '') + '已完成处理',
+          body: confirmationId ? `待确认任务 ${confirmationId} 已创建。AI不会直接改库存，请到任务中心确认后再落账。` : (data.reply || '已收到库存指令。'),
+          meta: data.intent || 'inventory'
         })
       } else {
         const queryMessage = normalizeQueryCommand(trimmed)
@@ -573,7 +602,26 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
       ]
     }
   }
-  if (type.includes('inventory.stock_in')) {
+  if (type.includes('purchase.order_create')) {
+    const lines = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : []
+    const total = lines.reduce((sum, line) => sum + Number(line.line_amount || 0), 0)
+    const names = lines.map((line) => String(line.item_name || line.name || line.inventory_item_id || '商品')).join('、')
+    return {
+      employee: '采购专员',
+      title: '采购入库草稿等待确认',
+      impact: '确认后会创建采购单、增加库存，并写入采购支出流水。',
+      risk: '高风险：会改变库存和财务数据',
+      confidence: lines.length ? '已解析供应商和采购明细' : '需要老板复核采购明细',
+      routeHint: '采购单 / 库存 / 财务',
+      evidence: [`识别到 ${lines.length || 1} 条采购明细`, names ? `商品：${names}` : '商品信息来自AI草稿', total > 0 ? `预计支出：${formatMoney(total)} 元` : '金额以草稿明细为准'],
+      summary: [
+        { label: '供应商', value: String(payload.supplier_name || payload.supplier_id || '未填写') },
+        { label: '明细数', value: String(lines.length || '-') },
+        { label: '状态', value: '确认后入库' }
+      ]
+    }
+  }
+  if (type.includes('inventory.stock_in') || type === 'stock_in') {
     return {
       employee: '库存风控专员',
       title: '入库草稿等待确认',
@@ -581,7 +629,7 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
       risk: '中风险：会改变库存数量',
       confidence: '已生成入库草稿',
       routeHint: '库存管理',
-      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || '待确认')}`, `数量：${String(payload.quantity || '-')}`],
+      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || payload.item_id || '待确认')}`, `数量：${String(payload.quantity || payload.stock_in_quantity || '-')}`],
       summary: [
         { label: '单位', value: String(payload.unit || '-') },
         { label: '单价', value: String(payload.price || '-') },
@@ -589,7 +637,7 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
       ]
     }
   }
-  if (type.includes('inventory.stock_out')) {
+  if (type.includes('inventory.stock_out') || type === 'stock_out') {
     return {
       employee: '库存风控专员',
       title: '出库草稿等待确认',
@@ -597,7 +645,7 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
       risk: '高风险：会减少库存',
       confidence: '已生成出库草稿',
       routeHint: '库存管理',
-      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || '待确认')}`, `数量：${String(payload.quantity || '-')}`],
+      evidence: [`商品：${String(payload.item_name || payload.inventory_item_id || payload.item_id || '待确认')}`, `数量：${String(payload.quantity || payload.stock_out_quantity || '-')}`],
       summary: [
         { label: '单位', value: String(payload.unit || '-') },
         { label: '单价', value: String(payload.price || '-') },

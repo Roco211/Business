@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from app.db.session import get_session_factory
 from app.models import V2AuditLog, V2Confirmation, V2InventoryLedgerEvent, V2InventoryStockSnapshot
+from app.models.v2_commercial import V2FinanceTransaction, V2PurchaseOrder
 from app.models.v2_sales import V2SalesOrder
 from test_v2_sales_orders_http_flow import _login_and_select_context, _seed_v2_sales_order_context
 
@@ -162,3 +163,28 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
     assert approve.status_code == 200
     orders = client.get("/api/v2/sales/orders?limit=50", headers=headers).json()["data"]["orders"]
     assert any(order["customer_name"] == "老王" for order in orders)
+
+    purchase_before = len(client.get("/api/v2/purchasing/orders?limit=50", headers=headers).json()["data"]["purchase_orders"])
+    purchase_draft = client.post(
+        "/api/v2/purchasing/order-drafts/from-text",
+        headers=headers,
+        json={"message": "向测试供应商采购5把销售单测试电钻，单价80"},
+    )
+    assert purchase_draft.status_code == 200
+    purchase_confirmation_id = purchase_draft.json()["data"]["confirmation"]["confirmation_id"]
+    session = get_session_factory()()
+    try:
+        purchase_confirmation = session.scalar(select(V2Confirmation).where(V2Confirmation.confirmation_id == purchase_confirmation_id))
+        assert purchase_confirmation is not None
+        assert purchase_confirmation.confirmation_type == "purchase.order_create"
+        assert purchase_confirmation.status == "pending"
+        assert len(session.scalars(select(V2PurchaseOrder).where(V2PurchaseOrder.tenant_id == context["tenant_id"], V2PurchaseOrder.shop_id == context["shop_id"])).all()) == purchase_before
+        assert not any(tx.source_type == "purchase_order" and tx.note == "AI purchase order draft" for tx in session.scalars(select(V2FinanceTransaction)).all())
+    finally:
+        session.close()
+
+    approve_purchase = client.post(f"/api/v2/confirmations/{purchase_confirmation_id}/approve", headers=headers, json={"resolution_payload": {}})
+    assert approve_purchase.status_code == 200
+    purchase_orders_after = client.get("/api/v2/purchasing/orders?limit=50", headers=headers).json()["data"]["purchase_orders"]
+    assert len(purchase_orders_after) == purchase_before + 1
+    assert any(order["note"] == "AI purchase order draft" for order in purchase_orders_after)

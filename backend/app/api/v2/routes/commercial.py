@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, require_v2_authenticated_account, require_v2_execution_context
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_db_session
-from app.services.v2_commercial import create_customer, create_purchase_order, create_sales_order_confirmation_from_text, create_supplier, customer_repurchase_analysis, finance_summary, get_finance_transactions, list_customers, list_purchase_orders, list_suppliers
+from app.services.v2_commercial import create_customer, create_purchase_order, create_purchase_order_confirmation_from_text, create_sales_order_confirmation_from_text, create_supplier, customer_repurchase_analysis, finance_summary, get_finance_transactions, list_customers, list_purchase_orders, list_suppliers
 
 
 def _err(status: int, code: str, message: str):
@@ -53,6 +53,16 @@ def create_purchase_order_v2(payload: dict, account: V2AuthenticatedAccount = De
     except LookupError:
         return _err(404, "purchase_resource_not_found", "Purchase resource not found")
     return V2DataEnvelope(data={"purchase_order": {"purchase_order_id": order.purchase_order_id, "tenant_id": order.tenant_id, "shop_id": order.shop_id, "supplier_id": order.supplier_id, "order_no": order.order_no, "status": order.status, "total_amount": order.total_amount, "note": order.note, "created_at": order.created_at}})
+
+
+@purchasing_router.post("/order-drafts/from-text")
+def create_purchase_order_draft_from_text_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
+    if mismatch := _guard(account, context): return mismatch
+    try:
+        confirmation = create_purchase_order_confirmation_from_text(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, account_id=account.account_id, message=str(payload.get("message") or ""))
+    except LookupError:
+        return _err(404, "purchase_resource_not_found", "Purchase resource not found")
+    return V2DataEnvelope(data={"confirmation": {"confirmation_id": confirmation.confirmation_id, "confirmation_type": confirmation.confirmation_type, "status": confirmation.status, "draft_payload": confirmation.draft_payload}})
 
 
 @customers_router.get("")

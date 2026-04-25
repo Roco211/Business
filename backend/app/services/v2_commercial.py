@@ -186,6 +186,58 @@ def create_sales_order_confirmation_from_text(db: Session, *, tenant_id: str, sh
     db.add(session); db.flush()
     msg = V2Message(message_id=f"vmsg_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, session_id=session.session_id, actor_type="account", actor_id=account_id, message_kind="text", payload_json={"text": message}, created_at=now)
     task = V2TaskRun(task_run_id=f"vtask_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, session_id=session.session_id, source_message_id=msg.message_id, intent_type="sales.order_create", status="awaiting_confirmation", risk_level="medium", trace_id=f"trace_{uuid.uuid4().hex}"[:64], result_summary="AI sales order draft awaiting confirmation.", created_at=now, updated_at=now)
-    draft = {"customer_name": customer, "payment_method": "unknown", "items": [{"inventory_item_id": item.inventory_item_id, "quantity": str(qty), "unit_price": str(price)}], "note": "AI sales order draft"}
+    draft = {"customer_name": customer, "payment_method": "unknown", "items": [{"inventory_item_id": item.inventory_item_id, "item_name": item.name, "quantity": str(qty), "unit_price": str(price), "line_amount": str(money(qty * price))}], "note": "AI sales order draft"}
     confirmation = V2Confirmation(confirmation_id=f"vconf_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, task_run_id=task.task_run_id, confirmation_type="sales.order_create", status="pending", draft_payload=draft, resolution_payload={}, created_at=now)
     db.add_all([msg, task, confirmation]); db.commit(); return confirmation
+
+
+def create_purchase_order_confirmation_from_text(db: Session, *, tenant_id: str, shop_id: str, account_id: str, message: str):
+    item = None
+    for candidate in db.scalars(select(V2InventoryItem).where(V2InventoryItem.tenant_id == tenant_id, V2InventoryItem.status == "active")):
+        if candidate.name in message:
+            item = candidate
+            break
+    if item is None:
+        raise LookupError("item")
+
+    supplier = None
+    supplier_source = "matched_by_name"
+    active_suppliers = list(db.scalars(select(V2Supplier).where(V2Supplier.tenant_id == tenant_id, V2Supplier.shop_id == shop_id, V2Supplier.status == "active").order_by(V2Supplier.created_at.asc(), V2Supplier.supplier_id.asc())))
+    for candidate in active_suppliers:
+        if candidate.name in message:
+            supplier = candidate
+            break
+    if supplier is None and active_suppliers:
+        supplier = active_suppliers[0]
+        supplier_source = "fallback_first_supplier"
+    if supplier is None:
+        supplier_name = "默认五金供应商"
+        if "供应商" in message:
+            supplier_name = message.split("供应商", 1)[0].replace("向", "").strip() or supplier_name
+        supplier_id = "__new_supplier__"
+        supplier_source = "pending_create_on_approval"
+    else:
+        supplier_id = supplier.supplier_id
+        supplier_name = supplier.name
+
+    qty_match = re.search(r"(\d+(?:\.\d+)?)", message)
+    price_match = re.search(r"(?:单价|进价|成本)\s*(\d+(?:\.\d+)?)", message)
+    qty = Decimal(qty_match.group(1)) if qty_match else Decimal("1")
+    unit_cost = money(price_match.group(1) if price_match else "0")
+    now = utc_now_naive()
+    session = V2ConversationSession(session_id=f"vsess_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, session_type="purchase_order_draft", title="AI采购单草稿", status="active", initiated_by_account_id=account_id, created_at=now, updated_at=now)
+    db.add(session); db.flush()
+    msg = V2Message(message_id=f"vmsg_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, session_id=session.session_id, actor_type="account", actor_id=account_id, message_kind="text", payload_json={"text": message}, created_at=now)
+    task = V2TaskRun(task_run_id=f"vtask_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, session_id=session.session_id, source_message_id=msg.message_id, intent_type="purchase.order_create", status="awaiting_confirmation", risk_level="high", trace_id=f"trace_{uuid.uuid4().hex}"[:64], result_summary="AI purchase order draft awaiting confirmation.", created_at=now, updated_at=now)
+    draft = {
+        "supplier_id": supplier_id,
+        "supplier_name": supplier_name,
+        "supplier_source": supplier_source,
+        "items": [{"inventory_item_id": item.inventory_item_id, "item_name": item.name, "quantity": str(qty), "unit_cost": str(unit_cost), "line_amount": str(money(qty * unit_cost))}],
+        "note": "AI purchase order draft",
+        "source_text": message,
+    }
+    confirmation = V2Confirmation(confirmation_id=f"vconf_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, task_run_id=task.task_run_id, confirmation_type="purchase.order_create", status="pending", draft_payload=draft, resolution_payload={}, created_at=now)
+    db.add_all([msg, task, confirmation])
+    db.commit()
+    return confirmation

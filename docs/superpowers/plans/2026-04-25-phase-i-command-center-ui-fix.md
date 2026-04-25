@@ -57,5 +57,5 @@
 - [x] Browser smoke on `http://127.0.0.1:8082/` or 8001 if available: login, dashboard visible, command center visible, no obvious overlap.
 - [x] Check browser console has zero JS errors.
 - [x] Run `git diff --check`.
-- [ ] Stage only related files, not `dashboard.jpg`.
-- [ ] Commit and push.
+- [x] Stage only related files, not `dashboard.jpg`.
+- [x] Commit and push.

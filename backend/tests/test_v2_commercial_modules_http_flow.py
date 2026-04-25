@@ -72,6 +72,10 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
     assert supplier.status_code == 200
     supplier_id = supplier.json()["data"]["supplier"]["supplier_id"]
 
+    suppliers = client.get("/api/v2/purchasing/suppliers", headers=headers)
+    assert suppliers.status_code == 200
+    assert any(row["supplier_id"] == supplier_id for row in suppliers.json()["data"]["suppliers"])
+
     po = client.post(
         "/api/v2/purchasing/orders",
         headers=headers,
@@ -79,9 +83,15 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
     )
     assert po.status_code == 200
     assert po.json()["data"]["purchase_order"]["status"] == "received"
+    purchase_orders = client.get("/api/v2/purchasing/orders", headers=headers)
+    assert purchase_orders.status_code == 200
+    assert any(row["purchase_order_id"] == po.json()["data"]["purchase_order"]["purchase_order_id"] for row in purchase_orders.json()["data"]["purchase_orders"])
 
     customer = client.post("/api/v2/customers", headers=headers, json={"name": "老王", "phone": "13900000000"})
     assert customer.status_code == 200
+    customers = client.get("/api/v2/customers", headers=headers)
+    assert customers.status_code == 200
+    assert any(row["customer_id"] == customer.json()["data"]["customer"]["customer_id"] for row in customers.json()["data"]["customers"])
     _create_order(client, headers, context["item_id"])
     analysis = client.get("/api/v2/customers/repurchase-analysis", headers=headers)
     assert analysis.status_code == 200

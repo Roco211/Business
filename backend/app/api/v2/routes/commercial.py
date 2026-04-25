@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, require_v2_authenticated_account, require_v2_execution_context
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_db_session
-from app.services.v2_commercial import create_customer, create_purchase_order, create_sales_order_confirmation_from_text, create_supplier, customer_repurchase_analysis, finance_summary, get_finance_transactions
+from app.services.v2_commercial import create_customer, create_purchase_order, create_sales_order_confirmation_from_text, create_supplier, customer_repurchase_analysis, finance_summary, get_finance_transactions, list_customers, list_purchase_orders, list_suppliers
 
 
 def _err(status: int, code: str, message: str):
@@ -24,11 +24,25 @@ finance_router = APIRouter(prefix="/api/v2/finance", tags=["v2-finance"])
 sales_draft_router = APIRouter(prefix="/api/v2/sales", tags=["v2-sales-ai"])
 
 
+@purchasing_router.get("/suppliers")
+def list_suppliers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), db_session: Session = Depends(get_db_session)):
+    if mismatch := _guard(account, context): return mismatch
+    suppliers = list_suppliers(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit)
+    return V2DataEnvelope(data={"suppliers": [{"supplier_id": supplier.supplier_id, "tenant_id": supplier.tenant_id, "shop_id": supplier.shop_id, "name": supplier.name, "phone": supplier.phone, "status": supplier.status, "created_at": supplier.created_at} for supplier in suppliers], "count": len(suppliers)})
+
+
 @purchasing_router.post("/suppliers")
 def create_supplier_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
     supplier = create_supplier(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"))
     return V2DataEnvelope(data={"supplier": {"supplier_id": supplier.supplier_id, "tenant_id": supplier.tenant_id, "shop_id": supplier.shop_id, "name": supplier.name, "phone": supplier.phone, "status": supplier.status}})
+
+
+@purchasing_router.get("/orders")
+def list_purchase_orders_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), db_session: Session = Depends(get_db_session)):
+    if mismatch := _guard(account, context): return mismatch
+    orders = list_purchase_orders(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit)
+    return V2DataEnvelope(data={"purchase_orders": [{"purchase_order_id": order.purchase_order_id, "tenant_id": order.tenant_id, "shop_id": order.shop_id, "supplier_id": order.supplier_id, "order_no": order.order_no, "status": order.status, "total_amount": order.total_amount, "note": order.note, "created_at": order.created_at} for order in orders], "count": len(orders)})
 
 
 @purchasing_router.post("/orders")
@@ -39,6 +53,13 @@ def create_purchase_order_v2(payload: dict, account: V2AuthenticatedAccount = De
     except LookupError:
         return _err(404, "purchase_resource_not_found", "Purchase resource not found")
     return V2DataEnvelope(data={"purchase_order": {"purchase_order_id": order.purchase_order_id, "tenant_id": order.tenant_id, "shop_id": order.shop_id, "supplier_id": order.supplier_id, "order_no": order.order_no, "status": order.status, "total_amount": order.total_amount, "note": order.note, "created_at": order.created_at}})
+
+
+@customers_router.get("")
+def list_customers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), db_session: Session = Depends(get_db_session)):
+    if mismatch := _guard(account, context): return mismatch
+    customers = list_customers(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit)
+    return V2DataEnvelope(data={"customers": [{"customer_id": customer.customer_id, "tenant_id": customer.tenant_id, "shop_id": customer.shop_id, "name": customer.name, "phone": customer.phone, "status": customer.status, "created_at": customer.created_at} for customer in customers], "count": len(customers)})
 
 
 @customers_router.post("")

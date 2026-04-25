@@ -1,5 +1,5 @@
 
-import type { ApiEnvelope, AuthState, Confirmation, InventoryItem, LedgerEvent, Overview, SalesOrder, Shop, StockItem, Tenant } from './types'
+import type { ApiEnvelope, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, Shop, StockItem, Supplier, Tenant } from './types'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const AUTH_KEY = 'business_h5_auth'
@@ -69,6 +69,16 @@ export const api = {
   listEvents: (auth: AuthState) => request<{ events: LedgerEvent[]; count: number }>('/api/v2/inventory/events?limit=50', {}, auth),
   listSalesOrders: (auth: AuthState) => request<{ orders: SalesOrder[]; count: number }>('/api/v2/sales/orders?limit=50', {}, auth),
   createSalesOrder: (auth: AuthState, input: { customer_name?: string; payment_method: string; items: { inventory_item_id: string; quantity: number; unit_price: number }[]; note?: string }) => request<{ order: unknown }>('/api/v2/sales/orders', { method: 'POST', body: JSON.stringify(input) }, auth),
+  createSalesOrderDraft: (auth: AuthState, message: string) => request<{ confirmation: Confirmation }>('/api/v2/sales/order-drafts/from-text', { method: 'POST', body: JSON.stringify({ message }) }, auth),
+  listSuppliers: (auth: AuthState) => request<{ suppliers: Supplier[]; count: number }>('/api/v2/purchasing/suppliers?limit=50', {}, auth),
+  createSupplier: (auth: AuthState, input: { name: string; phone?: string }) => request<{ supplier: Supplier }>('/api/v2/purchasing/suppliers', { method: 'POST', body: JSON.stringify(input) }, auth),
+  listPurchaseOrders: (auth: AuthState) => request<{ purchase_orders: PurchaseOrder[]; count: number }>('/api/v2/purchasing/orders?limit=50', {}, auth),
+  createPurchaseOrder: (auth: AuthState, input: { supplier_id: string; items: { inventory_item_id: string; quantity: number; unit_cost: number }[]; note?: string }) => request<{ purchase_order: PurchaseOrder }>('/api/v2/purchasing/orders', { method: 'POST', body: JSON.stringify(input) }, auth),
+  listCustomers: (auth: AuthState) => request<{ customers: Customer[]; count: number }>('/api/v2/customers?limit=50', {}, auth),
+  createCustomer: (auth: AuthState, input: { name: string; phone?: string }) => request<{ customer: Customer }>('/api/v2/customers', { method: 'POST', body: JSON.stringify(input) }, auth),
+  getCustomerRepurchaseAnalysis: (auth: AuthState) => request<CustomerRepurchaseAnalysis>('/api/v2/customers/repurchase-analysis', {}, auth),
+  listFinanceTransactions: (auth: AuthState) => request<{ transactions: FinanceTransaction[]; count: number }>('/api/v2/finance/transactions?limit=50', {}, auth),
+  getFinanceSummary: (auth: AuthState) => request<{ summary: FinanceSummary }>('/api/v2/finance/summary', {}, auth),
   getAudit: (auth: AuthState, itemId: string) => request<{ events: LedgerEvent[]; count: number }>(`/api/v2/inventory/items/${itemId}/audit?limit=20`, {}, auth),
   stockIn: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-in', { method: 'POST', body: JSON.stringify(input) }, auth),
   stockOut: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-out', { method: 'POST', body: JSON.stringify(input) }, auth),

@@ -95,9 +95,17 @@ def return_sales_order_items(db: Session, *, tenant_id: str, shop_id: str, sales
         db.rollback(); raise
 
 
+def list_suppliers(db: Session, *, tenant_id: str, shop_id: str, limit: int):
+    return list(db.scalars(select(V2Supplier).where(V2Supplier.tenant_id == tenant_id, V2Supplier.shop_id == shop_id, V2Supplier.status == "active").order_by(V2Supplier.created_at.desc(), V2Supplier.supplier_id.desc()).limit(limit)))
+
+
 def create_supplier(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None):
     now = utc_now_naive(); supplier = V2Supplier(supplier_id=f"vsup_{uuid.uuid4().hex}"[:40], tenant_id=tenant_id, shop_id=shop_id, name=name.strip(), phone=(phone or None), status="active", created_at=now, updated_at=now)
     db.add(supplier); db.commit(); return supplier
+
+
+def list_purchase_orders(db: Session, *, tenant_id: str, shop_id: str, limit: int):
+    return list(db.scalars(select(V2PurchaseOrder).where(V2PurchaseOrder.tenant_id == tenant_id, V2PurchaseOrder.shop_id == shop_id).order_by(V2PurchaseOrder.created_at.desc(), V2PurchaseOrder.purchase_order_id.desc()).limit(limit)))
 
 
 def create_purchase_order(db: Session, *, tenant_id: str, shop_id: str, supplier_id: str, items: list[dict], note: str | None, account_id: str):
@@ -121,6 +129,10 @@ def create_purchase_order(db: Session, *, tenant_id: str, shop_id: str, supplier
         db.commit(); return po
     except Exception:
         db.rollback(); raise
+
+
+def list_customers(db: Session, *, tenant_id: str, shop_id: str, limit: int):
+    return list(db.scalars(select(V2Customer).where(V2Customer.tenant_id == tenant_id, V2Customer.shop_id == shop_id, V2Customer.status == "active").order_by(V2Customer.created_at.desc(), V2Customer.customer_id.desc()).limit(limit)))
 
 
 def create_customer(db: Session, *, tenant_id: str, shop_id: str, name: str, phone: str | None):

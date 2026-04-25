@@ -1,21 +1,24 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
-import type { Activity, AiEmployee, AuthState, Confirmation, InventoryItem, LedgerEvent, Overview, SalesOrder, StockItem, Suggestion } from './types'
+import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
 
-type Page = 'dashboard' | 'sales' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
+type Page = 'dashboard' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
 const navItems: { page: Page; label: string }[] = [
   { page: 'dashboard', label: '工作台' },
   { page: 'sales', label: '销售单' },
+  { page: 'purchasing', label: '采购单' },
+  { page: 'customers', label: '客户复购' },
+  { page: 'finance', label: '财务流水' },
   { page: 'products', label: '商品管理' },
   { page: 'inventory', label: '库存管理' },
   { page: 'ai', label: 'AI助手' },
   { page: 'tasks', label: '任务中心' },
-  { page: 'coming-soon', label: '客户/营销' }
+  { page: 'coming-soon', label: '营销/售后' }
 ]
 
 function formatMoney(value: number | string) {
@@ -33,6 +36,12 @@ function App() {
   const [stock, setStock] = useState<StockItem[]>([])
   const [events, setEvents] = useState<LedgerEvent[]>([])
   const [orders, setOrders] = useState<SalesOrder[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [repurchase, setRepurchase] = useState<CustomerRepurchaseAnalysis | null>(null)
+  const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([])
+  const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null)
   const [confirmations, setConfirmations] = useState<Confirmation[]>([])
 
   async function refresh(currentAuth = auth) {
@@ -40,12 +49,18 @@ function App() {
     setState('loading')
     setError('')
     try {
-      const [nextOverview, nextItems, nextStock, nextEvents, nextOrders, nextConfirmations] = await Promise.all([
+      const [nextOverview, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
         api.getOverview(currentAuth),
         api.listItems(currentAuth),
         api.listStock(currentAuth),
         api.listEvents(currentAuth),
         api.listSalesOrders(currentAuth),
+        api.listSuppliers(currentAuth),
+        api.listPurchaseOrders(currentAuth),
+        api.listCustomers(currentAuth),
+        api.getCustomerRepurchaseAnalysis(currentAuth),
+        api.listFinanceTransactions(currentAuth),
+        api.getFinanceSummary(currentAuth),
         api.listConfirmations(currentAuth)
       ])
       setOverview(nextOverview)
@@ -53,6 +68,12 @@ function App() {
       setStock(nextStock.items)
       setEvents(nextEvents.events)
       setOrders(nextOrders.orders)
+      setSuppliers(nextSuppliers.suppliers)
+      setPurchaseOrders(nextPurchaseOrders.purchase_orders)
+      setCustomers(nextCustomers.customers)
+      setRepurchase(nextRepurchase)
+      setFinanceTransactions(nextFinanceTransactions.transactions)
+      setFinanceSummary(nextFinanceSummary.summary)
       setConfirmations(nextConfirmations.confirmations)
       setState('ready')
     } catch (err) {
@@ -86,6 +107,12 @@ function App() {
     setStock([])
     setEvents([])
     setOrders([])
+    setSuppliers([])
+    setPurchaseOrders([])
+    setCustomers([])
+    setRepurchase(null)
+    setFinanceTransactions([])
+    setFinanceSummary(null)
     setConfirmations([])
   }
 
@@ -111,6 +138,9 @@ function App() {
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard overview={overview} onNavigate={setPage} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} onChanged={() => void refresh()} />}
+        {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
+        {page === 'customers' && <CustomersPage auth={auth} customers={customers} repurchase={repurchase} onChanged={() => void refresh()} />}
+        {page === 'finance' && <FinancePage summary={financeSummary} transactions={financeTransactions} />}
         {page === 'products' && <ProductsPage auth={auth} items={items} onChanged={() => void refresh()} />}
         {page === 'inventory' && <InventoryPage auth={auth} items={items} stock={stock} events={events} onChanged={() => void refresh()} />}
         {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} />}
@@ -210,6 +240,29 @@ function SalesPage({ auth, stock, orders, onChanged }: { auth: AuthState; stock:
   return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F1 已开放</div><h1>销售单/订单闭环</h1><p>创建销售单会写入真实订单、订单明细，并同步生成库存出库流水，营业额不再依赖假数据。</p></div><button className="primary-button" disabled={!sellable} onClick={() => void createOrder()}>创建销售单</button></section><Panel title="快速开销售单"><div className="inline-form"><input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="客户名称" /><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="数量" /><input value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder={`单价，默认${sellable?.current_price || 1}`} /></div><p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}</p></Panel><Panel title="销售单列表"><DataTable rows={orders} columns={['order_no','customer_name','payment_method','total_amount','items_count','status']} /></Panel></div>
 }
 
+function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: { auth: AuthState; stock: StockItem[]; suppliers: Supplier[]; purchaseOrders: PurchaseOrder[]; onChanged: () => void }) {
+  const firstStock = stock[0]
+  const firstSupplier = suppliers[0]
+  const [supplierName, setSupplierName] = useState('默认五金供应商')
+  const [supplierPhone, setSupplierPhone] = useState('')
+  const [quantity, setQuantity] = useState('5')
+  const [unitCost, setUnitCost] = useState('10')
+  async function createSupplier() { if (!supplierName.trim()) return; await api.createSupplier(auth, { name: supplierName, phone: supplierPhone }); setSupplierName('默认五金供应商'); setSupplierPhone(''); onChanged() }
+  async function createPurchase() { if (!firstSupplier || !firstStock) return; await api.createPurchaseOrder(auth, { supplier_id: firstSupplier.supplier_id, items: [{ inventory_item_id: firstStock.inventory_item_id, quantity: Number(quantity || 1), unit_cost: Number(unitCost || 0) }], note: 'PC/H5采购入库' }); onChanged() }
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F2 已开放</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水。</p></div><button className="primary-button" disabled={!firstSupplier || !firstStock} onClick={() => void createPurchase()}>创建采购入库单</button></section><Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createSupplier()}>新增供应商</button></div></Panel><Panel title="快速采购入库"><div className="inline-form"><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="采购数量" /><input value={unitCost} onChange={(e) => setUnitCost(e.target.value)} placeholder="采购单价" /></div><p className="helper-text">供应商：{firstSupplier?.name || '请先新增供应商'}；商品：{firstStock?.item_name || '暂无商品库存快照'}</p></Panel><Panel title="供应商列表"><DataTable rows={suppliers} columns={['name','phone','status']} /></Panel><Panel title="采购单列表"><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel></div>
+}
+
+function CustomersPage({ auth, customers, repurchase, onChanged }: { auth: AuthState; customers: Customer[]; repurchase: CustomerRepurchaseAnalysis | null; onChanged: () => void }) {
+  const [name, setName] = useState('老王')
+  const [phone, setPhone] = useState('')
+  async function createCustomer() { if (!name.trim()) return; await api.createCustomer(auth, { name, phone }); setName('老王'); setPhone(''); onChanged() }
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F3 已开放</div><h1>客户档案与复购分析</h1><p>客户数据来自真实后端 API，复购统计基于销售单客户名称聚合，后续会升级为 customer_id 精准关联。</p></div></section><Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createCustomer()}>新增客户</button></div></Panel><section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>按客户姓名匹配</p></div></section><Panel title="客户列表"><DataTable rows={customers} columns={['name','phone','status']} /></Panel><Panel title="复购分析"><DataTable rows={repurchase?.customers || []} columns={['name','phone','order_count','total_amount']} /></Panel></div>
+}
+
+function FinancePage({ summary, transactions }: { summary: FinanceSummary | null; transactions: FinanceTransaction[] }) {
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F4 已开放</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，可查看收入、支出和净现金流。</p></div></section><section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section><Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel></div>
+}
+
 function ProductsPage({ auth, items, onChanged }: { auth: AuthState; items: InventoryItem[]; onChanged: () => void }) {
   const [name, setName] = useState('')
   const [sku, setSku] = useState('')
@@ -227,9 +280,12 @@ function InventoryPage({ auth, items, stock, events, onChanged }: { auth: AuthSt
 
 function AiPage({ auth, overview, onChanged }: { auth: AuthState; overview: Overview | null; onChanged: () => void }) {
   const [message, setMessage] = useState('查一下今天销售额')
+  const [draftMessage, setDraftMessage] = useState('卖出1把电动螺丝刀，单价99，客户老王')
   const [reply, setReply] = useState('')
+  const [draftResult, setDraftResult] = useState('')
   async function send() { const data = await api.chat(auth, message); setReply(data.reply); onChanged() }
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">AI运营协调官</div><h1>自然语言经营入口</h1><p>可查询营业数据、库存、热销排行；涉及库存写入时后端会生成待确认任务。</p></div></section><Panel title="问AI运营协调官"><div className="chat-box"><textarea value={message} onChange={(e) => setMessage(e.target.value)} /><button className="primary-button" onClick={() => void send()}>发送</button>{reply && <div className="assistant-reply">{reply}</div>}</div></Panel><Panel title="建议快捷入口"><SuggestionList suggestions={overview?.suggestions || []} /></Panel></div>
+  async function createDraft() { const data = await api.createSalesOrderDraft(auth, draftMessage); setDraftResult(`已生成待确认销售单：${data.confirmation.confirmation_id}`); onChanged() }
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">AI运营协调官</div><h1>自然语言经营入口</h1><p>可查询营业数据、库存、热销排行；涉及业务写入时后端会生成待确认任务，审批后才落账。</p></div></section><Panel title="问AI运营协调官"><div className="chat-box"><textarea value={message} onChange={(e) => setMessage(e.target.value)} /><button className="primary-button" onClick={() => void send()}>发送</button>{reply && <div className="assistant-reply">{reply}</div>}</div></Panel><Panel title="AI生成销售单草稿"><div className="chat-box"><textarea value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} /><button className="primary-button" onClick={() => void createDraft()}>生成待确认销售单</button>{draftResult && <div className="assistant-reply">{draftResult}，请到任务中心审批。</div>}</div></Panel><Panel title="建议快捷入口"><SuggestionList suggestions={overview?.suggestions || []} /></Panel></div>
 }
 
 function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void }) {
@@ -240,14 +296,14 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
 
 const moduleRoadmap = [
   { name: '销售单/订单', phase: 'F1', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '已开放' },
-  { name: '采购/供应商', phase: 'F2', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '下一阶段' },
-  { name: '客户档案', phase: 'F3', value: '支持复购、赊账、客户标签和经营分析。', status: '规划中' },
-  { name: '财务流水', phase: 'F4', value: '沉淀现金流、应收应付、毛利和对账能力。', status: '规划中' },
+  { name: '采购/供应商', phase: 'F2', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '已开放' },
+  { name: '客户档案', phase: 'F3', value: '支持客户建档和复购分析。', status: '已开放' },
+  { name: '财务流水', phase: 'F4', value: '沉淀现金流、收入支出和对账汇总能力。', status: '已开放' },
   { name: '营销/售后', phase: 'F5', value: '基于真实订单和客户数据生成营销建议与售后闭环。', status: '后续开放' }
 ]
 
 function ComingSoon() {
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">商业能力路线</div><h1>未完成模块只展示边界，不展示假数据</h1><p>当前商用试运行聚焦商品、库存、AI经营助手和确认审批闭环。订单、客户、财务等模块会按真实后端领域模型逐步开放。</p></div></section><Panel title="下一阶段模块路线"> <div className="roadmap-grid">{moduleRoadmap.map((m) => <div className="roadmap-card" key={m.phase}><span>{m.phase}</span><b>{m.name}</b><p>{m.value}</p><em>{m.status}</em></div>)}</div></Panel></div>
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">商业能力路线</div><h1>未完成模块只展示边界，不展示假数据</h1><p>当前商用试运行已开放销售、采购、客户、财务与AI确认审批闭环。营销/售后仍按真实后端领域模型逐步开放。</p></div></section><Panel title="下一阶段模块路线"> <div className="roadmap-grid">{moduleRoadmap.map((m) => <div className="roadmap-card" key={m.phase}><span>{m.phase}</span><b>{m.name}</b><p>{m.value}</p><em>{m.status}</em></div>)}</div></Panel></div>
 }
 function Empty({ text }: { text: string }) { return <div className="empty-state">{text}</div> }
 function SkeletonHome() { return <div className="skeleton"><span /><span /><span /></div> }

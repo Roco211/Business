@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, require_v2_authenticated_account, require_v2_execution_context
+from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, ensure_v2_permission, require_v2_authenticated_account, require_v2_execution_context
 from app.contracts.v2.common import V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_db_session
 from app.models import V2InventoryLedgerEvent
@@ -45,6 +45,7 @@ def export_sales_orders_v2(
 ):
     if mismatch := _guard(account, context):
         return mismatch
+    ensure_v2_permission(context, "exports:sales")
     orders = list(db_session.scalars(select(V2SalesOrder).where(V2SalesOrder.tenant_id == context.tenant_id, V2SalesOrder.shop_id == context.shop_id).order_by(V2SalesOrder.created_at.desc(), V2SalesOrder.sales_order_id.desc()).limit(limit)))
     return _csv_response(
         "sales-orders.csv",
@@ -62,6 +63,7 @@ def export_purchase_orders_v2(
 ):
     if mismatch := _guard(account, context):
         return mismatch
+    ensure_v2_permission(context, "exports:purchasing")
     orders = list(db_session.scalars(select(V2PurchaseOrder).where(V2PurchaseOrder.tenant_id == context.tenant_id, V2PurchaseOrder.shop_id == context.shop_id).order_by(V2PurchaseOrder.created_at.desc(), V2PurchaseOrder.purchase_order_id.desc()).limit(limit)))
     return _csv_response(
         "purchase-orders.csv",
@@ -79,6 +81,7 @@ def export_finance_transactions_v2(
 ):
     if mismatch := _guard(account, context):
         return mismatch
+    ensure_v2_permission(context, "exports:finance")
     transactions = list(db_session.scalars(select(V2FinanceTransaction).where(V2FinanceTransaction.tenant_id == context.tenant_id, V2FinanceTransaction.shop_id == context.shop_id).order_by(V2FinanceTransaction.occurred_at.desc(), V2FinanceTransaction.finance_transaction_id.desc()).limit(limit)))
     return _csv_response(
         "finance-transactions.csv",
@@ -96,6 +99,7 @@ def export_inventory_ledger_v2(
 ):
     if mismatch := _guard(account, context):
         return mismatch
+    ensure_v2_permission(context, "exports:inventory")
     events = list(db_session.scalars(select(V2InventoryLedgerEvent).where(V2InventoryLedgerEvent.tenant_id == context.tenant_id, V2InventoryLedgerEvent.shop_id == context.shop_id).order_by(V2InventoryLedgerEvent.occurred_at.desc(), V2InventoryLedgerEvent.event_id.desc()).limit(limit)))
     return _csv_response(
         "inventory-ledger.csv",

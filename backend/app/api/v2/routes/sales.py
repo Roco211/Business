@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps.v2_context import (
     V2AuthenticatedAccount,
     V2ExecutionContext,
+    ensure_v2_permission,
     require_v2_authenticated_account,
     require_v2_execution_context,
 )
@@ -89,6 +90,7 @@ def create_sales_order_v2(
 ) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "sales:write")
     try:
         result = create_v2_sales_order(
             db_session,
@@ -136,6 +138,7 @@ def cancel_sales_order_v2(
 ) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "sales:write")
     try:
         order, lines = cancel_sales_order(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, sales_order_id=sales_order_id, reason=str(payload.get("reason") or ""), account_id=account.account_id)
     except LookupError:
@@ -155,6 +158,7 @@ def return_sales_order_v2(
 ) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "sales:write")
     try:
         order, lines = return_sales_order_items(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, sales_order_id=sales_order_id, items=list(payload.get("items") or []), reason=str(payload.get("reason") or ""), account_id=account.account_id)
     except LookupError:

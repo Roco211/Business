@@ -58,7 +58,7 @@ export async function loginWithPhone(phone: string, verificationCode: string): P
 }
 
 export async function bootstrapContext(accessToken: string, refreshToken?: string, accountId?: string): Promise<AuthState> {
-  const partial: AuthState = { accessToken, refreshToken, accountId, contextToken: '', tenantId: '', shopId: '' }
+  const partial: AuthState = { accessToken, refreshToken, accountId, contextToken: '', tenantId: '', shopId: '', roleKey: '', permissions: [] }
   const tenantsData = await request<{ tenants: Tenant[] }>('/api/v2/me/tenants', {}, partial)
   const tenant = tenantsData.tenants[0]
   const tenantId = tenant?.tenant_id || tenant?.tenantId
@@ -67,13 +67,13 @@ export async function bootstrapContext(accessToken: string, refreshToken?: strin
   const shop = shopsData.shops[0]
   const shopId = shop?.shop_id || shop?.shopId
   if (!shopId) throw new Error('当前租户没有可用门店')
-  const context = await request<{ contextToken?: string; context_token?: string }>('/api/v2/context/select', {
+  const context = await request<{ contextToken?: string; context_token?: string; roleKey?: string; role_key?: string; permissions?: string[] }>('/api/v2/context/select', {
     method: 'POST',
     body: JSON.stringify({ tenant_id: tenantId, shop_id: shopId })
   }, partial)
   const contextToken = context.contextToken || context.context_token || ''
   if (!contextToken) throw new Error('门店上下文创建失败')
-  return { ...partial, contextToken, tenantId, shopId }
+  return { ...partial, contextToken, tenantId, shopId, roleKey: context.roleKey || context.role_key || '', permissions: context.permissions || [] }
 }
 
 export const api = {

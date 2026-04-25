@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps.v2_context import (
     V2AuthenticatedAccount,
     V2ExecutionContext,
+    ensure_v2_permission,
     require_v2_authenticated_account,
     require_v2_execution_context,
 )
@@ -124,6 +125,7 @@ def create_inventory_item_v2(
 ) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "inventory:write")
 
     try:
         item = create_v2_inventory_item(
@@ -203,6 +205,7 @@ def update_inventory_item_v2(
 ) -> V2DataEnvelope[V2InventoryItemDetailData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "inventory:write")
 
     try:
         item = update_v2_inventory_item(
@@ -348,6 +351,7 @@ def submit_inventory_correction_v2(
 ) -> V2DataEnvelope[V2SubmitInventoryCorrectionData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "inventory:write")
 
     try:
         result = submit_v2_inventory_correction(
@@ -400,6 +404,7 @@ def submit_inventory_stock_in_v2(
 ) -> V2DataEnvelope[V2SubmitInventoryStockInData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "inventory:write")
 
     try:
         result = submit_v2_inventory_stock_in(
@@ -447,6 +452,7 @@ def submit_inventory_stock_out_v2(
 ) -> V2DataEnvelope[V2SubmitInventoryStockOutData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "inventory:write")
 
     try:
         result = submit_v2_inventory_stock_out(

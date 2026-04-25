@@ -27,6 +27,7 @@ def seed_v2_identity(
     tenants: list[tuple[str, str]],
     shops: dict[str, list[tuple[str, str]]],
     accessible_shops: list[str] | None = None,
+    role_key: str = "owner",
 ) -> None:
     now = _utc_now_naive()
     salt_hex = "11" * 16
@@ -62,7 +63,7 @@ def seed_v2_identity(
                 membership_id=membership_id,
                 tenant_id=tenant_id,
                 account_id=account_id,
-                role_key="owner",
+                role_key=role_key,
                 status="active",
                 joined_at=now,
                 updated_at=now,
@@ -104,7 +105,8 @@ def login_v2(client, *, email: str = "owner@example.com", password: str = "dev-p
         json={"email": email, "password": password},
     )
     assert response.status_code == 200
-    return response.json()["data"]["access_token"]
+    payload = response.json()["data"]
+    return payload.get("access_token") or payload.get("accessToken")
 
 
 def test_v2_health_returns_versioned_envelope(client) -> None:
@@ -217,9 +219,9 @@ def test_v2_login_returns_account_session_without_shop_binding(client, db_sessio
 
     assert response.status_code == 200
     payload = response.json()["data"]
-    assert payload["token_type"] == "Bearer"
-    assert payload["account_id"] == "acct_001"
-    assert payload["refresh_token"]
+    assert (payload.get("token_type") or payload.get("tokenType")) == "Bearer"
+    assert (payload.get("account_id") or payload.get("accountId")) == "acct_001"
+    assert payload.get("refresh_token") or payload.get("refreshToken")
     assert "tenant_id" not in payload
     assert "shop_id" not in payload
 
@@ -240,7 +242,8 @@ def test_v2_login_returns_refresh_token(client, db_session) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json()["data"]["refresh_token"]
+    refresh_payload = response.json()["data"]
+    assert refresh_payload.get("refresh_token") or refresh_payload.get("refreshToken")
 
 
 def test_v2_me_returns_authenticated_account_profile(client, db_session) -> None:
@@ -281,13 +284,15 @@ def test_v2_logout_revokes_auth_and_context_sessions(client, db_session) -> None
         "/api/v2/auth/login",
         json={"email": "owner@example.com", "password": "dev-password"},
     )
-    token = login_response.json()["data"]["access_token"]
+    login_payload = login_response.json()["data"]
+    token = login_payload.get("access_token") or login_payload.get("accessToken")
     select_response = client.post(
         "/api/v2/context/select",
         headers={"Authorization": f"Bearer {token}"},
         json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
     )
-    context_token = select_response.json()["data"]["context_token"]
+    context_payload = select_response.json()["data"]
+    context_token = context_payload.get("context_token") or context_payload.get("contextToken")
 
     logout_response = client.post(
         "/api/v2/auth/logout",
@@ -317,20 +322,23 @@ def test_v2_refresh_rotates_auth_session(client, db_session) -> None:
         "/api/v2/auth/login",
         json={"email": "owner@example.com", "password": "dev-password"},
     )
-    old_access_token = login_response.json()["data"]["access_token"]
-    old_refresh_token = login_response.json()["data"]["refresh_token"]
+    login_payload = login_response.json()["data"]
+    old_access_token = login_payload.get("access_token") or login_payload.get("accessToken")
+    old_refresh_token = login_payload.get("refresh_token") or login_payload.get("refreshToken")
 
     refresh_response = client.post(
         "/api/v2/auth/refresh",
         json={"refresh_token": old_refresh_token},
     )
-    new_access_token = refresh_response.json()["data"]["access_token"]
+    refresh_payload = refresh_response.json()["data"]
+    new_access_token = refresh_payload.get("access_token") or refresh_payload.get("accessToken")
 
     old_me_response = client.get("/api/v2/me", headers={"Authorization": f"Bearer {old_access_token}"})
     new_me_response = client.get("/api/v2/me", headers={"Authorization": f"Bearer {new_access_token}"})
 
     assert refresh_response.status_code == 200
-    assert refresh_response.json()["data"]["refresh_token"] != old_refresh_token
+    new_refresh_payload = refresh_response.json()["data"]
+    assert (new_refresh_payload.get("refresh_token") or new_refresh_payload.get("refreshToken")) != old_refresh_token
     assert old_me_response.status_code == 401
     assert new_me_response.status_code == 200
 
@@ -407,10 +415,10 @@ def test_v2_context_select_creates_explicit_context_session(client, db_session) 
 
     assert response.status_code == 200
     payload = response.json()["data"]
-    assert payload["tenant_id"] == "tenant_a"
-    assert payload["shop_id"] == "shop_a1"
-    assert payload["membership_id"] == "mship_tenant_a"
-    assert payload["context_token"] == payload["context_session_id"]
+    assert (payload.get("tenant_id") or payload.get("tenantId")) == "tenant_a"
+    assert (payload.get("shop_id") or payload.get("shopId")) == "shop_a1"
+    assert (payload.get("membership_id") or payload.get("membershipId")) == "mship_tenant_a"
+    assert (payload.get("context_token") or payload.get("contextToken")) == (payload.get("context_session_id") or payload.get("contextSessionId"))
     assert "inventory:read" in payload["permissions"]
 
 
@@ -451,7 +459,8 @@ def test_v2_context_current_returns_selected_context(client, db_session) -> None
         headers={"Authorization": f"Bearer {token}"},
         json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
     )
-    context_token = select_response.json()["data"]["context_token"]
+    context_payload = select_response.json()["data"]
+    context_token = context_payload.get("context_token") or context_payload.get("contextToken")
 
     response = client.get(
         "/api/v2/context/current",
@@ -463,6 +472,92 @@ def test_v2_context_current_returns_selected_context(client, db_session) -> None
 
     assert response.status_code == 200
     payload = response.json()["data"]
-    assert payload["context_session_id"] == context_token
-    assert payload["tenant_id"] == "tenant_a"
-    assert payload["shop_id"] == "shop_a1"
+    assert (payload.get("context_session_id") or payload.get("contextSessionId")) == context_token
+    assert (payload.get("tenant_id") or payload.get("tenantId")) == "tenant_a"
+    assert (payload.get("shop_id") or payload.get("shopId")) == "shop_a1"
+
+
+
+def _select_context_for_role(client, db_session, *, role_key: str) -> tuple[str, dict[str, str], dict]:
+    email = f"{role_key}@example.com"
+    seed_v2_identity(
+        db_session,
+        account_id=f"acct_{role_key}",
+        email=email,
+        password="dev-password",
+        tenants=[(f"tenant_{role_key}", f"Tenant {role_key}")],
+        shops={f"tenant_{role_key}": [(f"shop_{role_key}", f"Shop {role_key}")]},
+        accessible_shops=[f"shop_{role_key}"],
+        role_key=role_key,
+    )
+    token = login_v2(client, email=email)
+    response = client.post(
+        "/api/v2/context/select",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"tenant_id": f"tenant_{role_key}", "shop_id": f"shop_{role_key}"},
+    )
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    context_token = payload.get("context_token") or payload.get("contextToken")
+    headers = {"Authorization": f"Bearer {token}", "X-Context-Token": context_token}
+    return token, headers, payload
+
+
+def test_v2_context_select_snapshots_clerk_permissions(client, db_session) -> None:
+    _, _, payload = _select_context_for_role(client, db_session, role_key="clerk")
+
+    assert (payload.get("role_key") or payload.get("roleKey")) == "clerk"
+    assert "sales:write" in payload["permissions"]
+    assert "ai:write" in payload["permissions"]
+    assert "finance:read" not in payload["permissions"]
+    assert "exports:sales" not in payload["permissions"]
+    assert "confirmations:approve" not in payload["permissions"]
+
+
+def test_v2_context_select_snapshots_finance_permissions(client, db_session) -> None:
+    _, _, payload = _select_context_for_role(client, db_session, role_key="finance")
+
+    assert (payload.get("role_key") or payload.get("roleKey")) == "finance"
+    assert "finance:read" in payload["permissions"]
+    assert "exports:finance" in payload["permissions"]
+    assert "exports:inventory" not in payload["permissions"]
+    assert "inventory:write" not in payload["permissions"]
+    assert "sales:write" not in payload["permissions"]
+    assert "confirmations:approve" not in payload["permissions"]
+
+
+def test_v2_rbac_denies_clerk_finance_summary(client, db_session) -> None:
+    _, headers, _ = _select_context_for_role(client, db_session, role_key="clerk")
+
+    response = client.get("/api/v2/finance/summary", headers=headers)
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "permission_denied"
+
+
+def test_v2_rbac_denies_finance_inventory_write(client, db_session) -> None:
+    _, headers, _ = _select_context_for_role(client, db_session, role_key="finance")
+
+    response = client.post(
+        "/api/v2/inventory/items",
+        headers=headers,
+        json={"sku": "RBAC-FIN-001", "name": "财务无权新增商品", "default_unit": "个"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "permission_denied"
+
+
+def test_v2_rbac_allows_owner_finance_summary_and_inventory_write(client, db_session) -> None:
+    _, headers, _ = _select_context_for_role(client, db_session, role_key="owner")
+
+    finance_response = client.get("/api/v2/finance/summary", headers=headers)
+    create_response = client.post(
+        "/api/v2/inventory/items",
+        headers=headers,
+        json={"sku": "RBAC-OWN-001", "name": "老板可新增商品", "default_unit": "个"},
+    )
+
+    assert finance_response.status_code == 200
+    assert create_response.status_code == 200
+    assert create_response.json()["data"]["item"]["name"] == "老板可新增商品"

@@ -10,6 +10,8 @@ export type AuthState = {
   contextToken: string
   tenantId: string
   shopId: string
+  roleKey?: string
+  permissions?: string[]
 }
 
 export type Kpi = { key: string; label: string; value: number | string; unit?: string; trend_label?: string; status?: string }

@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.api.deps.auth import AuthUnauthorizedError
-from app.api.deps.v2_context import V2ContextRequiredError, V2UnauthorizedError
+from app.api.deps.v2_context import V2ContextRequiredError, V2ForbiddenError, V2UnauthorizedError
 from app.core.config import get_settings
 from app.core.production_middleware import (
     InMemoryRateLimiter,
@@ -89,6 +89,15 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=401,
             content=V2ErrorEnvelope(
                 error=V2ErrorBody(code="context_required", message="Context required")
+            ).model_dump(),
+        )
+
+    @app.exception_handler(V2ForbiddenError)
+    async def _handle_v2_forbidden(_, exc: V2ForbiddenError) -> JSONResponse:
+        return JSONResponse(
+            status_code=403,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="permission_denied", message="Permission denied", details=[{"field": "permission", "message": exc.permission}])
             ).model_dump(),
         )
 

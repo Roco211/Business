@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Callable
 
 from fastapi import Depends, Header
 from sqlalchemy import select
@@ -45,6 +46,12 @@ class V2ContextRequiredError(Exception):
     pass
 
 
+class V2ForbiddenError(Exception):
+    def __init__(self, permission: str) -> None:
+        self.permission = permission
+        super().__init__(permission)
+
+
 @dataclass(frozen=True)
 class V2ExecutionContext:
     account_id: str
@@ -82,3 +89,22 @@ def require_v2_execution_context(
         permissions=tuple(context_session.permission_snapshot["permissions"]),
         context_session_id=context_session.context_session_id,
     )
+
+
+def has_v2_permission(context: V2ExecutionContext, permission: str) -> bool:
+    return permission in context.permissions
+
+
+def ensure_v2_permission(context: V2ExecutionContext, permission: str) -> None:
+    if not has_v2_permission(context, permission):
+        raise V2ForbiddenError(permission)
+
+
+def require_v2_permission(permission: str) -> Callable[[V2ExecutionContext], V2ExecutionContext]:
+    def _dependency(
+        context: V2ExecutionContext = Depends(require_v2_execution_context),
+    ) -> V2ExecutionContext:
+        ensure_v2_permission(context, permission)
+        return context
+
+    return _dependency

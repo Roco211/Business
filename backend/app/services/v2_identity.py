@@ -18,6 +18,7 @@ from app.models import (
     V2Tenant,
     V2TenantMembership,
 )
+from app.services.v2_rbac import permissions_for_role
 from app.services.v2_time import utc_now_naive
 
 _PASSWORD_HASH_ITERATIONS = 310_000
@@ -252,7 +253,7 @@ def select_v2_context(
         membership_id=membership.membership_id,
         permission_snapshot={
             "role_key": membership.role_key,
-            "permissions": ["inventory:read", "conversation:write"],
+            "permissions": permissions_for_role(membership.role_key),
         },
         status="active",
         expires_at=now + timedelta(minutes=ttl_minutes),

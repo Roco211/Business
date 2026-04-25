@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 from typing import Literal
 
 
@@ -19,7 +19,7 @@ class V2LoginData(BaseModel):
 
 
 class V2RefreshRequest(BaseModel):
-    refreshToken: str
+    refreshToken: str = Field(validation_alias=AliasChoices("refreshToken", "refresh_token"))
 
 
 class V2MeData(BaseModel):

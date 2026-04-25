@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, require_v2_authenticated_account, require_v2_execution_context
+from app.api.deps.v2_context import V2AuthenticatedAccount, V2ExecutionContext, ensure_v2_permission, require_v2_authenticated_account, require_v2_execution_context
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_db_session
 from app.services.v2_commercial import create_customer, create_purchase_order, create_purchase_order_confirmation_from_text, create_sales_order_confirmation_from_text, create_supplier, customer_repurchase_analysis, finance_summary, get_finance_transactions, list_customers, list_purchase_orders, list_suppliers
@@ -34,6 +34,7 @@ def list_suppliers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authe
 @purchasing_router.post("/suppliers")
 def create_supplier_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "purchasing:write")
     supplier = create_supplier(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"), account_id=account.account_id)
     return V2DataEnvelope(data={"supplier": {"supplier_id": supplier.supplier_id, "tenant_id": supplier.tenant_id, "shop_id": supplier.shop_id, "name": supplier.name, "phone": supplier.phone, "status": supplier.status}})
 
@@ -48,6 +49,7 @@ def list_purchase_orders_v2(account: V2AuthenticatedAccount = Depends(require_v2
 @purchasing_router.post("/orders")
 def create_purchase_order_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "purchasing:write")
     try:
         order = create_purchase_order(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, supplier_id=str(payload.get("supplier_id") or ""), items=list(payload.get("items") or []), note=payload.get("note"), account_id=account.account_id)
     except LookupError:
@@ -58,6 +60,8 @@ def create_purchase_order_v2(payload: dict, account: V2AuthenticatedAccount = De
 @purchasing_router.post("/order-drafts/from-text")
 def create_purchase_order_draft_from_text_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "ai:write")
+    ensure_v2_permission(context, "purchasing:write")
     try:
         confirmation = create_purchase_order_confirmation_from_text(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, account_id=account.account_id, message=str(payload.get("message") or ""))
     except LookupError:
@@ -75,6 +79,7 @@ def list_customers_v2(account: V2AuthenticatedAccount = Depends(require_v2_authe
 @customers_router.post("")
 def create_customer_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "customers:write")
     customer = create_customer(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, name=str(payload.get("name") or ""), phone=payload.get("phone"), account_id=account.account_id)
     return V2DataEnvelope(data={"customer": {"customer_id": customer.customer_id, "tenant_id": customer.tenant_id, "shop_id": customer.shop_id, "name": customer.name, "phone": customer.phone, "status": customer.status}})
 
@@ -88,6 +93,7 @@ def customer_repurchase_analysis_v2(account: V2AuthenticatedAccount = Depends(re
 @finance_router.get("/transactions")
 def list_finance_transactions_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), limit: int = Query(default=20, ge=1, le=50), transaction_type: str | None = Query(default=None), direction: str | None = Query(default=None), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "finance:read")
     transactions = get_finance_transactions(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit, transaction_type=transaction_type, direction=direction)
     return V2DataEnvelope(data={"transactions": [{"finance_transaction_id": tx.finance_transaction_id, "tenant_id": tx.tenant_id, "shop_id": tx.shop_id, "transaction_type": tx.transaction_type, "direction": tx.direction, "amount": tx.amount, "source_type": tx.source_type, "source_id": tx.source_id, "counterparty_name": tx.counterparty_name, "note": tx.note, "occurred_at": tx.occurred_at} for tx in transactions], "count": len(transactions)})
 
@@ -95,12 +101,15 @@ def list_finance_transactions_v2(account: V2AuthenticatedAccount = Depends(requi
 @finance_router.get("/summary")
 def finance_summary_v2(account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "finance:read")
     return V2DataEnvelope(data={"summary": finance_summary(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id)})
 
 
 @sales_draft_router.post("/order-drafts/from-text")
 def create_sales_order_draft_from_text_v2(payload: dict, account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account), context: V2ExecutionContext = Depends(require_v2_execution_context), db_session: Session = Depends(get_db_session)):
     if mismatch := _guard(account, context): return mismatch
+    ensure_v2_permission(context, "ai:write")
+    ensure_v2_permission(context, "sales:write")
     try:
         confirmation = create_sales_order_confirmation_from_text(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, account_id=account.account_id, message=str(payload.get("message") or ""))
     except LookupError:

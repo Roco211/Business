@@ -8,18 +8,20 @@ type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'trial-acceptanc
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
-const navItems: { page: Page; label: string; icon: string; badge?: string }[] = [
+type NavItem = { page: Page; label: string; icon: string; badge?: string; permission?: string }
+
+const navItems: NavItem[] = [
   { page: 'dashboard', label: '工作台', icon: '⌂' },
   { page: 'ai', label: '我的员工', icon: '◇' },
   { page: 'daily-report', label: '经营日报', icon: '◌', badge: 'AI' },
   { page: 'execution-recaps', label: '执行复盘', icon: '◎', badge: 'AI' },
   { page: 'trial-acceptance', label: '试运行验收', icon: '✓' },
-  { page: 'sales', label: '销售单', icon: '□' },
-  { page: 'purchasing', label: '采购单', icon: '▣' },
-  { page: 'customers', label: '客户复购', icon: '◎' },
-  { page: 'products', label: '商品管理', icon: '▤' },
-  { page: 'inventory', label: '库存管理', icon: '▥' },
-  { page: 'finance', label: '财务流水', icon: '¥' },
+  { page: 'sales', label: '销售单', icon: '□', permission: 'sales:read' },
+  { page: 'purchasing', label: '采购单', icon: '▣', permission: 'purchasing:read' },
+  { page: 'customers', label: '客户复购', icon: '◎', permission: 'customers:read' },
+  { page: 'products', label: '商品管理', icon: '▤', permission: 'inventory:read' },
+  { page: 'inventory', label: '库存管理', icon: '▥', permission: 'inventory:read' },
+  { page: 'finance', label: '财务流水', icon: '¥', permission: 'finance:read' },
   { page: 'tasks', label: '任务中心', icon: '✓', badge: 'AI' },
   { page: 'coming-soon', label: '营销/售后', icon: '✧' }
 ]
@@ -27,6 +29,25 @@ const navItems: { page: Page; label: string; icon: string; badge?: string }[] = 
 function formatMoney(value: number | string) {
   const n = Number(value || 0)
   return n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function hasPermission(auth: AuthState | null, permission: string) {
+  return Boolean(auth?.permissions?.includes(permission))
+}
+
+function roleLabel(roleKey?: string) {
+  if (roleKey === 'owner') return '老板/管理员'
+  if (roleKey === 'clerk') return '店员'
+  if (roleKey === 'finance') return '财务'
+  return roleKey || '未设置角色'
+}
+
+function permissionHint(permission?: string) {
+  if (!permission) return ''
+  if (permission.startsWith('finance')) return '需要财务或老板权限'
+  if (permission.startsWith('inventory:write')) return '需要库存写入权限'
+  if (permission.startsWith('confirmations')) return '需要老板审批权限'
+  return '当前角色无权限'
 }
 
 function App() {
@@ -56,6 +77,7 @@ function App() {
     setState('loading')
     setError('')
     try {
+      const canReadFinance = hasPermission(currentAuth, 'finance:read')
       const [nextOverview, nextDailyReport, nextExecutionRecapList, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
         api.getOverview(currentAuth),
         api.getDailyReport(currentAuth),
@@ -68,8 +90,8 @@ function App() {
         api.listPurchaseOrders(currentAuth),
         api.listCustomers(currentAuth),
         api.getCustomerRepurchaseAnalysis(currentAuth),
-        api.listFinanceTransactions(currentAuth),
-        api.getFinanceSummary(currentAuth),
+        canReadFinance ? api.listFinanceTransactions(currentAuth) : Promise.resolve({ transactions: [], count: 0 }),
+        canReadFinance ? api.getFinanceSummary(currentAuth) : Promise.resolve({ summary: null }),
         api.listConfirmations(currentAuth)
       ])
       setOverview(nextOverview)
@@ -142,13 +164,17 @@ function App() {
           </div>
         </div>
         <nav className="nav-list">
-          {navItems.map((item) => (
-            <button key={item.page} className={page === item.page ? 'nav-item active' : 'nav-item'} onClick={() => setPage(item.page)}>
-              <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
-              {item.badge && <span className="nav-badge">{item.badge}</span>}
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const allowed = !item.permission || hasPermission(auth, item.permission)
+            return (
+              <button key={item.page} className={`${page === item.page ? 'nav-item active' : 'nav-item'} ${allowed ? '' : 'locked'}`} disabled={!allowed} title={allowed ? item.label : permissionHint(item.permission)} onClick={() => allowed && setPage(item.page)}>
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+                {item.badge && <span className="nav-badge">{item.badge}</span>}
+                {!allowed && <span className="nav-lock">锁</span>}
+              </button>
+            )
+          })}
         </nav>
         <div className="upgrade-card">
           <strong>升级老板版</strong>
@@ -158,7 +184,7 @@ function App() {
         <button className="ghost-button" onClick={handleLogout}>退出登录</button>
       </aside>
       <main className="main-panel">
-        <TopBar overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} onGuide={() => { setPage('dashboard'); setGuideSignal((value) => value + 1) }} onNotifications={() => setNotificationOpen(true)} />
+        <TopBar auth={auth} overview={overview} onRefresh={() => void refresh()} loading={state === 'loading'} onGuide={() => { setPage('dashboard'); setGuideSignal((value) => value + 1) }} onNotifications={() => setNotificationOpen(true)} />
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
@@ -198,7 +224,12 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
   )
 }
 
-function TopBar({ overview, onRefresh, loading, onGuide, onNotifications }: { overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void; onNotifications: () => void }) {
+
+function AccessDenied({ title = '当前角色无权限', message = '请联系老板/管理员调整账号角色或切换到有权限的门店上下文。' }: { title?: string; message?: string }) {
+  return <section className="access-denied-card"><div className="ai-badge">RBAC 权限保护</div><h1>{title}</h1><p>{message}</p><div className="permission-note">前端只做可见性提示，真实权限由后端接口强制校验。</div></section>
+}
+
+function TopBar({ auth, overview, onRefresh, loading, onGuide, onNotifications }: { auth: AuthState; overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void; onNotifications: () => void }) {
   return (
     <header className="top-bar">
       <div className="greeting-block">
@@ -217,6 +248,10 @@ function TopBar({ overview, onRefresh, loading, onGuide, onNotifications }: { ov
             <strong>{overview?.store.shop_name || '当前门店'}</strong>
             <small>{overview?.store.plan_label || '本地演示版'} · {overview?.user.display_name || '店主'}</small>
           </div>
+        </div>
+        <div className="role-chip" title={(auth.permissions || []).join(' / ')}>
+          <span>当前角色</span>
+          <strong>{roleLabel(auth.roleKey)}</strong>
         </div>
         <button className="secondary-button" onClick={onRefresh} disabled={loading}>{loading ? '刷新中' : '刷新数据'}</button>
       </div>
@@ -709,6 +744,8 @@ function ActivityList({ activities }: { activities: Activity[] }) { return <div 
 
 function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; customers: Customer[]; onChanged: () => void }) {
   const sellable = stock.find((item) => Number(item.current_quantity || 0) > 0)
+  const canWriteSales = hasPermission(auth, 'sales:write')
+  const canExportSales = hasPermission(auth, 'exports:sales')
   const [quantity, setQuantity] = useState('1')
   const [unitPrice, setUnitPrice] = useState('')
   const [customerName, setCustomerName] = useState('散客')
@@ -770,7 +807,7 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
           <h1>销售单生命周期管理</h1>
           <p>支持创建销售单、查看详情、取消订单、退货退款，并联动库存回补与财务流水。</p>
         </div>
-        <button className="primary-button" disabled={!sellable} onClick={() => void createOrder()}>创建销售单</button>
+        <button className="primary-button" disabled={!canWriteSales || !sellable} title={canWriteSales ? '' : '需要销售写入权限'} onClick={() => void createOrder()}>创建销售单</button>
       </section>
       <Panel title="快速开销售单">
         <div className="inline-form">
@@ -785,7 +822,7 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
         <p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}；选择客户后销售单会写入 customer_id，复购分析更准确。</p>
       </Panel>
       <Panel title="销售单列表">
-        <div className="inline-form"><button className="secondary-button" onClick={() => void api.exportSalesOrders(auth)}>导出销售单CSV</button></div>
+        <div className="inline-form"><button className="secondary-button" disabled={!canExportSales} title={canExportSales ? '' : '需要销售导出权限'} onClick={() => void api.exportSalesOrders(auth)}>导出销售单CSV</button></div>
         <DataTable rows={orders} columns={['order_no','customer_name','total_amount','items_count','status']} action={(row) => <button className="secondary-button" onClick={() => void openDetail(String(row.sales_order_id))}>查看/处理</button>} />
       </Panel>
       {selectedOrder && <Panel title={`销售单详情：${selectedOrder.order_no}`}>
@@ -816,18 +853,20 @@ function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: {
   const [unitCost, setUnitCost] = useState('10')
   const [selectedSupplierId, setSelectedSupplierId] = useState('')
   const activeSupplier = suppliers.find((supplier) => supplier.supplier_id === selectedSupplierId) || firstSupplier
+  const canWritePurchasing = hasPermission(auth, 'purchasing:write')
+  const canExportPurchasing = hasPermission(auth, 'exports:purchasing')
   const supplierOrders = activeSupplier ? purchaseOrders.filter((order) => order.supplier_id === activeSupplier.supplier_id) : []
   async function createSupplier() { if (!supplierName.trim()) return; await api.createSupplier(auth, { name: supplierName, phone: supplierPhone }); setSupplierName('默认五金供应商'); setSupplierPhone(''); onChanged() }
   async function createPurchase() { if (!activeSupplier || !firstStock) return; await api.createPurchaseOrder(auth, { supplier_id: activeSupplier.supplier_id, items: [{ inventory_item_id: firstStock.inventory_item_id, quantity: Number(quantity || 1), unit_cost: Number(unitCost || 0) }], note: 'PC/H5采购入库' }); onChanged() }
   return (
     <div className="content-grid">
-      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水；页面支持供应商采购记录聚合。</p></div><button className="primary-button" disabled={!activeSupplier || !firstStock} onClick={() => void createPurchase()}>创建采购入库单</button></section>
-      <Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createSupplier()}>新增供应商</button></div></Panel>
+      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水；页面支持供应商采购记录聚合。</p></div><button className="primary-button" disabled={!canWritePurchasing || !activeSupplier || !firstStock} title={canWritePurchasing ? '' : '需要采购写入权限'} onClick={() => void createPurchase()}>创建采购入库单</button></section>
+      <Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" disabled={!canWritePurchasing} title={canWritePurchasing ? '' : '需要采购写入权限'} onClick={() => void createSupplier()}>新增供应商</button></div></Panel>
       <Panel title="快速采购入库"><div className="inline-form"><select value={activeSupplier?.supplier_id || ''} onChange={(e) => setSelectedSupplierId(e.target.value)}><option value="">选择供应商</option>{suppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.name}</option>)}</select><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="采购数量" /><input value={unitCost} onChange={(e) => setUnitCost(e.target.value)} placeholder="采购单价" /></div><p className="helper-text">供应商：{activeSupplier?.name || '请先新增供应商'}；商品：{firstStock?.item_name || '暂无商品库存快照'}</p></Panel>
       <section className="kpi-grid"><div className="kpi-card"><span>供应商数量</span><strong>{suppliers.length}</strong><em>家</em><p>当前门店 active 供应商</p></div><div className="kpi-card"><span>采购单数量</span><strong>{purchaseOrders.length}</strong><em>单</em><p>当前门店采购记录</p></div><div className="kpi-card"><span>当前供应商采购</span><strong>{supplierOrders.length}</strong><em>单</em><p>{activeSupplier?.name || '未选择'}</p></div></section>
       <Panel title="供应商列表"><DataTable rows={suppliers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedSupplierId(String(row.supplier_id))}>查看采购记录</button>} /></Panel>
       <Panel title="当前供应商采购单"><DataTable rows={supplierOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
-      <Panel title="全部采购单列表"><div className="inline-form"><button className="secondary-button" onClick={() => void api.exportPurchaseOrders(auth)}>导出采购单CSV</button></div><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
+      <Panel title="全部采购单列表"><div className="inline-form"><button className="secondary-button" disabled={!canExportPurchasing} title={canExportPurchasing ? '' : '需要采购导出权限'} onClick={() => void api.exportPurchaseOrders(auth)}>导出采购单CSV</button></div><DataTable rows={purchaseOrders} columns={['order_no','status','total_amount','note','created_at']} /></Panel>
     </div>
   )
 }
@@ -837,12 +876,13 @@ function CustomersPage({ auth, customers, orders, repurchase, onChanged }: { aut
   const [phone, setPhone] = useState('')
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const selectedCustomer = customers.find((customer) => customer.customer_id === selectedCustomerId) || customers[0]
+  const canWriteCustomers = hasPermission(auth, 'customers:write')
   const selectedCustomerOrders = selectedCustomer ? orders.filter((order) => order.customer_id === selectedCustomer.customer_id || order.customer_name === selectedCustomer.name) : []
   async function createCustomer() { if (!name.trim()) return; await api.createCustomer(auth, { name, phone }); setName('老王'); setPhone(''); onChanged() }
   return (
     <div className="content-grid">
       <section className="hero-card"><div><div className="ai-badge">H2/H3 已增强</div><h1>客户档案与复购分析</h1><p>销售单已支持 customer_id 关联，复购分析优先按客户ID统计，避免同名客户误匹配。</p></div></section>
-      <Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" onClick={() => void createCustomer()}>新增客户</button></div></Panel>
+      <Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" disabled={!canWriteCustomers} title={canWriteCustomers ? '' : '需要客户写入权限'} onClick={() => void createCustomer()}>新增客户</button></div></Panel>
       <section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>优先按 customer_id 关联</p></div><div className="kpi-card"><span>当前客户订单</span><strong>{selectedCustomerOrders.length}</strong><em>笔</em><p>{selectedCustomer?.name || '未选择客户'}</p></div></section>
       <Panel title="客户列表"><DataTable rows={customers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedCustomerId(String(row.customer_id))}>查看购买记录</button>} /></Panel>
       <Panel title="当前客户购买记录"><p className="helper-text">客户：{selectedCustomer?.name || '暂无客户'}；销售单创建时选择客户后会自动关联 customer_id。</p><DataTable rows={selectedCustomerOrders} columns={['order_no','customer_name','total_amount','items_count','status']} /></Panel>
@@ -852,6 +892,8 @@ function CustomersPage({ auth, customers, orders, repurchase, onChanged }: { aut
 }
 
 function FinancePage({ auth, summary, transactions, onTransactionsChanged }: { auth: AuthState; summary: FinanceSummary | null; transactions: FinanceTransaction[]; onTransactionsChanged: (rows: FinanceTransaction[]) => void }) {
+  if (!hasPermission(auth, 'finance:read')) return <AccessDenied title="财务流水需要财务或老板权限" message="店员账号不能查看收支汇总和财务流水，避免敏感经营数据泄露。" />
+  const canExportFinance = hasPermission(auth, 'exports:finance')
   const [transactionType, setTransactionType] = useState('')
   const [direction, setDirection] = useState('')
   async function applyFilters() {
@@ -862,25 +904,28 @@ function FinancePage({ auth, summary, transactions, onTransactionsChanged }: { a
     <div className="content-grid">
       <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，并支持按流水类型和收支方向筛选。</p></div></section>
       <section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section>
-      <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button><button className="secondary-button" onClick={() => void api.exportFinanceTransactions(auth)}>导出财务CSV</button></div></Panel>
+      <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button><button className="secondary-button" disabled={!canExportFinance} title={canExportFinance ? '' : '需要财务导出权限'} onClick={() => void api.exportFinanceTransactions(auth)}>导出财务CSV</button></div></Panel>
       <Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel>
     </div>
   )
 }
 
 function ProductsPage({ auth, items, onChanged }: { auth: AuthState; items: InventoryItem[]; onChanged: () => void }) {
+  const canWriteInventory = hasPermission(auth, 'inventory:write')
   const [name, setName] = useState('')
   const [sku, setSku] = useState('')
   async function create() { if (!name.trim()) return; await api.createItem(auth, { name, sku, default_unit: '个' }); setName(''); setSku(''); onChanged() }
   async function remove(id: string) { await api.deleteItem(auth, id); onChanged() }
-  return <Panel title="商品管理"><div className="inline-form"><input placeholder="商品名称" value={name} onChange={(e) => setName(e.target.value)} /><input placeholder="SKU" value={sku} onChange={(e) => setSku(e.target.value)} /><button className="primary-button" onClick={() => void create()}>新增商品</button></div><DataTable rows={items} columns={['name','sku','default_unit','status']} action={(row) => <button className="danger-button" onClick={() => void remove(row.inventory_item_id)}>软删除</button>} /></Panel>
+  return <Panel title="商品管理"><div className="inline-form"><input placeholder="商品名称" value={name} onChange={(e) => setName(e.target.value)} /><input placeholder="SKU" value={sku} onChange={(e) => setSku(e.target.value)} /><button className="primary-button" disabled={!canWriteInventory} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void create()}>新增商品</button></div><DataTable rows={items} columns={['name','sku','default_unit','status']} action={(row) => <button className="danger-button" disabled={!canWriteInventory} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void remove(row.inventory_item_id)}>软删除</button>} /></Panel>
 }
 
 function InventoryPage({ auth, items, stock, events, onChanged }: { auth: AuthState; items: InventoryItem[]; stock: StockItem[]; events: LedgerEvent[]; onChanged: () => void }) {
+  const canWriteInventory = hasPermission(auth, 'inventory:write')
+  const canExportInventory = hasPermission(auth, 'exports:inventory')
   const firstItem = items[0]
   async function stockIn() { if (!firstItem) return; await api.stockIn(auth, { inventory_item_id: firstItem.inventory_item_id, quantity: 1, unit: firstItem.default_unit, price: 1, reason: 'PC/H5手动入库' }); onChanged() }
   async function stockOut() { if (!firstItem) return; await api.stockOut(auth, { inventory_item_id: firstItem.inventory_item_id, quantity: 1, unit: firstItem.default_unit, price: 1, reason: 'PC/H5手动出库' }); onChanged() }
-  return <div className="content-grid"><Panel title="库存操作"><div className="inline-form"><button className="primary-button" disabled={!firstItem} onClick={() => void stockIn()}>对首个商品入库1</button><button className="secondary-button" disabled={!firstItem} onClick={() => void stockOut()}>对首个商品出库1</button><button className="secondary-button" onClick={() => void api.exportInventoryLedger(auth)}>导出库存流水CSV</button></div></Panel><Panel title="库存快照"><DataTable rows={stock} columns={['item_name','current_quantity','low_stock_threshold','default_unit']} /></Panel><Panel title="库存流水"><DataTable rows={events} columns={['item_name','event_type','quantity_delta','quantity_after','reason']} /></Panel></div>
+  return <div className="content-grid"><Panel title="库存操作"><div className="inline-form"><button className="primary-button" disabled={!canWriteInventory || !firstItem} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void stockIn()}>对首个商品入库1</button><button className="secondary-button" disabled={!canWriteInventory || !firstItem} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void stockOut()}>对首个商品出库1</button><button className="secondary-button" disabled={!canExportInventory} title={canExportInventory ? '' : '需要库存导出权限'} onClick={() => void api.exportInventoryLedger(auth)}>导出库存流水CSV</button></div></Panel><Panel title="库存快照"><DataTable rows={stock} columns={['item_name','current_quantity','low_stock_threshold','default_unit']} /></Panel><Panel title="库存流水"><DataTable rows={events} columns={['item_name','event_type','quantity_delta','quantity_after','reason']} /></Panel></div>
 }
 
 function AiPage({ auth, overview, onChanged }: { auth: AuthState; overview: Overview | null; onChanged: () => void }) {
@@ -998,6 +1043,7 @@ function formatDateTime(value?: string) {
 
 function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void }) {
   const [executionRecaps, setExecutionRecaps] = useState<Confirmation[]>([])
+  const canApprove = hasPermission(auth, 'confirmations:approve')
   const [busyId, setBusyId] = useState<string | null>(null)
   async function approve(id: string) {
     setBusyId(id)
@@ -1047,8 +1093,8 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
               <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
               <details className="task-raw-payload"><summary>查看原始草稿数据</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
               <div className="task-actions">
-                <button className="primary-button" disabled={busyId === confirmation.confirmation_id} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</button>
-                <button className="secondary-button" disabled={busyId === confirmation.confirmation_id} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
+                <button className="primary-button" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</button>
+                <button className="secondary-button" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
                 <span>任务ID：{confirmation.confirmation_id}</span>
               </div>
             </article>

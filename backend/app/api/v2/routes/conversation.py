@@ -11,6 +11,7 @@ from app.api.v2.session_stream_publish import (
 from app.api.deps.v2_context import (
     V2AuthenticatedAccount,
     V2ExecutionContext,
+    ensure_v2_permission,
     require_v2_authenticated_account,
     require_v2_execution_context,
 )
@@ -836,6 +837,7 @@ def approve_confirmation_v2(
 ) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "confirmations:approve")
 
     confirmation_cursor = _resolve_v2_confirmation_session_cursor(
         db_session,
@@ -918,6 +920,7 @@ def reject_confirmation_v2(
 ) -> V2DataEnvelope[V2ConfirmationData] | JSONResponse:
     if account.account_id != context.account_id:
         return _context_account_mismatch()
+    ensure_v2_permission(context, "confirmations:approve")
 
     confirmation_cursor = _resolve_v2_confirmation_session_cursor(
         db_session,

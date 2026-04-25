@@ -15,6 +15,7 @@ from app.api.v2.routes.media_ai import documents_router, router as media_ai_rout
 from app.api.v2.routes.pc_dashboard import router as pc_dashboard_router
 from app.api.v2.routes.photo import router as photo_router
 from app.api.v2.routes.purchase import router as purchase_router
+from app.api.v2.routes.sales import router as sales_router
 from app.api.v2.routes.stock_checks import router as stock_checks_router
 from app.api.v2.routes.voice import router as voice_router
 
@@ -37,3 +38,4 @@ v2_router.include_router(alerts_router)
 v2_router.include_router(audit_router)
 v2_router.include_router(stock_checks_router)
 v2_router.include_router(purchase_router)
+v2_router.include_router(sales_router)

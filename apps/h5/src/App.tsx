@@ -1,15 +1,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
-import type { Activity, AiEmployee, AuthState, Confirmation, InventoryItem, LedgerEvent, Overview, StockItem, Suggestion } from './types'
+import type { Activity, AiEmployee, AuthState, Confirmation, InventoryItem, LedgerEvent, Overview, SalesOrder, StockItem, Suggestion } from './types'
 import './styles.css'
 
-type Page = 'dashboard' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
+type Page = 'dashboard' | 'sales' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
 const navItems: { page: Page; label: string }[] = [
   { page: 'dashboard', label: '工作台' },
+  { page: 'sales', label: '销售单' },
   { page: 'products', label: '商品管理' },
   { page: 'inventory', label: '库存管理' },
   { page: 'ai', label: 'AI助手' },
@@ -31,6 +32,7 @@ function App() {
   const [items, setItems] = useState<InventoryItem[]>([])
   const [stock, setStock] = useState<StockItem[]>([])
   const [events, setEvents] = useState<LedgerEvent[]>([])
+  const [orders, setOrders] = useState<SalesOrder[]>([])
   const [confirmations, setConfirmations] = useState<Confirmation[]>([])
 
   async function refresh(currentAuth = auth) {
@@ -38,17 +40,19 @@ function App() {
     setState('loading')
     setError('')
     try {
-      const [nextOverview, nextItems, nextStock, nextEvents, nextConfirmations] = await Promise.all([
+      const [nextOverview, nextItems, nextStock, nextEvents, nextOrders, nextConfirmations] = await Promise.all([
         api.getOverview(currentAuth),
         api.listItems(currentAuth),
         api.listStock(currentAuth),
         api.listEvents(currentAuth),
+        api.listSalesOrders(currentAuth),
         api.listConfirmations(currentAuth)
       ])
       setOverview(nextOverview)
       setItems(nextItems.items)
       setStock(nextStock.items)
       setEvents(nextEvents.events)
+      setOrders(nextOrders.orders)
       setConfirmations(nextConfirmations.confirmations)
       setState('ready')
     } catch (err) {
@@ -81,6 +85,7 @@ function App() {
     setItems([])
     setStock([])
     setEvents([])
+    setOrders([])
     setConfirmations([])
   }
 
@@ -105,6 +110,7 @@ function App() {
         {error && <div className="error-banner">{error}</div>}
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard overview={overview} onNavigate={setPage} />}
+        {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} onChanged={() => void refresh()} />}
         {page === 'products' && <ProductsPage auth={auth} items={items} onChanged={() => void refresh()} />}
         {page === 'inventory' && <InventoryPage auth={auth} items={items} stock={stock} events={events} onChanged={() => void refresh()} />}
         {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} />}
@@ -183,6 +189,27 @@ function EmployeeGrid({ employees }: { employees: AiEmployee[] }) { return <div 
 function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s) => <div className="suggestion-card" key={s.id}><b>{s.title}</b><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small></div>)}</div> }
 function ActivityList({ activities }: { activities: Activity[] }) { return <div className="stack-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div>)}</div> }
 
+function SalesPage({ auth, stock, orders, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; onChanged: () => void }) {
+  const sellable = stock.find((item) => Number(item.current_quantity || 0) > 0)
+  const [quantity, setQuantity] = useState('1')
+  const [unitPrice, setUnitPrice] = useState('')
+  const [customerName, setCustomerName] = useState('散客')
+  async function createOrder() {
+    if (!sellable) return
+    const price = Number(unitPrice || sellable.current_price || 1)
+    await api.createSalesOrder(auth, {
+      customer_name: customerName,
+      payment_method: 'cash',
+      items: [{ inventory_item_id: sellable.inventory_item_id, quantity: Number(quantity || 1), unit_price: price }],
+      note: 'PC/H5销售单'
+    })
+    setQuantity('1')
+    setUnitPrice('')
+    onChanged()
+  }
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">F1 已开放</div><h1>销售单/订单闭环</h1><p>创建销售单会写入真实订单、订单明细，并同步生成库存出库流水，营业额不再依赖假数据。</p></div><button className="primary-button" disabled={!sellable} onClick={() => void createOrder()}>创建销售单</button></section><Panel title="快速开销售单"><div className="inline-form"><input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="客户名称" /><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="数量" /><input value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder={`单价，默认${sellable?.current_price || 1}`} /></div><p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}</p></Panel><Panel title="销售单列表"><DataTable rows={orders} columns={['order_no','customer_name','payment_method','total_amount','items_count','status']} /></Panel></div>
+}
+
 function ProductsPage({ auth, items, onChanged }: { auth: AuthState; items: InventoryItem[]; onChanged: () => void }) {
   const [name, setName] = useState('')
   const [sku, setSku] = useState('')
@@ -212,7 +239,7 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
 }
 
 const moduleRoadmap = [
-  { name: '销售单/订单', phase: 'F1', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '优先建设' },
+  { name: '销售单/订单', phase: 'F1', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '已开放' },
   { name: '采购/供应商', phase: 'F2', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '下一阶段' },
   { name: '客户档案', phase: 'F3', value: '支持复购、赊账、客户标签和经营分析。', status: '规划中' },
   { name: '财务流水', phase: 'F4', value: '沉淀现金流、应收应付、毛利和对账能力。', status: '规划中' },
@@ -227,7 +254,7 @@ function SkeletonHome() { return <div className="skeleton"><span /><span /><span
 
 function DataTable<T extends Record<string, unknown>>({ rows, columns, action }: { rows: T[]; columns: string[]; action?: (row: T) => React.ReactNode }) {
   if (!rows.length) return <Empty text="暂无数据，完成业务操作后这里会自动更新。" />
-  return <div className="table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{String(row[c] ?? '-')}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
+  return <div className="table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{String(row[c] ?? '-')}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
 }
 
 export default App

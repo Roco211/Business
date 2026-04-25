@@ -37,5 +37,6 @@ export type Overview = {
 export type InventoryItem = { inventory_item_id: string; tenant_id: string; sku?: string | null; name: string; barcode?: string | null; default_unit: string; status: string; created_at?: string; updated_at?: string }
 export type StockItem = { snapshot_id: string; tenant_id: string; shop_id: string; inventory_item_id: string; item_name: string; default_unit: string; current_quantity: number; current_price?: number | null; low_stock_threshold?: number | null; updated_at?: string }
 export type LedgerEvent = { event_id: string; inventory_item_id: string; item_name: string; event_type: string; quantity_delta: number; quantity_after: number; unit: string; price?: number | null; reason?: string | null; occurred_at: string }
+export type SalesOrder = { sales_order_id: string; tenant_id: string; shop_id: string; order_no: string; status: string; customer_name?: string | null; payment_method: string; total_amount: number; items_count: number; created_at: string }
 export type SalesRank = { rank: number; item_id: string; item_name: string; sku?: string | null; total_sold: number; total_revenue: number; avg_price: number }
 export type Confirmation = { confirmation_id: string; confirmation_type: string; status: string; draft_payload: Record<string, unknown>; resolution_payload?: Record<string, unknown> | null; created_at?: string }

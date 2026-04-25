@@ -1,0 +1,47 @@
+name: Backend Preflight
+
+on:
+  push:
+    branches:
+      - main
+      - ai-native-saas-rewrite
+      - hermes/ai-native-saas-rewrite
+      - codex/ai-native-saas-rewrite
+  pull_request:
+    branches:
+      - main
+      - ai-native-saas-rewrite
+      - hermes/ai-native-saas-rewrite
+      - codex/ai-native-saas-rewrite
+
+jobs:
+  backend-preflight:
+    name: Backend preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      APP_RUNTIME_MODE: local-demo
+      LLM_PROVIDER: mock
+      ASR_PROVIDER: mock
+      OCR_PROVIDER: mock
+      VISION_PROVIDER: mock
+      LLM_ALLOW_MOCK_FALLBACK: "1"
+      RUN_DOCKER_ACCEPTANCE: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: python -m pip install --upgrade pip && pip install -r backend/requirements.txt
+
+      - name: Run backend preflight
+        run: bash backend/scripts/run_backend_preflight.sh

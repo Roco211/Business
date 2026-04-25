@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.services.v2_ai_confirmation import create_v2_ai_stock_in_confirmation
 from app.services.v2_inventory import list_v2_inventory_items
 from app.services.v2_llm import (
     LLMService,
@@ -401,12 +402,36 @@ async def process_voice_stock_in(
             data={"items": items, "supplier": supplier, "found_count": len(items)},
         )
 
-        # Step 4: Create draft (stub)
-        draft_id = f"voice-draft-{id(audio_data) % 10000}"
+        # Step 4: Create a real pending confirmation. AI-derived stock-in writes
+        # must not mutate inventory until the confirmation is approved.
+        first_item = items[0]
+        draft_payload = {
+            "item_name": first_item["name"],
+            "quantity": first_item["quantity"],
+            "unit": first_item["unit"],
+            "price": first_item["price"],
+            "supplier": supplier,
+        }
+        created_confirmation = create_v2_ai_stock_in_confirmation(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            account_id=account_id,
+            source_type="voice",
+            source_text=transcription.text,
+            draft_payload=draft_payload,
+        )
+        confirmation_id = created_confirmation.confirmation.confirmation_id
+        task_run_id = created_confirmation.task_run.task_run_id
         
         yield VoiceQueryEvent(
             event_type="draft_created",
-            data={"draft_id": draft_id, "item_count": len(items)},
+            data={
+                "draft_id": confirmation_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
+                "item_count": len(items),
+            },
         )
 
         # Step 5: Await confirmation
@@ -414,13 +439,19 @@ async def process_voice_stock_in(
             event_type="awaiting_confirmation",
             data={
                 "message": "请确认入库信息",
-                "confirmation_id": draft_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
             },
         )
         
         yield VoiceQueryEvent(
             event_type="complete",
-            data={"draft_id": draft_id, "status": "awaiting_confirmation"},
+            data={
+                "draft_id": confirmation_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
+                "status": "awaiting_confirmation",
+            },
         )
 
     except VoiceASRError as exc:

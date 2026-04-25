@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.services.v2_ai_confirmation import create_v2_ai_stock_in_confirmation
 from app.services.v2_inventory import list_v2_inventory_items
 
 
@@ -214,14 +215,42 @@ async def process_photo_stock_in(
             data=extracted,
         )
 
-        # Step 3: Create draft (placeholder)
-        draft_id = f"draft-{id(image_data)}"
+        # Step 3: Create a real pending confirmation. The photo/OCR path may
+        # identify a stock-in draft, but inventory truth changes only after approval.
+        items = list(extracted.get("items", []))
+        if not items:
+            yield PhotoQueryEvent(
+                event_type="error",
+                data={"error": "no_items_found", "message": "未能从票据中识别出入库商品"},
+            )
+            return
+        first_item = items[0]
+        draft_payload = {
+            "item_name": first_item.get("name") or first_item.get("item_name"),
+            "quantity": first_item.get("quantity"),
+            "unit": first_item.get("unit") or "件",
+            "price": first_item.get("price", 0),
+            "supplier": extracted.get("supplier"),
+        }
+        created_confirmation = create_v2_ai_stock_in_confirmation(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            account_id=account_id,
+            source_type="photo",
+            source_text=json.dumps(extracted, ensure_ascii=False),
+            draft_payload=draft_payload,
+        )
+        confirmation_id = created_confirmation.confirmation.confirmation_id
+        task_run_id = created_confirmation.task_run.task_run_id
 
         yield PhotoQueryEvent(
             event_type="draft_created",
             data={
-                "draft_id": draft_id,
-                "item_count": len(extracted.get("items", [])),
+                "draft_id": confirmation_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
+                "item_count": len(items),
             },
         )
 
@@ -230,13 +259,18 @@ async def process_photo_stock_in(
             event_type="awaiting_confirmation",
             data={
                 "message": "请确认入库信息",
-                "confirmation_id": draft_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
             },
         )
 
         yield PhotoQueryEvent(
             event_type="complete",
-            data={"draft_id": draft_id},
+            data={
+                "draft_id": confirmation_id,
+                "confirmation_id": confirmation_id,
+                "task_run_id": task_run_id,
+            },
         )
 
     except Exception as exc:

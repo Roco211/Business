@@ -29,6 +29,17 @@ export type AiEmployee = {
 }
 export type Priority = { id: string; title: string; reason: string; severity: string; evidence: string[]; action: { label: string; route: string } }
 export type Suggestion = { id: string; type: string; title: string; summary: string; evidence: string[]; risk: string; confidence: string; requires_confirmation: boolean; action: { label: string; route: string } }
+export type DailyAdvisorReport = {
+  title: string
+  generated_by: string
+  summary: string
+  business_health: string
+  sections: { key: string; title: string; content: string; metrics: Record<string, number | string>; employee: string }[]
+  next_actions: { title: string; reason: string; route: string; label: string }[]
+  risk_notes: string[]
+  suggestion_count: number
+  evidence: Record<string, number | string>
+}
 export type Activity = { id: string; time_label: string; actor_name: string; summary: string; impact: string; route: string }
 export type TodoItem = { key: string; title: string; count: number; severity: string; route: string }
 export type Overview = {
@@ -39,6 +50,7 @@ export type Overview = {
   top_priorities: Priority[]
   suggestions: Suggestion[]
   activities: Activity[]
+  daily_advisor_report?: DailyAdvisorReport
   todos: TodoItem[]
   notifications: { unread_count: number }
   low_stock?: { count: number; items: StockItem[] }

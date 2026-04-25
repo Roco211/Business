@@ -293,6 +293,22 @@ def test_pc_dashboard_overview_returns_ai_native_backend_backed_home_data(client
     assert payload["todos"]
     assert payload["notifications"]["unread_count"] == 0
 
+    report = payload["daily_advisor_report"]
+    assert report["title"] == "今日经营参谋日报"
+    assert report["generated_by"] == "经营策略顾问"
+    assert report["summary"].startswith("今日销售额29.70元")
+    assert report["business_health"] == "attention_needed"
+    sections = {section["key"]: section for section in report["sections"]}
+    assert sections["sales"]["title"] == "销售概况"
+    assert "1笔销售" in sections["sales"]["content"]
+    assert sections["inventory"]["metrics"]["low_stock_count"] == 1
+    assert sections["tasks"]["metrics"]["pending_confirmation_count"] == 1
+    assert report["next_actions"][0]["route"] == "/tasks"
+    assert report["risk_notes"]
+    assert any("确认" in note for note in report["risk_notes"])
+    assert report["evidence"]["source"] == "pc-dashboard-overview"
+    assert report["evidence"]["sales_transaction_count"] == 1
+
 
 def test_pc_dashboard_overview_requires_selected_context(client):
     response = client.get("/api/v2/pc-dashboard/overview")

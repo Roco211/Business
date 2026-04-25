@@ -211,6 +211,7 @@ function Dashboard({ auth, overview, onNavigate, onChanged }: { auth: AuthState;
       <section className="kpi-grid">
         {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
       </section>
+      {overview.daily_advisor_report && <DailyAdvisorReportCard report={overview.daily_advisor_report} onNavigate={onNavigate} />}
       <section className="dashboard-main-grid">
         <Panel title="我的AI员工" action="查看全部">
           <EmployeeGrid employees={overview.ai_employees} />
@@ -355,6 +356,53 @@ function employeeNameForIntent(intent: string) {
   if (intent.includes('alert') || intent.includes('stock') || intent.includes('inventory')) return '库存风控专员'
   if (intent.includes('purchase')) return '采购专员'
   return 'AI运营协调官'
+}
+
+function routeToPage(route: string): Page {
+  if (route.includes('/tasks')) return 'tasks'
+  if (route.includes('/inventory')) return 'inventory'
+  if (route.includes('/products')) return 'products'
+  if (route.includes('/sales')) return 'sales'
+  if (route.includes('/purchasing')) return 'purchasing'
+  if (route.includes('/finance')) return 'finance'
+  if (route.includes('/ai')) return 'ai'
+  return 'dashboard'
+}
+
+function DailyAdvisorReportCard({ report, onNavigate }: { report: NonNullable<Overview['daily_advisor_report']>; onNavigate: (page: Page) => void }) {
+  const healthLabel = report.business_health === 'attention_needed' ? '需要老板关注' : report.business_health === 'healthy' ? '经营平稳' : '数据较少'
+  return (
+    <section className={`daily-report-card ${report.business_health}`}>
+      <div className="daily-report-head">
+        <div>
+          <div className="ai-badge">{report.generated_by}</div>
+          <h2>{report.title}</h2>
+          <p>{report.summary}</p>
+        </div>
+        <span className="report-health-pill">{healthLabel}</span>
+      </div>
+      <div className="daily-report-sections">
+        {report.sections.map((section) => <div className="daily-report-section" key={section.key}>
+          <small>{section.employee}</small>
+          <strong>{section.title}</strong>
+          <p>{section.content}</p>
+        </div>)}
+      </div>
+      <div className="daily-report-bottom">
+        <div className="report-next-actions">
+          <span>下一步建议</span>
+          {report.next_actions.slice(0, 3).map((action) => <button key={`${action.title}-${action.route}`} onClick={() => onNavigate(routeToPage(action.route))}>
+            <b>{action.title}</b>
+            <small>{action.label}</small>
+          </button>)}
+        </div>
+        <div className="report-risk-notes">
+          <span>风险提醒</span>
+          {report.risk_notes.slice(0, 3).map((note) => <p key={note}>□ {note}</p>)}
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function KpiCard({ kpi, index }: { kpi: Overview['kpis'][number]; index: number }) {

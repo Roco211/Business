@@ -458,6 +458,97 @@ def _build_todos(*, low_stock_count: int, pending_confirmation_count: int) -> li
     ]
 
 
+def _build_daily_advisor_report(
+    *,
+    revenue,
+    low_stock_count: int,
+    pending_confirmation_count: int,
+    active_item_count: int,
+    recent_activity_count: int,
+    top_priorities: list[dict[str, object]],
+    suggestions: list[dict[str, object]],
+) -> dict[str, object]:
+    sales_amount = _to_float(revenue.total_revenue)
+    sales_count = int(revenue.transaction_count)
+    items_sold = int(getattr(revenue, "items_sold", 0) or 0)
+    business_health = "attention_needed" if pending_confirmation_count or low_stock_count else "healthy" if sales_count else "quiet"
+
+    sections = [
+        {
+            "key": "sales",
+            "title": "销售概况",
+            "content": f"今日销售额{sales_amount:.2f}元，记录到{sales_count}笔销售，售出{items_sold}件商品。",
+            "metrics": {
+                "total_revenue": round(sales_amount, 2),
+                "transaction_count": sales_count,
+                "items_sold": items_sold,
+            },
+            "employee": "经营数据分析员",
+        },
+        {
+            "key": "inventory",
+            "title": "库存风险",
+            "content": f"库存风控专员检测到{low_stock_count}个低库存商品。" if low_stock_count else "库存风控专员暂未发现低库存风险。",
+            "metrics": {"low_stock_count": low_stock_count, "active_item_count": active_item_count},
+            "employee": "库存风控专员",
+        },
+        {
+            "key": "tasks",
+            "title": "AI任务与确认",
+            "content": f"当前有{pending_confirmation_count}个AI草稿等待老板确认。" if pending_confirmation_count else "当前没有待确认AI草稿。",
+            "metrics": {
+                "pending_confirmation_count": pending_confirmation_count,
+                "recent_activity_count": recent_activity_count,
+            },
+            "employee": "AI运营协调官",
+        },
+    ]
+
+    next_actions = [
+        {
+            "title": str(priority.get("title", "查看今日重点")),
+            "reason": str(priority.get("reason", "AI已整理今日经营重点")),
+            "route": dict(priority.get("action", {})).get("route", "/dashboard"),
+            "label": dict(priority.get("action", {})).get("label", "查看"),
+        }
+        for priority in top_priorities[:3]
+    ]
+    if not next_actions:
+        next_actions = [{"title": "查看经营看板", "reason": "暂无高优先级事项", "route": "/dashboard", "label": "查看看板"}]
+
+    risk_notes: list[str] = []
+    if pending_confirmation_count:
+        risk_notes.append("涉及库存、销售、采购的AI草稿必须先确认，确认前不会改业务事实。")
+    if low_stock_count:
+        risk_notes.append("低库存商品可能影响后续销售，建议先核对库存再补货。")
+    if sales_count == 0:
+        risk_notes.append("今日暂无销售流水，日报可能缺少销售趋势判断。")
+    if not risk_notes:
+        risk_notes.append("当前未发现高风险事项，继续保持数据录入完整。")
+
+    return {
+        "title": "今日经营参谋日报",
+        "generated_by": "经营策略顾问",
+        "summary": (
+            f"今日销售额{sales_amount:.2f}元，{sales_count}笔销售；"
+            f"低库存{low_stock_count}个，待确认AI任务{pending_confirmation_count}个。"
+        ),
+        "business_health": business_health,
+        "sections": sections,
+        "next_actions": next_actions,
+        "risk_notes": risk_notes,
+        "suggestion_count": len(suggestions),
+        "evidence": {
+            "source": "pc-dashboard-overview",
+            "sales_transaction_count": sales_count,
+            "low_stock_count": low_stock_count,
+            "pending_confirmation_count": pending_confirmation_count,
+            "active_item_count": active_item_count,
+            "recent_activity_count": recent_activity_count,
+        },
+    }
+
+
 def get_pc_dashboard_overview(
     db_session: Session,
     *,
@@ -478,6 +569,34 @@ def get_pc_dashboard_overview(
     active_item_count = _get_active_item_count(db_session, tenant_id=tenant_id)
     recent_activity_count = _get_recent_activity_count(db_session, tenant_id=tenant_id, shop_id=shop_id)
     employee_stats = _build_employee_runtime_stats(db_session, tenant_id=tenant_id, shop_id=shop_id)
+    top_priorities = _build_top_priorities(
+        low_stock_count=low_stock_count,
+        pending_confirmation_count=pending_confirmation_count,
+        revenue=revenue,
+    )
+    suggestions = _build_suggestions(
+        low_stock_count=low_stock_count,
+        pending_confirmation_count=pending_confirmation_count,
+        revenue=revenue,
+    )
+    activities = _build_activities(
+        low_stock_count=low_stock_count,
+        pending_confirmation_count=pending_confirmation_count,
+        revenue=revenue,
+    )
+    todos = _build_todos(
+        low_stock_count=low_stock_count,
+        pending_confirmation_count=pending_confirmation_count,
+    )
+    daily_advisor_report = _build_daily_advisor_report(
+        revenue=revenue,
+        low_stock_count=low_stock_count,
+        pending_confirmation_count=pending_confirmation_count,
+        active_item_count=active_item_count,
+        recent_activity_count=recent_activity_count,
+        top_priorities=top_priorities,
+        suggestions=suggestions,
+    )
 
     return {
         "store": {
@@ -505,25 +624,11 @@ def get_pc_dashboard_overview(
             recent_activity_count=recent_activity_count,
             employee_stats=employee_stats,
         ),
-        "top_priorities": _build_top_priorities(
-            low_stock_count=low_stock_count,
-            pending_confirmation_count=pending_confirmation_count,
-            revenue=revenue,
-        ),
-        "suggestions": _build_suggestions(
-            low_stock_count=low_stock_count,
-            pending_confirmation_count=pending_confirmation_count,
-            revenue=revenue,
-        ),
-        "activities": _build_activities(
-            low_stock_count=low_stock_count,
-            pending_confirmation_count=pending_confirmation_count,
-            revenue=revenue,
-        ),
-        "todos": _build_todos(
-            low_stock_count=low_stock_count,
-            pending_confirmation_count=pending_confirmation_count,
-        ),
+        "top_priorities": top_priorities,
+        "suggestions": suggestions,
+        "activities": activities,
+        "todos": todos,
+        "daily_advisor_report": daily_advisor_report,
         "notifications": {"unread_count": 0},
         "sales_ranking": [
             {

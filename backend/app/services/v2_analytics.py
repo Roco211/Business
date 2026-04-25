@@ -53,16 +53,23 @@ def get_revenue_summary(
     """Aggregate revenue from stock_out events over the last N days."""
     since = datetime.utcnow() - timedelta(days=days)
 
-    # Aggregate stock_out events
+    # Aggregate stock_out events for active items only. Dashboard is a current
+    # business view, so soft-deleted items must not leak into home analytics.
     result = db_session.execute(
         select(
             func.sum(V2InventoryLedgerEvent.quantity_delta * V2InventoryLedgerEvent.price).label("revenue"),
             func.sum(V2InventoryLedgerEvent.quantity_delta).label("items_sold"),
             func.count(V2InventoryLedgerEvent.event_id).label("tx_count"),
         )
+        .join(
+            V2InventoryItem,
+            V2InventoryItem.inventory_item_id == V2InventoryLedgerEvent.inventory_item_id,
+        )
         .where(
             V2InventoryLedgerEvent.tenant_id == tenant_id,
             V2InventoryLedgerEvent.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
             V2InventoryLedgerEvent.event_type == "stock_out",
             V2InventoryLedgerEvent.occurred_at >= since,
         )
@@ -77,20 +84,27 @@ def get_revenue_summary(
         select(
             func.sum(V2InventoryLedgerEvent.quantity_delta * V2InventoryLedgerEvent.price).label("cost"),
         )
+        .join(
+            V2InventoryItem,
+            V2InventoryItem.inventory_item_id == V2InventoryLedgerEvent.inventory_item_id,
+        )
         .where(
             V2InventoryLedgerEvent.tenant_id == tenant_id,
             V2InventoryLedgerEvent.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
             V2InventoryLedgerEvent.event_type == "stock_in",
             V2InventoryLedgerEvent.occurred_at >= since,
         )
     ).scalar()
 
     total_cost = Decimal(cost_result or 0)
-    gross_profit = total_revenue - total_cost
+    normalized_revenue = abs(total_revenue)
+    gross_profit = normalized_revenue - total_cost
 
     return RevenueSummary(
         period=f"last_{days}_days",
-        total_revenue=float(abs(total_revenue)),
+        total_revenue=float(normalized_revenue),
         total_cost=float(total_cost),
         gross_profit=float(gross_profit),
         transaction_count=tx_count,
@@ -125,6 +139,8 @@ def get_sales_ranking(
         .where(
             V2InventoryLedgerEvent.tenant_id == tenant_id,
             V2InventoryLedgerEvent.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
             V2InventoryLedgerEvent.event_type == "stock_out",
             V2InventoryLedgerEvent.occurred_at >= since,
         )
@@ -176,6 +192,8 @@ def get_low_stock_alerts(
         )
         .where(
             V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
+            V2InventoryStockSnapshot.tenant_id == tenant_id,
             V2InventoryStockSnapshot.shop_id == shop_id,
             V2InventoryStockSnapshot.low_stock_threshold.isnot(None),
             V2InventoryStockSnapshot.current_quantity < V2InventoryStockSnapshot.low_stock_threshold,
@@ -221,9 +239,15 @@ def get_daily_revenue_series(
             func.sum(V2InventoryLedgerEvent.quantity_delta).label("items_sold"),
             func.count(V2InventoryLedgerEvent.event_id).label("tx_count"),
         )
+        .join(
+            V2InventoryItem,
+            V2InventoryItem.inventory_item_id == V2InventoryLedgerEvent.inventory_item_id,
+        )
         .where(
             V2InventoryLedgerEvent.tenant_id == tenant_id,
             V2InventoryLedgerEvent.shop_id == shop_id,
+            V2InventoryItem.tenant_id == tenant_id,
+            V2InventoryItem.status == "active",
             V2InventoryLedgerEvent.event_type == "stock_out",
             V2InventoryLedgerEvent.occurred_at >= since,
         )

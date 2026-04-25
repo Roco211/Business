@@ -57,6 +57,26 @@ export type DailyReportHistoryItem = {
   route: string
 }
 export type DailyReportHistory = { items: DailyReportHistoryItem[] }
+export type ExecutionRecapItem = {
+  confirmation_id: string
+  task_run_id: string
+  kind: string
+  status: string
+  summary: string
+  effects: string[]
+  next_route: string
+  created_at: string
+  resolved_at: string
+  source_employee: string
+  intent_type?: string
+  risk_level?: string
+  evidence: string[]
+}
+export type ExecutionRecapList = {
+  summary: { total_count: number; sales_order_count: number; purchase_order_count: number; inventory_count: number; other_count: number }
+  items: ExecutionRecapItem[]
+  generated_at?: string
+}
 export type Activity = { id: string; time_label: string; actor_name: string; summary: string; impact: string; route: string }
 export type TodoItem = { key: string; title: string; count: number; severity: string; route: string }
 export type NotificationItem = {

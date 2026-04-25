@@ -14,6 +14,7 @@ from app.db.session import get_db_session
 from app.services.v2_pc_dashboard import (
     get_pc_dashboard_daily_report,
     get_pc_dashboard_daily_report_history,
+    get_pc_dashboard_execution_recaps,
     get_pc_dashboard_overview,
 )
 
@@ -68,6 +69,24 @@ def get_pc_dashboard_daily_report_history_v2(
             tenant_id=context.tenant_id,
             shop_id=context.shop_id,
             days=days,
+        )
+    )
+
+
+@router.get("/execution-recaps", response_model=V2DataEnvelope[dict])
+def get_pc_dashboard_execution_recaps_v2(
+    limit: int = 20,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[dict]:
+    _ensure_context_account_match(account=account, context=context)
+    return V2DataEnvelope(
+        data=get_pc_dashboard_execution_recaps(
+            db_session,
+            tenant_id=context.tenant_id,
+            shop_id=context.shop_id,
+            limit=limit,
         )
     )
 

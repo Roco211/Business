@@ -653,6 +653,97 @@ def _build_execution_recaps(db_session: Session, *, tenant_id: str, shop_id: str
     return recaps
 
 
+def _source_employee_for_intent(intent_type: str | None) -> str:
+    key = _employee_key_for_intent(intent_type)
+    return {
+        "business_data_analyst": "经营数据分析员",
+        "purchase_replenishment_specialist": "进货补货专员",
+        "inventory_risk_controller": "库存风控专员",
+        "product_catalog_manager": "商品档案管理员",
+        "operations_coordinator": "AI运营协调官",
+    }.get(key, "AI运营协调官")
+
+
+def _execution_recap_summary(items: list[dict[str, object]]) -> dict[str, int]:
+    sales_order_count = sum(1 for item in items if "sales" in str(item.get("kind", "")))
+    purchase_order_count = sum(1 for item in items if "purchase" in str(item.get("kind", "")))
+    inventory_count = sum(1 for item in items if any(token in str(item.get("kind", "")) for token in ["inventory", "stock_in", "stock_out"]))
+    other_count = max(0, len(items) - sales_order_count - purchase_order_count - inventory_count)
+    return {
+        "total_count": len(items),
+        "sales_order_count": sales_order_count,
+        "purchase_order_count": purchase_order_count,
+        "inventory_count": inventory_count,
+        "other_count": other_count,
+    }
+
+
+def _build_committed_execution_recaps(db_session: Session, *, tenant_id: str, shop_id: str, limit: int = 20) -> list[dict[str, object]]:
+    safe_limit = max(1, min(limit, 100))
+    rows = db_session.execute(
+        select(V2Confirmation, V2TaskRun)
+        .join(V2TaskRun, V2TaskRun.task_run_id == V2Confirmation.task_run_id)
+        .where(
+            V2Confirmation.tenant_id == tenant_id,
+            V2Confirmation.shop_id == shop_id,
+            V2TaskRun.tenant_id == tenant_id,
+            V2TaskRun.shop_id == shop_id,
+            V2Confirmation.status.in_(["approved", "committed"]),
+        )
+        .order_by(V2Confirmation.resolved_at.desc().nullslast(), V2Confirmation.created_at.desc())
+        .limit(safe_limit)
+    ).all()
+    items: list[dict[str, object]] = []
+    for confirmation, task in rows:
+        resolution_payload = confirmation.resolution_payload or {}
+        execution_result = resolution_payload.get("execution_result") if isinstance(resolution_payload, dict) else None
+        if not isinstance(execution_result, dict):
+            continue
+        if execution_result.get("status") != "committed":
+            continue
+        kind = str(execution_result.get("kind") or confirmation.confirmation_type or "ai_task")
+        effects = execution_result.get("effects")
+        if not isinstance(effects, list):
+            effects = []
+        items.append(
+            {
+                "confirmation_id": confirmation.confirmation_id,
+                "task_run_id": confirmation.task_run_id,
+                "kind": kind,
+                "status": "committed",
+                "summary": str(execution_result.get("summary") or task.result_summary or "AI任务已完成并落账"),
+                "effects": [str(effect) for effect in effects],
+                "next_route": str(execution_result.get("next_route") or "/tasks"),
+                "created_at": confirmation.created_at.isoformat() if confirmation.created_at is not None else "",
+                "resolved_at": confirmation.resolved_at.isoformat() if confirmation.resolved_at is not None else "",
+                "source_employee": _source_employee_for_intent(task.intent_type or confirmation.confirmation_type),
+                "intent_type": task.intent_type or confirmation.confirmation_type,
+                "risk_level": task.risk_level,
+                "evidence": [
+                    "来自已审批AI任务",
+                    "execution_result.status=committed",
+                    f"confirmation_id={confirmation.confirmation_id}",
+                ],
+            }
+        )
+    return items
+
+
+def get_pc_dashboard_execution_recaps(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    limit: int = 20,
+) -> dict[str, object]:
+    items = _build_committed_execution_recaps(db_session, tenant_id=tenant_id, shop_id=shop_id, limit=limit)
+    return {
+        "summary": _execution_recap_summary(items),
+        "items": items,
+        "generated_at": datetime.utcnow().replace(microsecond=0).isoformat(),
+    }
+
+
 def _build_report_history(
     *,
     revenue,

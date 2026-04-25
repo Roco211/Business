@@ -357,6 +357,65 @@ def test_pc_dashboard_daily_report_detail_and_history_are_backend_backed(client)
     assert first["route"] == "/daily-report"
 
 
+def test_pc_dashboard_execution_recaps_list_returns_committed_ai_work(client):
+    context = _seed_pc_dashboard_context()
+    session = get_session_factory()()
+    now = utc_now_naive()
+    committed_task = session.get(V2TaskRun, "task_pc_dashboard")
+    assert committed_task is not None
+    committed_task.intent_type = "sales.order_create"
+    committed_task.status = "committed"
+    committed_task.risk_level = "medium"
+    committed_task.result_summary = "销售单已落账"
+    committed_task.updated_at = now
+    committed_task.completed_at = now
+    committed_confirmation = session.get(V2Confirmation, "confirm_pc_dashboard")
+    assert committed_confirmation is not None
+    committed_confirmation.confirmation_type = "sales.order_create"
+    committed_confirmation.status = "approved"
+    committed_confirmation.draft_payload = {"items": [{"name": "PC Dashboard 螺丝", "quantity": "3"}]}
+    committed_confirmation.resolution_payload = {
+        "execution_result": {
+            "status": "committed",
+            "kind": "sales_order",
+            "summary": "已创建销售单 SO-PC-1，并完成库存与收入记录。",
+            "effects": ["已创建销售单", "已扣减库存", "已记录销售收入"],
+            "next_route": "/sales",
+        }
+    }
+    committed_confirmation.approved_by_account_id = "acct_pc_dashboard"
+    committed_confirmation.resolved_at = now
+    session.commit()
+    session.close()
+    headers = _login_and_select_context(
+        client, email=context["email"], tenant_id=context["tenant_id"], shop_id=context["shop_id"]
+    )
+
+    response = client.get("/api/v2/pc-dashboard/execution-recaps?limit=20", headers=headers)
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["summary"]["total_count"] == 1
+    assert payload["summary"]["sales_order_count"] == 1
+    assert payload["summary"]["purchase_order_count"] == 0
+    assert payload["summary"]["inventory_count"] == 0
+    assert payload["summary"]["other_count"] == 0
+    assert len(payload["items"]) == 1
+    recap = payload["items"][0]
+    assert recap["confirmation_id"] == "confirm_pc_dashboard"
+    assert recap["task_run_id"] == "task_pc_dashboard"
+    assert recap["kind"] == "sales_order"
+    assert recap["status"] == "committed"
+    assert recap["summary"].startswith("已创建销售单")
+    assert recap["effects"] == ["已创建销售单", "已扣减库存", "已记录销售收入"]
+    assert recap["next_route"] == "/sales"
+    assert recap["source_employee"] == "经营数据分析员"
+    assert recap["intent_type"] == "sales.order_create"
+    assert recap["risk_level"] == "medium"
+    assert recap["evidence"]
+    assert all("pending" not in item["confirmation_id"] for item in payload["items"])
+
+
 def test_pc_dashboard_overview_requires_selected_context(client):
     response = client.get("/api/v2/pc-dashboard/overview")
 

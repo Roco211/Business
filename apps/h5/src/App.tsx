@@ -1,10 +1,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
-import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
+import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, ExecutionRecapList, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
 
-type Page = 'dashboard' | 'daily-report' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
+type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -12,6 +12,7 @@ const navItems: { page: Page; label: string; icon: string; badge?: string }[] = 
   { page: 'dashboard', label: '工作台', icon: '⌂' },
   { page: 'ai', label: '我的员工', icon: '◇' },
   { page: 'daily-report', label: '经营日报', icon: '◌', badge: 'AI' },
+  { page: 'execution-recaps', label: '执行复盘', icon: '◎', badge: 'AI' },
   { page: 'sales', label: '销售单', icon: '□' },
   { page: 'purchasing', label: '采购单', icon: '▣' },
   { page: 'customers', label: '客户复购', icon: '◎' },
@@ -34,6 +35,7 @@ function App() {
   const [error, setError] = useState('')
   const [overview, setOverview] = useState<Overview | null>(null)
   const [dailyReport, setDailyReport] = useState<DailyAdvisorReport | null>(null)
+  const [executionRecapList, setExecutionRecapList] = useState<ExecutionRecapList | null>(null)
   const [items, setItems] = useState<InventoryItem[]>([])
   const [stock, setStock] = useState<StockItem[]>([])
   const [events, setEvents] = useState<LedgerEvent[]>([])
@@ -53,9 +55,10 @@ function App() {
     setState('loading')
     setError('')
     try {
-      const [nextOverview, nextDailyReport, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
+      const [nextOverview, nextDailyReport, nextExecutionRecapList, nextItems, nextStock, nextEvents, nextOrders, nextSuppliers, nextPurchaseOrders, nextCustomers, nextRepurchase, nextFinanceTransactions, nextFinanceSummary, nextConfirmations] = await Promise.all([
         api.getOverview(currentAuth),
         api.getDailyReport(currentAuth),
+        api.getExecutionRecaps(currentAuth),
         api.listItems(currentAuth),
         api.listStock(currentAuth),
         api.listEvents(currentAuth),
@@ -70,6 +73,7 @@ function App() {
       ])
       setOverview(nextOverview)
       setDailyReport(nextDailyReport)
+      setExecutionRecapList(nextExecutionRecapList)
       setItems(nextItems.items)
       setStock(nextStock.items)
       setEvents(nextEvents.events)
@@ -110,6 +114,7 @@ function App() {
     setAuth(null)
     setOverview(null)
     setDailyReport(null)
+    setExecutionRecapList(null)
     setItems([])
     setStock([])
     setEvents([])
@@ -157,6 +162,7 @@ function App() {
         {state === 'loading' && !overview ? <SkeletonHome /> : null}
         {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
         {page === 'daily-report' && dailyReport && <DailyReportPage report={dailyReport} onNavigate={setPage} />}
+        {page === 'execution-recaps' && executionRecapList && <ExecutionRecapsPage data={executionRecapList} onNavigate={setPage} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
         {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
@@ -478,6 +484,7 @@ function employeeNameForIntent(intent: string) {
 }
 
 function routeToPage(route: string): Page {
+  if (route.includes('/execution-recaps')) return 'execution-recaps'
   if (route.includes('/daily-report')) return 'daily-report'
   if (route.includes('/tasks')) return 'tasks'
   if (route.includes('/inventory')) return 'inventory'
@@ -570,6 +577,7 @@ function DailyReportPage({ report, onNavigate }: { report: DailyAdvisorReport; o
                 <button className="secondary-button" onClick={() => onNavigate(routeToPage(recap.route))}>查看任务</button>
               </article>)}
             </div>}
+            <button className="secondary-button" onClick={() => onNavigate('execution-recaps')}>查看完整执行复盘</button>
           </Panel>
         </div>
         <aside className="daily-detail-side">
@@ -610,6 +618,42 @@ function DailyReportPage({ report, onNavigate }: { report: DailyAdvisorReport; o
           {Object.entries(report.evidence || {}).map(([key, value]) => <span key={key}>{key}<b>{value}</b></span>)}
         </div>
       </Panel>
+    </section>
+  )
+}
+
+function ExecutionRecapsPage({ data, onNavigate }: { data: ExecutionRecapList; onNavigate: (page: Page) => void }) {
+  const summary = data.summary
+  return (
+    <section className="execution-recaps-page">
+      <div className="page-heading daily-detail-hero">
+        <div>
+          <span className="ai-badge">AI运营协调官</span>
+          <h1>AI执行复盘</h1>
+          <p>这里只展示已经由老板确认、并且真实落账的AI工作记录；待确认草稿不会出现在已完成列表。</p>
+          <small>生成时间：{data.generated_at || '实时生成'}</small>
+        </div>
+        <div className="daily-health-orb healthy">
+          <strong>{summary.total_count}</strong>
+          <span>已完成任务</span>
+        </div>
+      </div>
+      <div className="execution-summary-grid">
+        <div><span>总复盘</span><b>{summary.total_count}</b></div>
+        <div><span>销售</span><b>{summary.sales_order_count}</b></div>
+        <div><span>采购</span><b>{summary.purchase_order_count}</b></div>
+        <div><span>库存</span><b>{summary.inventory_count}</b></div>
+      </div>
+      {data.items.length === 0 ? <Panel title="暂无已完成AI工作"><div className="empty-state">AI生成的草稿必须经老板确认并落账后，才会进入执行复盘。</div></Panel> : <div className="execution-recap-list full">
+        {data.items.map((item) => <article className="execution-recap-card detailed" key={item.confirmation_id}>
+          <div className="recap-card-head"><span>{item.source_employee}</span><b>{item.kind}</b></div>
+          <h3>{item.summary}</h3>
+          <p>{item.intent_type || 'AI任务'} · {item.status} · 风险：{item.risk_level || '未标记'} · 完成：{item.resolved_at || item.created_at}</p>
+          <div className="recap-effects">{item.effects.map((effect) => <span key={effect}>{effect}</span>)}</div>
+          <div className="recap-evidence">{item.evidence.map((evidence) => <small key={evidence}>{evidence}</small>)}</div>
+          <button className="secondary-button" onClick={() => onNavigate(routeToPage(item.next_route))}>查看相关业务</button>
+        </article>)}
+      </div>}
     </section>
   )
 }

@@ -161,6 +161,12 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
 
     approve = client.post(f"/api/v2/confirmations/{confirmation_id}/approve", headers=headers, json={"resolution_payload": {}})
     assert approve.status_code == 200
+    sales_execution_result = approve.json()["data"]["resolution_payload"]["execution_result"]
+    assert sales_execution_result["status"] == "committed"
+    assert sales_execution_result["entity_type"] == "sales_order"
+    assert sales_execution_result["summary"].startswith("已创建销售单")
+    assert sales_execution_result["effects"]["inventory"] == "已扣减库存"
+    assert sales_execution_result["next_route"] == "/sales"
     orders = client.get("/api/v2/sales/orders?limit=50", headers=headers).json()["data"]["orders"]
     assert any(order["customer_name"] == "老王" for order in orders)
 
@@ -185,6 +191,13 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
 
     approve_purchase = client.post(f"/api/v2/confirmations/{purchase_confirmation_id}/approve", headers=headers, json={"resolution_payload": {}})
     assert approve_purchase.status_code == 200
+    purchase_execution_result = approve_purchase.json()["data"]["resolution_payload"]["execution_result"]
+    assert purchase_execution_result["status"] == "committed"
+    assert purchase_execution_result["entity_type"] == "purchase_order"
+    assert purchase_execution_result["summary"].startswith("已创建采购单")
+    assert purchase_execution_result["effects"]["inventory"] == "已入库"
+    assert purchase_execution_result["effects"]["finance"] == "已记录采购支出"
+    assert purchase_execution_result["next_route"] == "/purchases"
     purchase_orders_after = client.get("/api/v2/purchasing/orders?limit=50", headers=headers).json()["data"]["purchase_orders"]
     assert len(purchase_orders_after) == purchase_before + 1
     assert any(order["note"] == "AI purchase order draft" for order in purchase_orders_after)

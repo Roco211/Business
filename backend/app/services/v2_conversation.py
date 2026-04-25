@@ -837,6 +837,65 @@ def _resolve_v2_approved_fields(confirmation: V2Confirmation, resolution_payload
     return {**draft_fields, **override_fields}
 
 
+def _merge_execution_result(
+    confirmation: V2Confirmation,
+    *,
+    resolution_payload: dict[str, object],
+    fields: dict[str, object],
+    execution_result: dict[str, object],
+) -> None:
+    confirmation.resolution_payload = {
+        **dict(resolution_payload),
+        "fields": fields,
+        "execution_result": execution_result,
+    }
+
+
+def _stock_execution_result(*, action: str, item_name: str, quantity_after: object, event_id: str) -> dict[str, object]:
+    is_in = action == "stock_in"
+    return {
+        "status": "committed",
+        "entity_type": "inventory_ledger_event",
+        "entity_id": event_id,
+        "summary": f"已{'入库' if is_in else '出库'} {item_name}，当前库存 {quantity_after}",
+        "effects": {
+            "inventory": "已增加库存" if is_in else "已扣减库存",
+            "ledger": "已写入库存流水",
+        },
+        "next_route": "/inventory",
+    }
+
+
+def _sales_order_execution_result(*, order_id: str, order_no: str, total_amount: object) -> dict[str, object]:
+    return {
+        "status": "committed",
+        "entity_type": "sales_order",
+        "entity_id": order_id,
+        "summary": f"已创建销售单 {order_no}，金额 {total_amount}",
+        "effects": {
+            "sales": "已创建销售单",
+            "inventory": "已扣减库存",
+            "finance": "已记录销售收入",
+        },
+        "next_route": "/sales",
+    }
+
+
+def _purchase_order_execution_result(*, order_id: str, order_no: str, total_amount: object) -> dict[str, object]:
+    return {
+        "status": "committed",
+        "entity_type": "purchase_order",
+        "entity_id": order_id,
+        "summary": f"已创建采购单 {order_no}，金额 {total_amount}",
+        "effects": {
+            "purchase": "已创建采购单",
+            "inventory": "已入库",
+            "finance": "已记录采购支出",
+        },
+        "next_route": "/purchases",
+    }
+
+
 def approve_v2_confirmation(
     db_session: Session,
     *,
@@ -897,6 +956,17 @@ def approve_v2_confirmation(
                 inventory_item=commit_result.item,
                 ledger_event=commit_result.event,
             )
+            _merge_execution_result(
+                confirmation,
+                resolution_payload=resolution_payload,
+                fields=resolved_fields,
+                execution_result=_stock_execution_result(
+                    action="stock_in",
+                    item_name=commit_result.item.name,
+                    quantity_after=str(commit_result.snapshot.current_quantity),
+                    event_id=commit_result.event.event_id,
+                ),
+            )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
@@ -927,6 +997,17 @@ def approve_v2_confirmation(
                 inventory_item=commit_result.item,
                 ledger_event=commit_result.event,
             )
+            _merge_execution_result(
+                confirmation,
+                resolution_payload=resolution_payload,
+                fields=resolved_fields,
+                execution_result=_stock_execution_result(
+                    action="stock_out",
+                    item_name=commit_result.item.name,
+                    quantity_after=str(commit_result.snapshot.current_quantity),
+                    event_id=commit_result.event.event_id,
+                ),
+            )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
@@ -935,7 +1016,7 @@ def approve_v2_confirmation(
         elif confirmation.confirmation_type == "sales.order_create":
             resolved_fields = _resolve_v2_approved_fields(confirmation, resolution_payload)
             confirmation.resolution_payload = {**dict(resolution_payload), "fields": resolved_fields}
-            create_v2_sales_order(
+            sales_result = create_v2_sales_order(
                 db_session,
                 tenant_id=tenant_id,
                 shop_id=shop_id,
@@ -945,6 +1026,16 @@ def approve_v2_confirmation(
                 items=list(resolved_fields.get("items") or []),
                 note=resolved_fields.get("note"),
                 created_by_account_id=approved_by_account_id,
+            )
+            _merge_execution_result(
+                confirmation,
+                resolution_payload=resolution_payload,
+                fields=resolved_fields,
+                execution_result=_sales_order_execution_result(
+                    order_id=sales_result.order.sales_order_id,
+                    order_no=sales_result.order.order_no,
+                    total_amount=str(sales_result.order.total_amount),
+                ),
             )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and sales order committed."
@@ -970,7 +1061,7 @@ def approve_v2_confirmation(
                 db_session.flush()
                 supplier_id = supplier.supplier_id
                 resolved_fields["supplier_id"] = supplier_id
-            create_purchase_order(
+            purchase_order = create_purchase_order(
                 db_session,
                 tenant_id=tenant_id,
                 shop_id=shop_id,
@@ -978,6 +1069,16 @@ def approve_v2_confirmation(
                 items=list(resolved_fields.get("items") or []),
                 note=resolved_fields.get("note"),
                 account_id=approved_by_account_id,
+            )
+            _merge_execution_result(
+                confirmation,
+                resolution_payload=resolution_payload,
+                fields=resolved_fields,
+                execution_result=_purchase_order_execution_result(
+                    order_id=purchase_order.purchase_order_id,
+                    order_no=purchase_order.order_no,
+                    total_amount=str(purchase_order.total_amount),
+                ),
             )
             task_run.status = COMMITTED_STATUS
             task_run.result_summary = "Confirmation approved and purchase order committed."

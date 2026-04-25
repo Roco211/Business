@@ -742,7 +742,18 @@ function formatDateTime(value?: string) {
 }
 
 function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void }) {
-  async function approve(id: string) { await api.approveConfirmation(auth, id); onChanged() }
+  const [executionRecaps, setExecutionRecaps] = useState<Confirmation[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
+  async function approve(id: string) {
+    setBusyId(id)
+    try {
+      const approved = await api.approveConfirmation(auth, id)
+      setExecutionRecaps((items) => [approved, ...items.filter((item) => item.confirmation_id !== id)].slice(0, 5))
+      onChanged()
+    } finally {
+      setBusyId(null)
+    }
+  }
   async function reject(id: string) { await api.rejectConfirmation(auth, id); onChanged() }
   return (
     <div className="content-grid">
@@ -750,10 +761,15 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
         <div>
           <div className="ai-badge">AI Task Flow</div>
           <h1>AI任务中心</h1>
-          <p>每个高风险经营动作都会先进入任务流：AI理解与生成草稿，但必须老板确认后才落账。</p>
+          <p>每个高风险经营动作都会先进入任务流：AI理解与生成草稿，但必须老板确认后才落账。确认后会生成执行复盘。</p>
         </div>
         <div className="task-hero-count"><span>{confirmations.length}</span><small>待确认任务</small></div>
       </section>
+      {executionRecaps.length > 0 && <Panel title="刚刚完成的AI执行复盘">
+        <div className="execution-recap-list">
+          {executionRecaps.map((confirmation) => <ExecutionRecapCard key={confirmation.confirmation_id} confirmation={confirmation} />)}
+        </div>
+      </Panel>}
       <Panel title="等待老板确认的AI任务">
         {confirmations.length === 0 ? <Empty text="暂无待确认AI任务。你可以在首页 Command Center 里生成销售草稿来体验完整任务流。" /> : <div className="task-flow-list">
           {confirmations.map((confirmation) => {
@@ -776,8 +792,8 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
               <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
               <details className="task-raw-payload"><summary>查看原始草稿数据</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
               <div className="task-actions">
-                <button className="primary-button" onClick={() => void approve(confirmation.confirmation_id)}>确认并执行</button>
-                <button className="secondary-button" onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
+                <button className="primary-button" disabled={busyId === confirmation.confirmation_id} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</button>
+                <button className="secondary-button" disabled={busyId === confirmation.confirmation_id} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
                 <span>任务ID：{confirmation.confirmation_id}</span>
               </div>
             </article>
@@ -786,6 +802,39 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
       </Panel>
     </div>
   )
+}
+
+type ExecutionResult = {
+  status?: string
+  entity_type?: string
+  entity_id?: string
+  summary?: string
+  effects?: Record<string, string>
+  next_route?: string
+}
+
+function getExecutionResult(confirmation: Confirmation): ExecutionResult | null {
+  const result = confirmation.resolution_payload?.execution_result
+  if (!result || typeof result !== 'object' || Array.isArray(result)) return null
+  return result as ExecutionResult
+}
+
+function ExecutionRecapCard({ confirmation }: { confirmation: Confirmation }) {
+  const result = getExecutionResult(confirmation)
+  if (!result) return null
+  return <article className="execution-recap-card">
+    <div className="execution-recap-head">
+      <span>执行复盘</span>
+      <b>{result.summary || 'AI任务已执行完成'}</b>
+    </div>
+    <div className="execution-effect-grid">
+      {Object.entries(result.effects || {}).map(([key, value]) => <div key={key}><small>{key}</small><strong>{value}</strong></div>)}
+    </div>
+    <div className="execution-meta">
+      <span>业务对象：{result.entity_type || '-'} / {result.entity_id || '-'}</span>
+      <span>确认ID：{confirmation.confirmation_id}</span>
+    </div>
+  </article>
 }
 
 const moduleRoadmap = [

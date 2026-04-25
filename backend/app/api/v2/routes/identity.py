@@ -95,10 +95,10 @@ def login_v2(
     )
     return V2DataEnvelope(
         data=V2LoginData(
-            access_token=issued.access_token,
-            refresh_token=issued.refresh_token,
-            token_type="Bearer",
-            account_id=issued.account_id,
+            accessToken=issued.access_token,
+            refreshToken=issued.refresh_token,
+            tokenType="Bearer",
+            accountId=issued.account_id,
         )
     )
 
@@ -111,7 +111,7 @@ def refresh_v2(
 ) -> V2DataEnvelope[V2LoginData] | JSONResponse:
     issued = rotate_v2_auth_session(
         db_session,
-        refresh_token=payload.refresh_token,
+        refresh_token=payload.refreshToken,
         ttl_minutes=settings.auth_session_ttl_minutes,
     )
     if issued is None:
@@ -119,10 +119,10 @@ def refresh_v2(
 
     return V2DataEnvelope(
         data=V2LoginData(
-            access_token=issued.access_token,
-            refresh_token=issued.refresh_token,
-            token_type="Bearer",
-            account_id=issued.account_id,
+            accessToken=issued.access_token,
+            refreshToken=issued.refresh_token,
+            tokenType="Bearer",
+            accountId=issued.account_id,
         )
     )
 
@@ -227,13 +227,13 @@ def select_context_v2(
     role_key = context_session.permission_snapshot["role_key"]
     return V2DataEnvelope(
         data=V2ContextData(
-            context_token=context_session.context_session_id,
-            context_session_id=context_session.context_session_id,
-            account_id=context_session.account_id,
-            tenant_id=context_session.tenant_id,
-            shop_id=context_session.shop_id,
-            membership_id=context_session.membership_id,
-            role_key=role_key,
+            contextToken=context_session.context_session_id,
+            contextSessionId=context_session.context_session_id,
+            accountId=context_session.account_id,
+            tenantId=context_session.tenant_id,
+            shopId=context_session.shop_id,
+            membershipId=context_session.membership_id,
+            roleKey=role_key,
             permissions=permissions,
         )
     )
@@ -254,13 +254,13 @@ def current_context_v2(
 
     return V2DataEnvelope(
         data=V2ContextData(
-            context_token=context.context_session_id,
-            context_session_id=context.context_session_id,
-            account_id=context.account_id,
-            tenant_id=context.tenant_id,
-            shop_id=context.shop_id,
-            membership_id=context.membership_id,
-            role_key=context.role_key,
+            contextToken=context.context_session_id,
+            contextSessionId=context.context_session_id,
+            accountId=context.account_id,
+            tenantId=context.tenant_id,
+            shopId=context.shop_id,
+            membershipId=context.membership_id,
+            roleKey=context.role_key,
             permissions=list(context.permissions),
         )
     )

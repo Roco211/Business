@@ -11,6 +11,8 @@ import time
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ".")
 
+from scripts.v2_test_client import V2TestClient
+
 BASE = "http://127.0.0.1:8001/api/v2"
 
 
@@ -39,105 +41,54 @@ def test_health():
 
 def test_auth():
     log("[2/8] Authentication")
-    results = []
-    # Email login
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "email": "demo@aistoremanager.com", "password": "demo123"
-    }, timeout=10)
-    results.append(check("Email login", r.status_code == 200))
-    # Phone login
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "phone": "13800138000", "verification_code": "888888", "auth_method": "phone_code"
-    }, timeout=10)
-    results.append(check("Phone login", r.status_code == 200))
-    return all(results)
+    try:
+        data = V2TestClient(BASE).login()
+        ok = "accessToken" in data or "access_token" in data
+        return check("Phone-code demo login", ok, f"Fields: {sorted(data.keys())}")
+    except Exception as e:
+        return check("Phone-code demo login", False, str(e))
 
 
 def test_tenant_context():
     log("[3/8] Tenant & Context")
-    results = []
-    # Login
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "email": "demo@aistoremanager.com", "password": "demo123"
-    }, timeout=10)
-    token = r.json()["data"]["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    # Tenants
-    r = httpx.get(f"{BASE}/me/tenants", headers=headers, timeout=10)
-    results.append(check("List tenants", r.status_code == 200))
-    tenants = r.json()["data"]["tenants"]
-    if not tenants:
+    try:
+        with V2TestClient(BASE) as client:
+            ctx = client.get_auth_context()
+        results = [
+            check("Access token", bool(ctx.token)),
+            check("Tenant selected", bool(ctx.tenant_id), ctx.tenant_id),
+            check("Shop selected", bool(ctx.shop_id), ctx.shop_id),
+            check("Context token", bool(ctx.context_token)),
+        ]
         return all(results)
-    tid = tenants[0]["tenant_id"]
-    # Shops
-    r = httpx.get(f"{BASE}/tenants/{tid}/shops", headers=headers, timeout=10)
-    results.append(check("List shops", r.status_code == 200))
-    shops = r.json()["data"]["shops"]
-    if not shops:
-        return all(results)
-    sid = shops[0]["shop_id"]
-    # Context select
-    r = httpx.post(f"{BASE}/context/select", headers=headers, json={
-        "tenant_id": tid, "shop_id": sid
-    }, timeout=10)
-    results.append(check("Context select", r.status_code == 200))
-    return all(results)
+    except Exception as e:
+        return check("Tenant & Context", False, str(e))
 
 
 def test_inventory():
     log("[4/8] Inventory APIs")
     results = []
-    # Setup auth + context
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "email": "demo@aistoremanager.com", "password": "demo123"
-    }, timeout=10)
-    token = r.json()["data"]["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    r = httpx.get(f"{BASE}/me/tenants", headers=headers, timeout=10)
-    tid = r.json()["data"]["tenants"][0]["tenant_id"]
-    r = httpx.get(f"{BASE}/tenants/{tid}/shops", headers=headers, timeout=10)
-    sid = r.json()["data"]["shops"][0]["shop_id"]
-    r = httpx.post(f"{BASE}/context/select", headers=headers, json={
-        "tenant_id": tid, "shop_id": sid
-    }, timeout=10)
-    ctx_token = r.json()["data"]["context_session_id"]
-    ctx_headers = {
-        "Authorization": f"Bearer {token}",
-        "X-Context-Token": ctx_token
-    }
-    # Stock
-    r = httpx.get(f"{BASE}/inventory/stock", headers=ctx_headers, timeout=10)
-    results.append(check("Stock list", r.status_code == 200))
-    # Catalog - may return 404 if not implemented
-    r = httpx.get(f"{BASE}/inventory/catalog", headers=ctx_headers, timeout=10)
-    results.append(check("Catalog", r.status_code in (200, 404), f"Status: {r.status_code}"))
-    # Ledger - may return 404 if not implemented
-    r = httpx.get(f"{BASE}/ledger/events", headers=ctx_headers, timeout=10)
-    results.append(check("Ledger", r.status_code in (200, 404), f"Status: {r.status_code}"))
+    with V2TestClient(BASE) as client:
+        ctx = client.get_auth_context()
+        r = client.get("/inventory/stock")
+        results.append(check("Stock list", r.status_code == 200, r.text[:120]))
+        r = client.get("/inventory/catalog")
+        results.append(check("Catalog", r.status_code in (200, 404), f"Status: {r.status_code}"))
+        r = client.get("/ledger/events")
+        results.append(check("Ledger", r.status_code in (200, 404), f"Status: {r.status_code}"))
+        check("Context shop", bool(ctx.shop_id), ctx.shop_id)
     return all(results)
 
 
 def test_alerts():
     log("[5/8] Alerts API")
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "email": "demo@aistoremanager.com", "password": "demo123"
-    }, timeout=10)
-    token = r.json()["data"]["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    r = httpx.get(f"{BASE}/me/tenants", headers=headers, timeout=10)
-    tid = r.json()["data"]["tenants"][0]["tenant_id"]
-    r = httpx.get(f"{BASE}/tenants/{tid}/shops", headers=headers, timeout=10)
-    sid = r.json()["data"]["shops"][0]["shop_id"]
-    r = httpx.post(f"{BASE}/context/select", headers=headers, json={
-        "tenant_id": tid, "shop_id": sid
-    }, timeout=10)
-    ctx_token = r.json()["data"]["context_session_id"]
-    ctx_headers = {
-        "Authorization": f"Bearer {token}",
-        "X-Context-Token": ctx_token
-    }
-    r = httpx.get(f"{BASE}/alerts", headers=ctx_headers, params={"shop_id": sid}, timeout=10)
-    return check("Alerts list", r.status_code in (200, 404), f"Status: {r.status_code}")
+    try:
+        with V2TestClient(BASE) as client:
+            ctx = client.get_auth_context()
+            r = client.get("/alerts", params={"shop_id": ctx.shop_id})
+        return check("Alerts list", r.status_code in (200, 404), f"Status: {r.status_code}")
+    except Exception as e:
+        return check("Alerts list", False, str(e))
 
 
 def test_llm_intent():

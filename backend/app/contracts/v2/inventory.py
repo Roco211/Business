@@ -75,6 +75,21 @@ class V2SubmitInventoryCorrectionData(BaseModel):
     new_quantity: Decimal
 
 
+class V2SubmitInventoryStockInRequest(BaseModel):
+    inventory_item_id: str | None = None
+    item_name: str | None = None
+    stock_in_quantity: Decimal
+    unit: str
+    price: Decimal
+    reason: str | None = None
+
+
+class V2SubmitInventoryStockInData(BaseModel):
+    stock_in_event_id: str
+    inventory_item_id: str
+    new_quantity: Decimal
+
+
 class V2SubmitInventoryStockOutRequest(BaseModel):
     inventory_item_id: str
     expected_quantity: Decimal

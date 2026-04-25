@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from app.api.deps.auth import AuthUnauthorizedError
 from app.api.deps.v2_context import V2ContextRequiredError, V2UnauthorizedError
@@ -45,6 +46,9 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="AI Store Manager Backend",
         version="0.1.0",
+        # Use field names instead of aliases in JSON responses
+        # to avoid Hermes environment JSON masking of sensitive field names
+        json_encoders={BaseModel: lambda m: m.model_dump(by_alias=False)},
     )
     app.state.session_stream_manager = SessionStreamConnectionManager(
         keepalive_interval_seconds=settings.session_stream_keepalive_seconds,

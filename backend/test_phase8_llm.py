@@ -1,104 +1,163 @@
-"""Test script for Phase 8 LLM integration."""
+#!/usr/bin/env python3
+"""Phase 8 LLM Integration Test - Real API Call Verification."""
 
-import asyncio
+import os
 import sys
-sys.path.insert(0, '/tmp/Business/backend')
+import time
 
-from app.services.v2_llm import (
-    LLMService,
-    ParsedIntent,
-    get_llm_service,
-    parse_stock_query_intent,
-)
+sys.path.insert(0, "/root/business-clone/backend")
 
+# Load env from .env file
+from dotenv import load_dotenv
+load_dotenv("/root/business-clone/backend/.env")
 
-def test_mock_intent_parsing():
-    """Test intent parsing with mock provider (rule-based fallback)."""
-    print("=" * 50)
-    print("TEST: Mock Intent Parsing (Rule-based fallback)")
-    print("=" * 50)
-    
-    test_cases = [
-        ("螺丝刀还有几个", "stock_query", "螺丝刀"),
-        ("进了50个扳手", "stock_in", "扳手"),
-        ("卖出3个电钻", "stock_out", "电钻"),
-        ("锤子库存多少", "stock_query", "锤子"),
-        ("采购10箱螺丝钉", "stock_in", "螺丝钉"),
-    ]
-    
-    for text, expected_intent, expected_item in test_cases:
-        result = parse_stock_query_intent(text)
-        status = "✓" if result.intent_type == expected_intent else "✗"
-        print(f"{status} Input: \"{text}\"")
-        print(f"  Intent: {result.intent_type} (expected: {expected_intent})")
-        print(f"  Item: {result.item_name} (expected: {expected_item})")
-        print(f"  Confidence: {result.confidence}")
-        print()
+from app.services.llm_real_provider import create_llm_provider
+from app.services.v2_llm import get_llm_service, LLMService
 
 
-def test_llm_service_initialization():
-    """Test LLM service initialization."""
-    print("=" * 50)
-    print("TEST: LLM Service Initialization")
-    print("=" * 50)
-    
+def test_real_llm_chat():
+    """Test actual LLM API call."""
+    print("=" * 60)
+    print("Test: Real LLM Chat API Call")
+    print("=" * 60)
+
     try:
-        service = get_llm_service()
-        print("✓ LLM service initialized successfully")
-        provider_type = "real" if not service._use_mock else "mock (fallback)"
-        print(f"  Provider type: {provider_type}")
+        provider = create_llm_provider()
+        print(f"Provider: {provider.provider_name}")
+        print(f"Model: {provider.model}")
+        print(f"URL: {provider.api_url[:50]}...")
+
+        messages = [
+            {"role": "system", "content": "你是店铺库存助手。简洁回复。"},
+            {"role": "user", "content": "螺丝刀还有多少个？"},
+        ]
+
+        print("\nSending request...")
+        start = time.time()
+        response = provider.chat(messages, stream=False)
+        elapsed = time.time() - start
+
+        print(f"Response: {response.content[:100]}...")
+        print(f"Time: {elapsed:.2f}s")
+
+        if response.stats:
+            print(f"Stats: {response.stats.tokens_prompt} prompt / {response.stats.tokens_completion} completion tokens")
+            print(f"TPS: {response.stats.tps:.1f}")
+
+        print(f"[PASS] Real LLM call succeeded")
+        return True
+
     except Exception as e:
-        print(f"✗ LLM service initialization failed: {e}")
+        print(f"[FAIL] {type(e).__name__}: {e}")
+        return False
 
 
-def test_full_intent_parsing():
-    """Test full intent parsing with LLM if available."""
-    print("=" * 50)
-    print("TEST: Full Intent Parsing")
-    print("=" * 50)
-    
-    test_cases = [
-        "今天螺丝刀还有货吗",
-        "新进了一批扳手，帮我入库",
-        "卖了几把电钻，需要记账",
-        "查询一下锤子的库存数量",
-    ]
-    
-    for text in test_cases:
-        print(f"\nInput: \"{text}\"")
-        result = parse_stock_query_intent(text)
-        print(f"  → Intent: {result.intent_type}")
-        print(f"  → Item: {result.item_name}")
-        print(f"  → Quantity: {result.quantity}")
-        print(f"  → Confidence: {result.confidence}")
+def test_intent_parsing():
+    """Test intent parsing with real LLM."""
+    print("\n" + "=" * 60)
+    print("Test: Intent Parsing with Real LLM")
+    print("=" * 60)
+
+    try:
+        # Reset singleton to pick up real provider
+        import app.services.v2_llm as v2_llm_module
+        v2_llm_module._llm_service = None
+
+        service = get_llm_service()
+        print(f"Mock mode: {service._use_mock}")
+
+        if service._use_mock:
+            print("[SKIP] No real provider available")
+            return False
+
+        test_cases = [
+            "查一下螺丝刀还有多少个",
+            "进50个黄色手枪钻",
+            "出了5个电钻",
+            "扳手多少钱",
+            "今天营业额多少",
+        ]
+
+        for query in test_cases:
+            print(f"\n  Query: '{query}'")
+            start = time.time()
+            result = service.parse_intent(query)
+            elapsed = time.time() - start
+
+            print(f"    Intent: {result.intent_type}")
+            print(f"    Item: {result.item_name}")
+            print(f"    Qty: {result.quantity}")
+            print(f"    Confidence: {result.confidence}")
+            print(f"    Time: {elapsed:.2f}s")
+
+        print(f"\n[PASS] Intent parsing with real LLM succeeded")
+        return True
+
+    except Exception as e:
+        print(f"[FAIL] {type(e).__name__}: {e}")
+        return False
 
 
-def main():
-    """Run all Phase 8 tests."""
-    print("\n" + "=" * 50)
-    print("PHASE 8 LLM INTEGRATION - TEST SUITE")
-    print("=" * 50 + "\n")
-    
-    test_llm_service_initialization()
-    print("\n")
-    test_mock_intent_parsing()
-    print("\n")
-    test_full_intent_parsing()
-    
-    print("\n" + "=" * 50)
-    print("PHASE 8 TEST SUMMARY")
-    print("=" * 50)
-    print("\n✓ v2_llm.py service created")
-    print("✓ llm_real_provider.py Volcano provider created")
-    print("✓ config.py LLM settings added")
-    print("✓ v2_voice.py integrated with LLM")
-    print("✓ Rule-based fallback working")
-    print("\nTo use real Volcano LLM, set environment variables:")
-    print("  export VOLCANO_API_KEY=xxx")
-    print("  export VOLCANO_MODEL=ep-xxx")
-    print("  export LLM_PROVIDER=volcano")
-    print("=" * 50 + "\n")
+def test_streaming():
+    """Test streaming response."""
+    print("\n" + "=" * 60)
+    print("Test: Streaming Response")
+    print("=" * 60)
+
+    try:
+        provider = create_llm_provider()
+
+        messages = [
+            {"role": "system", "content": "你是店铺库存助手。"},
+            {"role": "user", "content": "库存不足怎么办？"},
+        ]
+
+        print("Streaming response:")
+        start = time.time()
+        chunks = []
+        for chunk in provider.chat_stream(messages):
+            chunks.append(chunk)
+            print(chunk, end="", flush=True)
+
+        elapsed = time.time() - start
+        full_response = "".join(chunks)
+
+        print(f"\n\nFull response: {full_response[:100]}...")
+        print(f"Time: {elapsed:.2f}s")
+        print(f"Chunks: {len(chunks)}")
+
+        print(f"[PASS] Streaming succeeded")
+        return True
+
+    except Exception as e:
+        print(f"[FAIL] {type(e).__name__}: {e}")
+        return False
 
 
 if __name__ == "__main__":
-    main()
+    print("\n" + "=" * 60)
+    print("Phase 8: LLM Real Provider Integration Tests")
+    print("=" * 60 + "\n")
+
+    results = []
+
+    # Test 1: Basic chat
+    results.append(("Real LLM Chat", test_real_llm_chat()))
+
+    # Test 2: Intent parsing
+    results.append(("Intent Parsing", test_intent_parsing()))
+
+    # Test 3: Streaming
+    results.append(("Streaming", test_streaming()))
+
+    print("\n" + "=" * 60)
+    print("Summary")
+    print("=" * 60)
+
+    for name, passed in results:
+        status = "PASS" if passed else "FAIL"
+        print(f"  [{status}] {name}")
+
+    total = len(results)
+    passed = sum(1 for _, p in results if p)
+    print(f"\nTotal: {passed}/{total} tests passed")

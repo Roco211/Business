@@ -11,6 +11,8 @@ import time
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ".")
 
+from scripts.v2_test_client import V2TestClient
+
 BASE = "http://127.0.0.1:8001/api/v2"
 
 
@@ -30,28 +32,13 @@ def check(desc, ok, detail=""):
 
 def get_auth_context():
     """Login and get full context (token + tenant + shop + context_token)."""
-    r = httpx.post(f"{BASE}/auth/login", json={
-        "email": "demo@aistoremanager.com", "password": "demo123"
-    }, timeout=10)
-    token = r.json()["data"]["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    r = httpx.get(f"{BASE}/me/tenants", headers=headers, timeout=10)
-    tid = r.json()["data"]["tenants"][0]["tenant_id"]
-    
-    r = httpx.get(f"{BASE}/tenants/{tid}/shops", headers=headers, timeout=10)
-    sid = r.json()["data"]["shops"][0]["shop_id"]
-    
-    r = httpx.post(f"{BASE}/context/select", headers=headers, json={
-        "tenant_id": tid, "shop_id": sid
-    }, timeout=10)
-    ctx_token = r.json()["data"]["context_session_id"]
-    
+    with V2TestClient(BASE) as client:
+        ctx = client.get_auth_context()
     return {
-        "token": token,
-        "tenant_id": tid,
-        "shop_id": sid,
-        "context_token": ctx_token,
+        "token": ctx.token,
+        "tenant_id": ctx.tenant_id,
+        "shop_id": ctx.shop_id,
+        "context_token": ctx.context_token,
     }
 
 

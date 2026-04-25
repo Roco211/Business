@@ -20,6 +20,7 @@ from app.services.v2_voice import (
     VoiceIntentParseError,
     VoiceInventoryQueryError,
     process_voice_stock_query,
+    process_voice_stock_in,
 )
 
 router = APIRouter(prefix="/api/v2/voice", tags=["v2-voice"])

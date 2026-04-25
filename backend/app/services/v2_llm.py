@@ -40,9 +40,12 @@ class LLMService:
     # Optimized system prompt for speed (~30 tokens instead of 150)
     INTENT_PARSING_PROMPT = """你是店铺库存助手。从用户输入中提取意图和商品信息。
 
-意图：stock_query(查库存), stock_in(入库), stock_out(出库)
+意图：stock_query(查库存), stock_in(入库), stock_out(出库), price_query(查价格), revenue_query(查营业额), sales_query(查销量), alert_query(查预警)
 输出JSON格式：{"intent": "意图", "item": "商品名", "quantity": 数量}
-示例输入："螺丝刀还有几个" -> {"intent": "stock_query", "item": "螺丝刀", "quantity": null}"""
+示例：
+- "螺丝刀还有几个" -> {"intent": "stock_query", "item": "螺丝刀", "quantity": null}
+- "扳手多少钱" -> {"intent": "price_query", "item": "扳手", "quantity": null}
+- "今天营业额多少" -> {"intent": "revenue_query", "item": null, "quantity": null}"""
 
     RESPONSE_PROMPT = """你是店铺库存助手。简洁回复用户问题。
 规则：
@@ -192,8 +195,10 @@ class LLMService:
         """Fallback rule-based intent parsing."""
         text = text.strip()
         
+        import re
+
         # Detect stock in patterns
-        if any(kw in text for kw in ["进货", "入库", "采购", "买", "买了一", "进了一"]):
+        if any(kw in text for kw in ["进货", "入库", "采购", "买", "买了一", "进了一"]) or re.search(r"进了?\d+", text):
             item_name = self._extract_item_name(text)
             quantity = self._extract_quantity(text)
             return ParsedIntent(
@@ -204,7 +209,7 @@ class LLMService:
             )
         
         # Detect stock out patterns
-        if any(kw in text for kw in ["卖出", "出货", "出库", "卖了", "走了", "卖了一"]):
+        if any(kw in text for kw in ["卖出", "出货", "出库", "卖了", "走了", "卖了一", "出了"]) or re.search(r"出了?\d+", text):
             item_name = self._extract_item_name(text)
             quantity = self._extract_quantity(text)
             return ParsedIntent(

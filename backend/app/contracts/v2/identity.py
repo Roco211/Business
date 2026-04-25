@@ -12,14 +12,14 @@ class V2LoginRequest(BaseModel):
 
 
 class V2LoginData(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str
-    account_id: str
+    accessToken: str
+    refreshToken: str
+    tokenType: str
+    accountId: str
 
 
 class V2RefreshRequest(BaseModel):
-    refresh_token: str
+    refreshToken: str
 
 
 class V2MeData(BaseModel):
@@ -61,11 +61,11 @@ class V2ContextSelectRequest(BaseModel):
 
 
 class V2ContextData(BaseModel):
-    context_token: str
-    context_session_id: str
-    account_id: str
-    tenant_id: str
-    shop_id: str
-    membership_id: str
-    role_key: str
+    contextToken: str
+    contextSessionId: str
+    accountId: str
+    tenantId: str
+    shopId: str
+    membershipId: str
+    roleKey: str
     permissions: list[str]

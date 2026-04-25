@@ -67,3 +67,27 @@ class V2InventoryLedgerEvent(Base):
     reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_by_account_id: Mapped[str] = mapped_column(ForeignKey("v2_accounts.account_id"), nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+
+
+class V2StockCheckRecord(Base):
+    """库存盘点记录 - 记录每次盘点的实际库存与系统库存对比"""
+    __tablename__ = "v2_stock_check_records"
+
+    check_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("v2_tenants.tenant_id"), nullable=False, index=True)
+    shop_id: Mapped[str] = mapped_column(ForeignKey("v2_shops.shop_id"), nullable=False, index=True)
+    inventory_item_id: Mapped[str] = mapped_column(
+        ForeignKey("v2_inventory_items.inventory_item_id"),
+        nullable=False,
+        index=True,
+    )
+    system_quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
+    actual_quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
+    difference: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
+    unit: Mapped[str] = mapped_column(String(24), nullable=False)
+    check_method: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by_account_id: Mapped[str] = mapped_column(ForeignKey("v2_accounts.account_id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False, default=utc_now_naive)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)

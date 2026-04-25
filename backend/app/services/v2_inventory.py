@@ -45,6 +45,14 @@ class V2InventoryStockOutItemNotFoundError(LookupError):
     pass
 
 
+class V2InventoryStockInValidationError(ValueError):
+    pass
+
+
+class V2InventoryStockInItemNotFoundError(LookupError):
+    pass
+
+
 @dataclass(frozen=True)
 class V2ApprovedStockInPayload:
     item_id: str | None
@@ -69,6 +77,13 @@ class V2InventoryCorrectionResult:
 
 @dataclass(frozen=True)
 class V2InventoryStockOutResult:
+    item: V2InventoryItem
+    snapshot: V2InventoryStockSnapshot
+    event: V2InventoryLedgerEvent
+
+
+@dataclass(frozen=True)
+class V2InventoryStockInResult:
     item: V2InventoryItem
     snapshot: V2InventoryStockSnapshot
     event: V2InventoryLedgerEvent
@@ -388,6 +403,89 @@ def commit_v2_inventory_stock_in(
     db_session.add(event)
     db_session.flush()
     return V2CommittedStockInResult(item=item, snapshot=snapshot, event=event)
+
+
+def submit_v2_inventory_stock_in(
+    db_session: Session,
+    *,
+    tenant_id: str,
+    shop_id: str,
+    inventory_item_id: str | None,
+    item_name: str | None,
+    stock_in_quantity: Decimal,
+    unit: str,
+    price: Decimal,
+    reason: str | None,
+    created_by_account_id: str,
+) -> V2InventoryStockInResult:
+    try:
+        approved_payload = _parse_v2_stock_in_payload(
+            {
+                "item_id": inventory_item_id,
+                "item_name": item_name,
+                "quantity": stock_in_quantity,
+                "unit": unit,
+                "price": price,
+            }
+        )
+        normalized_reason = (reason or "manual stock in").strip() or "manual stock in"
+        now = utc_now_naive()
+        try:
+            item = _resolve_v2_inventory_item_for_stock_in(
+                db_session,
+                tenant_id=tenant_id,
+                payload=approved_payload,
+                now=now,
+            )
+        except V2InventoryItemNotFoundError as exc:
+            raise V2InventoryStockInItemNotFoundError(str(exc)) from exc
+        except V2InventoryUnitMismatchError as exc:
+            raise V2InventoryStockInValidationError("unit does not match inventory item default_unit") from exc
+
+        snapshot = _get_or_create_v2_stock_snapshot(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            inventory_item_id=item.inventory_item_id,
+            price=approved_payload.price,
+            now=now,
+        )
+        quantity_after = Decimal(snapshot.current_quantity) + approved_payload.quantity
+        snapshot.current_quantity = quantity_after
+        snapshot.current_price = approved_payload.price
+        snapshot.updated_at = now
+        item.updated_at = now
+        event = V2InventoryLedgerEvent(
+            event_id=f"vevent_{uuid.uuid4().hex}"[:40],
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            inventory_item_id=item.inventory_item_id,
+            event_type="stock_in",
+            quantity_delta=approved_payload.quantity,
+            quantity_after=quantity_after,
+            unit=approved_payload.unit,
+            price=approved_payload.price,
+            source_type="inventory_stock_in",
+            source_id=item.inventory_item_id,
+            reason=normalized_reason,
+            created_by_account_id=created_by_account_id,
+            occurred_at=now,
+        )
+        db_session.add(event)
+        db_session.commit()
+        return V2InventoryStockInResult(item=item, snapshot=snapshot, event=event)
+    except V2InventoryStockInItemNotFoundError:
+        db_session.rollback()
+        raise
+    except V2InventoryStockInValidationError:
+        db_session.rollback()
+        raise
+    except V2InventoryPayloadValidationError as exc:
+        db_session.rollback()
+        raise V2InventoryStockInValidationError(str(exc)) from exc
+    except Exception:
+        db_session.rollback()
+        raise
 
 
 def submit_v2_inventory_correction(

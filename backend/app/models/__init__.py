@@ -27,6 +27,7 @@ from app.models.v2_inventory import (
     V2InventoryItem,
     V2InventoryLedgerEvent,
     V2InventoryStockSnapshot,
+    V2StockCheckRecord,
 )
 from app.models.v2_media_ai import V2Document, V2MediaAsset, V2ModelCallLog
 from app.models.v2_realtime import V2SessionStreamEvent
@@ -64,6 +65,7 @@ __all__ = [
     "V2InventoryItem",
     "V2InventoryLedgerEvent",
     "V2InventoryStockSnapshot",
+    "V2StockCheckRecord",
     "V2Document",
     "V2MediaAsset",
     "V2ModelCallLog",

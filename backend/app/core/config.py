@@ -4,10 +4,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env file if it exists
+# Load .env file if it exists. Process environment variables must win so
+# Docker/CI/Provider trial preflight can inject production settings safely.
 ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
 if ENV_PATH.exists():
-    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    load_dotenv(dotenv_path=ENV_PATH, override=False)
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,10 @@ class Settings:
     app_port: int
     redis_url: str
     database_url: str
+    app_cors_origins_raw: str
+    rate_limit_per_minute: int
+    security_headers_enabled: bool
+    backup_dir: str
     session_stream_keepalive_seconds: float
     session_stream_pending_poll_seconds: float = float(os.getenv("SESSION_STREAM_PENDING_POLL_SECONDS", "1"))
     v2_outbox_due_sweep_interval_seconds: int = int(os.getenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "30"))
@@ -80,6 +85,12 @@ class Settings:
     trial_calibration_artifacts_dir: str = os.getenv("TRIAL_CALIBRATION_ARTIFACTS_DIR", "")
     live_pilot_allowed_shop_ids_raw: str = os.getenv("LIVE_PILOT_ALLOWED_SHOP_IDS", "")
 
+    def cors_origins(self) -> list[str]:
+        raw = self.app_cors_origins_raw.strip()
+        if not raw:
+            return []
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
     def normalized_runtime_mode(self) -> str:
         normalized = self.app_runtime_mode.strip().lower()
         return normalized or "local-demo"
@@ -103,14 +114,14 @@ class Settings:
 
 
 def _build_default_database_url() -> str:
-    mysql_user = os.getenv("MYSQL_USER", "aism")
-    mysql_password = os.getenv("MYSQL_PASSWORD", "aism_password")
-    mysql_host = os.getenv("MYSQL_HOST", "mysql")
-    mysql_port = os.getenv("MYSQL_PORT", "3306")
-    mysql_database = os.getenv("MYSQL_DATABASE", "ai_store_manager")
+    postgres_user = os.getenv("POSTGRES_USER", "business")
+    postgres_password = os.getenv("POSTGRES_PASSWORD", "business_password")
+    postgres_host = os.getenv("POSTGRES_HOST", "postgres")
+    postgres_port = os.getenv("POSTGRES_PORT", "5432")
+    postgres_database = os.getenv("POSTGRES_DB", "business")
     return (
-        f"mysql+pymysql://{mysql_user}:{mysql_password}"
-        f"@{mysql_host}:{mysql_port}/{mysql_database}?charset=utf8mb4"
+        f"postgresql+psycopg://{postgres_user}:{postgres_password}@"
+        f"{postgres_host}:{postgres_port}/{postgres_database}"
     )
 
 
@@ -132,6 +143,10 @@ def get_settings() -> Settings:
         app_port=int(os.getenv("APP_PORT", "8001")),
         redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0"),
         database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
+        app_cors_origins_raw=os.getenv("APP_CORS_ORIGINS", ""),
+        rate_limit_per_minute=int(os.getenv("APP_RATE_LIMIT_PER_MINUTE", "0")),
+        security_headers_enabled=_parse_bool_env(os.getenv("APP_SECURITY_HEADERS_ENABLED"), app_env.lower() == "production"),
+        backup_dir=os.getenv("BACKUP_DIR", "/app/backups"),
         session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),
         session_stream_pending_poll_seconds=float(os.getenv("SESSION_STREAM_PENDING_POLL_SECONDS", "1")),
         v2_outbox_due_sweep_interval_seconds=int(os.getenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "30")),

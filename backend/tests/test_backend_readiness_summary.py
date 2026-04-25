@@ -16,6 +16,11 @@ def test_backend_readiness_summary_reports_ready_when_required_artifacts_exist(t
         "backend/tests/test_provider_trial_preflight.py",
         "backend/tests/test_v2_pc_dashboard_overview_http_flow.py",
         "apps/h5/package.json",
+        "infra/docker/docker-compose.production.yml",
+        "backend/tests/test_production_readiness_config.py",
+        "backend/scripts/backup_postgres.sh",
+        "backend/scripts/restore_postgres.sh",
+        "docs/superpowers/guides/2026-04-25-production-trial-runbook.md",
     ]
     for relative_path in required_files:
         path = tmp_path / relative_path

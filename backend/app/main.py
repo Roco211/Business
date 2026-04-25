@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -8,6 +9,11 @@ from pydantic import BaseModel
 from app.api.deps.auth import AuthUnauthorizedError
 from app.api.deps.v2_context import V2ContextRequiredError, V2UnauthorizedError
 from app.core.config import get_settings
+from app.core.production_middleware import (
+    InMemoryRateLimiter,
+    build_rate_limit_middleware,
+    security_headers_middleware,
+)
 from app.contracts.common import ErrorBody, ErrorEnvelope
 from app.contracts.v2.common import V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_session_factory
@@ -81,6 +87,21 @@ def create_app() -> FastAPI:
         # to avoid Hermes environment JSON masking of sensitive field names
         json_encoders={BaseModel: lambda m: m.model_dump(by_alias=False)},
     )
+    cors_origins = settings.cors_origins()
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type", "X-V2-Context-Token"],
+        )
+    if settings.security_headers_enabled:
+        app.middleware("http")(security_headers_middleware)
+    if settings.rate_limit_per_minute > 0:
+        app.middleware("http")(
+            build_rate_limit_middleware(InMemoryRateLimiter(settings.rate_limit_per_minute))
+        )
     app.state.session_stream_manager = SessionStreamConnectionManager(
         keepalive_interval_seconds=settings.session_stream_keepalive_seconds,
         pending_poll_interval_seconds=settings.session_stream_pending_poll_seconds,

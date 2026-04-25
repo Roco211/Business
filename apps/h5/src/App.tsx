@@ -211,7 +211,17 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
   return <Panel title="AI待确认任务">{confirmations.length === 0 ? <Empty text="暂无待确认AI任务。" /> : <div className="stack-list">{confirmations.map((c) => <div className="task-card" key={c.confirmation_id}><b>{c.confirmation_type}</b><pre>{JSON.stringify(c.draft_payload, null, 2)}</pre><button className="primary-button" onClick={() => void approve(c.confirmation_id)}>批准落账</button><button className="secondary-button" onClick={() => void reject(c.confirmation_id)}>拒绝</button></div>)}</div>}</Panel>
 }
 
-function ComingSoon() { return <Panel title="即将上线"><Empty text="客户、订单、客服、营销、售后、财务等模块需要后端领域模型完成后再开放。当前商用试运行先聚焦商品、库存和AI经营助手。" /></Panel> }
+const moduleRoadmap = [
+  { name: '销售单/订单', phase: 'F1', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '优先建设' },
+  { name: '采购/供应商', phase: 'F2', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '下一阶段' },
+  { name: '客户档案', phase: 'F3', value: '支持复购、赊账、客户标签和经营分析。', status: '规划中' },
+  { name: '财务流水', phase: 'F4', value: '沉淀现金流、应收应付、毛利和对账能力。', status: '规划中' },
+  { name: '营销/售后', phase: 'F5', value: '基于真实订单和客户数据生成营销建议与售后闭环。', status: '后续开放' }
+]
+
+function ComingSoon() {
+  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">商业能力路线</div><h1>未完成模块只展示边界，不展示假数据</h1><p>当前商用试运行聚焦商品、库存、AI经营助手和确认审批闭环。订单、客户、财务等模块会按真实后端领域模型逐步开放。</p></div></section><Panel title="下一阶段模块路线"> <div className="roadmap-grid">{moduleRoadmap.map((m) => <div className="roadmap-card" key={m.phase}><span>{m.phase}</span><b>{m.name}</b><p>{m.value}</p><em>{m.status}</em></div>)}</div></Panel></div>
+}
 function Empty({ text }: { text: string }) { return <div className="empty-state">{text}</div> }
 function SkeletonHome() { return <div className="skeleton"><span /><span /><span /></div> }
 

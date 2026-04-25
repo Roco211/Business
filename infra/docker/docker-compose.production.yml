@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-business}
+      POSTGRES_USER: ${POSTGRES_USER:-business}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-business} -d ${POSTGRES_DB:-business}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  migrator:
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    restart: "no"
+    environment:
+      APP_ENV: production
+      APP_RUNTIME_MODE: trial
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-business}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-business}
+      REDIS_URL: redis://redis:6379/0
+      APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:?APP_CORS_ORIGINS is required}
+      APP_RATE_LIMIT_PER_MINUTE: ${APP_RATE_LIMIT_PER_MINUTE:-120}
+      APP_SECURITY_HEADERS_ENABLED: "1"
+      BACKUP_DIR: /app/backups
+    command: alembic -c /app/alembic.ini upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_RUNTIME_MODE: trial
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-business}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-business}
+      REDIS_URL: redis://redis:6379/0
+      APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:?APP_CORS_ORIGINS is required}
+      APP_RATE_LIMIT_PER_MINUTE: ${APP_RATE_LIMIT_PER_MINUTE:-120}
+      APP_SECURITY_HEADERS_ENABLED: "1"
+      BACKUP_DIR: /app/backups
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-mock}
+      ASR_PROVIDER: ${ASR_PROVIDER:-mock}
+      OCR_PROVIDER: ${OCR_PROVIDER:-mock}
+      VISION_PROVIDER: ${VISION_PROVIDER:-mock}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+    ports:
+      - "0.0.0.0:${HOST_PORT:-8001}:8001"
+    volumes:
+      - backup_data:/app/backups
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python - <<'PY'\nimport urllib.request\nurllib.request.urlopen('http://127.0.0.1:8001/api/v2/health', timeout=5)\nPY"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  backup_data:

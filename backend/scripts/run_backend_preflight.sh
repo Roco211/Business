@@ -38,6 +38,7 @@ CORE_PYTEST_FILES=(
   backend/tests/test_v2_voice_photo_http_confirmation_flow.py
   backend/tests/test_v2_chat_confirmation_first.py
   backend/tests/test_provider_trial_preflight.py
+  backend/tests/test_production_readiness_config.py
   backend/tests/test_backend_readiness_summary.py
 )
 

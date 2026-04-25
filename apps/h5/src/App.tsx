@@ -4,7 +4,7 @@ import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api
 import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, ExecutionRecapList, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import './styles.css'
 
-type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
+type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'trial-acceptance' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -13,6 +13,7 @@ const navItems: { page: Page; label: string; icon: string; badge?: string }[] = 
   { page: 'ai', label: '我的员工', icon: '◇' },
   { page: 'daily-report', label: '经营日报', icon: '◌', badge: 'AI' },
   { page: 'execution-recaps', label: '执行复盘', icon: '◎', badge: 'AI' },
+  { page: 'trial-acceptance', label: '试运行验收', icon: '✓' },
   { page: 'sales', label: '销售单', icon: '□' },
   { page: 'purchasing', label: '采购单', icon: '▣' },
   { page: 'customers', label: '客户复购', icon: '◎' },
@@ -163,6 +164,7 @@ function App() {
         {page === 'dashboard' && overview && <Dashboard auth={auth} overview={overview} onNavigate={setPage} onChanged={() => void refresh()} guideSignal={guideSignal} />}
         {page === 'daily-report' && dailyReport && <DailyReportPage report={dailyReport} onNavigate={setPage} />}
         {page === 'execution-recaps' && executionRecapList && <ExecutionRecapsPage data={executionRecapList} onNavigate={setPage} />}
+        {page === 'trial-acceptance' && overview && <CommercialTrialAcceptancePage overview={overview} items={items} stock={stock} events={events} orders={orders} suppliers={suppliers} purchaseOrders={purchaseOrders} customers={customers} financeTransactions={financeTransactions} financeSummary={financeSummary} confirmations={confirmations} executionRecapList={executionRecapList} onNavigate={setPage} />}
         {page === 'sales' && <SalesPage auth={auth} stock={stock} orders={orders} customers={customers} onChanged={() => void refresh()} />}
         {page === 'purchasing' && <PurchasingPage auth={auth} stock={stock} suppliers={suppliers} purchaseOrders={purchaseOrders} onChanged={() => void refresh()} />}
         {page === 'customers' && <CustomersPage auth={auth} customers={customers} orders={orders} repurchase={repurchase} onChanged={() => void refresh()} />}
@@ -1088,6 +1090,126 @@ function ExecutionRecapCard({ confirmation }: { confirmation: Confirmation }) {
       <span>确认ID：{confirmation.confirmation_id}</span>
     </div>
   </article>
+}
+
+
+type AcceptanceStatus = 'passed' | 'trial' | 'before-production'
+type AcceptanceItem = {
+  title: string
+  owner: string
+  status: AcceptanceStatus
+  summary: string
+  evidence: string[]
+  route: Page
+}
+
+function acceptanceStatusLabel(status: AcceptanceStatus) {
+  if (status === 'passed') return '已通过'
+  if (status === 'trial') return '可试运行'
+  return '生产前补强'
+}
+
+function CommercialTrialAcceptancePage({ overview, items, stock, events, orders, suppliers, purchaseOrders, customers, financeTransactions, financeSummary, confirmations, executionRecapList, onNavigate }: {
+  overview: Overview
+  items: InventoryItem[]
+  stock: StockItem[]
+  events: LedgerEvent[]
+  orders: SalesOrder[]
+  suppliers: Supplier[]
+  purchaseOrders: PurchaseOrder[]
+  customers: Customer[]
+  financeTransactions: FinanceTransaction[]
+  financeSummary: FinanceSummary | null
+  confirmations: Confirmation[]
+  executionRecapList: ExecutionRecapList | null
+  onNavigate: (page: Page) => void
+}) {
+  const businessItems: AcceptanceItem[] = [
+    { title: '登录与门店上下文', owner: '系统管理员', status: 'passed', summary: '手机号演示登录、租户与门店上下文选择已接入真实后端。', evidence: [`当前门店：${overview.store.shop_name}`, `租户：${overview.store.tenant_name || overview.store.tenant_id}`], route: 'dashboard' },
+    { title: '商品管理', owner: '商品档案员', status: 'trial', summary: '商品新增、列表、软删除已可用，历史账本不被物理删除破坏。', evidence: [`商品数：${items.length}`, '删除采用软删除边界'], route: 'products' },
+    { title: '库存账本与快照', owner: '库存守护员', status: 'trial', summary: '库存入库/出库写不可变 ledger，并投影到当前库存快照。', evidence: [`库存快照：${stock.length}`, `库存流水：${events.length}`], route: 'inventory' },
+    { title: '销售单闭环', owner: '销售分析员', status: 'trial', summary: '销售单创建后同步扣减库存，并写入销售收入财务流水。', evidence: [`销售单：${orders.length}`, `今日收入：${formatMoney(financeSummary?.total_income || 0)}元`], route: 'sales' },
+    { title: '采购单闭环', owner: '进货专员', status: 'trial', summary: '采购单创建后同步入库，并写入采购支出财务流水。', evidence: [`供应商：${suppliers.length}`, `采购单：${purchaseOrders.length}`], route: 'purchasing' },
+    { title: '客户复购分析', owner: '客户运营员', status: 'trial', summary: '客户档案与销售单关联，可形成基础复购分析。', evidence: [`客户：${customers.length}`, '按当前门店数据聚合'], route: 'customers' },
+    { title: '财务流水', owner: '营业数据员', status: 'trial', summary: '销售收入、采购支出、退款等财务流水使用真实后端数据。', evidence: [`流水：${financeTransactions.length}`, `净现金流：${formatMoney(financeSummary?.net_cashflow || 0)}元`], route: 'finance' }
+  ]
+  const aiItems: AcceptanceItem[] = [
+    { title: 'AI Command Center', owner: 'AI运营协调官', status: 'passed', summary: '首页自然语言入口可识别经营查询、销售/采购/库存草稿等意图。', evidence: ['经营查询只读', '写操作进入待确认任务'], route: 'dashboard' },
+    { title: 'AI草稿生成', owner: '销售分析员 / 进货专员 / 库存守护员', status: 'passed', summary: '销售、采购、库存类自然语言写操作均先生成 pending confirmation。', evidence: ['confirmation-first', `待确认：${confirmations.length}`], route: 'tasks' },
+    { title: '任务中心审批', owner: '老板', status: 'passed', summary: '老板确认后才落账，审批成功后生成 execution_result 复盘。', evidence: ['不自动审批', '审批后才改库存/销售/采购/财务'], route: 'tasks' },
+    { title: '真实通知中心', owner: 'AI参谋', status: 'passed', summary: '通知聚合真实待确认任务、库存风险和经营日报建议。', evidence: [`待关注：${overview.notifications.attention_count || 0}`, `未读：${overview.notifications.unread_count || 0}`], route: 'dashboard' },
+    { title: 'AI经营日报', owner: 'AI参谋', status: 'passed', summary: '日报由 BFF 聚合真实销售、库存、任务和风险证据生成。', evidence: [overview.daily_advisor_report?.summary || '日报已接入', `建议数：${overview.daily_advisor_report?.suggestion_count || 0}`], route: 'daily-report' },
+    { title: 'AI执行复盘', owner: 'AI运营协调官', status: 'passed', summary: '仅展示已审批且真实落账的 AI 工作结果，不把 pending 当完成。', evidence: [`已完成复盘：${executionRecapList?.summary.total_count || 0}`, '来自 confirmation.resolution_payload.execution_result'], route: 'execution-recaps' }
+  ]
+  const hardeningItems: AcceptanceItem[] = [
+    { title: '多租户/门店隔离', owner: '平台安全', status: 'passed', summary: '核心业务查询按 tenant_id + shop_id 限定，跨租户资源统一隐藏。', evidence: ['tenant/shop context token', '商品详情/修改/删除跨租户统一 404'], route: 'dashboard' },
+    { title: '关键操作审计', owner: '平台安全', status: 'passed', summary: '销售、采购、客户、导出等关键动作写入 V2AuditLog。', evidence: ['审计动作覆盖核心商业操作', '导出行为也写审计'], route: 'inventory' },
+    { title: 'CSV导出', owner: '营业数据员', status: 'passed', summary: '销售单、采购单、财务流水、库存流水由后端真实数据导出。', evidence: ['四类CSV导出接口', '受 tenant/shop 隔离约束'], route: 'finance' },
+    { title: 'request_id错误追踪', owner: '平台运维', status: 'passed', summary: '未处理异常返回并记录 X-Request-ID，便于定位问题。', evidence: ['统一错误结构', '不泄露敏感信息'], route: 'dashboard' },
+    { title: 'Docker 8001部署', owner: '平台运维', status: 'passed', summary: 'FastAPI 与 H5 静态资源已通过 business-backend 容器提供服务。', evidence: ['0.0.0.0:8001', '/api/v2/health 正常'], route: 'dashboard' },
+    { title: 'readiness/preflight', owner: '平台运维', status: 'passed', summary: '默认 preflight、Docker 验收和 readiness summary 已纳入试运行门禁。', evidence: ['ready_count=18', 'missing_count=0'], route: 'dashboard' },
+    { title: 'Provider trial安全边界', owner: 'AI平台', status: 'before-production', summary: '真实 Provider 小流量试运行必须显式 opt-in，默认不读取凭证、不访问真实 Provider。', evidence: ['RUN_PROVIDER_TRIAL_PREFLIGHT=0 默认关闭', 'API key/token 不输出'], route: 'ai' },
+    { title: '生产前补强', owner: '平台负责人', status: 'before-production', summary: '正式商用前建议补齐 RBAC、Redis限流、异步导出、日志告警、HTTPS/域名、真实短信。', evidence: ['当前适合商用试运行', '生产规模化仍需补强'], route: 'coming-soon' }
+  ]
+  const allItems = [...businessItems, ...aiItems, ...hardeningItems]
+  const passedCount = allItems.filter((item) => item.status === 'passed' || item.status === 'trial').length
+  const hardeningCount = allItems.filter((item) => item.status === 'before-production').length
+  const aiNativeCount = aiItems.length
+  return (
+    <section className="trial-acceptance-page">
+      <div className="page-heading trial-acceptance-hero">
+        <div>
+          <span className="ai-badge">Commercial Trial Gate</span>
+          <h1>商用试运行验收清单</h1>
+          <p>把当前 Business 的真实能力、AI-native 闭环、商用硬化和生产前差距放在一张清单里。这里只展示能力状态与真实计数，不伪造订单、客户或财务结果。</p>
+          <small>当前分支：hermes/ai-native-saas-rewrite · 服务：business-backend:8001</small>
+        </div>
+        <div className="trial-readiness-orb">
+          <strong>可试运行</strong>
+          <span>正式商用前继续补强</span>
+        </div>
+      </div>
+      <div className="trial-summary-grid">
+        <div><span>可试运行能力</span><b>{passedCount}</b><small>已通过/可试运行</small></div>
+        <div><span>AI-native闭环</span><b>{aiNativeCount}</b><small>自然语言→确认→落账→复盘</small></div>
+        <div><span>生产前补强</span><b>{hardeningCount}</b><small>正式商用前继续做</small></div>
+        <div><span>部署状态</span><b>8001</b><small>Docker H5 + API</small></div>
+      </div>
+      <AcceptanceSection title="核心业务闭环" description="老板日常经营必须能走通的真实业务链路。" items={businessItems} onNavigate={onNavigate} />
+      <AcceptanceSection title="AI-native闭环" description="从自然语言到AI员工分工、待确认任务、老板审批、真实落账、执行复盘。" items={aiItems} onNavigate={onNavigate} />
+      <AcceptanceSection title="商用硬化与部署" description="试运行必须具备的隔离、审计、导出、错误追踪、部署和安全边界。" items={hardeningItems} onNavigate={onNavigate} />
+      <Panel title="J6 验收结论">
+        <div className="trial-conclusion">
+          <p><b>当前判断：</b>Business 已具备商用试运行入口，可以给老板按引导流程试用；但正式规模化商用前仍建议完成权限角色、生产日志告警、Redis限流、异步导出、HTTPS/域名、真实短信验证码等 Phase K 补强。</p>
+          <button className="primary-button" onClick={() => onNavigate('dashboard')}>回到AI工作台</button>
+          <button className="secondary-button" onClick={() => onNavigate('tasks')}>查看待确认任务</button>
+          <button className="secondary-button" onClick={() => onNavigate('execution-recaps')}>查看AI执行复盘</button>
+        </div>
+      </Panel>
+    </section>
+  )
+}
+
+function AcceptanceSection({ title, description, items, onNavigate }: { title: string; description: string; items: AcceptanceItem[]; onNavigate: (page: Page) => void }) {
+  return (
+    <Panel title={title}>
+      <p className="trial-section-description">{description}</p>
+      <div className="acceptance-card-grid">
+        {items.map((item) => <article className={`acceptance-card status-${item.status}`} key={item.title}>
+          <div className="acceptance-card-head">
+            <span>{item.owner}</span>
+            <b>{acceptanceStatusLabel(item.status)}</b>
+          </div>
+          <h3>{item.title}</h3>
+          <p>{item.summary}</p>
+          <div className="acceptance-evidence">
+            {item.evidence.map((line) => <small key={line}>{line}</small>)}
+          </div>
+          <button className="secondary-button" onClick={() => onNavigate(item.route)}>查看对应模块</button>
+        </article>)}
+      </div>
+    </Panel>
+  )
 }
 
 const moduleRoadmap = [

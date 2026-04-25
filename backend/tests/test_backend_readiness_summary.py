@@ -16,6 +16,7 @@ def test_backend_readiness_summary_reports_ready_when_required_artifacts_exist(t
         "backend/tests/test_provider_trial_preflight.py",
         "backend/tests/test_v2_pc_dashboard_overview_http_flow.py",
         "backend/tests/test_v2_sales_orders_http_flow.py",
+        "backend/tests/test_v2_commercial_modules_http_flow.py",
         "apps/h5/package.json",
         "infra/docker/docker-compose.production.yml",
         "backend/tests/test_production_readiness_config.py",

@@ -4,6 +4,7 @@ from app.api.v2.routes.alerts import router as alerts_router
 from app.api.v2.routes.audit import router as audit_router
 from app.api.v2.routes.catalog import router as catalog_router
 from app.api.v2.routes.chat import router as chat_router
+from app.api.v2.routes.commercial import customers_router, finance_router, purchasing_router, sales_draft_router
 from app.api.v2.routes.conversation import router as conversation_router
 from app.api.v2.routes.dashboard import router as dashboard_router
 from app.api.v2.routes.health import router as health_router
@@ -39,3 +40,7 @@ v2_router.include_router(audit_router)
 v2_router.include_router(stock_checks_router)
 v2_router.include_router(purchase_router)
 v2_router.include_router(sales_router)
+v2_router.include_router(sales_draft_router)
+v2_router.include_router(purchasing_router)
+v2_router.include_router(customers_router)
+v2_router.include_router(finance_router)

@@ -37,6 +37,7 @@ REQUIRED_ARTIFACTS: tuple[tuple[str, str], ...] = (
     ("provider_trial_preflight_regression", "backend/tests/test_provider_trial_preflight.py"),
     ("pc_dashboard_bff_regression", "backend/tests/test_v2_pc_dashboard_overview_http_flow.py"),
     ("sales_order_regression", "backend/tests/test_v2_sales_orders_http_flow.py"),
+    ("commercial_modules_regression", "backend/tests/test_v2_commercial_modules_http_flow.py"),
     ("pc_h5_frontend_package", "apps/h5/package.json"),
     ("production_postgres_compose", "infra/docker/docker-compose.production.yml"),
     ("production_readiness_regression", "backend/tests/test_production_readiness_config.py"),

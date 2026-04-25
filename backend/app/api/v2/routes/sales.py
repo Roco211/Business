@@ -27,6 +27,7 @@ from app.services.v2_sales import (
     list_v2_sales_order_lines,
     list_v2_sales_orders,
 )
+from app.services.v2_commercial import cancel_sales_order, get_sales_order_detail, return_sales_order_items
 
 router = APIRouter(prefix="/api/v2/sales", tags=["v2-sales"])
 
@@ -105,6 +106,60 @@ def create_sales_order_v2(
     except V2SalesOrderValidationError as exc:
         return _error(422, code="validation_error", message=str(exc))
     return V2DataEnvelope(data=V2SalesOrderDetailData(order=_to_order_data(result.order, result.lines)))
+
+
+@router.get("/orders/{sales_order_id}", response_model=V2DataEnvelope[V2SalesOrderDetailData])
+def get_sales_order_v2(
+    sales_order_id: str,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+    try:
+        order, lines = get_sales_order_detail(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, sales_order_id=sales_order_id)
+    except LookupError:
+        return _error(404, code="sales_order_not_found", message="Sales order not found")
+    return V2DataEnvelope(data=V2SalesOrderDetailData(order=_to_order_data(order, lines)))
+
+
+@router.post("/orders/{sales_order_id}/cancel", response_model=V2DataEnvelope[V2SalesOrderDetailData])
+def cancel_sales_order_v2(
+    sales_order_id: str,
+    payload: dict,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+    try:
+        order, lines = cancel_sales_order(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, sales_order_id=sales_order_id, reason=str(payload.get("reason") or ""), account_id=account.account_id)
+    except LookupError:
+        return _error(404, code="sales_order_not_found", message="Sales order not found")
+    except ValueError as exc:
+        return _error(409, code="sales_order_state_conflict", message=str(exc))
+    return V2DataEnvelope(data=V2SalesOrderDetailData(order=_to_order_data(order, lines)))
+
+
+@router.post("/orders/{sales_order_id}/returns", response_model=V2DataEnvelope[V2SalesOrderDetailData])
+def return_sales_order_v2(
+    sales_order_id: str,
+    payload: dict,
+    account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
+    context: V2ExecutionContext = Depends(require_v2_execution_context),
+    db_session: Session = Depends(get_db_session),
+) -> V2DataEnvelope[V2SalesOrderDetailData] | JSONResponse:
+    if account.account_id != context.account_id:
+        return _context_account_mismatch()
+    try:
+        order, lines = return_sales_order_items(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, sales_order_id=sales_order_id, items=list(payload.get("items") or []), reason=str(payload.get("reason") or ""), account_id=account.account_id)
+    except LookupError:
+        return _error(404, code="sales_order_not_found", message="Sales order not found")
+    except ValueError as exc:
+        return _error(422, code="validation_error", message=str(exc))
+    return V2DataEnvelope(data=V2SalesOrderDetailData(order=_to_order_data(order, lines)))
 
 
 @router.get("/orders", response_model=V2DataEnvelope[V2SalesOrderListData])

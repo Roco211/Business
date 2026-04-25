@@ -20,6 +20,7 @@ from app.services.v2_inventory import (
     validate_v2_stock_in_draft_payload,
     validate_v2_stock_out_draft_payload,
 )
+from app.services.v2_sales import create_v2_sales_order
 from app.services.v2_outbox_runtime_dispatch import enqueue_v2_outbox_drain
 from app.services.v2_session_stream import append_v2_session_event
 from app.services.v2_time import utc_now_naive
@@ -47,10 +48,12 @@ ALLOWED_V2_MESSAGE_INTENTS = {
     RECEIPT_EXTRACTION_INTENT_TYPE,
     "inventory.stock_in",
     "inventory.stock_out",
+    "sales.order_create",
 }
 ALLOWED_V2_TASK_DRAFT_TYPES = {
     "inventory.stock_in",
     "inventory.stock_out",
+    "sales.order_create",
 }
 
 
@@ -924,6 +927,24 @@ def approve_v2_confirmation(
             task_run.result_summary = "Confirmation approved and inventory committed."
             task_run.completed_at = now
             system_result_text = "Inventory stock-out committed."
+            should_enqueue_outbox = True
+        elif confirmation.confirmation_type == "sales.order_create":
+            resolved_fields = _resolve_v2_approved_fields(confirmation, resolution_payload)
+            confirmation.resolution_payload = {**dict(resolution_payload), "fields": resolved_fields}
+            create_v2_sales_order(
+                db_session,
+                tenant_id=tenant_id,
+                shop_id=shop_id,
+                customer_name=resolved_fields.get("customer_name"),
+                payment_method=str(resolved_fields.get("payment_method") or "unknown"),
+                items=list(resolved_fields.get("items") or []),
+                note=resolved_fields.get("note"),
+                created_by_account_id=approved_by_account_id,
+            )
+            task_run.status = COMMITTED_STATUS
+            task_run.result_summary = "Confirmation approved and sales order committed."
+            task_run.completed_at = now
+            system_result_text = "Sales order committed."
             should_enqueue_outbox = True
         else:
             task_run.status = EXECUTING_STATUS

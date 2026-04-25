@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models import V2InventoryItem, V2InventoryLedgerEvent, V2InventoryStockSnapshot
 from app.models.v2_sales import V2SalesOrder, V2SalesOrderLine
 from app.services.v2_time import utc_now_naive
+from app.services.v2_commercial import add_finance_transaction
 
 
 class V2SalesOrderValidationError(ValueError):
@@ -46,9 +47,14 @@ def _normalize_sales_order_lines(raw_items: list[object]) -> list[V2SalesOrderLi
         raise V2SalesOrderValidationError("items is required")
     lines: list[V2SalesOrderLineInput] = []
     for raw in raw_items:
-        inventory_item_id = str(getattr(raw, "inventory_item_id", None) or "").strip()
-        quantity = Decimal(getattr(raw, "quantity", 0))
-        unit_price = Decimal(getattr(raw, "unit_price", 0))
+        if isinstance(raw, dict):
+            inventory_item_id = str(raw.get("inventory_item_id") or "").strip()
+            quantity = Decimal(str(raw.get("quantity") or "0"))
+            unit_price = Decimal(str(raw.get("unit_price") or "0"))
+        else:
+            inventory_item_id = str(getattr(raw, "inventory_item_id", None) or "").strip()
+            quantity = Decimal(getattr(raw, "quantity", 0))
+            unit_price = Decimal(getattr(raw, "unit_price", 0))
         if not inventory_item_id:
             raise V2SalesOrderValidationError("inventory_item_id is required")
         if quantity <= 0:
@@ -175,6 +181,19 @@ def create_v2_sales_order(
 
         order.total_amount = _money(total_amount)
         order.updated_at = now
+        add_finance_transaction(
+            db_session,
+            tenant_id=tenant_id,
+            shop_id=shop_id,
+            transaction_type="sales_revenue",
+            direction="income",
+            amount=order.total_amount,
+            source_type="sales_order",
+            source_id=order.sales_order_id,
+            counterparty_name=order.customer_name,
+            note=order.note,
+            created_by_account_id=created_by_account_id,
+        )
         db_session.commit()
         return V2CreatedSalesOrderResult(order=order, lines=result_lines)
     except Exception:

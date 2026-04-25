@@ -32,6 +32,14 @@ from app.models.v2_inventory import (
 from app.models.v2_media_ai import V2Document, V2MediaAsset, V2ModelCallLog
 from app.models.v2_realtime import V2SessionStreamEvent
 from app.models.v2_sales import V2SalesOrder, V2SalesOrderLine
+from app.models.v2_commercial import (
+    V2Customer,
+    V2FinanceTransaction,
+    V2PurchaseOrder,
+    V2PurchaseOrderLine,
+    V2SalesReturn,
+    V2Supplier,
+)
 from app.models.v2_identity import (
     V2Account,
     V2AuthSession,
@@ -73,6 +81,12 @@ __all__ = [
     "V2SessionStreamEvent",
     "V2SalesOrder",
     "V2SalesOrderLine",
+    "V2Supplier",
+    "V2PurchaseOrder",
+    "V2PurchaseOrderLine",
+    "V2Customer",
+    "V2FinanceTransaction",
+    "V2SalesReturn",
     "V2Message",
     "V2OutboxEvent",
     "V2TaskDraft",

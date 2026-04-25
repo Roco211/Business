@@ -35,6 +35,7 @@ CORE_PYTEST_FILES=(
   backend/tests/test_v2_dashboard_analytics_isolation_http_flow.py
   backend/tests/test_v2_pc_dashboard_overview_http_flow.py
   backend/tests/test_v2_sales_orders_http_flow.py
+  backend/tests/test_v2_commercial_modules_http_flow.py
   backend/tests/test_v2_chat_http_confirmation_flow.py
   backend/tests/test_v2_voice_photo_http_confirmation_flow.py
   backend/tests/test_v2_chat_confirmation_first.py

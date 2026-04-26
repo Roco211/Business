@@ -332,10 +332,11 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
   )
 }
 
-type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string }
+type CommandAction = { label: string; page?: Page; commandText?: string; tone?: 'primary' | 'secondary' }
+type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string; confirmationId?: string; actions?: CommandAction[]; journey?: string[] }
 
 function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void; variant?: 'hero' | 'inline' }) {
-  const quickCommands = ['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '我卖了2个扳手，帮我记一下']
+  const quickCommands = ['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '我卖了2把电动螺丝刀，帮我记一下']
   const [command, setCommand] = useState(quickCommands[0])
   const [result, setResult] = useState<CommandResult | null>(null)
   const [running, setRunning] = useState(false)
@@ -348,8 +349,53 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
     return /采购|进货|补货|向.*供应商/.test(text) && /单价|进价|成本|把|个|件|箱|元|\d/.test(text)
   }
 
-  function extractConfirmationId(reply: string) {
-    return reply.match(/确认单[:：]\s*(\S+)/)?.[1]
+  function salesDraftResult(confirmationId: string, confirmationType?: string): CommandResult {
+    return {
+      kind: 'draft',
+      title: '刚刚生成的待确认任务',
+      body: `销售草稿 ${confirmationId} 已准备好。确认前不会扣库存，也不会记录销售收入。`,
+      meta: confirmationType,
+      confirmationId,
+      journey: ['AI已理解销售意图', '已生成销售草稿', '等待老板在任务中心确认', '确认后自动落账并生成执行复盘'],
+      actions: [
+        { label: '去任务中心确认', page: 'tasks', tone: 'primary' },
+        { label: '确认后查看执行复盘', page: 'execution-recaps' },
+        { label: '查看销售单与流水', page: 'sales' }
+      ]
+    }
+  }
+
+  function purchaseDraftResult(confirmationId: string, confirmationType?: string): CommandResult {
+    return {
+      kind: 'draft',
+      title: '刚刚生成的待确认任务',
+      body: `采购草稿 ${confirmationId} 已准备好。确认前不会入库，也不会记录采购支出。`,
+      meta: confirmationType,
+      confirmationId,
+      journey: ['AI已理解采购意图', '已生成采购草稿', '等待老板在任务中心确认', '确认后自动入库并生成执行复盘'],
+      actions: [
+        { label: '去任务中心确认', page: 'tasks', tone: 'primary' },
+        { label: '确认后查看执行复盘', page: 'execution-recaps' },
+        { label: '查看采购单', page: 'purchasing' }
+      ]
+    }
+  }
+
+  function queryResult(title: string, body: string, sourceText: string, intent?: string): CommandResult {
+    const isInventory = (intent || '').includes('inventory') || (intent || '').includes('alert') || /库存|缺货|补货/.test(sourceText)
+    const isSales = (intent || '').includes('sales') || /热销|排行|卖得好/.test(sourceText)
+    return {
+      kind: 'reply',
+      title,
+      body,
+      meta: intent,
+      journey: ['AI已读取真实业务数据', '经营数据分析员已完成解释', '你可以继续追问或让AI生成待确认任务'],
+      actions: [
+        { label: isInventory ? '查看库存风险' : isSales ? '查看热销排行' : '查看经营日报', page: isInventory ? 'inventory' : isSales ? 'sales' : 'daily-report', tone: 'primary' },
+        { label: '继续追问', page: 'ai' },
+        { label: '生成一笔销售草稿', commandText: '我卖了2把电动螺丝刀，单价99，客户散客' }
+      ]
+    }
   }
 
   async function runCommand(text = command) {
@@ -361,29 +407,18 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
     try {
       if (looksLikePurchaseDraft(trimmed)) {
         const data = await api.createPurchaseOrderDraft(auth, trimmed)
-        setResult({
-          kind: 'draft',
-          title: '已生成采购草稿，等待确认',
-          body: `我已生成待确认任务 ${data.confirmation.confirmation_id}。确认前不会入库，也不会记录采购支出。`,
-          meta: data.confirmation.confirmation_type
-        })
+        setResult(purchaseDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type))
       } else if (looksLikeSalesDraft(trimmed)) {
         const data = await api.createSalesOrderDraft(auth, trimmed)
-        setResult({
-          kind: 'draft',
-          title: '已生成销售草稿，等待确认',
-          body: `我已生成待确认任务 ${data.confirmation.confirmation_id}。确认前不会扣库存，也不会记录销售收入。`,
-          meta: data.confirmation.confirmation_type
-        })
+        setResult(salesDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type))
       } else {
         const data = await api.chat(auth, trimmed)
-        const confirmationId = extractConfirmationId(data.reply || '')
-        setResult({
-          kind: confirmationId ? 'draft' : 'reply',
-          title: confirmationId ? '已生成待确认草稿' : employeeNameForIntent(data.intent || '') + '回复',
-          body: confirmationId ? `我已生成待确认任务 ${confirmationId}。请确认后再执行。` : (data.reply || '我已收到你的问题，可以继续补充更多信息。'),
-          meta: data.intent || undefined
-        })
+        const confirmationId = data.confirmation_id || (data.reply || '').match(/确认单[:：]\s*(\S+)/)?.[1]
+        if (confirmationId) {
+          setResult(salesDraftResult(confirmationId, data.intent || undefined))
+        } else {
+          setResult(queryResult(employeeNameForIntent(data.intent || '') + '回复', data.reply || '我已收到你的问题，可以继续补充更多信息。', trimmed, data.intent || undefined))
+        }
       }
       onChanged()
     } catch (err) {
@@ -406,10 +441,19 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
             <div className="ai-message-bubble">老板，我在。你可以直接说“今天生意怎么样”或“哪些商品快没货了”。</div>
           </div>
           {result && <div className={`ai-message-row ${result.kind === 'error' ? 'error' : 'assistant'}`}>
-            <div className="ai-message-bubble">
+            <div className="ai-message-bubble command-result-card">
               <strong>{result.title}</strong>
               <p>{result.body}</p>
-              {result.kind === 'draft' && <button className="secondary-button" onClick={() => onNavigate('tasks')}>去确认任务</button>}
+              {result.confirmationId && <small className="confirmation-id-pill">待确认任务：{result.confirmationId}</small>}
+              {result.journey && <div className="command-journey" aria-label="AI执行步骤">
+                {result.journey.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
+              </div>}
+              {result.actions && result.actions.length > 0 && <div className="ai-next-actions">
+                <small>下一步可以这样做</small>
+                <div>
+                  {result.actions.map((action) => <button key={`${action.label}-${action.page || action.commandText || 'inline'}`} className={action.tone === 'primary' ? 'primary-button' : 'secondary-button'} onClick={() => { if (action.commandText) setCommand(action.commandText); else if (action.page) onNavigate(action.page) }}>{action.label}</button>)}
+                </div>
+              </div>}
             </div>
           </div>}
         </div>

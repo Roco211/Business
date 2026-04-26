@@ -211,9 +211,9 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
   return (
     <div className="login-page">
       <section className="login-card">
-        <div className="login-eyebrow">Business Commercial Console</div>
+        <div className="login-eyebrow">AI数字员工工作台</div>
         <h1>AI 五金店大管家</h1>
-        <p>正式PC/H5管理台，聚焦商品、库存、经营数据和AI确认闭环。</p>
+        <p>用自然语言管理商品、库存、经营数据和AI确认闭环，先试用再上线。</p>
         <label>手机号<input value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
         <label>验证码<input value={code} onChange={(e) => setCode(e.target.value)} /></label>
         <button className="primary-button" disabled={loading} onClick={() => void onLogin(phone, code)}>{loading ? '登录中...' : '演示登录（888888）'}</button>
@@ -1253,11 +1253,11 @@ function AcceptanceSection({ title, description, items, onNavigate }: { title: s
 }
 
 const moduleRoadmap = [
-  { name: '销售单/订单', phase: 'F1', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '已开放' },
-  { name: '采购/供应商', phase: 'F2', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '已开放' },
-  { name: '客户档案', phase: 'F3', value: '支持客户建档和复购分析。', status: '已开放' },
-  { name: '财务流水', phase: 'F4', value: '沉淀现金流、收入支出和对账汇总能力。', status: '已开放' },
-  { name: '营销/售后', phase: 'F5', value: '基于真实订单和客户数据生成营销建议与售后闭环。', status: '后续开放' }
+  { name: '销售单/订单', phase: '已上线', value: '让今日销售额、销售笔数、库存出库形成完整交易闭环。', status: '已开放' },
+  { name: '采购/供应商', phase: '已上线', value: '把低库存预警升级为采购建议、采购单和收货入库。', status: '已开放' },
+  { name: '客户档案', phase: '已上线', value: '支持客户建档和复购分析。', status: '已开放' },
+  { name: '财务流水', phase: '已上线', value: '沉淀现金流、收入支出和对账汇总能力。', status: '已开放' },
+  { name: '营销/售后', phase: '规划中', value: '基于真实订单和客户数据生成营销建议与售后闭环。', status: '后续开放' }
 ]
 
 function ComingSoon() {

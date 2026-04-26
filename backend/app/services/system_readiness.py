@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from app.contracts.system import ReadinessCheckData, SystemReadinessData
 from app.core.config import Settings
 from app.runtime.guardrails import provider_trial_violation
@@ -12,6 +14,7 @@ TRIAL_RUNTIME_MODE = "trial"
 MOCK_MODE = "mock"
 UNSET_MODE = "unset"
 SUPPORTED_OBJECT_STORAGE_PROVIDER_NAMES = {"s3-compatible"}
+SUPPORTED_PRODUCTION_DATABASE_DIALECTS = {"postgresql", "postgres"}
 
 
 def _normalize_runtime_mode(mode: str) -> str:
@@ -30,6 +33,81 @@ def _missing_required_fields(required_live_fields: dict[str, str]) -> list[str]:
         for field_name, field_value in required_live_fields.items()
         if not field_value.strip()
     ]
+
+
+
+
+def _database_dialect(database_url: str) -> str:
+    scheme = urlsplit(database_url).scheme.strip().lower()
+    if not scheme:
+        return UNSET_MODE
+    return scheme.split("+")[0]
+
+
+def _build_production_database_check(*, settings: Settings) -> ReadinessCheckData:
+    app_env = settings.app_env.strip().lower()
+    dialect = _database_dialect(settings.database_url)
+    details = {
+        "app_env": app_env or "development",
+        "dialect": dialect,
+        "database_url_configured": str(bool(settings.database_url.strip())).lower(),
+        "requires_postgresql": str(app_env == "production").lower(),
+    }
+    if app_env != "production":
+        return ReadinessCheckData(
+            status=READY_STATUS,
+            mode=dialect,
+            message="Production database strictness is optional outside production APP_ENV.",
+            details=details,
+        )
+    if dialect not in SUPPORTED_PRODUCTION_DATABASE_DIALECTS:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=dialect,
+            message="Production APP_ENV requires PostgreSQL-compatible DATABASE_URL.",
+            details={**details, "reason": "unsupported_production_database"},
+        )
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode="postgresql",
+        message="Production database configuration uses PostgreSQL-compatible dialect.",
+        details=details,
+    )
+
+
+def _build_production_config_check(*, settings: Settings) -> ReadinessCheckData:
+    app_env = settings.app_env.strip().lower()
+    cors_origins = settings.cors_origins()
+    reasons: list[str] = []
+    if app_env == "production":
+        if not cors_origins:
+            reasons.append("missing_cors_origins")
+        if any(origin == "*" for origin in cors_origins):
+            reasons.append("wildcard_cors_origin")
+        if not settings.security_headers_enabled:
+            reasons.append("security_headers_disabled")
+        if settings.rate_limit_per_minute <= 0:
+            reasons.append("rate_limit_disabled")
+    details = {
+        "app_env": app_env or "development",
+        "cors_origin_count": str(len(cors_origins)),
+        "cors_wildcard_enabled": str(any(origin == "*" for origin in cors_origins)).lower(),
+        "security_headers_enabled": str(settings.security_headers_enabled).lower(),
+        "rate_limit_per_minute": str(settings.rate_limit_per_minute),
+    }
+    if reasons:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=app_env or "development",
+            message="Production APP_ENV is missing one or more safety configuration requirements.",
+            details={**details, "reason": ",".join(reasons)},
+        )
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode=app_env or "development",
+        message="Production safety configuration is ready." if app_env == "production" else "Production safety strictness is optional outside production APP_ENV.",
+        details=details,
+    )
 
 
 def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> ReadinessCheckData:
@@ -265,6 +343,8 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
             ),
         ),
         "trial_profile": _build_trial_profile_check(settings=settings, runtime_mode=runtime_mode),
+        "production_database": _build_production_database_check(settings=settings),
+        "production_config": _build_production_config_check(settings=settings),
     }
 
     overall_status = READY_STATUS

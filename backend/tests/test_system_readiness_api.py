@@ -297,3 +297,44 @@ def test_readiness_and_pilot_control_preserve_stored_profile_when_trial_profile_
     second_pilot_control = client.get("/api/v1/system/pilot-control", headers=headers)
     assert second_pilot_control.status_code == 200
     assert second_pilot_control.json()["data"]["trial_provider_profile"] == "pilot-v1"
+
+def test_readiness_endpoint_degrades_production_when_database_is_sqlite(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("APP_RUNTIME_MODE", "local-demo")
+    monkeypatch.setenv("DATABASE_URL", "sqlite:////tmp/business-prod.db")
+    monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "degraded"
+    assert payload["checks"]["production_database"]["status"] == "degraded"
+    assert payload["checks"]["production_database"]["mode"] == "sqlite"
+    assert payload["checks"]["production_database"]["details"]["reason"] == "unsupported_production_database"
+    assert "business-prod.db" not in str(payload["checks"]["production_database"]["details"])
+
+
+def test_readiness_endpoint_reports_ready_for_production_postgres_and_safe_config(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("APP_RUNTIME_MODE", "local-demo")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://business:secret@postgres:5432/business")
+    monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com,https://admin.business.example.com")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "ready"
+    assert payload["checks"]["production_database"]["status"] == "ready"
+    assert payload["checks"]["production_database"]["mode"] == "postgresql"
+    assert payload["checks"]["production_database"]["details"]["database_url_configured"] == "true"
+    assert "secret" not in str(payload["checks"]["production_database"]["details"])
+    assert payload["checks"]["production_config"]["status"] == "ready"
+    assert payload["checks"]["production_config"]["details"]["cors_origin_count"] == "2"
+    assert payload["checks"]["production_config"]["details"]["security_headers_enabled"] == "true"
+    assert payload["checks"]["production_config"]["details"]["rate_limit_per_minute"] == "120"

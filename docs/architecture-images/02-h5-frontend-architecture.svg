@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<defs>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.7"/></pattern>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#94a3b8"/></marker>
+  <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#34d399"/></marker>
+  <marker id="arrowRose" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#fb7185"/></marker>
+  <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/></filter>
+</defs>
+<rect width="100%" height="100%" fill="#020617"/>
+<rect width="100%" height="100%" fill="url(#grid)" opacity="0.65"/>
+<text x="54" y="70" fill="#f8fafc" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="36" font-weight="800">前端架构：React H5 信息结构</text>
+<circle cx="38" cy="58" r="10" fill="#34d399" opacity="0.9"/>
+<text x="54" y="106" fill="#94a3b8" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="18">单页 App.tsx + API Client + Design System；PC/H5 响应式同源</text>
+<rect x="80" y="155" width="300" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="80" y="155" width="300" height="220" rx="18" fill="rgba(8,51,68,0.72)" stroke="#22d3ee" stroke-width="2"/>
+<text x="100" y="189" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">入口与状态</text>
+<text x="102" y="219" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• main.tsx 挂载 React</text>
+<text x="102" y="241" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• App.tsx 管理页面状态</text>
+<text x="102" y="263" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• loadAuth/loginWit</text>
+<text x="102" y="285" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  hCode</text>
+<text x="102" y="307" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• bootstrapContext</text>
+<text x="102" y="329" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• refresh 拉取全量数据</text>
+
+<rect x="450" y="155" width="300" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="450" y="155" width="300" height="220" rx="18" fill="rgba(8,51,68,0.72)" stroke="#22d3ee" stroke-width="2"/>
+<text x="470" y="189" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">UI 基础层</text>
+<text x="472" y="219" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• ui.tsx</text>
+<text x="472" y="241" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• UiButton</text>
+<text x="472" y="263" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• UiTextArea</text>
+<text x="472" y="285" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• UiCard</text>
+<text x="472" y="307" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• UiBadge</text>
+<text x="472" y="329" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• styles.css 响应式</text>
+<text x="472" y="351" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• mobile-data-card</text>
+
+<rect x="820" y="155" width="320" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="820" y="155" width="320" height="220" rx="18" fill="rgba(8,51,68,0.72)" stroke="#22d3ee" stroke-width="2"/>
+<text x="840" y="189" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">业务页面</text>
+<text x="842" y="219" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• Dashboard AI-first</text>
+<text x="842" y="241" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• Sales/Purchasing</text>
+<text x="842" y="263" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• Customers/Finance</text>
+<text x="842" y="285" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• Products/Inventory</text>
+<text x="842" y="307" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• Tasks/ExecutionRec</text>
+<text x="842" y="329" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  aps</text>
+<text x="842" y="351" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• DailyReport/Employ</text>
+<text x="842" y="373" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ees</text>
+
+<rect x="1210" y="155" width="300" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="1210" y="155" width="300" height="220" rx="18" fill="rgba(8,51,68,0.72)" stroke="#22d3ee" stroke-width="2"/>
+<text x="1230" y="189" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">API Client</text>
+<text x="1232" y="219" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• apps/h5/src/api.t</text>
+<text x="1232" y="241" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  s</text>
+<text x="1232" y="263" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 携带 AuthState</text>
+<text x="1232" y="285" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• tenant/shop conte</text>
+<text x="1232" y="307" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  xt</text>
+<text x="1232" y="329" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 调用 /api/v2/*</text>
+<text x="1232" y="351" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 处理确认/导出</text>
+
+<rect x="100" y="480" width="260" height="200" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="100" y="480" width="260" height="200" rx="18" fill="rgba(37,99,235,0.58)" stroke="#60a5fa" stroke-width="2"/>
+<text x="120" y="514" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">Dashboard</text>
+<text x="122" y="544" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 直接问 AI</text>
+<text x="122" y="566" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 经营日报卡片</text>
+<text x="122" y="588" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• AI员工状态</text>
+<text x="122" y="610" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 新手一键演示</text>
+<text x="122" y="632" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 通知中心入口</text>
+
+<rect x="420" y="480" width="260" height="200" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="420" y="480" width="260" height="200" rx="18" fill="rgba(88,28,135,0.72)" stroke="#c084fc" stroke-width="2"/>
+<text x="440" y="514" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">AI Command Center</text>
+<text x="442" y="544" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 自然语言命令</text>
+<text x="442" y="566" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 下一步建议</text>
+<text x="442" y="588" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 生成销售/采购草稿</text>
+<text x="442" y="610" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 跳转任务中心</text>
+
+<rect x="740" y="480" width="260" height="200" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="740" y="480" width="260" height="200" rx="18" fill="rgba(136,19,55,0.72)" stroke="#fb7185" stroke-width="2"/>
+<text x="760" y="514" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">任务中心</text>
+<text x="762" y="544" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 待确认任务</text>
+<text x="762" y="566" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• AI依据/风险边界</text>
+<text x="762" y="588" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 确认并执行</text>
+<text x="762" y="610" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 拒绝任务</text>
+<text x="762" y="632" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 执行复盘入口</text>
+
+<rect x="1060" y="480" width="260" height="200" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="1060" y="480" width="260" height="200" rx="18" fill="rgba(37,99,235,0.58)" stroke="#60a5fa" stroke-width="2"/>
+<text x="1080" y="514" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">商业模块</text>
+<text x="1082" y="544" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 销售单生命周期</text>
+<text x="1082" y="566" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 采购/供应商</text>
+<text x="1082" y="588" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 客户复购</text>
+<text x="1082" y="610" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 财务流水</text>
+<text x="1082" y="632" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• CSV/异步导出</text>
+
+<rect x="600" y="740" width="360" height="120" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="600" y="740" width="360" height="120" rx="18" fill="rgba(8,51,68,0.72)" stroke="#22d3ee" stroke-width="2"/>
+<text x="620" y="774" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">移动端 L9</text>
+<text x="622" y="804" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• ≤760px 底部导航</text>
+<text x="622" y="826" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 表格转卡片列表</text>
+<text x="622" y="848" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 按钮整行 48px</text>
+<text x="622" y="870" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• overflow-x hidden</text>
+
+<line x1="380" y1="265" x2="450" y2="265" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="415.0" y="257.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">组件</text>
+<line x1="750" y1="265" x2="820" y2="265" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="785.0" y="257.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">组成页面</text>
+<line x1="1140" y1="265" x2="1210" y2="265" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1175.0" y="257.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">请求</text>
+<line x1="950" y1="375" x2="230" y2="480" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="590.0" y="419.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">渲染</text>
+<line x1="950" y1="375" x2="550" y2="480" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="750.0" y="419.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">AI</text>
+<line x1="950" y1="375" x2="870" y2="480" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="910.0" y="419.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">任务</text>
+<line x1="950" y1="375" x2="1190" y2="480" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1070.0" y="419.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">业务</text>
+<line x1="870" y1="680" x2="780" y2="740" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="825.0" y="702.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">响应式</text>
+<rect x="64" y="920" width="22" height="14" rx="4" fill="rgba(8,51,68,0.72)" stroke="#22d3ee"/>
+<text x="94" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">前端</text>
+<rect x="224" y="920" width="22" height="14" rx="4" fill="rgba(6,78,59,0.72)" stroke="#34d399"/>
+<text x="254" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">后端服务</text>
+<rect x="384" y="920" width="22" height="14" rx="4" fill="rgba(88,28,135,0.72)" stroke="#c084fc"/>
+<text x="414" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">AI/LLM</text>
+<rect x="544" y="920" width="22" height="14" rx="4" fill="rgba(76,29,149,0.72)" stroke="#a78bfa"/>
+<text x="574" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">数据存储</text>
+<rect x="704" y="920" width="22" height="14" rx="4" fill="rgba(136,19,55,0.72)" stroke="#fb7185"/>
+<text x="734" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">安全治理</text>
+<rect x="864" y="920" width="22" height="14" rx="4" fill="rgba(120,53,15,0.58)" stroke="#fbbf24"/>
+<text x="894" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">部署/外部</text>
+<text x="1546" y="966" fill="#64748b" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="end">Business / commit 24bf8d4 / generated architecture map</text>
+</svg>

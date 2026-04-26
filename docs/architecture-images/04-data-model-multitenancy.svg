@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<defs>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.7"/></pattern>
+  <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#94a3b8"/></marker>
+  <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#34d399"/></marker>
+  <marker id="arrowRose" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 z" fill="#fb7185"/></marker>
+  <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/></filter>
+</defs>
+<rect width="100%" height="100%" fill="#020617"/>
+<rect width="100%" height="100%" fill="url(#grid)" opacity="0.65"/>
+<text x="54" y="70" fill="#f8fafc" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="36" font-weight="800">数据模型与多租户隔离</text>
+<circle cx="38" cy="58" r="10" fill="#34d399" opacity="0.9"/>
+<text x="54" y="106" fill="#94a3b8" font-family="Arial,'Microsoft YaHei',sans-serif" font-size="18">tenant_id + shop_id 是业务查询边界；库存事实账本不可变，快照是投影</text>
+<rect x="70" y="160" width="260" height="180" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="70" y="160" width="260" height="180" rx="18" fill="rgba(136,19,55,0.72)" stroke="#fb7185" stroke-width="2"/>
+<text x="90" y="194" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">账号与租户</text>
+<text x="92" y="224" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Account</text>
+<text x="92" y="246" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Tenant</text>
+<text x="92" y="268" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2TenantMember</text>
+<text x="92" y="290" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ship</text>
+<text x="92" y="312" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• role_key / per</text>
+<text x="92" y="334" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  mission_snapsh</text>
+<text x="92" y="356" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ot</text>
+
+<rect x="400" y="160" width="260" height="180" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="400" y="160" width="260" height="180" rx="18" fill="rgba(136,19,55,0.72)" stroke="#fb7185" stroke-width="2"/>
+<text x="420" y="194" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">门店上下文</text>
+<text x="422" y="224" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Shop</text>
+<text x="422" y="246" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2ShopAccess</text>
+<text x="422" y="268" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2ContextSessi</text>
+<text x="422" y="290" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  on</text>
+<text x="422" y="312" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 每次请求解析 tenant/</text>
+<text x="422" y="334" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  shop</text>
+
+<rect x="730" y="145" width="300" height="210" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="730" y="145" width="300" height="210" rx="18" fill="rgba(76,29,149,0.72)" stroke="#a78bfa" stroke-width="2"/>
+<text x="750" y="179" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">库存域</text>
+<text x="752" y="209" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2InventoryItem</text>
+<text x="752" y="231" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2InventoryLedger</text>
+<text x="752" y="253" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  Event</text>
+<text x="752" y="275" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2InventoryStockS</text>
+<text x="752" y="297" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  napshot</text>
+<text x="752" y="319" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2StockCheckRecor</text>
+<text x="752" y="341" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  d</text>
+<text x="752" y="363" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• DELETE 为软删除</text>
+
+<rect x="1100" y="145" width="300" height="210" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="1100" y="145" width="300" height="210" rx="18" fill="rgba(76,29,149,0.72)" stroke="#a78bfa" stroke-width="2"/>
+<text x="1120" y="179" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">交易域</text>
+<text x="1122" y="209" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2SalesOrder/Line</text>
+<text x="1122" y="231" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2PurchaseOrder/L</text>
+<text x="1122" y="253" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ine</text>
+<text x="1122" y="275" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Supplier</text>
+<text x="1122" y="297" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Customer</text>
+<text x="1122" y="319" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2FinanceTransact</text>
+<text x="1122" y="341" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ion</text>
+
+<rect x="210" y="470" width="320" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="210" y="470" width="320" height="220" rx="18" fill="rgba(88,28,135,0.72)" stroke="#c084fc" stroke-width="2"/>
+<text x="230" y="504" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">会话与确认</text>
+<text x="232" y="534" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2ConversationSess</text>
+<text x="232" y="556" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">  ion</text>
+<text x="232" y="578" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Message</text>
+<text x="232" y="600" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2TaskRun / Draft</text>
+<text x="232" y="622" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Clarification</text>
+<text x="232" y="644" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Confirmation</text>
+
+<rect x="650" y="470" width="320" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="650" y="470" width="320" height="220" rx="18" fill="rgba(136,19,55,0.72)" stroke="#fb7185" stroke-width="2"/>
+<text x="670" y="504" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">治理与审计</text>
+<text x="672" y="534" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2AuditLog</text>
+<text x="672" y="556" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2ExportJob</text>
+<text x="672" y="578" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2OutboxEvent</text>
+<text x="672" y="600" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2ModelCallLog</text>
+<text x="672" y="622" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• request_id</text>
+
+<rect x="1090" y="470" width="300" height="220" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+<rect x="1090" y="470" width="300" height="220" rx="18" fill="rgba(30,41,59,0.72)" stroke="#94a3b8" stroke-width="2"/>
+<text x="1110" y="504" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="20" font-weight="800">媒体与文档</text>
+<text x="1112" y="534" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2MediaAsset</text>
+<text x="1112" y="556" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• V2Document</text>
+<text x="1112" y="578" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 图片识别/OCR/语音</text>
+<text x="1112" y="600" fill="#e2e8f0" font-family="Arial,Microsoft YaHei,sans-serif" font-size="15">• 对象存储可替换</text>
+
+<line x1="330" y1="250" x2="400" y2="250" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="365.0" y="242.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">选择门店</text>
+<line x1="660" y1="250" x2="730" y2="250" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="695.0" y="242.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">隔离查询</text>
+<line x1="1030" y1="250" x2="1100" y2="250" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1065.0" y="242.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">交易关联</text>
+<line x1="530" y1="580" x2="650" y2="580" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="590.0" y="572.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">审批落账</text>
+<line x1="970" y1="580" x2="1090" y2="580" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1030.0" y="572.0" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">媒体/模型记录</text>
+<line x1="880" y1="355" x2="810" y2="470" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrowRose)"/>
+<text x="845.0" y="404.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">审计</text>
+<line x1="1250" y1="355" x2="810" y2="470" stroke="#94a3b8" stroke-width="2.2" marker-end="url(#arrowRose)"/>
+<text x="1030.0" y="404.5" fill="#94a3b8" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="middle" font-weight="600">审计</text>
+<text x="800" y="760" fill="#f8fafc" font-family="Arial,Microsoft YaHei,sans-serif" font-size="18" text-anchor="middle" font-weight="600">强约束：业务查询必须限定 tenant_id；门店数据还必须限定 shop_id；H5 权限可见性只是 UX，真正安全在后端依赖/路由层。</text>
+<rect x="64" y="920" width="22" height="14" rx="4" fill="rgba(8,51,68,0.72)" stroke="#22d3ee"/>
+<text x="94" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">前端</text>
+<rect x="224" y="920" width="22" height="14" rx="4" fill="rgba(6,78,59,0.72)" stroke="#34d399"/>
+<text x="254" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">后端服务</text>
+<rect x="384" y="920" width="22" height="14" rx="4" fill="rgba(88,28,135,0.72)" stroke="#c084fc"/>
+<text x="414" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">AI/LLM</text>
+<rect x="544" y="920" width="22" height="14" rx="4" fill="rgba(76,29,149,0.72)" stroke="#a78bfa"/>
+<text x="574" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">数据存储</text>
+<rect x="704" y="920" width="22" height="14" rx="4" fill="rgba(136,19,55,0.72)" stroke="#fb7185"/>
+<text x="734" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">安全治理</text>
+<rect x="864" y="920" width="22" height="14" rx="4" fill="rgba(120,53,15,0.58)" stroke="#fbbf24"/>
+<text x="894" y="933" fill="#cbd5e1" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="start" font-weight="600">部署/外部</text>
+<text x="1546" y="966" fill="#64748b" font-family="Arial,Microsoft YaHei,sans-serif" font-size="13" text-anchor="end">Business / commit 24bf8d4 / generated architecture map</text>
+</svg>

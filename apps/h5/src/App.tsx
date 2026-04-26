@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
 import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, ExecutionRecapList, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
+import { UiBadge, UiButton, UiCard, UiTextArea } from './ui'
 import './styles.css'
 
 type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'trial-acceptance' | 'sales' | 'purchasing' | 'customers' | 'finance' | 'products' | 'inventory' | 'ai' | 'tasks' | 'coming-soon'
@@ -225,7 +226,7 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
 
 
 function AccessDenied({ title = '当前角色无权限', message = '请联系老板/管理员调整账号角色或切换到有权限的门店上下文。' }: { title?: string; message?: string }) {
-  return <section className="access-denied-card"><div className="ai-badge">权限提醒</div><h1>{title}</h1><p>{message}</p><div className="permission-note">这项能力仅对已授权角色开放，避免误操作影响门店经营数据。</div></section>
+  return <section className="access-denied-card"><UiBadge tone="warning">权限提醒</UiBadge><h1>{title}</h1><p>{message}</p><div className="permission-note">这项能力仅对已授权角色开放，避免误操作影响门店经营数据。</div></section>
 }
 
 function TopBar({ auth, overview, onRefresh, loading, onGuide, onNotifications, onDiagnostics }: { auth: AuthState; overview: Overview | null; onRefresh: () => void; loading: boolean; onGuide: () => void; onNotifications: () => void; onDiagnostics: () => void }) {
@@ -236,7 +237,7 @@ function TopBar({ auth, overview, onRefresh, loading, onGuide, onNotifications, 
         <p>AI员工们正在为你打理店铺，请查看今日经营概况</p>
       </div>
       <div className="top-actions">
-        <button className="guide-button" onClick={onGuide}>新手引导</button>
+        <UiButton variant="ghost" className="guide-button" onClick={onGuide}>新手引导</UiButton>
         <button className="notification-trigger" onClick={onNotifications} aria-label="打开通知中心">
           <span>○</span>
           {(overview?.notifications.unread_count || 0) > 0 && <b>{overview?.notifications.unread_count}</b>}
@@ -252,8 +253,8 @@ function TopBar({ auth, overview, onRefresh, loading, onGuide, onNotifications, 
           <span>当前角色</span>
           <strong>{roleLabel(auth.roleKey)}</strong>
         </div>
-        {auth.roleKey === 'owner' && <button className="secondary-button diagnostic-button" onClick={onDiagnostics}>系统诊断</button>}
-        <button className="secondary-button" onClick={onRefresh} disabled={loading}>{loading ? '刷新中' : '刷新数据'}</button>
+        {auth.roleKey === 'owner' && <UiButton variant="secondary" className="diagnostic-button" onClick={onDiagnostics}>系统诊断</UiButton>}
+        <UiButton variant="secondary" onClick={onRefresh} disabled={loading}>{loading ? '刷新中' : '刷新数据'}</UiButton>
       </div>
     </header>
   )
@@ -272,7 +273,7 @@ function NotificationCenter({ notifications, onClose, onNavigate }: { notificati
       <aside className="notification-drawer" role="dialog" aria-label="通知中心">
         <header className="notification-drawer-head">
           <div>
-            <div className="ai-badge">通知中心</div>
+            <UiBadge tone="ai">通知中心</UiBadge>
             <h2>老板需要关注的事</h2>
             <p>{notifications.attention_count || 0} 个重点事项 · {notifications.unread_count || 0} 条未读</p>
           </div>
@@ -431,7 +432,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
   return (
     <section className={`command-center-card ${variant === 'hero' ? 'ai-first-hero' : 'ai-first-inline'}`}>
       <div className="command-copy">
-        <div className="ai-badge">AI经营入口</div>
+        <UiBadge tone="ai">AI经营入口</UiBadge>
         <h1>直接问我，今天店里发生了什么</h1>
         <p>不用记格式。你可以问营业额、库存风险、热销商品，也可以让我生成销售、采购、库存草稿；真正落账前都会让你确认。</p>
       </div>
@@ -451,20 +452,20 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
               {result.actions && result.actions.length > 0 && <div className="ai-next-actions">
                 <small>下一步可以这样做</small>
                 <div>
-                  {result.actions.map((action) => <button key={`${action.label}-${action.page || action.commandText || 'inline'}`} className={action.tone === 'primary' ? 'primary-button' : 'secondary-button'} onClick={() => { if (action.commandText) setCommand(action.commandText); else if (action.page) onNavigate(action.page) }}>{action.label}</button>)}
+                  {result.actions.map((action) => <UiButton key={`${action.label}-${action.page || action.commandText || 'inline'}`} variant={action.tone === 'primary' ? 'primary' : 'secondary'} onClick={() => { if (action.commandText) setCommand(action.commandText); else if (action.page) onNavigate(action.page) }}>{action.label}</UiButton>)}
                 </div>
               </div>}
             </div>
           </div>}
         </div>
         <div className="command-input-row ai-input-row">
-          <textarea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
-          <button className="primary-button" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '思考中...' : '发送给AI'}</button>
+          <UiTextArea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
+          <UiButton variant="primary" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '思考中...' : '发送给AI'}</UiButton>
         </div>
         <div className="command-chips">
-          {quickCommands.map((text) => <button key={text} onClick={() => void runCommand(text)} disabled={running}>{text}</button>)}
+          {quickCommands.map((text) => <UiButton variant="ghost" key={text} onClick={() => void runCommand(text)} disabled={running}>{text}</UiButton>)}
         </div>
-        <button className="text-link-button" onClick={() => onNavigate('ai')}>打开完整 AI 对话页</button>
+        <UiButton variant="text" onClick={() => onNavigate('ai')}>打开完整 AI 对话页</UiButton>
       </div>
     </section>
   )
@@ -512,12 +513,12 @@ function OnboardingDemoFlow({ refEl, auth, onNavigate, onChanged }: { refEl: Rea
   return (
     <section className="onboarding-demo-card" ref={refEl}>
       <div className="onboarding-copy">
-        <div className="ai-badge">新手引导</div>
+        <UiBadge tone="ai">新手引导</UiBadge>
         <h2>老板一分钟体验流程</h2>
         <p>从一句话经营查询开始，自动生成销售草稿；真正落账前仍然必须由老板在任务中心确认。</p>
         <div className="onboarding-actions">
-          <button className="primary-button" onClick={() => void runOneClickDemo()} disabled={running}>{running ? '演示中...' : '开始一键演示'}</button>
-          <button className="secondary-button" onClick={() => onNavigate('tasks')} disabled={!confirmationId}>去任务中心确认</button>
+          <UiButton variant="primary" onClick={() => void runOneClickDemo()} disabled={running}>{running ? '演示中...' : '开始一键演示'}</UiButton>
+          <UiButton variant="secondary" onClick={() => onNavigate('tasks')} disabled={!confirmationId}>去任务中心确认</UiButton>
         </div>
         {error && <div className="onboarding-error">{error}</div>}
       </div>
@@ -731,7 +732,7 @@ function KpiCard({ kpi, index }: { kpi: Overview['kpis'][number]; index: number 
 }
 
 function Panel({ title, action, children }: { title: string; action?: string; children: React.ReactNode }) {
-  return <section className="panel"><div className="panel-header"><h3>{title}</h3>{action && <button>{action}</button>}</div>{children}</section>
+  return <UiCard className="panel"><div className="panel-header"><h3>{title}</h3>{action && <UiButton variant="text">{action}</UiButton>}</div>{children}</UiCard>
 }
 function PriorityCard({ item }: { item: { title: string; reason: string; severity: string; evidence: string[] } }) { return <div className={`priority-card ${item.severity}`}><span className="todo-check">□</span><div><strong>{item.title}</strong><p>{item.reason}</p><small>{item.evidence.join(' / ')}</small></div></div> }
 function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {

@@ -149,7 +149,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <aside className="sidebar mobile-bottom-nav">
         <div className="brand-block">
           <div className="brand-logo">AI</div>
           <div>
@@ -157,7 +157,7 @@ function App() {
             <div className="brand-subtitle">你的生意增长伙伴</div>
           </div>
         </div>
-        <nav className="nav-list">
+        <nav className="nav-list" aria-label="主要导航">
           {navItems.map((item) => {
             const allowed = !item.permission || hasPermission(auth, item.permission)
             return (
@@ -579,7 +579,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
             </div>
           </div>}
         </div>
-        <div className="command-input-row ai-input-row">
+        <div className="command-input-row ai-input-row mobile-ai-sticky-input">
           <UiTextArea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
           <UiButton variant="primary" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '思考中...' : '发送给AI'}</UiButton>
         </div>

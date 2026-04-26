@@ -264,3 +264,48 @@ html,body,#root{min-width:0;max-width:100%;overflow-x:hidden;touch-action:manipu
   .inline-confirm-actions { grid-template-columns: 1fr; }
   .dashboard-more-toggle .ui-button { width: 100%; }
 }
+
+/* Phase UX-3: 手机端老板真实体验 */
+@media(max-width:760px){
+  .mobile-bottom-nav{
+    height:calc(76px + env(safe-area-inset-bottom));
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.94);
+    backdrop-filter:blur(18px);
+    box-shadow:0 -12px 34px rgba(60,54,120,.10);
+  }
+  .mobile-bottom-nav .nav-list{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .mobile-bottom-nav .nav-item{min-height:58px;height:58px;border-radius:18px;touch-action:manipulation;}
+  .mobile-bottom-nav .nav-item:nth-child(n+6){display:none}
+  .mobile-bottom-nav .nav-badge{display:none}
+  .mobile-bottom-nav .nav-label{font-size:11px;line-height:1.1;}
+  .mobile-bottom-nav .nav-icon{width:24px;height:24px;font-size:17px;}
+  .main-panel{padding-bottom:calc(104px + env(safe-area-inset-bottom));}
+  .command-center-card.ai-first-hero{min-height:auto;}
+  .command-console{padding:14px;border-radius:22px;}
+  .ai-chat-card{max-height:none;}
+  .command-input-row.mobile-ai-sticky-input{
+    position:sticky;
+    bottom:calc(76px + env(safe-area-inset-bottom));
+    z-index:12;
+    padding:10px;
+    margin:0 -10px;
+    border-radius:22px;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(14px);
+    box-shadow:0 -10px 30px rgba(35,28,82,.10);
+  }
+  .mobile-ai-sticky-input .ui-textarea{min-height:54px;max-height:128px;border-radius:18px;resize:none;}
+  .inline-confirm-actions{display:grid;grid-template-columns:1fr;gap:10px;}
+  .inline-confirm-actions .ui-button,
+  .boss-brief-actions .ui-button,
+  .task-actions .ui-button,
+  .ai-next-actions .ui-button{width:100%;min-height:52px;}
+  .draft-preview-grid{grid-template-columns:1fr;}
+  .business-insight-card{padding:12px;border-radius:16px;}
+  .boss-today-brief{padding:20px;border-radius:24px;}
+  .boss-brief-copy h1{font-size:27px;letter-spacing:-.6px;}
+  .boss-brief-actions{display:grid;grid-template-columns:1fr;gap:10px;}
+  .task-summary-grid,.task-info-grid{grid-template-columns:1fr;}
+  .task-stage-rail span{min-width:132px;}
+}

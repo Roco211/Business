@@ -1100,8 +1100,8 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
           {executionRecaps.map((confirmation) => <ExecutionRecapCard key={confirmation.confirmation_id} confirmation={confirmation} />)}
         </div>
         <div className="post-approval-actions">
-          <button className="primary-button" onClick={() => onNavigate('execution-recaps')}>查看完整执行复盘</button>
-          <button className="secondary-button" onClick={() => onNavigate('sales')}>查看销售单与流水</button>
+          <UiButton variant="primary" onClick={() => onNavigate('execution-recaps')}>查看完整执行复盘</UiButton>
+          <UiButton variant="secondary" onClick={() => onNavigate('sales')}>查看销售单与流水</UiButton>
         </div>
       </Panel>}
       <Panel title="等待老板确认的AI任务">
@@ -1126,8 +1126,8 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
               <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
               <details className="task-raw-payload"><summary>查看原始草稿数据</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
               <div className="task-actions">
-                <button className="primary-button" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</button>
-                <button className="secondary-button" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</button>
+                <UiButton variant="primary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</UiButton>
+                <UiButton variant="secondary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</UiButton>
                 <span>任务ID：{confirmation.confirmation_id}</span>
               </div>
             </article>
@@ -1313,7 +1313,15 @@ function SkeletonHome() { return <div className="skeleton"><span /><span /><span
 
 function DataTable<T extends Record<string, unknown>>({ rows, columns, action }: { rows: T[]; columns: string[]; action?: (row: T) => React.ReactNode }) {
   if (!rows.length) return <Empty text="暂无数据，完成业务操作后这里会自动更新。" />
-  return <div className="table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{String(row[c] ?? '-')}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
+  return <>
+    <div className="desktop-table-wrap table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{String(row[c] ?? '-')}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
+    <div className="mobile-data-list" aria-label="移动端数据列表">
+      {rows.map((row, index) => <article className="mobile-data-card" key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>
+        {columns.map((c) => <div className="mobile-data-row" key={c}><span>{c}</span><b>{String(row[c] ?? '-')}</b></div>)}
+        {action && <div className="mobile-data-action">{action(row)}</div>}
+      </article>)}
+    </div>
+  </>
 }
 
 export default App

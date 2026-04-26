@@ -23,10 +23,10 @@ def test_dashboard_ai_command_center_surfaces_next_step_guidance():
 def test_dashboard_ai_draft_result_links_confirmation_and_recap_flow():
     source = read_app()
 
-    assert "刚刚生成的待确认任务" in source
-    assert "去任务中心确认" in source
-    assert "确认后查看执行复盘" in source
-    assert "查看销售单与流水" in source
+    assert "我准备这样记" in source
+    assert "确认这笔销售" in source
+    assert "修改这笔" in source
+    assert "先看销售记录" in source
     assert "confirmations/${confirmationId}/approve" not in source, "首页 AI 入口不能绕过任务中心直接审批"
 
 
@@ -37,4 +37,4 @@ def test_dashboard_ai_query_result_keeps_user_in_ai_native_flow():
     assert "command-journey" in source
     assert "AI已读取真实业务数据" in source
     assert "继续追问" in source
-    assert "生成一笔销售草稿" in source
+    assert "处理待确认任务" in source

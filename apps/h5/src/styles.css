@@ -71,3 +71,117 @@ html,body,#root{min-width:0;max-width:100%;overflow-x:hidden;touch-action:manipu
 .mobile-data-card{min-width:0}
 .mobile-data-row b,.task-actions span,.confirmation-id-pill{word-break:break-word}
 @media(max-width:760px){.desktop-table-wrap{display:none}.mobile-data-list{display:grid;gap:12px}.mobile-data-card{border:1px solid #edf0f7;border-radius:20px;background:#fff;padding:14px;box-shadow:var(--shadow-soft);display:grid;gap:10px}.mobile-data-row{display:grid;grid-template-columns:minmax(88px,.38fr) minmax(0,1fr);gap:10px;align-items:start;border-bottom:1px solid #f1f3f8;padding-bottom:8px}.mobile-data-row:last-child{border-bottom:0;padding-bottom:0}.mobile-data-row span{color:#8a90a3;font-size:12px;font-weight:900}.mobile-data-row b{color:#172033;font-size:14px;line-height:1.55;word-break:break-word}.mobile-data-action{display:grid;gap:8px}.mobile-data-action .ui-button,.mobile-data-action button{width:100%;min-height:48px}.task-actions{display:grid;grid-template-columns:1fr;gap:10px}.task-actions .ui-button,.task-actions button{width:100%;min-height:48px}.task-actions span{font-size:12px;color:#7c8496;word-break:break-word}.post-approval-actions{display:grid;grid-template-columns:1fr}.post-approval-actions .ui-button,.post-approval-actions .primary-button,.post-approval-actions .secondary-button{width:100%;min-height:48px}.ai-next-actions>div{display:grid;grid-template-columns:1fr}.ai-next-actions .ui-button,.ai-next-actions button{width:100%;min-height:48px}.ui-button{width:100%;min-height:48px}.command-console,.ai-message-bubble,.task-flow-card,.execution-recap-card,.panel,.hero-card{max-width:100%;overflow:hidden}.command-journey span,.task-evidence span,.execution-effect-grid div{word-break:break-word}}
+
+
+/* Phase UX: 老板视角 AI-native 体验重构 */
+.boss-today-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  padding: 28px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f1ff 54%, #eef7ff 100%);
+  box-shadow: 0 24px 70px rgba(73, 53, 130, .10);
+  border: 1px solid rgba(123, 92, 255, .12);
+}
+.boss-brief-copy h1 {
+  margin: 12px 0 10px;
+  max-width: 820px;
+  color: #1b1533;
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -1.2px;
+}
+.boss-brief-copy p {
+  margin: 0;
+  max-width: 760px;
+  color: #625b75;
+  font-size: 16px;
+  line-height: 1.75;
+}
+.boss-brief-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 210px;
+}
+.boss-brief-actions .ui-button {
+  justify-content: center;
+  min-height: 48px;
+}
+.secondary-kpi-grid {
+  margin-top: -6px;
+}
+.draft-preview-card {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(69, 102, 255, .13);
+}
+.draft-preview-card > span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: #635b76;
+  font-size: 12px;
+  font-weight: 700;
+}
+.draft-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(90px, 1fr));
+  gap: 10px;
+}
+.draft-preview-grid div {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f7f8ff;
+}
+.draft-preview-grid small,
+.task-summary-grid small {
+  display: block;
+  color: #8b849a;
+  margin-bottom: 4px;
+}
+.draft-preview-grid b {
+  color: #1f1a35;
+  font-size: 15px;
+}
+.draft-preview-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #4d4861;
+  line-height: 1.7;
+}
+.technical-id-details,
+.task-raw-payload {
+  margin-top: 12px;
+  color: #8b849a;
+  font-size: 12px;
+}
+.technical-id-details summary,
+.task-raw-payload summary {
+  cursor: pointer;
+}
+.latest-task-card {
+  border-color: rgba(91, 84, 255, .34);
+  box-shadow: 0 20px 54px rgba(91, 84, 255, .12);
+}
+.task-business-title {
+  margin: 7px 0 6px !important;
+  color: #1b1533 !important;
+  font-size: 18px !important;
+  font-weight: 800;
+}
+.task-flow-card.latest-task-card .task-status-pill {
+  background: #5b54ff;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .boss-today-brief { grid-template-columns: 1fr; padding: 22px; }
+  .boss-brief-actions { min-width: 0; }
+  .draft-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .draft-preview-grid { grid-template-columns: 1fr; }
+}

@@ -17,7 +17,7 @@ def test_data_table_has_mobile_card_fallback_with_cell_labels():
     assert "className=\"mobile-data-list\"" in source
     assert "className=\"mobile-data-card\"" in source
     assert "className=\"mobile-data-row\"" in source
-    assert "<span>{c}</span>" in source
+    assert "<span>{columnLabel(c)}</span>" in source
     assert "className=\"desktop-table-wrap table-wrap\"" in source
 
 

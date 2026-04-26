@@ -13,17 +13,11 @@ type NavItem = { page: Page; label: string; icon: string; badge?: string; permis
 
 const navItems: NavItem[] = [
   { page: 'dashboard', label: '工作台', icon: '⌂' },
-  { page: 'ai', label: '我的员工', icon: '◇' },
-  { page: 'daily-report', label: '经营日报', icon: '◌', badge: 'AI' },
-  { page: 'execution-recaps', label: '执行复盘', icon: '◎', badge: 'AI' },
-  { page: 'sales', label: '销售单', icon: '□', permission: 'sales:read' },
-  { page: 'purchasing', label: '采购单', icon: '▣', permission: 'purchasing:read' },
-  { page: 'customers', label: '客户复购', icon: '◎', permission: 'customers:read' },
-  { page: 'products', label: '商品管理', icon: '▤', permission: 'inventory:read' },
-  { page: 'inventory', label: '库存管理', icon: '▥', permission: 'inventory:read' },
-  { page: 'finance', label: '财务流水', icon: '¥', permission: 'finance:read' },
-  { page: 'tasks', label: '任务中心', icon: '✓', badge: 'AI' },
-  { page: 'coming-soon', label: '营销/售后', icon: '✧' }
+  { page: 'ai', label: 'AI助手', icon: '◇', badge: 'AI' },
+  { page: 'tasks', label: '任务', icon: '✓' },
+  { page: 'sales', label: '销售', icon: '□', permission: 'sales:read' },
+  { page: 'inventory', label: '商品库存', icon: '▥', permission: 'inventory:read' },
+  { page: 'coming-soon', label: '更多', icon: '✧' }
 ]
 
 function formatMoney(value: number | string) {
@@ -307,8 +301,9 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
   }, [guideSignal])
   return (
     <div className="dashboard-layout">
+      <BossTodayBrief overview={overview} onNavigate={onNavigate} />
       <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} variant="hero" />
-      <section className="kpi-grid">
+      <section className="kpi-grid secondary-kpi-grid">
         {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
       </section>
       {overview.daily_advisor_report && <DailyAdvisorReportCard report={overview.daily_advisor_report} onNavigate={onNavigate} />}
@@ -333,8 +328,36 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
   )
 }
 
+function getKpiValue(overview: Overview, key: string, fallback = 0) {
+  const hit = overview.kpis.find((kpi) => kpi.key === key || kpi.label.includes(key))
+  return Number(hit?.value ?? fallback)
+}
+
+function BossTodayBrief({ overview, onNavigate }: { overview: Overview; onNavigate: (page: Page) => void }) {
+  const revenue = getKpiValue(overview, '销售额')
+  const salesCount = getKpiValue(overview, '销售笔数')
+  const lowStock = getKpiValue(overview, '低库存')
+  const pending = getKpiValue(overview, '待确认')
+  const reportSummary = overview.daily_advisor_report?.summary
+  return (
+    <section className="boss-today-brief">
+      <div className="boss-brief-copy">
+        <UiBadge tone="ai">老板今日摘要</UiBadge>
+        <h1>老板，今天店里卖了 {formatMoney(revenue)} 元，{salesCount} 笔。</h1>
+        <p>{reportSummary || `库存${lowStock > 0 ? `有 ${lowStock} 个风险` : '暂时安全'}；${pending > 0 ? `有 ${pending} 件事等你确认，确认后数据才完整。` : '暂无必须马上处理的AI草稿。'}`}</p>
+      </div>
+      <div className="boss-brief-actions">
+        <UiButton variant="primary" onClick={() => onNavigate('tasks')}>{pending > 0 ? `先处理待确认（${pending}）` : '查看任务'}</UiButton>
+        <UiButton variant="secondary" onClick={() => onNavigate('ai')}>问AI</UiButton>
+        <UiButton variant="secondary" onClick={() => onNavigate('sales')}>记一笔销售</UiButton>
+      </div>
+    </section>
+  )
+}
+
 type CommandAction = { label: string; page?: Page; commandText?: string; tone?: 'primary' | 'secondary' }
-type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string; confirmationId?: string; actions?: CommandAction[]; journey?: string[] }
+type DraftPreview = { lines: { label: string; value: string }[]; effects: string[] }
+type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string; confirmationId?: string; actions?: CommandAction[]; journey?: string[]; draftPreview?: DraftPreview }
 
 function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void; variant?: 'hero' | 'inline' }) {
   const quickCommands = ['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '我卖了2把电动螺丝刀，帮我记一下']
@@ -350,34 +373,65 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
     return /采购|进货|补货|向.*供应商/.test(text) && /单价|进价|成本|把|个|件|箱|元|\d/.test(text)
   }
 
-  function salesDraftResult(confirmationId: string, confirmationType?: string): CommandResult {
+  function parseSalesDraftPreview(text: string): DraftPreview {
+    const quantity = text.match(/(\d+(?:\.\d+)?)\s*(把|个|件|箱|支|套)?/)?.[1] || '1'
+    const unit = text.match(/\d+(?:\.\d+)?\s*(把|个|件|箱|支|套)/)?.[1] || '件'
+    const price = text.match(/单价\s*(\d+(?:\.\d+)?)/)?.[1] || text.match(/(\d+(?:\.\d+)?)\s*元/)?.[1] || '待确认'
+    const customer = text.match(/客户\s*([^，,。\s]+)/)?.[1] || '散客'
+    const item = text.includes('电动螺丝刀') ? '电动螺丝刀' : (text.match(/卖了\d*(?:\.\d+)?[把个件箱支套]?([^，,。\s]+)/)?.[1] || '商品')
+    const total = price === '待确认' ? '待确认' : `${formatMoney(Number(quantity) * Number(price))} 元`
+    return {
+      lines: [
+        { label: '商品', value: item },
+        { label: '数量', value: `${quantity}${unit}` },
+        { label: '单价', value: price === '待确认' ? price : `${formatMoney(price)} 元` },
+        { label: '客户', value: customer },
+        { label: '合计', value: total }
+      ],
+      effects: ['确认后会扣减库存', '确认后会记入销售额', '确认后会生成销售流水']
+    }
+  }
+
+  function parsePurchaseDraftPreview(text: string): DraftPreview {
+    return {
+      lines: [
+        { label: '事项', value: '采购/入库草稿' },
+        { label: '内容', value: text.slice(0, 40) || '待确认' }
+      ],
+      effects: ['确认后会增加库存', '确认后会记录采购支出']
+    }
+  }
+
+  function salesDraftResult(confirmationId: string, confirmationType?: string, sourceText = command): CommandResult {
     return {
       kind: 'draft',
-      title: '刚刚生成的待确认任务',
-      body: `销售草稿 ${confirmationId} 已准备好。确认前不会扣库存，也不会记录销售收入。`,
+      title: '我准备这样记',
+      body: '我已经把这句话整理成一笔销售草稿。你确认前，我不会改库存，也不会记收入。',
       meta: confirmationType,
       confirmationId,
-      journey: ['AI已理解销售意图', '已生成销售草稿', '等待老板在任务中心确认', '确认后自动落账并生成执行复盘'],
+      draftPreview: parseSalesDraftPreview(sourceText),
+      journey: ['听懂销售内容', '整理商品、数量、单价和客户', '等你确认', '确认后自动入账并复盘'],
       actions: [
-        { label: '去任务中心确认', page: 'tasks', tone: 'primary' },
-        { label: '确认后查看执行复盘', page: 'execution-recaps' },
-        { label: '查看销售单与流水', page: 'sales' }
+        { label: '确认这笔销售', page: 'tasks', tone: 'primary' },
+        { label: '修改这笔', commandText: sourceText },
+        { label: '先看销售记录', page: 'sales' }
       ]
     }
   }
 
-  function purchaseDraftResult(confirmationId: string, confirmationType?: string): CommandResult {
+  function purchaseDraftResult(confirmationId: string, confirmationType?: string, sourceText = command): CommandResult {
     return {
       kind: 'draft',
-      title: '刚刚生成的待确认任务',
-      body: `采购草稿 ${confirmationId} 已准备好。确认前不会入库，也不会记录采购支出。`,
+      title: '我准备这样记',
+      body: '我已经整理好采购草稿。你确认前，我不会入库，也不会记录支出。',
       meta: confirmationType,
       confirmationId,
-      journey: ['AI已理解采购意图', '已生成采购草稿', '等待老板在任务中心确认', '确认后自动入库并生成执行复盘'],
+      draftPreview: parsePurchaseDraftPreview(sourceText),
+      journey: ['听懂采购内容', '整理采购草稿', '等你确认', '确认后自动入库并复盘'],
       actions: [
-        { label: '去任务中心确认', page: 'tasks', tone: 'primary' },
-        { label: '确认后查看执行复盘', page: 'execution-recaps' },
-        { label: '查看采购单', page: 'purchasing' }
+        { label: '确认这笔采购', page: 'tasks', tone: 'primary' },
+        { label: '修改这笔', commandText: sourceText },
+        { label: '先看采购单', page: 'purchasing' }
       ]
     }
   }
@@ -393,8 +447,8 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
       journey: ['AI已读取真实业务数据', '经营数据分析员已完成解释', '你可以继续追问或让AI生成待确认任务'],
       actions: [
         { label: isInventory ? '查看库存风险' : isSales ? '查看热销排行' : '查看经营日报', page: isInventory ? 'inventory' : isSales ? 'sales' : 'daily-report', tone: 'primary' },
-        { label: '继续追问', page: 'ai' },
-        { label: '生成一笔销售草稿', commandText: '我卖了2把电动螺丝刀，单价99，客户散客' }
+        { label: '处理待确认任务', page: 'tasks' },
+        { label: '继续追问', page: 'ai' }
       ]
     }
   }
@@ -408,15 +462,15 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
     try {
       if (looksLikePurchaseDraft(trimmed)) {
         const data = await api.createPurchaseOrderDraft(auth, trimmed)
-        setResult(purchaseDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type))
+        setResult(purchaseDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type, trimmed))
       } else if (looksLikeSalesDraft(trimmed)) {
         const data = await api.createSalesOrderDraft(auth, trimmed)
-        setResult(salesDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type))
+        setResult(salesDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type, trimmed))
       } else {
         const data = await api.chat(auth, trimmed)
         const confirmationId = data.confirmation_id || (data.reply || '').match(/确认单[:：]\s*(\S+)/)?.[1]
         if (confirmationId) {
-          setResult(salesDraftResult(confirmationId, data.intent || undefined))
+          setResult(salesDraftResult(confirmationId, data.intent || undefined, trimmed))
         } else {
           setResult(queryResult(employeeNameForIntent(data.intent || '') + '回复', data.reply || '我已收到你的问题，可以继续补充更多信息。', trimmed, data.intent || undefined))
         }
@@ -445,7 +499,12 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
             <div className="ai-message-bubble command-result-card">
               <strong>{result.title}</strong>
               <p>{result.body}</p>
-              {result.confirmationId && <small className="confirmation-id-pill">待确认任务：{result.confirmationId}</small>}
+              {result.draftPreview && <div className="draft-preview-card" aria-label="业务确认卡">
+                <span>确认前请看一眼</span>
+                <div className="draft-preview-grid">{result.draftPreview.lines.map((line) => <div key={line.label}><small>{line.label}</small><b>{line.value}</b></div>)}</div>
+                <ul>{result.draftPreview.effects.map((effect) => <li key={effect}>确认后会{effect.replace('确认后会', '')}</li>)}</ul>
+              </div>}
+              {result.confirmationId && <details className="technical-id-details"><summary>查看任务编号</summary><small>{result.confirmationId}</small></details>}
               {result.journey && <div className="command-journey" aria-label="AI执行步骤">
                 {result.journey.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
               </div>}
@@ -505,7 +564,7 @@ function OnboardingDemoFlow({ refEl, auth, onNavigate, onChanged }: { refEl: Rea
 
   const steps: DemoFlowStep[] = [
     { key: 'query', title: '1. 查经营结果', description: revenueReply || '先让经营数据分析员查询今日营业额。', status: revenueReply ? 'done' : 'ready' },
-    { key: 'draft', title: '2. 生成销售草稿', description: confirmationId ? `已生成待确认任务 ${confirmationId}` : '再让销售分析员生成销售单草稿。', status: confirmationId ? 'done' : 'ready' },
+    { key: 'draft', title: '2. 生成销售草稿', description: confirmationId ? '已生成一笔销售草稿，去任务中心看商品、数量和金额后确认。' : '再让销售分析员生成销售单草稿。', status: confirmationId ? 'done' : 'ready' },
     { key: 'confirm', title: '3. 老板确认执行', description: '进入任务中心，查看风险、证据和影响后手动确认。', status: confirmationId ? 'manual' : 'ready' },
     { key: 'recap', title: '4. 查看执行复盘', description: '确认后页面会展示已创建销售单、已扣减库存、已记录销售收入。', status: 'manual' }
   ]
@@ -735,6 +794,13 @@ function Panel({ title, action, children }: { title: string; action?: string; ch
   return <UiCard className="panel"><div className="panel-header"><h3>{title}</h3>{action && <UiButton variant="text">{action}</UiButton>}</div>{children}</UiCard>
 }
 function PriorityCard({ item }: { item: { title: string; reason: string; severity: string; evidence: string[] } }) { return <div className={`priority-card ${item.severity}`}><span className="todo-check">□</span><div><strong>{item.title}</strong><p>{item.reason}</p><small>{item.evidence.join(' / ')}</small></div></div> }
+function friendlyEmployeeActivity(label?: string) {
+  if (!label) return '最近：暂无新任务'
+  if (label.includes('sales order draft')) return '最近：整理了一笔销售草稿，等老板确认'
+  if (label.toLowerCase().includes('rejected')) return '最近：有一条草稿被老板拒绝'
+  return `最近：${label}`
+}
+
 function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {
   const avatars = ['◉','◇','▣','□','◎']
   return (
@@ -752,7 +818,7 @@ function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {
                 <small key={metric.label}>{metric.label}<strong>{metric.value}{metric.unit || ''}</strong></small>
               ))}
             </div>
-            <p className="employee-last">最近：{e.last_activity_label || '暂无新任务'}</p>
+            <p className="employee-last">{friendlyEmployeeActivity(e.last_activity_label)}</p>
             <button className="detail-button">{e.primary_action?.label || '查看详情'}</button>
           </div>
         )
@@ -764,6 +830,62 @@ function SuggestionList({ suggestions, onAsk }: { suggestions: Suggestion[]; onA
   return <div className="stack-list">{suggestions.map((s, index) => <div className={`suggestion-card suggestion-${index % 3}`} key={s.id}><div className="suggestion-title"><i>{['↑','◇','✧'][index % 3]}</i><b>{s.title}</b></div><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small><button onClick={() => onAsk?.(s)}>{onAsk ? '和AI聊这件事' : '查看建议'}</button></div>)}</div>
 }
 function ActivityList({ activities }: { activities: Activity[] }) { return <div className="timeline-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><i></i><div><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div></div>)}</div> }
+
+
+const salesOrderColumns = ['order_no','customer_name','total_amount','items_count','status']
+const salesOrderLineColumns = ['item_name','quantity','unit','unit_price','line_amount']
+
+function statusLabel(value?: string) {
+  if (value === 'paid') return '已收款'
+  if (value === 'partially_refunded') return '部分退款'
+  if (value === 'refunded') return '已退款'
+  if (value === 'cancelled') return '已取消'
+  if (value === 'active') return '正常'
+  if (value === 'inactive') return '停用'
+  return value || '-'
+}
+
+function columnLabel(column: string) {
+  const labels: Record<string, string> = {
+    order_no: '订单号', customer_name: '客户', total_amount: '金额', items_count: '商品数', status: '状态',
+    item_name: '商品', quantity: '数量', unit: '单位', unit_price: '单价', line_amount: '小计',
+    name: '名称', phone: '电话', default_unit: '单位', sku: '编码', current_quantity: '当前库存',
+    low_stock_threshold: '预警线', event_type: '动作', quantity_delta: '变动数量', quantity_after: '变动后库存', reason: '原因',
+    note: '备注', created_at: '创建时间', order_count: '订单数', transaction_type: '流水类型', direction: '收支方向', amount: '金额', source_type: '来源', counterparty_name: '对方'
+  }
+  return labels[column] || column
+}
+
+function displayCell(column: string, value: unknown) {
+  if (column === 'status') return statusLabel(String(value || ''))
+  if (column === 'customer_name') return cleanBusinessName(value, '散客')
+  if (['total_amount','unit_price','line_amount','amount'].includes(column)) return `${formatMoney(Number(value || 0))} 元`
+  if (column === 'transaction_type') {
+    if (value === 'sales_revenue') return '销售收入'
+    if (value === 'sales_refund') return '销售退款'
+    if (value === 'purchase_payment') return '采购支出'
+  }
+  if (column === 'direction') return value === 'income' ? '收入' : value === 'expense' ? '支出' : String(value ?? '-')
+  return String(value ?? '-')
+}
+
+function cleanBusinessName(value: unknown, fallback = '未填写') {
+  const text = String(value || '').trim()
+  if (!text) return fallback
+  if (/L\d+验收|测试|test/i.test(text)) return fallback
+  if (/^[a-f0-9]{16,}$/i.test(text)) return '商品'
+  return text
+}
+
+function paymentMethodLabel(value: unknown) {
+  const text = String(value || '').trim()
+  if (!text || text === 'unknown') return '老板确认时填写'
+  if (text === 'cash') return '现金'
+  if (text === 'wechat') return '微信'
+  if (text === 'alipay') return '支付宝'
+  if (text === 'card') return '刷卡'
+  return text
+}
 
 function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; customers: Customer[]; onChanged: () => void }) {
   const sellable = stock.find((item) => Number(item.current_quantity || 0) > 0)
@@ -787,7 +909,7 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
       customer_name: selectedCustomer?.name || customerName,
       payment_method: 'cash',
       items: [{ inventory_item_id: sellable.inventory_item_id, quantity: Number(quantity || 1), unit_price: price }],
-      note: 'PC/H5销售单'
+      note: '老板手动开单'
     })
     setQuantity('1')
     setUnitPrice('')
@@ -815,7 +937,7 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
     if (!selectedOrder || !selectedLine) return
     const data = await api.returnSalesOrder(auth, selectedOrder.sales_order_id, {
       items: [{ sales_order_line_id: selectedLine.sales_order_line_id, quantity: Number(returnQuantity || 1) }],
-      reason: 'PC/H5退货退款'
+      reason: '老板办理退货退款'
     })
     setSelectedOrder(data.order)
     setOperationMessage('退货退款已完成，库存已回补，财务流水已更新。')
@@ -826,9 +948,9 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
     <div className="content-grid">
       <section className="hero-card">
         <div>
-          <div className="ai-badge">H1 已增强</div>
-          <h1>销售单生命周期管理</h1>
-          <p>支持创建销售单、查看详情、取消订单、退货退款，并联动库存回补与财务流水。</p>
+          <div className="ai-badge">销售员工</div>
+          <h1>今日销售记录</h1>
+          <p>这里记录老板确认过的每一笔销售，方便查看金额、客户、库存扣减和收款状态。</p>
         </div>
         <button className="primary-button" disabled={!canWriteSales || !sellable} title={canWriteSales ? '' : '需要销售写入权限'} onClick={() => void createOrder()}>创建销售单</button>
       </section>
@@ -842,20 +964,20 @@ function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthSt
           <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="数量" />
           <input value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder={`单价，默认${sellable?.current_price || 1}`} />
         </div>
-        <p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}；选择客户后销售单会写入 customer_id，复购分析更准确。</p>
+        <p className="helper-text">当前商品：{sellable ? `${sellable.item_name}，库存 ${sellable.current_quantity}${sellable.default_unit}` : '暂无可销售库存，请先入库。'}；选择客户后，后续复购分析会更准确。</p>
       </Panel>
       <Panel title="销售单列表">
         <div className="inline-form"><button className="secondary-button" disabled={!canExportSales} title={canExportSales ? '' : '需要销售导出权限'} onClick={() => void api.exportSalesOrders(auth)}>导出销售单CSV</button></div>
-        <DataTable rows={orders} columns={['order_no','customer_name','total_amount','items_count','status']} action={(row) => <button className="secondary-button" onClick={() => void openDetail(String(row.sales_order_id))}>查看/处理</button>} />
+        <DataTable rows={orders} columns={salesOrderColumns} action={(row) => <button className="secondary-button" onClick={() => void openDetail(String(row.sales_order_id))}>查看/处理</button>} />
       </Panel>
       {selectedOrder && <Panel title={`销售单详情：${selectedOrder.order_no}`}>
         <section className="detail-grid">
           <div><b>客户</b><p>{selectedOrder.customer_name || '散客'}</p></div>
-          <div><b>状态</b><p>{selectedOrder.status}</p></div>
+          <div><b>状态</b><p>{statusLabel(selectedOrder.status)}</p></div>
           <div><b>金额</b><p>{formatMoney(selectedOrder.total_amount)} 元</p></div>
           <div><b>备注</b><p>{selectedOrder.note || '-'}</p></div>
         </section>
-        <DataTable rows={selectedOrder.items || []} columns={['item_name','quantity','unit','unit_price','line_amount']} />
+        <DataTable rows={selectedOrder.items || []} columns={salesOrderLineColumns} />
         <div className="inline-form">
           <input value={returnQuantity} onChange={(e) => setReturnQuantity(e.target.value)} placeholder="退货数量" />
           <button className="secondary-button" disabled={!selectedLine || !['paid','partially_refunded'].includes(selectedOrder.status)} onClick={() => void returnOrder()}>退货/退款</button>
@@ -883,7 +1005,7 @@ function PurchasingPage({ auth, stock, suppliers, purchaseOrders, onChanged }: {
   async function createPurchase() { if (!activeSupplier || !firstStock) return; await api.createPurchaseOrder(auth, { supplier_id: activeSupplier.supplier_id, items: [{ inventory_item_id: firstStock.inventory_item_id, quantity: Number(quantity || 1), unit_cost: Number(unitCost || 0) }], note: 'PC/H5采购入库' }); onChanged() }
   return (
     <div className="content-grid">
-      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>采购/供应商闭环</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水；页面支持供应商采购记录聚合。</p></div><button className="primary-button" disabled={!canWritePurchasing || !activeSupplier || !firstStock} title={canWritePurchasing ? '' : '需要采购写入权限'} onClick={() => void createPurchase()}>创建采购入库单</button></section>
+      <section className="hero-card"><div><div className="ai-badge">采购员工</div><h1>采购与供应商</h1><p>创建采购单会写入真实采购记录、自动入库，并生成采购支出财务流水；页面支持供应商采购记录聚合。</p></div><button className="primary-button" disabled={!canWritePurchasing || !activeSupplier || !firstStock} title={canWritePurchasing ? '' : '需要采购写入权限'} onClick={() => void createPurchase()}>创建采购入库单</button></section>
       <Panel title="新增供应商"><div className="inline-form"><input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="供应商名称" /><input value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" disabled={!canWritePurchasing} title={canWritePurchasing ? '' : '需要采购写入权限'} onClick={() => void createSupplier()}>新增供应商</button></div></Panel>
       <Panel title="快速采购入库"><div className="inline-form"><select value={activeSupplier?.supplier_id || ''} onChange={(e) => setSelectedSupplierId(e.target.value)}><option value="">选择供应商</option>{suppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.name}</option>)}</select><input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="采购数量" /><input value={unitCost} onChange={(e) => setUnitCost(e.target.value)} placeholder="采购单价" /></div><p className="helper-text">供应商：{activeSupplier?.name || '请先新增供应商'}；商品：{firstStock?.item_name || '暂无商品库存快照'}</p></Panel>
       <section className="kpi-grid"><div className="kpi-card"><span>供应商数量</span><strong>{suppliers.length}</strong><em>家</em><p>当前门店 active 供应商</p></div><div className="kpi-card"><span>采购单数量</span><strong>{purchaseOrders.length}</strong><em>单</em><p>当前门店采购记录</p></div><div className="kpi-card"><span>当前供应商采购</span><strong>{supplierOrders.length}</strong><em>单</em><p>{activeSupplier?.name || '未选择'}</p></div></section>
@@ -904,11 +1026,11 @@ function CustomersPage({ auth, customers, orders, repurchase, onChanged }: { aut
   async function createCustomer() { if (!name.trim()) return; await api.createCustomer(auth, { name, phone }); setName('老王'); setPhone(''); onChanged() }
   return (
     <div className="content-grid">
-      <section className="hero-card"><div><div className="ai-badge">H2/H3 已增强</div><h1>客户档案与复购分析</h1><p>销售单已支持 customer_id 关联，复购分析优先按客户ID统计，避免同名客户误匹配。</p></div></section>
+      <section className="hero-card"><div><div className="ai-badge">客户员工</div><h1>客户档案与复购分析</h1><p>把客户和销售记录连起来，帮助老板看谁经常来买、买了多少。</p></div></section>
       <Panel title="新增客户"><div className="inline-form"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="客户姓名" /><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="联系电话" /><button className="primary-button" disabled={!canWriteCustomers} title={canWriteCustomers ? '' : '需要客户写入权限'} onClick={() => void createCustomer()}>新增客户</button></div></Panel>
-      <section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>优先按 customer_id 关联</p></div><div className="kpi-card"><span>当前客户订单</span><strong>{selectedCustomerOrders.length}</strong><em>笔</em><p>{selectedCustomer?.name || '未选择客户'}</p></div></section>
+      <section className="kpi-grid"><div className="kpi-card"><span>客户数量</span><strong>{repurchase?.summary.customer_count ?? customers.length}</strong><em>人</em><p>来自客户档案</p></div><div className="kpi-card"><span>匹配订单</span><strong>{repurchase?.summary.matched_order_count ?? 0}</strong><em>笔</em><p>优先按客户档案关联</p></div><div className="kpi-card"><span>当前客户订单</span><strong>{selectedCustomerOrders.length}</strong><em>笔</em><p>{selectedCustomer?.name || '未选择客户'}</p></div></section>
       <Panel title="客户列表"><DataTable rows={customers} columns={['name','phone','status']} action={(row) => <button className="secondary-button" onClick={() => setSelectedCustomerId(String(row.customer_id))}>查看购买记录</button>} /></Panel>
-      <Panel title="当前客户购买记录"><p className="helper-text">客户：{selectedCustomer?.name || '暂无客户'}；销售单创建时选择客户后会自动关联 customer_id。</p><DataTable rows={selectedCustomerOrders} columns={['order_no','customer_name','total_amount','items_count','status']} /></Panel>
+      <Panel title="当前客户购买记录"><p className="helper-text">客户：{selectedCustomer?.name || '暂无客户'}；销售单创建时选择客户后会自动归到这个客户名下。</p><DataTable rows={selectedCustomerOrders} columns={['order_no','customer_name','total_amount','items_count','status']} /></Panel>
       <Panel title="复购分析"><DataTable rows={repurchase?.customers || []} columns={['name','phone','order_count','total_amount']} /></Panel>
     </div>
   )
@@ -925,7 +1047,7 @@ function FinancePage({ auth, summary, transactions, onTransactionsChanged }: { a
   }
   return (
     <div className="content-grid">
-      <section className="hero-card"><div><div className="ai-badge">H2 已增强</div><h1>财务流水/收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，并支持按流水类型和收支方向筛选。</p></div></section>
+      <section className="hero-card"><div><div className="ai-badge">财务员工</div><h1>财务流水与收支对账</h1><p>销售、退款、退货、采购都会沉淀为真实财务流水，并支持按流水类型和收支方向筛选。</p></div></section>
       <section className="kpi-grid"><div className="kpi-card"><span>总收入</span><strong>{formatMoney(summary?.total_income || 0)}</strong><em>元</em><p>销售收入</p></div><div className="kpi-card"><span>总支出</span><strong>{formatMoney(summary?.total_expense || 0)}</strong><em>元</em><p>采购/退款</p></div><div className="kpi-card"><span>净现金流</span><strong>{formatMoney(summary?.net_cashflow || 0)}</strong><em>元</em><p>收入 - 支出</p></div></section>
       <Panel title="流水筛选"><div className="inline-form"><select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}><option value="">全部类型</option><option value="sales_revenue">销售收入</option><option value="sales_refund">销售退款</option><option value="purchase_payment">采购支出</option></select><select value={direction} onChange={(e) => setDirection(e.target.value)}><option value="">全部方向</option><option value="income">收入</option><option value="expense">支出</option></select><button className="secondary-button" onClick={() => void applyFilters()}>应用筛选</button><button className="secondary-button" disabled={!canExportFinance} title={canExportFinance ? '' : '需要财务导出权限'} onClick={() => void api.exportFinanceTransactions(auth)}>导出财务CSV</button></div></Panel>
       <Panel title="财务流水"><DataTable rows={transactions} columns={['transaction_type','direction','amount','source_type','counterparty_name','note']} /></Panel>
@@ -970,44 +1092,55 @@ function AiPage({ auth, overview, onChanged, onNavigate }: { auth: AuthState; ov
 type TaskViewModel = {
   employee: string
   title: string
+  businessTitle: string
   impact: string
   risk: string
   confidence: string
   routeHint: string
   evidence: string[]
   summary: { label: string; value: string }[]
+  isLatest?: boolean
 }
 
-function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
+function formatLineSummary(lines: Record<string, unknown>[]) {
+  if (!lines.length) return '商品明细待确认'
+  return lines.map((line) => `${cleanBusinessName(line.item_name || line.name, '商品')} ×${String(line.quantity || 1)}`).join('、')
+}
+
+function buildTaskViewModel(confirmation: Confirmation, index = 0): TaskViewModel {
   const payload = confirmation.draft_payload || {}
   const type = confirmation.confirmation_type
   if (type.includes('sales.order_create')) {
     const lines = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : []
     const total = lines.reduce((sum, line) => sum + Number(line.line_amount || line.amount || 0), 0)
-    const names = lines.map((line) => String(line.item_name || line.name || line.inventory_item_id || '商品')).join('、')
+    const names = lines.map((line) => cleanBusinessName(line.item_name || line.name, '商品')).join('、')
     return {
       employee: '销售分析员',
-      title: '销售单草稿等待确认',
+      title: index === 0 ? '刚刚创建的销售草稿' : '销售草稿等待确认',
+      businessTitle: `${formatLineSummary(lines)}，合计${total > 0 ? formatMoney(total) : '待确认'}元，确认后扣库存并记收入`,
       impact: '确认后会创建销售单、扣减库存，并写入销售收入流水。',
+      isLatest: index === 0,
       risk: '高风险：会改变库存和财务数据',
       confidence: lines.length ? '已解析商品明细' : '需要老板复核明细',
       routeHint: '销售单 / 库存 / 财务',
       evidence: [`识别到 ${lines.length || 1} 条销售明细`, names ? `商品：${names}` : '商品信息来自AI草稿', total > 0 ? `预计金额：${formatMoney(total)} 元` : '金额以草稿明细为准'],
       summary: [
-        { label: '客户', value: String(payload.customer_name || payload.customer_id || '未填写') },
+        { label: '客户', value: cleanBusinessName(payload.customer_name, '散客') },
         { label: '明细数', value: String(lines.length || '-') },
-        { label: '付款方式', value: String(payload.payment_method || '未填写') }
+        { label: '付款方式', value: paymentMethodLabel(payload.payment_method) }
       ]
     }
   }
   if (type.includes('purchase.order_create')) {
     const lines = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : []
     const total = lines.reduce((sum, line) => sum + Number(line.line_amount || 0), 0)
-    const names = lines.map((line) => String(line.item_name || line.name || line.inventory_item_id || '商品')).join('、')
+    const names = lines.map((line) => cleanBusinessName(line.item_name || line.name, '商品')).join('、')
     return {
       employee: '采购专员',
-      title: '采购入库草稿等待确认',
+      title: index === 0 ? '刚刚创建的采购草稿' : '采购入库草稿等待确认',
+      businessTitle: `${formatLineSummary(lines)}，合计${total > 0 ? formatMoney(total) : '待确认'}元，确认后入库并记支出`,
       impact: '确认后会创建采购单、增加库存，并写入采购支出流水。',
+      isLatest: index === 0,
       risk: '高风险：会改变库存和财务数据',
       confidence: lines.length ? '已解析供应商和采购明细' : '需要老板复核采购明细',
       routeHint: '采购单 / 库存 / 财务',
@@ -1022,8 +1155,10 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
   if (type.includes('inventory.stock_in') || type === 'stock_in') {
     return {
       employee: '库存风控专员',
-      title: '入库草稿等待确认',
+      title: index === 0 ? '刚刚创建的入库草稿' : '入库草稿等待确认',
+      businessTitle: `${String(payload.item_name || '商品')} ×${String(payload.quantity || payload.stock_in_quantity || '-')}，确认后增加库存`,
       impact: '确认后会增加库存并写入库存流水。',
+      isLatest: index === 0,
       risk: '中风险：会改变库存数量',
       confidence: '已生成入库草稿',
       routeHint: '库存管理',
@@ -1038,8 +1173,10 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
   if (type.includes('inventory.stock_out') || type === 'stock_out') {
     return {
       employee: '库存风控专员',
-      title: '出库草稿等待确认',
+      title: index === 0 ? '刚刚创建的出库草稿' : '出库草稿等待确认',
+      businessTitle: `${String(payload.item_name || '商品')} ×${String(payload.quantity || payload.stock_out_quantity || '-')}，确认后扣减库存`,
       impact: '确认后会扣减库存并写入库存流水。',
+      isLatest: index === 0,
       risk: '高风险：会减少库存',
       confidence: '已生成出库草稿',
       routeHint: '库存管理',
@@ -1053,8 +1190,10 @@ function buildTaskViewModel(confirmation: Confirmation): TaskViewModel {
   }
   return {
     employee: 'AI运营协调官',
-    title: 'AI任务草稿等待确认',
+    title: index === 0 ? '刚刚创建的AI草稿' : 'AI任务草稿等待确认',
+    businessTitle: '这是一条AI整理好的业务草稿，请确认内容后再执行。',
     impact: '确认后才会执行对应业务动作。',
+    isLatest: index === 0,
     risk: '需复核：业务影响以草稿内容为准',
     confidence: '已生成待确认草稿',
     routeHint: '任务中心',
@@ -1089,7 +1228,7 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
     <div className="content-grid">
       <section className="hero-card task-hero">
         <div>
-          <div className="ai-badge">AI Task Flow</div>
+          <div className="ai-badge">老板确认台</div>
           <h1>AI任务中心</h1>
           <p>每个高风险经营动作都会先进入任务流：AI理解与生成草稿，但必须老板确认后才落账。确认后会生成执行复盘。</p>
         </div>
@@ -1106,12 +1245,12 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
       </Panel>}
       <Panel title="等待老板确认的AI任务">
         {confirmations.length === 0 ? <Empty text="暂无待确认AI任务。你可以在首页 Command Center 里生成销售草稿来体验完整任务流。" /> : <div className="task-flow-list">
-          {confirmations.map((confirmation) => {
-            const vm = buildTaskViewModel(confirmation)
-            return <article className="task-flow-card" key={confirmation.confirmation_id}>
+          {confirmations.map((confirmation, index) => {
+            const vm = buildTaskViewModel(confirmation, index)
+            return <article className={`task-flow-card ${vm.isLatest ? 'latest-task-card' : ''}`} key={confirmation.confirmation_id}>
               <div className="task-flow-head">
-                <div><span className="task-employee">{vm.employee}</span><h3>{vm.title}</h3><p>{vm.impact}</p></div>
-                <div className="task-status-pill">等待确认</div>
+                <div><span className="task-employee">{vm.employee}</span><h3>{vm.title}</h3><p className="task-business-title">{vm.businessTitle}</p><p>{vm.impact}</p></div>
+                <div className="task-status-pill">{vm.isLatest ? '刚刚创建' : '等待确认'}</div>
               </div>
               <div className="task-stage-rail" aria-label="AI任务阶段">
                 {['已发现', '已分析', '已生成草稿', '等待老板确认'].map((stage) => <span key={stage}>{stage}</span>)}
@@ -1124,11 +1263,11 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
               </div>
               <div className="task-evidence"><strong>AI依据</strong>{vm.evidence.map((item) => <span key={item}>{item}</span>)}</div>
               <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
-              <details className="task-raw-payload"><summary>查看原始草稿数据</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
+              <details className="task-raw-payload"><summary>查看技术明细</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
               <div className="task-actions">
                 <UiButton variant="primary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</UiButton>
                 <UiButton variant="secondary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</UiButton>
-                <span>任务ID：{confirmation.confirmation_id}</span>
+
               </div>
             </article>
           })}
@@ -1148,7 +1287,7 @@ type ExecutionResult = {
 }
 
 function getExecutionResult(confirmation: Confirmation): ExecutionResult | null {
-  const result = confirmation.resolution_payload?.execution_result
+  const result = confirmation.resolution_payload?.执行结果
   if (!result || typeof result !== 'object' || Array.isArray(result)) return null
   return result as ExecutionResult
 }
@@ -1204,7 +1343,7 @@ function CommercialTrialAcceptancePage({ overview, items, stock, events, orders,
   onNavigate: (page: Page) => void
 }) {
   const businessItems: AcceptanceItem[] = [
-    { title: '登录与门店上下文', owner: '系统管理员', status: 'passed', summary: '手机号演示登录、商户与门店选择已接入真实服务。', evidence: [`当前门店：${overview.store.shop_name}`, `租户：${overview.store.tenant_name || overview.store.tenant_id}`], route: 'dashboard' },
+    { title: '登录与门店上下文', owner: '系统管理员', status: 'passed', summary: '手机号演示登录、商户与门店选择已接入真实服务。', evidence: [`当前门店：${overview.store.shop_name}`, `门店组织：${overview.store.tenant_name || '当前组织'}`], route: 'dashboard' },
     { title: '商品管理', owner: '商品档案员', status: 'trial', summary: '商品新增、列表、软删除已可用，历史账本不被物理删除破坏。', evidence: [`商品数：${items.length}`, '删除采用软删除边界'], route: 'products' },
     { title: '库存账本与快照', owner: '库存守护员', status: 'trial', summary: '库存入库/出库写不可变 ledger，并投影到当前库存快照。', evidence: [`库存快照：${stock.length}`, `库存流水：${events.length}`], route: 'inventory' },
     { title: '销售单闭环', owner: '销售分析员', status: 'trial', summary: '销售单创建后同步扣减库存，并写入销售收入财务流水。', evidence: [`销售单：${orders.length}`, `今日收入：${formatMoney(financeSummary?.total_income || 0)}元`], route: 'sales' },
@@ -1214,14 +1353,14 @@ function CommercialTrialAcceptancePage({ overview, items, stock, events, orders,
   ]
   const aiItems: AcceptanceItem[] = [
     { title: 'AI Command Center', owner: 'AI运营协调官', status: 'passed', summary: '首页自然语言入口可识别经营查询、销售/采购/库存草稿等意图。', evidence: ['经营查询只读', '写操作进入待确认任务'], route: 'dashboard' },
-    { title: 'AI草稿生成', owner: '销售分析员 / 进货专员 / 库存守护员', status: 'passed', summary: '销售、采购、库存类自然语言写操作均先生成 pending confirmation。', evidence: ['confirmation-first', `待确认：${confirmations.length}`], route: 'tasks' },
-    { title: '任务中心审批', owner: '老板', status: 'passed', summary: '老板确认后才落账，审批成功后生成 execution_result 复盘。', evidence: ['不自动审批', '审批后才改库存/销售/采购/财务'], route: 'tasks' },
+    { title: 'AI草稿生成', owner: '销售分析员 / 进货专员 / 库存守护员', status: 'passed', summary: '销售、采购、库存类自然语言写操作均先生成 待确认草稿。', evidence: ['先确认再落账', `待确认：${confirmations.length}`], route: 'tasks' },
+    { title: '任务中心审批', owner: '老板', status: 'passed', summary: '老板确认后才落账，审批成功后生成 执行结果 复盘。', evidence: ['不自动审批', '审批后才改库存/销售/采购/财务'], route: 'tasks' },
     { title: '真实通知中心', owner: 'AI参谋', status: 'passed', summary: '通知聚合真实待确认任务、库存风险和经营日报建议。', evidence: [`待关注：${overview.notifications.attention_count || 0}`, `未读：${overview.notifications.unread_count || 0}`], route: 'dashboard' },
     { title: 'AI经营日报', owner: 'AI参谋', status: 'passed', summary: '日报由 BFF 聚合真实销售、库存、任务和风险证据生成。', evidence: [overview.daily_advisor_report?.summary || '日报已接入', `建议数：${overview.daily_advisor_report?.suggestion_count || 0}`], route: 'daily-report' },
-    { title: 'AI执行复盘', owner: 'AI运营协调官', status: 'passed', summary: '仅展示已审批且真实落账的 AI 工作结果，不把 pending 当完成。', evidence: [`已完成复盘：${executionRecapList?.summary.total_count || 0}`, '来自 confirmation.resolution_payload.execution_result'], route: 'execution-recaps' }
+    { title: 'AI执行复盘', owner: 'AI运营协调官', status: 'passed', summary: '仅展示已审批且真实落账的 AI 工作结果，不把 pending 当完成。', evidence: [`已完成复盘：${executionRecapList?.summary.total_count || 0}`, '来自 confirmation.resolution_payload.执行结果'], route: 'execution-recaps' }
   ]
   const hardeningItems: AcceptanceItem[] = [
-    { title: '多租户/门店隔离', owner: '平台安全', status: 'passed', summary: '核心业务查询按 tenant_id + shop_id 限定，跨租户资源统一隐藏。', evidence: ['tenant/shop context token', '商品详情/修改/删除跨租户统一 404'], route: 'dashboard' },
+    { title: '多租户/门店隔离', owner: '平台安全', status: 'passed', summary: '核心业务查询按 商户与门店 限定，跨租户资源统一隐藏。', evidence: ['当前门店上下文', '商品详情/修改/删除跨租户统一 404'], route: 'dashboard' },
     { title: '关键操作审计', owner: '平台安全', status: 'passed', summary: '销售、采购、客户、导出等关键动作写入 V2AuditLog。', evidence: ['审计动作覆盖核心商业操作', '导出行为也写审计'], route: 'inventory' },
     { title: '表格导出', owner: '营业数据员', status: 'passed', summary: '销售单、采购单、财务流水、库存流水可按真实业务数据导出，并按角色权限分级保护。', evidence: ['四类经营表格导出', '按当前门店与角色授权'], route: 'finance' },
     { title: '大批量导出', owner: '营业数据员', status: 'passed', summary: '大量经营数据可先生成导出任务，完成后再下载，避免老板等待太久。', evidence: ['后台生成后下载', '导出过程留痕', '按门店范围导出'], route: 'finance' },
@@ -1314,10 +1453,10 @@ function SkeletonHome() { return <div className="skeleton"><span /><span /><span
 function DataTable<T extends Record<string, unknown>>({ rows, columns, action }: { rows: T[]; columns: string[]; action?: (row: T) => React.ReactNode }) {
   if (!rows.length) return <Empty text="暂无数据，完成业务操作后这里会自动更新。" />
   return <>
-    <div className="desktop-table-wrap table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{String(row[c] ?? '-')}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
+    <div className="desktop-table-wrap table-wrap"><table><thead><tr>{columns.map((c) => <th key={c}>{columnLabel(c)}</th>)}{action && <th>操作</th>}</tr></thead><tbody>{rows.map((row, index) => <tr key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>{columns.map((c) => <td key={c}>{displayCell(c, row[c])}</td>)}{action && <td>{action(row)}</td>}</tr>)}</tbody></table></div>
     <div className="mobile-data-list" aria-label="移动端数据列表">
       {rows.map((row, index) => <article className="mobile-data-card" key={String(row.id || row.sales_order_id || row.inventory_item_id || row.event_id || index)}>
-        {columns.map((c) => <div className="mobile-data-row" key={c}><span>{c}</span><b>{String(row[c] ?? '-')}</b></div>)}
+        {columns.map((c) => <div className="mobile-data-row" key={c}><span>{columnLabel(c)}</span><b>{displayCell(c, row[c])}</b></div>)}
         {action && <div className="mobile-data-action">{action(row)}</div>}
       </article>)}
     </div>

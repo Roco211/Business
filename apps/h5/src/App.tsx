@@ -197,7 +197,7 @@ function App() {
         {page === 'finance' && <FinancePage auth={auth} summary={financeSummary} transactions={financeTransactions} onTransactionsChanged={setFinanceTransactions} />}
         {page === 'products' && <ProductsPage auth={auth} items={items} onChanged={() => void refresh()} />}
         {page === 'inventory' && <InventoryPage auth={auth} items={items} stock={stock} events={events} onChanged={() => void refresh()} />}
-        {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} />}
+        {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} onNavigate={setPage} />}
         {page === 'tasks' && <TasksPage auth={auth} confirmations={confirmations} onChanged={() => void refresh()} />}
         {page === 'coming-soon' && <ComingSoon />}
         {notificationOpen && overview && <NotificationCenter notifications={overview.notifications} onClose={() => setNotificationOpen(false)} onNavigate={(nextPage) => { setNotificationOpen(false); setPage(nextPage) }} />}
@@ -306,8 +306,7 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
   }, [guideSignal])
   return (
     <div className="dashboard-layout">
-      <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
-      <OnboardingDemoFlow refEl={guideRef} auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
+      <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} variant="hero" />
       <section className="kpi-grid">
         {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
       </section>
@@ -316,62 +315,41 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
         <Panel title="我的AI员工" action="查看全部">
           <EmployeeGrid employees={overview.ai_employees} />
         </Panel>
-        <Panel title="AI智能建议" action="全部建议">
-          <SuggestionList suggestions={overview.suggestions} />
+        <Panel title="AI主动建议" action="进入对话">
+          <SuggestionList suggestions={overview.suggestions} onAsk={() => onNavigate('ai')} />
         </Panel>
       </section>
       <section className="operations-grid">
         <Panel title="今日工作动态" action="查看报告">
           <ActivityList activities={overview.activities} />
         </Panel>
-        <Panel title="待办事项" action={`${overview.top_priorities.length}项`}>
+        <Panel title="待确认任务" action={`${overview.top_priorities.length}项`}>
           {overview.top_priorities.map((p) => <PriorityCard key={p.id} item={p} />)}
         </Panel>
       </section>
-      <section className="hero-card">
-        <div>
-          <div className="ai-badge">AI运营协调官</div>
-          <h1>今天门店最重要的事情已整理好</h1>
-          <p>所有经营指标来自后端真实API；未实现模块保持即将上线，不展示假数据。</p>
-        </div>
-        <button className="primary-button" onClick={() => onNavigate('ai')}>交给AI处理</button>
-      </section>
-      <Panel title="商用版模块边界">
-        <div className="coming-list">{overview.coming_soon_modules?.map((m) => <span key={m.key}>{m.label} 即将上线</span>)}</div>
-      </Panel>
+      <OnboardingDemoFlow refEl={guideRef} auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
     </div>
   )
 }
 
 type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string }
 
-function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void }) {
-  const quickCommands = ['今天卖了多少钱？', '卖出1把电动螺丝刀，单价99，客户老王', '向默认五金供应商采购5把电动螺丝刀，单价10', '出库1把电动螺丝刀']
+function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void; variant?: 'hero' | 'inline' }) {
+  const quickCommands = ['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '我卖了2个扳手，帮我记一下']
   const [command, setCommand] = useState(quickCommands[0])
   const [result, setResult] = useState<CommandResult | null>(null)
   const [running, setRunning] = useState(false)
 
   function looksLikeSalesDraft(text: string) {
-    return /卖出|销售|开单|收款|客户/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
+    return /卖出|销售|开单|收款|客户|卖了/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
   }
 
   function looksLikePurchaseDraft(text: string) {
     return /采购|进货|补货|向.*供应商/.test(text) && /单价|进价|成本|把|个|件|箱|元|\d/.test(text)
   }
 
-  function looksLikeInventoryDraft(text: string) {
-    return /入库|出库|盘出|盘入/.test(text) && /把|个|件|箱|\d/.test(text)
-  }
-
   function extractConfirmationId(reply: string) {
     return reply.match(/确认单[:：]\s*(\S+)/)?.[1]
-  }
-
-  function normalizeQueryCommand(text: string) {
-    if (/卖了多少钱|营业额|营收|收入|流水|赚了|利润/.test(text)) return '今天营业额多少？'
-    if (/热销|排行|最好卖|卖得好/.test(text)) return '热销商品排行'
-    if (/快没货|缺货|库存不足|预警/.test(text)) return '库存预警'
-    return text
   }
 
   async function runCommand(text = command) {
@@ -379,72 +357,70 @@ function AiCommandCenter({ auth, onNavigate, onChanged }: { auth: AuthState; onN
     if (!trimmed || running) return
     setCommand(trimmed)
     setRunning(true)
-    setResult({ kind: 'reply', title: 'AI运营协调官正在分派任务', body: '正在理解你的经营指令，并交给对应AI员工处理。' })
+    setResult({ kind: 'reply', title: 'AI正在理解你的问题', body: '我会先判断你是想查询、分析，还是要生成待确认的业务草稿。' })
     try {
       if (looksLikePurchaseDraft(trimmed)) {
         const data = await api.createPurchaseOrderDraft(auth, trimmed)
         setResult({
           kind: 'draft',
-          title: '已生成采购入库草稿，等待老板确认',
-          body: `待确认任务 ${data.confirmation.confirmation_id} 已创建。AI不会直接入库或记采购支出，请到任务中心确认后再落账。`,
+          title: '已生成采购草稿，等待确认',
+          body: `我已生成待确认任务 ${data.confirmation.confirmation_id}。确认前不会入库，也不会记录采购支出。`,
           meta: data.confirmation.confirmation_type
         })
       } else if (looksLikeSalesDraft(trimmed)) {
         const data = await api.createSalesOrderDraft(auth, trimmed)
         setResult({
           kind: 'draft',
-          title: '已生成销售单草稿，等待老板确认',
-          body: `待确认任务 ${data.confirmation.confirmation_id} 已创建。AI不会直接扣库存或记账，请到任务中心确认后再落账。`,
+          title: '已生成销售草稿，等待确认',
+          body: `我已生成待确认任务 ${data.confirmation.confirmation_id}。确认前不会扣库存，也不会记录销售收入。`,
           meta: data.confirmation.confirmation_type
         })
-      } else if (looksLikeInventoryDraft(trimmed)) {
+      } else {
         const data = await api.chat(auth, trimmed)
         const confirmationId = extractConfirmationId(data.reply || '')
         setResult({
           kind: confirmationId ? 'draft' : 'reply',
-          title: confirmationId ? '已生成库存变动草稿，等待老板确认' : employeeNameForIntent(data.intent || '') + '已完成处理',
-          body: confirmationId ? `待确认任务 ${confirmationId} 已创建。AI不会直接改库存，请到任务中心确认后再落账。` : (data.reply || '已收到库存指令。'),
-          meta: data.intent || 'inventory'
-        })
-      } else {
-        const queryMessage = normalizeQueryCommand(trimmed)
-        const data = await api.chat(auth, queryMessage)
-        setResult({
-          kind: 'reply',
-          title: employeeNameForIntent(data.intent || '') + '已完成处理',
-          body: data.reply || '已收到指令，但暂时没有可展示的回复。',
-          meta: data.intent || 'general'
+          title: confirmationId ? '已生成待确认草稿' : employeeNameForIntent(data.intent || '') + '回复',
+          body: confirmationId ? `我已生成待确认任务 ${confirmationId}。请确认后再执行。` : (data.reply || '我已收到你的问题，可以继续补充更多信息。'),
+          meta: data.intent || undefined
         })
       }
       onChanged()
     } catch (err) {
-      setResult({ kind: 'error', title: 'AI任务处理失败', body: err instanceof Error ? err.message : '请稍后重试。' })
+      setResult({ kind: 'error', title: 'AI暂时处理失败', body: err instanceof Error ? err.message : '请稍后重试。' })
     } finally {
       setRunning(false)
     }
   }
 
   return (
-    <section className="command-center-card">
+    <section className={`command-center-card ${variant === 'hero' ? 'ai-first-hero' : 'ai-first-inline'}`}>
       <div className="command-copy">
-        <div className="ai-badge">AI Command Center</div>
-        <h1>老板，今天想让我帮你做什么？</h1>
-        <p>直接说经营目标。查询类任务由AI员工返回结果；开单、库存、采购等高风险动作先生成待确认草稿。</p>
+        <div className="ai-badge">AI经营入口</div>
+        <h1>直接问我，今天店里发生了什么</h1>
+        <p>不用记格式。你可以问营业额、库存风险、热销商品，也可以让我生成销售、采购、库存草稿；真正落账前都会让你确认。</p>
       </div>
-      <div className="command-console">
-        <div className="command-input-row">
-          <textarea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="例如：今天卖了多少钱？或者：卖出1把电动螺丝刀，单价99，客户老王" />
-          <button className="primary-button" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '处理中...' : '交给AI员工'}</button>
+      <div className="command-console ai-chat-console">
+        <div className="ai-chat-card">
+          <div className="ai-message-row assistant">
+            <div className="ai-message-bubble">老板，我在。你可以直接说“今天生意怎么样”或“哪些商品快没货了”。</div>
+          </div>
+          {result && <div className={`ai-message-row ${result.kind === 'error' ? 'error' : 'assistant'}`}>
+            <div className="ai-message-bubble">
+              <strong>{result.title}</strong>
+              <p>{result.body}</p>
+              {result.kind === 'draft' && <button className="secondary-button" onClick={() => onNavigate('tasks')}>去确认任务</button>}
+            </div>
+          </div>}
+        </div>
+        <div className="command-input-row ai-input-row">
+          <textarea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
+          <button className="primary-button" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '思考中...' : '发送给AI'}</button>
         </div>
         <div className="command-chips">
           {quickCommands.map((text) => <button key={text} onClick={() => void runCommand(text)} disabled={running}>{text}</button>)}
         </div>
-        {result && <div className={`command-result ${result.kind}`}>
-          <strong>{result.title}</strong>
-          <p>{result.body}</p>
-          {result.meta && <small>任务类型：{result.meta}</small>}
-          {result.kind === 'draft' && <button className="secondary-button" onClick={() => onNavigate('tasks')}>去任务中心确认</button>}
-        </div>}
+        <button className="text-link-button" onClick={() => onNavigate('ai')}>打开完整 AI 对话页</button>
       </div>
     </section>
   )
@@ -739,7 +715,9 @@ function EmployeeGrid({ employees }: { employees: AiEmployee[] }) {
     </div>
   )
 }
-function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) { return <div className="stack-list">{suggestions.map((s, index) => <div className={`suggestion-card suggestion-${index % 3}`} key={s.id}><div className="suggestion-title"><i>{['↑','◇','✧'][index % 3]}</i><b>{s.title}</b></div><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small><button>查看建议</button></div>)}</div> }
+function SuggestionList({ suggestions, onAsk }: { suggestions: Suggestion[]; onAsk?: (suggestion: Suggestion) => void }) {
+  return <div className="stack-list">{suggestions.map((s, index) => <div className={`suggestion-card suggestion-${index % 3}`} key={s.id}><div className="suggestion-title"><i>{['↑','◇','✧'][index % 3]}</i><b>{s.title}</b></div><p>{s.summary}</p><small>依据：{s.evidence.join('；')}｜风险：{s.risk}</small><button onClick={() => onAsk?.(s)}>{onAsk ? '和AI聊这件事' : '查看建议'}</button></div>)}</div>
+}
 function ActivityList({ activities }: { activities: Activity[] }) { return <div className="timeline-list">{activities.map((a) => <div className="activity-row" key={a.id}><span>{a.time_label}</span><i></i><div><b>{a.actor_name}</b><p>{a.summary}，{a.impact}</p></div></div>)}</div> }
 
 function SalesPage({ auth, stock, orders, customers, onChanged }: { auth: AuthState; stock: StockItem[]; orders: SalesOrder[]; customers: Customer[]; onChanged: () => void }) {
@@ -928,14 +906,20 @@ function InventoryPage({ auth, items, stock, events, onChanged }: { auth: AuthSt
   return <div className="content-grid"><Panel title="库存操作"><div className="inline-form"><button className="primary-button" disabled={!canWriteInventory || !firstItem} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void stockIn()}>对首个商品入库1</button><button className="secondary-button" disabled={!canWriteInventory || !firstItem} title={canWriteInventory ? '' : '需要库存写入权限'} onClick={() => void stockOut()}>对首个商品出库1</button><button className="secondary-button" disabled={!canExportInventory} title={canExportInventory ? '' : '需要库存导出权限'} onClick={() => void api.exportInventoryLedger(auth)}>导出库存流水CSV</button></div></Panel><Panel title="库存快照"><DataTable rows={stock} columns={['item_name','current_quantity','low_stock_threshold','default_unit']} /></Panel><Panel title="库存流水"><DataTable rows={events} columns={['item_name','event_type','quantity_delta','quantity_after','reason']} /></Panel></div>
 }
 
-function AiPage({ auth, overview, onChanged }: { auth: AuthState; overview: Overview | null; onChanged: () => void }) {
-  const [message, setMessage] = useState('查一下今天销售额')
-  const [draftMessage, setDraftMessage] = useState('卖出1把电动螺丝刀，单价99，客户老王')
-  const [reply, setReply] = useState('')
-  const [draftResult, setDraftResult] = useState('')
-  async function send() { const data = await api.chat(auth, message); setReply(data.reply); onChanged() }
-  async function createDraft() { const data = await api.createSalesOrderDraft(auth, draftMessage); setDraftResult(`已生成待确认销售单：${data.confirmation.confirmation_id}`); onChanged() }
-  return <div className="content-grid"><section className="hero-card"><div><div className="ai-badge">AI运营协调官</div><h1>自然语言经营入口</h1><p>可查询营业数据、库存、热销排行；涉及业务写入时后端会生成待确认任务，审批后才落账。</p></div></section><Panel title="问AI运营协调官"><div className="chat-box"><textarea value={message} onChange={(e) => setMessage(e.target.value)} /><button className="primary-button" onClick={() => void send()}>发送</button>{reply && <div className="assistant-reply">{reply}</div>}</div></Panel><Panel title="AI生成销售单草稿"><div className="chat-box"><textarea value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} /><button className="primary-button" onClick={() => void createDraft()}>生成待确认销售单</button>{draftResult && <div className="assistant-reply">{draftResult}，请到任务中心审批。</div>}</div></Panel><Panel title="建议快捷入口"><SuggestionList suggestions={overview?.suggestions || []} /></Panel></div>
+function AiPage({ auth, overview, onChanged, onNavigate }: { auth: AuthState; overview: Overview | null; onChanged: () => void; onNavigate: (page: Page) => void }) {
+  return <div className="content-grid ai-page-grid">
+    <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
+    <section className="ai-page-panels">
+      <Panel title="你可以直接这样问">
+        <div className="ai-example-grid">
+          {['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '帮我生成一张采购草稿', '我卖了2个扳手，记一下', '有没有需要我马上处理的事？'].map((text) => <div key={text}>{text}</div>)}
+        </div>
+      </Panel>
+      <Panel title="AI主动建议">
+        <SuggestionList suggestions={overview?.suggestions || []} />
+      </Panel>
+    </section>
+  </div>
 }
 
 type TaskViewModel = {

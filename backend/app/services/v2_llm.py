@@ -47,11 +47,20 @@ class LLMService:
 - "扳手多少钱" -> {"intent": "price_query", "item": "扳手", "quantity": null}
 - "今天营业额多少" -> {"intent": "revenue_query", "item": null, "quantity": null}"""
 
-    RESPONSE_PROMPT = """你是店铺库存助手。简洁回复用户问题。
+    RESPONSE_PROMPT = """你是五金店AI经营助手。基于系统给出的真实业务数据，用中文简洁回答老板。
 规则：
-1. 直接回答问题
-2. 使用中文
-3. 如果不确定，请用户确认"""
+1. 不能编造数据，只能解释输入里的真实数据
+2. 查询类直接给结论和下一步建议
+3. 写操作必须提醒需要老板确认后才落账
+4. 如果信息不足，自然追问一个最关键的问题，不要要求用户按固定格式输入"""
+
+    GENERAL_ASSISTANT_PROMPT = """你是五金店AI经营助手，帮助个体户老板管理营业额、库存、销售、采购和待确认任务。
+规则：
+1. 像真人经营助手一样理解自然语言，不要说“不理解”
+2. 如果缺少条件，用一句自然问题追问
+3. 不要要求用户按固定格式输入
+4. 涉及开单、入库、出库、采购等写操作时，说明会先生成待确认草稿，老板确认后才落账
+5. 回答简短、具体、中文"""
 
     def __init__(self, provider: OpenAILLMProvider | None = None):
         self._provider = provider
@@ -363,6 +372,88 @@ class LLMService:
             # Fallback
             return self._mock_generate_response(query_result)
     
+    def generate_business_response(
+        self,
+        *,
+        query_result: dict[str, Any],
+        original_text: str,
+        intent_type: str,
+        history: list[dict] | None = None,
+    ) -> GeneratedResponse:
+        """Generate an AI-native business reply from deterministic tool results."""
+        if self._use_mock:
+            return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.72)
+
+        try:
+            provider = self._get_provider()
+            import json
+
+            messages = [{"role": "system", "content": self.RESPONSE_PROMPT}]
+            if history:
+                messages.extend(history[-4:])
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"老板原话：{original_text}\n"
+                    f"识别意图：{intent_type}\n"
+                    f"真实业务数据JSON：{json.dumps(query_result, ensure_ascii=False, default=str)}\n"
+                    "请基于这些真实数据回复老板。"
+                ),
+            })
+            response = provider.chat(messages, stream=False)
+            return GeneratedResponse(content=response.content.strip(), confidence=0.9)
+        except LLMProviderError as exc:
+            logger.error("LLM business response failed: %s", exc.message)
+            return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.7)
+
+    def generate_general_reply(
+        self,
+        *,
+        original_text: str,
+        intent_type: str = "unknown",
+        history: list[dict] | None = None,
+    ) -> GeneratedResponse:
+        """Generate a helpful general business-assistant reply for ambiguous input."""
+        if self._use_mock:
+            return GeneratedResponse(
+                content="我理解你想让我帮你看店铺经营。你可以直接问：今天生意怎么样、哪些商品快没货、最近什么卖得最好；如果要开单或改库存，我会先生成待确认草稿。",
+                confidence=0.65,
+            )
+
+        try:
+            provider = self._get_provider()
+            messages = [{"role": "system", "content": self.GENERAL_ASSISTANT_PROMPT}]
+            if history:
+                messages.extend(history[-4:])
+            messages.append({"role": "user", "content": original_text})
+            response = provider.chat(messages, stream=False)
+            return GeneratedResponse(content=response.content.strip(), confidence=0.88)
+        except LLMProviderError as exc:
+            logger.error("LLM general reply failed: %s", exc.message)
+            return GeneratedResponse(
+                content="我理解你想让我帮你处理店铺经营问题。你可以直接告诉我目标，比如查营业额、看库存预警、生成销售单或采购草稿，我会先分析再给你下一步。",
+                confidence=0.65,
+            )
+
+    def _build_deterministic_business_reply(self, intent_type: str, query_result: dict[str, Any]) -> str:
+        """Safe deterministic fallback when LLM is unavailable."""
+        if intent_type == "revenue_query" and query_result.get("type") == "revenue_summary":
+            return (
+                f"过去30天营业额为¥{query_result.get('total_revenue', 0):.2f}，"
+                f"毛利润¥{query_result.get('gross_profit', 0):.2f}，"
+                f"共{query_result.get('transaction_count', 0)}笔交易。"
+            )
+        if intent_type == "sales_query" and query_result.get("ranking"):
+            top = query_result["ranking"][0]
+            return f"过去30天卖得最好的是{top['item_name']}，售出{top['total_sold']:.0f}件，销售额¥{top['total_revenue']:.2f}。"
+        if intent_type == "alert_query":
+            count = query_result.get("count", 0)
+            if count:
+                first = query_result["alerts"][0]
+                return f"当前有{count}个库存预警，最需要关注的是{first['item_name']}，还剩{first['current_quantity']}{first['unit']}。"
+            return "当前没有库存预警，库存状态整体正常。"
+        return self._build_fallback_reply_from_query(query_result)
+
     def _build_response_prompt(
         self,
         query_result: dict[str, Any],
@@ -378,6 +469,12 @@ class LLMService:
 用一句话回复店主。"""
         
         return prompt
+
+    def _build_fallback_reply_from_query(self, query_result: dict[str, Any]) -> str:
+        item_name = query_result.get("item_name", "商品")
+        quantity = query_result.get("quantity", 0)
+        unit = query_result.get("unit", "个")
+        return f"{item_name}目前还有{quantity}{unit}，需要我继续帮你判断是否要补货吗？"
     
     def _mock_generate_response(self, query_result: dict[str, Any]) -> GeneratedResponse:
         """Mock response generation."""

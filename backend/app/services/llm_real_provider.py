@@ -406,11 +406,27 @@ def create_llm_provider(
     # Detect provider type from env
     env_provider = os.getenv("LLM_PROVIDER", "openrouter").lower().strip()
 
-    # Config priority: explicit args > env vars > provider defaults
-    _api_key = api_key or os.getenv("LLM_API_KEY") or os.getenv("VOLCANO_API_KEY")
-    _model = model or os.getenv("LLM_MODEL") or os.getenv("VOLCANO_MODEL")
-    _api_url = api_url or os.getenv("LLM_API_URL") or os.getenv("VOLCANO_API_URL")
-    _provider_name = provider_name or os.getenv("LLM_PROVIDER_NAME")
+    # Config priority: explicit args > Business app provider-prefixed env vars > legacy generic/provider vars > defaults.
+    # Business Settings exposes LLM_PROVIDER_API_*; keep legacy LLM_* and VOLCANO_* for compatibility.
+    _api_key = (
+        api_key
+        or os.getenv("LLM_PROVIDER_API_KEY")
+        or os.getenv("LLM_API_KEY")
+        or os.getenv("VOLCANO_API_KEY")
+    )
+    _model = (
+        model
+        or os.getenv("LLM_PROVIDER_MODEL")
+        or os.getenv("LLM_MODEL")
+        or os.getenv("VOLCANO_MODEL")
+    )
+    _api_url = (
+        api_url
+        or os.getenv("LLM_PROVIDER_API_URL")
+        or os.getenv("LLM_API_URL")
+        or os.getenv("VOLCANO_API_URL")
+    )
+    _provider_name = provider_name or os.getenv("LLM_PROVIDER_NAME") or os.getenv("LLM_PROVIDER")
 
     # Provider-specific defaults
     if not _api_url:

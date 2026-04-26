@@ -63,16 +63,25 @@ def chat_v2(
     # Query inventory if needed
     query_result = _query_inventory_for_intent(intent, db_session, context)
     
-    # Generate response with history context
+    # Generate response with history context. Query tools are deterministic; LLM turns their
+    # results into a natural business explanation. Write operations remain confirmation-first.
     if tx_reply:
         reply = tx_reply
-    elif query_result and intent.intent_type not in ("revenue_query", "sales_query", "alert_query"):
-        response = llm_service.generate_response(
-            query_result, user_message, history=chat_session.to_messages()
+    elif query_result:
+        response = llm_service.generate_business_response(
+            query_result=query_result,
+            original_text=user_message,
+            intent_type=intent.intent_type,
+            history=chat_session.to_messages(),
         )
         reply = response.content
     else:
-        reply = _build_fallback_reply(intent, query_result)
+        response = llm_service.generate_general_reply(
+            original_text=user_message,
+            intent_type=intent.intent_type,
+            history=chat_session.to_messages(),
+        )
+        reply = response.content
     
     # Save assistant response to history
     chat_session.add_turn("assistant", reply)
@@ -135,21 +144,30 @@ def chat_stream_v2(
         if query_result:
             yield _sse_event("inventory", {**query_result, "employee": role})
         
-        # 4. Generate and stream response with history context
+        # 4. Generate and stream response with history context. Query tools are deterministic;
+        # LLM turns their results into a natural business explanation.
         reply_text = ""
         if tx_reply:
             reply_text = tx_reply
             for event in _stream_text(reply_text):
                 yield event
-        elif query_result and intent.intent_type not in ("revenue_query", "sales_query", "alert_query"):
-            response = llm_service.generate_response(
-                query_result, user_message, history=chat_session.to_messages()
+        elif query_result:
+            response = llm_service.generate_business_response(
+                query_result=query_result,
+                original_text=user_message,
+                intent_type=intent.intent_type,
+                history=chat_session.to_messages(),
             )
             reply_text = response.content
             for event in _stream_text(reply_text):
                 yield event
         else:
-            reply_text = _build_fallback_reply(intent, query_result)
+            response = llm_service.generate_general_reply(
+                original_text=user_message,
+                intent_type=intent.intent_type,
+                history=chat_session.to_messages(),
+            )
+            reply_text = response.content
             for event in _stream_text(reply_text):
                 yield event
         

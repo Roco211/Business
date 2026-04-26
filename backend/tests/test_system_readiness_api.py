@@ -376,3 +376,41 @@ def test_readiness_endpoint_reports_ready_for_production_redis_rate_limit_backen
     assert payload["checks"]["rate_limit_backend"]["details"]["backend"] == "redis"
     assert payload["checks"]["rate_limit_backend"]["details"]["redis_url_configured"] == "true"
     assert "secret" not in str(payload["checks"]["rate_limit_backend"]["details"])
+
+
+def test_readiness_endpoint_reports_observability_and_alerting_without_webhook_url(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "1")
+    monkeypatch.setenv("APP_ALERT_WEBHOOK_ENABLED", "1")
+    monkeypatch.setenv("APP_ALERT_WEBHOOK_URL", "https://hooks.example.com/secret-token")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["checks"]["observability"]["status"] == "ready"
+    assert payload["checks"]["observability"]["details"]["structured_logging_enabled"] == "true"
+    assert payload["checks"]["observability"]["details"]["request_id_header"] == "X-Request-ID"
+    assert payload["checks"]["alerting"]["status"] == "ready"
+    assert payload["checks"]["alerting"]["details"]["webhook_enabled"] == "true"
+    assert payload["checks"]["alerting"]["details"]["webhook_url_configured"] == "true"
+    assert "hooks.example.com" not in response.text
+    assert "secret-token" not in response.text
+
+
+def test_readiness_endpoint_degrades_production_when_structured_logging_disabled(client, monkeypatch) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://business:secret@postgres:5432/business")
+    monkeypatch.setenv("APP_CORS_ORIGINS", "https://app.example.com")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+    monkeypatch.setenv("APP_RATE_LIMIT_BACKEND", "redis")
+    monkeypatch.setenv("REDIS_URL", "redis://redis:6379/0")
+    monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "0")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["overall_status"] == "degraded"
+    assert payload["checks"]["observability"]["status"] == "degraded"
+    assert payload["checks"]["observability"]["details"]["reason"] == "structured_logging_required"

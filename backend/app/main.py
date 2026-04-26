@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import time
 import uuid
 
 from fastapi import FastAPI, HTTPException, Request
@@ -11,6 +12,7 @@ from pydantic import BaseModel
 from app.api.deps.auth import AuthUnauthorizedError
 from app.api.deps.v2_context import V2ContextRequiredError, V2ForbiddenError, V2UnauthorizedError
 from app.core.config import get_settings
+from app.core.observability import build_request_log_payload, emit_structured_log
 from app.core.production_middleware import (
     build_rate_limit_middleware,
     create_rate_limiter,
@@ -26,15 +28,61 @@ logger = logging.getLogger(__name__)
 
 
 def register_error_logging_middleware(app: FastAPI) -> None:
+    settings = get_settings()
+
     @app.middleware("http")
     async def _log_unhandled_errors(request: Request, call_next):
         request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
+        request.state.request_id = request_id
+        started_at = time.perf_counter()
+        client_ip = request.client.host if request.client else ""
+        user_agent = request.headers.get("User-Agent", "")
         try:
             response = await call_next(request)
+            latency_ms = (time.perf_counter() - started_at) * 1000
             response.headers["X-Request-ID"] = request_id
+            if settings.structured_logging_enabled:
+                emit_structured_log(
+                    logger,
+                    level=logging.INFO,
+                    message="HTTP request completed request_id=%s method=%s path=%s status_code=%s"
+                    % (request_id, request.method, request.url.path, response.status_code),
+                    payload=build_request_log_payload(
+                        event="http_request",
+                        request_id=request_id,
+                        method=request.method,
+                        path=request.url.path,
+                        status_code=response.status_code,
+                        latency_ms=latency_ms,
+                        client_ip=client_ip,
+                        user_agent=user_agent,
+                    ),
+                )
             return response
-        except Exception:
-            logger.exception("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path)
+        except Exception as exc:
+            latency_ms = (time.perf_counter() - started_at) * 1000
+            payload = build_request_log_payload(
+                event="http_request_error",
+                request_id=request_id,
+                method=request.method,
+                path=request.url.path,
+                status_code=500,
+                latency_ms=latency_ms,
+                client_ip=client_ip,
+                user_agent=user_agent,
+                error_code="internal_server_error",
+                exception_type=type(exc).__name__,
+                exception_message=str(exc),
+            )
+            if settings.structured_logging_enabled:
+                emit_structured_log(
+                    logger,
+                    level=logging.ERROR,
+                    message="Unhandled request error request_id=%s method=%s path=%s" % (request_id, request.method, request.url.path),
+                    payload=payload,
+                )
+            else:
+                logger.error("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path)
             return JSONResponse(
                 status_code=500,
                 content=ErrorEnvelope(
@@ -51,8 +99,26 @@ def register_error_logging_middleware(app: FastAPI) -> None:
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def _handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
-        request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
-        logger.exception("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path, exc_info=exc)
+        request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
+        payload = build_request_log_payload(
+            event="http_request_error",
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            status_code=500,
+            latency_ms=0,
+            client_ip=request.client.host if request.client else "",
+            user_agent=request.headers.get("User-Agent", ""),
+            error_code="internal_server_error",
+            exception_type=type(exc).__name__,
+            exception_message=str(exc),
+        )
+        emit_structured_log(
+            logger,
+            level=logging.ERROR,
+            message="Unhandled request error request_id=%s method=%s path=%s" % (request_id, request.method, request.url.path),
+            payload=payload,
+        )
         return JSONResponse(
             status_code=500,
             content=ErrorEnvelope(

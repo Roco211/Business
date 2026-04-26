@@ -145,6 +145,55 @@ def _build_rate_limit_backend_check(*, settings: Settings) -> ReadinessCheckData
         details=details,
     )
 
+def _build_observability_check(*, settings: Settings) -> ReadinessCheckData:
+    app_env = settings.app_env.strip().lower()
+    details = {
+        "app_env": app_env or "development",
+        "structured_logging_enabled": str(settings.structured_logging_enabled).lower(),
+        "request_id_header": "X-Request-ID",
+        "sensitive_log_redaction": "true",
+    }
+    if app_env == "production" and not settings.structured_logging_enabled:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode="disabled",
+            message="Production APP_ENV requires structured request logging with request_id tracing.",
+            details={**details, "reason": "structured_logging_required"},
+        )
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode="structured" if settings.structured_logging_enabled else "plain",
+        message="Observability logging is ready for the current runtime mode.",
+        details=details,
+    )
+
+
+def _build_alerting_check(*, settings: Settings) -> ReadinessCheckData:
+    app_env = settings.app_env.strip().lower()
+    webhook_enabled = settings.alert_webhook_enabled
+    webhook_url_configured = bool(settings.alert_webhook_url.strip())
+    details = {
+        "app_env": app_env or "development",
+        "webhook_enabled": str(webhook_enabled).lower(),
+        "webhook_url_configured": str(webhook_url_configured).lower(),
+        "webhook_url": "[REDACTED]" if webhook_url_configured else "",
+        "alert_sender": "webhook" if webhook_enabled else "mock",
+    }
+    if webhook_enabled and not webhook_url_configured:
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode="webhook",
+            message="Alert webhook is enabled but webhook URL is not configured.",
+            details={**details, "reason": "webhook_url_missing"},
+        )
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode="webhook" if webhook_enabled else "mock",
+        message="Alerting configuration is ready for the current runtime mode.",
+        details=details,
+    )
+
+
 def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> ReadinessCheckData:
     trial_provider_profile = settings.trial_provider_profile.strip()
     asr_provider_label = settings.asr_provider_label.strip()
@@ -381,6 +430,8 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
         "production_database": _build_production_database_check(settings=settings),
         "production_config": _build_production_config_check(settings=settings),
         "rate_limit_backend": _build_rate_limit_backend_check(settings=settings),
+        "observability": _build_observability_check(settings=settings),
+        "alerting": _build_alerting_check(settings=settings),
     }
 
     overall_status = READY_STATUS

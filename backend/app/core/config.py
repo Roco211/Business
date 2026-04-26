@@ -21,6 +21,9 @@ class Settings:
     app_cors_origins_raw: str = ""
     rate_limit_per_minute: int = 0
     rate_limit_backend: str = "memory"
+    structured_logging_enabled: bool = True
+    alert_webhook_enabled: bool = False
+    alert_webhook_url: str = ""
     security_headers_enabled: bool = False
     backup_dir: str = "/app/backups"
     session_stream_keepalive_seconds: float = 20.0
@@ -147,6 +150,9 @@ def get_settings() -> Settings:
         app_cors_origins_raw=os.getenv("APP_CORS_ORIGINS", ""),
         rate_limit_per_minute=int(os.getenv("APP_RATE_LIMIT_PER_MINUTE", "0")),
         rate_limit_backend=os.getenv("APP_RATE_LIMIT_BACKEND", "memory"),
+        structured_logging_enabled=_parse_bool_env(os.getenv("APP_STRUCTURED_LOGGING_ENABLED"), True),
+        alert_webhook_enabled=_parse_bool_env(os.getenv("APP_ALERT_WEBHOOK_ENABLED"), False),
+        alert_webhook_url=os.getenv("APP_ALERT_WEBHOOK_URL", ""),
         security_headers_enabled=_parse_bool_env(os.getenv("APP_SECURITY_HEADERS_ENABLED"), app_env.lower() == "production"),
         backup_dir=os.getenv("BACKUP_DIR", "/app/backups"),
         session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),

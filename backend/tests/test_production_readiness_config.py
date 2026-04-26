@@ -117,3 +117,102 @@ def test_create_rate_limiter_uses_redis_backend_when_configured(monkeypatch):
 
     assert isinstance(limiter, RedisRateLimiter)
     assert "secret" not in limiter.key_prefix
+
+
+def test_sanitize_for_log_redacts_sensitive_values():
+    from app.core.observability import sanitize_for_log
+
+    payload = {
+        "Authorization": "Bearer should-not-leak",
+        "nested": {
+            "password": "plain-password",
+            "api_key": "provider-key",
+            "redis_url": "redis://:secret@redis:6379/0",
+            "safe": "visible",
+        },
+        "message": "failed with token=abc123 and password=secret-value",
+    }
+
+    sanitized = sanitize_for_log(payload)
+
+    assert sanitized["Authorization"] == "[REDACTED]"
+    assert sanitized["nested"]["password"] == "[REDACTED]"
+    assert sanitized["nested"]["api_key"] == "[REDACTED]"
+    assert sanitized["nested"]["redis_url"] == "[REDACTED]"
+    assert sanitized["nested"]["safe"] == "visible"
+    assert "abc123" not in sanitized["message"]
+    assert "secret-value" not in sanitized["message"]
+    assert "[REDACTED]" in sanitized["message"]
+
+
+def test_app_emits_structured_request_log_with_request_id(monkeypatch, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO)
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
+    monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "1")
+
+    import app.core.config as config
+    import app.main as main
+
+    reload(config)
+    reload(main)
+    client = TestClient(main.create_app())
+
+    response = client.get("/api/v2/health", headers={"X-Request-ID": "req_k4_success"})
+
+    assert response.status_code == 200
+    assert response.headers["x-request-id"] == "req_k4_success"
+    request_logs = [
+        record.structured_payload
+        for record in caplog.records
+        if hasattr(record, "structured_payload") and record.structured_payload.get("event") == "http_request"
+    ]
+    assert request_logs
+    payload = request_logs[-1]
+    assert payload["request_id"] == "req_k4_success"
+    assert payload["method"] == "GET"
+    assert payload["path"] == "/api/v2/health"
+    assert payload["status_code"] == "200"
+    assert float(payload["latency_ms"]) >= 0
+
+
+def test_app_logs_unhandled_errors_with_sanitized_structured_payload(monkeypatch, caplog):
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
+    monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "1")
+
+    import app.core.config as config
+    import app.main as main
+
+    reload(config)
+    reload(main)
+    app = main.create_app()
+
+    @app.get("/boom-for-k4-sanitized-log-test")
+    def boom_for_k4_sanitized_log_test():
+        raise RuntimeError("provider failed token=abc123 password=secret-value")
+
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.get("/boom-for-k4-sanitized-log-test", headers={"X-Request-ID": "req_k4_error"})
+
+    assert response.status_code == 500
+    response_text = response.text
+    assert "abc123" not in response_text
+    assert "secret-value" not in response_text
+    assert response.headers["x-request-id"] == "req_k4_error"
+
+    error_logs = [
+        record.structured_payload
+        for record in caplog.records
+        if hasattr(record, "structured_payload") and record.structured_payload.get("event") == "http_request_error"
+    ]
+    assert error_logs
+    payload = error_logs[-1]
+    assert payload["request_id"] == "req_k4_error"
+    assert payload["path"] == "/boom-for-k4-sanitized-log-test"
+    assert payload["status_code"] == "500"
+    assert payload["exception_type"] == "RuntimeError"
+    assert "abc123" not in str(payload)
+    assert "secret-value" not in str(payload)

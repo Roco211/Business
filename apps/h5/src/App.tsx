@@ -1191,6 +1191,7 @@ function CommercialTrialAcceptancePage({ overview, items, stock, events, orders,
     { title: '多租户/门店隔离', owner: '平台安全', status: 'passed', summary: '核心业务查询按 tenant_id + shop_id 限定，跨租户资源统一隐藏。', evidence: ['tenant/shop context token', '商品详情/修改/删除跨租户统一 404'], route: 'dashboard' },
     { title: '关键操作审计', owner: '平台安全', status: 'passed', summary: '销售、采购、客户、导出等关键动作写入 V2AuditLog。', evidence: ['审计动作覆盖核心商业操作', '导出行为也写审计'], route: 'inventory' },
     { title: 'CSV导出', owner: '营业数据员', status: 'passed', summary: '销售单、采购单、财务流水、库存流水由后端真实数据导出，并按角色权限分级保护。', evidence: ['四类CSV导出接口', '受 tenant/shop 隔离与 RBAC 约束'], route: 'finance' },
+    { title: '异步导出', owner: '营业数据员', status: 'passed', summary: '已新增导出任务表、任务状态查询与完成后下载，避免大数据量 CSV 同步阻塞请求。', evidence: ['K5 已完成', '创建/完成/下载均写审计', '任务绑定 tenant/shop/account'], route: 'finance' },
     { title: 'RBAC权限角色', owner: '平台安全', status: 'passed', summary: '已补齐 owner/clerk/finance 基础商用角色，关键写入、审批、财务与导出均由后端强制校验。', evidence: ['K1 已完成', '无权限返回 403 permission_denied'], route: 'dashboard' },
     { title: 'request_id错误追踪', owner: '平台运维', status: 'passed', summary: '未处理异常返回并记录 X-Request-ID，便于定位问题。', evidence: ['统一错误结构', '不泄露敏感信息'], route: 'dashboard' },
     { title: '结构化日志', owner: '平台运维', status: 'passed', summary: '请求链路日志已包含 request_id、path、status_code、latency_ms 等结构化字段，支持线上排障。', evidence: ['K4 已完成', 'token/password/secret 自动脱敏'], route: 'dashboard' },
@@ -1200,7 +1201,7 @@ function CommercialTrialAcceptancePage({ overview, items, stock, events, orders,
     { title: 'PostgreSQL生产配置', owner: '平台运维', status: 'passed', summary: 'APP_ENV=production 时 readiness 会要求 PostgreSQL-compatible DATABASE_URL，SQLite 不会被误判为正式生产 ready。', evidence: ['不输出数据库连接串', 'SQLite 仅适合本地演示/试运行'], route: 'dashboard' },
     { title: 'Redis限流', owner: '平台运维', status: 'passed', summary: '限流后端已支持 memory/redis；APP_ENV=production 且启用限流时 readiness 要求 Redis-backed backend。', evidence: ['K3 已完成', '不输出 REDIS_URL/密码'], route: 'dashboard' },
     { title: 'Provider trial安全边界', owner: 'AI平台', status: 'before-production', summary: '真实 Provider 小流量试运行必须显式 opt-in，默认不读取凭证、不访问真实 Provider。', evidence: ['RUN_PROVIDER_TRIAL_PREFLIGHT=0 默认关闭', 'API key/token 不输出'], route: 'ai' },
-    { title: '生产前补强', owner: '平台负责人', status: 'before-production', summary: '正式商用前建议继续补齐异步导出、HTTPS/域名、真实短信。', evidence: ['RBAC、生产预检、Redis限流、结构化日志告警基础已完成', '生产规模化仍需补强'], route: 'coming-soon' }
+    { title: '生产前补强', owner: '平台负责人', status: 'before-production', summary: '正式商用前建议继续补齐 HTTPS/域名、真实短信。', evidence: ['RBAC、生产预检、Redis限流、结构化日志告警、异步导出已完成', '生产规模化仍需补强'], route: 'coming-soon' }
   ]
   const allItems = [...businessItems, ...aiItems, ...hardeningItems]
   const passedCount = allItems.filter((item) => item.status === 'passed' || item.status === 'trial').length
@@ -1231,7 +1232,7 @@ function CommercialTrialAcceptancePage({ overview, items, stock, events, orders,
       <AcceptanceSection title="商用硬化与部署" description="试运行必须具备的隔离、审计、导出、错误追踪、部署和安全边界。" items={hardeningItems} onNavigate={onNavigate} />
       <Panel title="J6 验收结论">
         <div className="trial-conclusion">
-          <p><b>当前判断：</b>Business 已具备商用试运行入口，可以给老板按引导流程试用；但正式规模化商用前仍建议完成异步导出、HTTPS/域名、真实短信验证码等 Phase K 补强。</p>
+          <p><b>当前判断：</b>Business 已具备商用试运行入口，可以给老板按引导流程试用；但正式规模化商用前仍建议完成 HTTPS/域名、真实短信验证码等 Phase K 补强。</p>
           <button className="primary-button" onClick={() => onNavigate('dashboard')}>回到AI工作台</button>
           <button className="secondary-button" onClick={() => onNavigate('tasks')}>查看待确认任务</button>
           <button className="secondary-button" onClick={() => onNavigate('execution-recaps')}>查看AI执行复盘</button>

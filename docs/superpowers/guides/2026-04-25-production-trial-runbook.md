@@ -44,7 +44,8 @@ APP_ALERT_WEBHOOK_URL='[REDACTED]'
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`；
 - Redis-backed rate limiting，正式生产多实例通过 Redis 共享限流窗口；本地 demo 可继续使用 `APP_RATE_LIMIT_BACKEND=memory`；
 - 结构化请求日志，包含 `X-Request-ID`、path、status、latency 等字段；
-- 告警 webhook 配置预留，默认关闭，真实 webhook URL 不进入 readiness details。
+- 告警 webhook 配置预留，默认关闭，真实 webhook URL 不进入 readiness details；
+- 异步导出任务表与下载接口，销售/采购/财务/库存流水 CSV 可先创建任务、完成后下载，避免大数据量同步阻塞请求。
 
 注意：`REDIS_URL`、`APP_ALERT_WEBHOOK_URL` 不会出现在 readiness details 或错误响应中，生产环境启用限流时 readiness 要求 `APP_RATE_LIMIT_BACKEND=redis`。
 
@@ -109,6 +110,7 @@ bash backend/scripts/run_backend_preflight.sh
 - `APP_RATE_LIMIT_BACKEND=redis`，且 `REDIS_URL` 指向生产 Redis；
 - `APP_STRUCTURED_LOGGING_ENABLED=1`，并确认错误响应/日志可通过 `X-Request-ID` 追踪；
 - 如启用真实告警，`APP_ALERT_WEBHOOK_ENABLED=1` 且 `APP_ALERT_WEBHOOK_URL` 已配置，但不得在日志或文档中输出原文；
+- 大数据量 CSV 使用 `/api/v2/exports/jobs` 异步导出任务，不让同步导出阻塞请求；
 - 备份脚本跑通并下载到异地；
 - Provider trial 使用小样本验证，并检查 fallback/低置信率；
 - 确认 `.env`、数据库文件、任何凭证没有提交到 Git。

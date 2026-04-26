@@ -22,7 +22,7 @@ from app.models.v2_conversation import (
     V2TaskDraft,
     V2TaskRun,
 )
-from app.models.v2_governance import V2AuditLog, V2OutboxEvent
+from app.models.v2_governance import V2AuditLog, V2ExportJob, V2OutboxEvent
 from app.models.v2_inventory import (
     V2InventoryItem,
     V2InventoryLedgerEvent,
@@ -71,6 +71,7 @@ __all__ = [
     "V2Confirmation",
     "V2ConversationSession",
     "V2AuditLog",
+    "V2ExportJob",
     "V2InventoryItem",
     "V2InventoryLedgerEvent",
     "V2InventoryStockSnapshot",

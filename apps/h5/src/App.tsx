@@ -197,7 +197,7 @@ function App() {
         {page === 'products' && <ProductsPage auth={auth} items={items} onChanged={() => void refresh()} />}
         {page === 'inventory' && <InventoryPage auth={auth} items={items} stock={stock} events={events} onChanged={() => void refresh()} />}
         {page === 'ai' && <AiPage auth={auth} overview={overview} onChanged={() => void refresh()} onNavigate={setPage} />}
-        {page === 'tasks' && <TasksPage auth={auth} confirmations={confirmations} onChanged={() => void refresh()} />}
+        {page === 'tasks' && <TasksPage auth={auth} confirmations={confirmations} onChanged={() => void refresh()} onNavigate={setPage} />}
         {page === 'coming-soon' && <ComingSoon />}
         {notificationOpen && overview && <NotificationCenter notifications={overview.notifications} onClose={() => setNotificationOpen(false)} onNavigate={(nextPage) => { setNotificationOpen(false); setPage(nextPage) }} />}
       </main>
@@ -1025,7 +1025,7 @@ function formatDateTime(value?: string) {
   return date.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void }) {
+function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthState; confirmations: Confirmation[]; onChanged: () => void; onNavigate: (page: Page) => void }) {
   const [executionRecaps, setExecutionRecaps] = useState<Confirmation[]>([])
   const canApprove = hasPermission(auth, 'confirmations:approve')
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -1053,6 +1053,10 @@ function TasksPage({ auth, confirmations, onChanged }: { auth: AuthState; confir
       {executionRecaps.length > 0 && <Panel title="刚刚完成的AI执行复盘">
         <div className="execution-recap-list">
           {executionRecaps.map((confirmation) => <ExecutionRecapCard key={confirmation.confirmation_id} confirmation={confirmation} />)}
+        </div>
+        <div className="post-approval-actions">
+          <button className="primary-button" onClick={() => onNavigate('execution-recaps')}>查看完整执行复盘</button>
+          <button className="secondary-button" onClick={() => onNavigate('sales')}>查看销售单与流水</button>
         </div>
       </Panel>}
       <Panel title="等待老板确认的AI任务">

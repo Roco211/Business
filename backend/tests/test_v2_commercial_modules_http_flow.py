@@ -169,6 +169,19 @@ def test_purchase_supplier_customer_finance_and_ai_sales_order_confirmation(clie
     assert sales_execution_result["next_route"] == "/sales"
     orders = client.get("/api/v2/sales/orders?limit=50", headers=headers).json()["data"]["orders"]
     assert any(order["customer_name"] == "老王" for order in orders)
+    execution_recaps = client.get("/api/v2/pc-dashboard/execution-recaps?limit=10", headers=headers)
+    assert execution_recaps.status_code == 200
+    recap_data = execution_recaps.json()["data"]
+    matching_recaps = [item for item in recap_data["items"] if item["confirmation_id"] == confirmation_id]
+    assert matching_recaps, "approved AI sales confirmation must be visible in execution recaps"
+    sales_recap = matching_recaps[0]
+    assert sales_recap["kind"] == "sales.order_create"
+    assert sales_recap["status"] == "committed"
+    assert sales_recap["summary"].startswith("已创建销售单")
+    assert "已扣减库存" in sales_recap["effects"]
+    assert "已记录销售收入" in sales_recap["effects"]
+    assert sales_recap["next_route"] == "/sales"
+    assert any("execution_result.status=committed" in evidence for evidence in sales_recap["evidence"])
 
     purchase_before = len(client.get("/api/v2/purchasing/orders?limit=50", headers=headers).json()["data"]["purchase_orders"])
     purchase_draft = client.post(

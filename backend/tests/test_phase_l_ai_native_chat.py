@@ -85,7 +85,7 @@ def test_get_llm_service_uses_real_provider_when_business_prefixed_config_exists
     monkeypatch.setenv("LLM_PROVIDER_API_URL", "https://openrouter.ai/api/v1")
     monkeypatch.setenv("LLM_PROVIDER_MODEL", "test/model:free")
     monkeypatch.setattr(v2_llm, "_llm_service", None)
-    monkeypatch.setattr(v2_llm, "create_llm_provider", lambda: _FakeProvider())
+    monkeypatch.setattr(v2_llm, "create_llm_provider", lambda **_: _FakeProvider())
 
     service = v2_llm.get_llm_service()
 

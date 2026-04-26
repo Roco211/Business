@@ -702,8 +702,12 @@ def _build_committed_execution_recaps(db_session: Session, *, tenant_id: str, sh
         if execution_result.get("status") != "committed":
             continue
         kind = str(execution_result.get("kind") or confirmation.confirmation_type or "ai_task")
-        effects = execution_result.get("effects")
-        if not isinstance(effects, list):
+        raw_effects = execution_result.get("effects")
+        if isinstance(raw_effects, dict):
+            effects = [str(value) for value in raw_effects.values() if value]
+        elif isinstance(raw_effects, list):
+            effects = [str(effect) for effect in raw_effects if effect]
+        else:
             effects = []
         items.append(
             {
@@ -712,7 +716,7 @@ def _build_committed_execution_recaps(db_session: Session, *, tenant_id: str, sh
                 "kind": kind,
                 "status": "committed",
                 "summary": str(execution_result.get("summary") or task.result_summary or "AI任务已完成并落账"),
-                "effects": [str(effect) for effect in effects],
+                "effects": effects,
                 "next_route": str(execution_result.get("next_route") or "/tasks"),
                 "created_at": confirmation.created_at.isoformat() if confirmation.created_at is not None else "",
                 "resolved_at": confirmation.resolved_at.isoformat() if confirmation.resolved_at is not None else "",

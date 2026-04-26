@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.services.llm_real_provider import (
     LLMProviderError,
@@ -92,6 +93,13 @@ class LLMService:
             intent = self._mock_parse_intent(text)
             # Apply context resolution if item_name is missing
             return self._resolve_context(intent, text, history)
+
+        # Fast path: high-confidence operational phrases should not block on remote LLM.
+        # The LLM remains available as fallback for genuinely ambiguous input, while common
+        # owner questions like “今天生意怎么样” answer from deterministic business tools first.
+        rule_intent = self._rule_based_parse_intent(text)
+        if rule_intent.intent_type != "unknown" and rule_intent.confidence >= 0.75:
+            return self._resolve_context(rule_intent, text, history)
         
         try:
             provider = self._get_provider()
@@ -229,7 +237,7 @@ class LLMService:
             )
         
         # Detect revenue query patterns
-        if any(kw in text for kw in ["营业额", "营收", "赚了", "收入", "利润", "毛利", "赚多少", "卖了多少"]):
+        if any(kw in text for kw in ["营业额", "营收", "赚了", "收入", "利润", "毛利", "赚多少", "卖了多少", "生意", "经营", "今天店里", "店里情况", "怎么样"]):
             return ParsedIntent(
                 intent_type="revenue_query",
                 item_name=None,
@@ -384,6 +392,9 @@ class LLMService:
         if self._use_mock:
             return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.72)
 
+        if self._should_use_fast_business_reply(intent_type, query_result, original_text):
+            return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.82)
+
         try:
             provider = self._get_provider()
             import json
@@ -434,6 +445,23 @@ class LLMService:
                 content="我理解你想让我帮你处理店铺经营问题。你可以直接告诉我目标，比如查营业额、看库存预警、生成销售单或采购草稿，我会先分析再给你下一步。",
                 confidence=0.65,
             )
+
+    def _should_use_fast_business_reply(self, intent_type: str, query_result: dict[str, Any], original_text: str) -> bool:
+        """Return deterministic business replies for high-frequency dashboard questions.
+
+        These answers are already grounded in backend tool results. Skipping remote LLM here
+        prevents basic owner queries from hanging when the free provider is slow, while still
+        leaving LLM generation for ambiguous/general business conversation.
+        """
+        query_type = query_result.get("type")
+        if intent_type in {"revenue_query", "sales_query", "alert_query"}:
+            return True
+        normalized = original_text.strip()
+        return any(kw in normalized for kw in ("今天生意", "生意怎么样", "经营情况", "店里情况")) and query_type in {
+            "revenue_summary",
+            "sales_ranking",
+            "low_stock_alerts",
+        }
 
     def _build_deterministic_business_reply(self, intent_type: str, query_result: dict[str, Any]) -> str:
         """Safe deterministic fallback when LLM is unavailable."""
@@ -497,7 +525,12 @@ def get_llm_service() -> LLMService:
     if _llm_service is None:
         try:
             # Try to create with real provider
-            provider = create_llm_provider()
+            settings = get_settings()
+            provider = create_llm_provider(
+                timeout_seconds=settings.llm_timeout_seconds,
+                max_tokens=settings.llm_max_tokens,
+                temperature=settings.llm_temperature,
+            )
             _llm_service = LLMService(provider=provider)
             logger.info("LLM service initialized with real provider")
         except ValueError:

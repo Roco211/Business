@@ -29,6 +29,8 @@ docker compose -f infra/docker/docker-compose.production.yml up -d --build
 APP_CORS_ORIGINS='https://app.example.com,https://admin.example.com'
 APP_SECURITY_HEADERS_ENABLED=1
 APP_RATE_LIMIT_PER_MINUTE=120
+APP_RATE_LIMIT_BACKEND=redis
+REDIS_URL='redis://redis:6379/0'
 ```
 
 已实现：
@@ -37,9 +39,9 @@ APP_RATE_LIMIT_PER_MINUTE=120
 - `X-Frame-Options: DENY`；
 - `Referrer-Policy: strict-origin-when-cross-origin`；
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`；
-- 轻量 per-process rate limiting，商用试运行默认每 IP 每分钟 120 次。
+- Redis-backed rate limiting，正式生产多实例通过 Redis 共享限流窗口；本地 demo 可继续使用 `APP_RATE_LIMIT_BACKEND=memory`。
 
-注意：多实例正式生产建议改为 Redis-backed rate limiting。
+注意：`REDIS_URL` 不会出现在 readiness details 或错误响应中，生产环境启用限流时 readiness 要求 `APP_RATE_LIMIT_BACKEND=redis`。
 
 ## 3. 备份与恢复
 
@@ -99,6 +101,7 @@ bash backend/scripts/run_backend_preflight.sh
 - `POSTGRES_PASSWORD` 使用强密码；
 - `APP_CORS_ORIGINS` 为真实域名，不使用 `*`；
 - `APP_RATE_LIMIT_PER_MINUTE` 已按试运行流量设置；
+- `APP_RATE_LIMIT_BACKEND=redis`，且 `REDIS_URL` 指向生产 Redis；
 - 备份脚本跑通并下载到异地；
 - Provider trial 使用小样本验证，并检查 fallback/低置信率；
 - 确认 `.env`、数据库文件、任何凭证没有提交到 Git。

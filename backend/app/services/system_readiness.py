@@ -94,6 +94,7 @@ def _build_production_config_check(*, settings: Settings) -> ReadinessCheckData:
         "cors_wildcard_enabled": str(any(origin == "*" for origin in cors_origins)).lower(),
         "security_headers_enabled": str(settings.security_headers_enabled).lower(),
         "rate_limit_per_minute": str(settings.rate_limit_per_minute),
+        "rate_limit_backend": settings.rate_limit_backend.strip().lower() or "memory",
     }
     if reasons:
         return ReadinessCheckData(
@@ -109,6 +110,40 @@ def _build_production_config_check(*, settings: Settings) -> ReadinessCheckData:
         details=details,
     )
 
+
+
+def _build_rate_limit_backend_check(*, settings: Settings) -> ReadinessCheckData:
+    app_env = settings.app_env.strip().lower()
+    backend = settings.rate_limit_backend.strip().lower() or "memory"
+    rate_limit_enabled = settings.rate_limit_per_minute > 0
+    details = {
+        "app_env": app_env or "development",
+        "backend": backend,
+        "rate_limit_per_minute": str(settings.rate_limit_per_minute),
+        "rate_limit_enabled": str(rate_limit_enabled).lower(),
+        "requires_redis": str(app_env == "production" and rate_limit_enabled).lower(),
+        "redis_url_configured": str(bool(settings.redis_url.strip())).lower(),
+    }
+    if app_env == "production" and rate_limit_enabled and backend != "redis":
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=backend,
+            message="Production APP_ENV with rate limiting enabled requires Redis-backed rate limit backend.",
+            details={**details, "reason": "redis_rate_limit_backend_required"},
+        )
+    if app_env == "production" and rate_limit_enabled and backend == "redis" and not settings.redis_url.strip():
+        return ReadinessCheckData(
+            status=DEGRADED_STATUS,
+            mode=backend,
+            message="Redis-backed rate limit backend requires REDIS_URL to be configured.",
+            details={**details, "reason": "redis_url_missing"},
+        )
+    return ReadinessCheckData(
+        status=READY_STATUS,
+        mode=backend,
+        message="Rate limit backend is ready for the current runtime mode.",
+        details=details,
+    )
 
 def _build_trial_profile_check(*, settings: Settings, runtime_mode: str) -> ReadinessCheckData:
     trial_provider_profile = settings.trial_provider_profile.strip()
@@ -345,6 +380,7 @@ def build_system_readiness(settings: Settings) -> SystemReadinessData:
         "trial_profile": _build_trial_profile_check(settings=settings, runtime_mode=runtime_mode),
         "production_database": _build_production_database_check(settings=settings),
         "production_config": _build_production_config_check(settings=settings),
+        "rate_limit_backend": _build_rate_limit_backend_check(settings=settings),
     }
 
     overall_status = READY_STATUS

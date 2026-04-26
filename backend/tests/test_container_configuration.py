@@ -37,11 +37,12 @@ def test_resolve_alembic_database_url_builds_mysql_url_from_mysql_env(monkeypatc
     assert resolved == "mysql+pymysql://aism:aism_password@mysql:3306/ai_store_manager?charset=utf8mb4"
 
 
-def test_backend_dockerfile_preserves_backend_subdirectory_for_alembic() -> None:
+def test_backend_dockerfile_preserves_runtime_layout_for_alembic_and_h5() -> None:
     dockerfile = Path("backend/Dockerfile").read_text(encoding="utf-8")
 
-    assert "COPY backend /app/backend" in dockerfile
-    assert "ENV PYTHONPATH=/app/backend" in dockerfile
+    assert "WORKDIR /app" in dockerfile
+    assert "COPY backend/ ." in dockerfile
+    assert "COPY --from=h5-builder /workspace/apps/h5/dist /app/app/static/h5" in dockerfile
 
 
 def test_settings_direct_construction_defaults_pending_poll_seconds() -> None:

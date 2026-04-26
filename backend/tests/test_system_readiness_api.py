@@ -305,6 +305,7 @@ def test_readiness_endpoint_degrades_production_when_database_is_sqlite(client, 
     monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com")
     monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
     monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+    monkeypatch.setenv("APP_RATE_LIMIT_BACKEND", "redis")
 
     response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
 
@@ -324,6 +325,7 @@ def test_readiness_endpoint_reports_ready_for_production_postgres_and_safe_confi
     monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com,https://admin.business.example.com")
     monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
     monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+    monkeypatch.setenv("APP_RATE_LIMIT_BACKEND", "redis")
 
     response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
 
@@ -338,3 +340,39 @@ def test_readiness_endpoint_reports_ready_for_production_postgres_and_safe_confi
     assert payload["checks"]["production_config"]["details"]["cors_origin_count"] == "2"
     assert payload["checks"]["production_config"]["details"]["security_headers_enabled"] == "true"
     assert payload["checks"]["production_config"]["details"]["rate_limit_per_minute"] == "120"
+
+
+def test_readiness_endpoint_degrades_production_when_rate_limit_uses_memory_backend(client, monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://business:secret@postgres:5432/business")
+    monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+    monkeypatch.setenv("APP_RATE_LIMIT_BACKEND", "memory")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["checks"]["rate_limit_backend"]["status"] == "degraded"
+    assert payload["checks"]["rate_limit_backend"]["details"]["backend"] == "memory"
+    assert payload["checks"]["rate_limit_backend"]["details"]["requires_redis"] == "true"
+
+
+def test_readiness_endpoint_reports_ready_for_production_redis_rate_limit_backend(client, monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://business:secret@postgres:5432/business")
+    monkeypatch.setenv("APP_CORS_ORIGINS", "https://business.example.com")
+    monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "1")
+    monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "120")
+    monkeypatch.setenv("APP_RATE_LIMIT_BACKEND", "redis")
+    monkeypatch.setenv("REDIS_URL", "redis://:secret@redis:6379/0")
+
+    response = client.get("/api/v1/system/readiness", headers=_auth_headers(client, monkeypatch))
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["checks"]["rate_limit_backend"]["status"] == "ready"
+    assert payload["checks"]["rate_limit_backend"]["details"]["backend"] == "redis"
+    assert payload["checks"]["rate_limit_backend"]["details"]["redis_url_configured"] == "true"
+    assert "secret" not in str(payload["checks"]["rate_limit_backend"]["details"])

@@ -16,3 +16,4 @@ pillow==10.4.0
 openai==1.70.0
 requests==2.32.3
 python-multipart==0.0.9
+redis==5.0.8

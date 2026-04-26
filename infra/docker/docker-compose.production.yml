@@ -41,6 +41,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:?APP_CORS_ORIGINS is required}
       APP_RATE_LIMIT_PER_MINUTE: ${APP_RATE_LIMIT_PER_MINUTE:-120}
+      APP_RATE_LIMIT_BACKEND: ${APP_RATE_LIMIT_BACKEND:-redis}
       APP_SECURITY_HEADERS_ENABLED: "1"
       BACKUP_DIR: /app/backups
     command: alembic -c /app/alembic.ini upgrade head
@@ -60,6 +61,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:?APP_CORS_ORIGINS is required}
       APP_RATE_LIMIT_PER_MINUTE: ${APP_RATE_LIMIT_PER_MINUTE:-120}
+      APP_RATE_LIMIT_BACKEND: ${APP_RATE_LIMIT_BACKEND:-redis}
       APP_SECURITY_HEADERS_ENABLED: "1"
       BACKUP_DIR: /app/backups
       OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-mock}

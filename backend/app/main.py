@@ -12,8 +12,8 @@ from app.api.deps.auth import AuthUnauthorizedError
 from app.api.deps.v2_context import V2ContextRequiredError, V2ForbiddenError, V2UnauthorizedError
 from app.core.config import get_settings
 from app.core.production_middleware import (
-    InMemoryRateLimiter,
     build_rate_limit_middleware,
+    create_rate_limiter,
     security_headers_middleware,
 )
 from app.contracts.common import ErrorBody, ErrorEnvelope
@@ -152,7 +152,7 @@ def create_app() -> FastAPI:
         app.middleware("http")(security_headers_middleware)
     if settings.rate_limit_per_minute > 0:
         app.middleware("http")(
-            build_rate_limit_middleware(InMemoryRateLimiter(settings.rate_limit_per_minute))
+            build_rate_limit_middleware(create_rate_limiter(settings))
         )
     app.state.session_stream_manager = SessionStreamConnectionManager(
         keepalive_interval_seconds=settings.session_stream_keepalive_seconds,

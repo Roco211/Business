@@ -18,11 +18,12 @@ class Settings:
     app_port: int
     redis_url: str
     database_url: str
-    app_cors_origins_raw: str
-    rate_limit_per_minute: int
-    security_headers_enabled: bool
-    backup_dir: str
-    session_stream_keepalive_seconds: float
+    app_cors_origins_raw: str = ""
+    rate_limit_per_minute: int = 0
+    rate_limit_backend: str = "memory"
+    security_headers_enabled: bool = False
+    backup_dir: str = "/app/backups"
+    session_stream_keepalive_seconds: float = 20.0
     session_stream_pending_poll_seconds: float = float(os.getenv("SESSION_STREAM_PENDING_POLL_SECONDS", "1"))
     v2_outbox_due_sweep_interval_seconds: int = int(os.getenv("V2_OUTBOX_DUE_SWEEP_INTERVAL_SECONDS", "30"))
     v2_outbox_due_sweep_scope_limit: int = int(os.getenv("V2_OUTBOX_DUE_SWEEP_SCOPE_LIMIT", "20"))
@@ -145,6 +146,7 @@ def get_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL", _build_default_database_url()),
         app_cors_origins_raw=os.getenv("APP_CORS_ORIGINS", ""),
         rate_limit_per_minute=int(os.getenv("APP_RATE_LIMIT_PER_MINUTE", "0")),
+        rate_limit_backend=os.getenv("APP_RATE_LIMIT_BACKEND", "memory"),
         security_headers_enabled=_parse_bool_env(os.getenv("APP_SECURITY_HEADERS_ENABLED"), app_env.lower() == "production"),
         backup_dir=os.getenv("BACKUP_DIR", "/app/backups"),
         session_stream_keepalive_seconds=float(os.getenv("SESSION_STREAM_KEEPALIVE_SECONDS", "20")),

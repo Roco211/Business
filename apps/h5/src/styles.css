@@ -23,6 +23,11 @@
 body{margin:0;background:var(--page)}
 button,input,textarea,select{font:inherit}
 button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.62}
+input,textarea,select{outline:none;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}
+input:focus,textarea:focus,select:focus{border-color:#c7bbff!important;box-shadow:0 0 0 4px rgba(108,77,255,.11);background:#fff}
+.primary-button,.secondary-button,.ghost-button,.guide-button,.detail-button,.drawer-close,.diagnostic-button{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease,color .16s ease}
+.primary-button:hover:not(:disabled),.secondary-button:hover:not(:disabled),.ghost-button:hover:not(:disabled),.guide-button:hover:not(:disabled),.detail-button:hover:not(:disabled),.diagnostic-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 24px rgba(84,74,150,.12)}
 
 .app-shell{display:flex;min-height:100vh;background:linear-gradient(135deg,#fafaff 0%,#f3f4ff 100%)}
 .sidebar{width:288px;background:#fff;border-right:1px solid #eeeef6;padding:30px 22px 24px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;box-shadow:8px 0 30px rgba(87,86,126,.04)}

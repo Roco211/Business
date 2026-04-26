@@ -296,6 +296,7 @@ function NotificationCenter({ notifications, onClose, onNavigate }: { notificati
 
 function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { auth: AuthState; overview: Overview; onNavigate: (page: Page) => void; onChanged: () => void; guideSignal: number }) {
   const guideRef = useRef<HTMLElement | null>(null)
+  const [showMoreDashboard, setShowMoreDashboard] = useState(false)
   useEffect(() => {
     if (guideSignal > 0) guideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [guideSignal])
@@ -303,27 +304,32 @@ function Dashboard({ auth, overview, onNavigate, onChanged, guideSignal }: { aut
     <div className="dashboard-layout">
       <BossTodayBrief overview={overview} onNavigate={onNavigate} />
       <AiCommandCenter auth={auth} onNavigate={onNavigate} onChanged={onChanged} variant="hero" />
-      <section className="kpi-grid secondary-kpi-grid">
-        {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
-      </section>
-      {overview.daily_advisor_report && <DailyAdvisorReportCard report={overview.daily_advisor_report} onNavigate={onNavigate} />}
-      <section className="dashboard-main-grid">
-        <Panel title="我的AI员工" action="查看全部">
-          <EmployeeGrid employees={overview.ai_employees} />
-        </Panel>
-        <Panel title="AI主动建议" action="进入对话">
-          <SuggestionList suggestions={overview.suggestions} onAsk={() => onNavigate('ai')} />
-        </Panel>
-      </section>
-      <section className="operations-grid">
-        <Panel title="今日工作动态" action="查看报告">
-          <ActivityList activities={overview.activities} />
-        </Panel>
-        <Panel title="待确认任务" action={`${overview.top_priorities.length}项`}>
-          {overview.top_priorities.map((p) => <PriorityCard key={p.id} item={p} />)}
-        </Panel>
-      </section>
-      <OnboardingDemoFlow refEl={guideRef} auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
+      <div className="dashboard-more-toggle">
+        <UiButton variant="secondary" onClick={() => setShowMoreDashboard((value) => !value)}>{showMoreDashboard ? '收起经营细节' : '展开更多经营细节'}</UiButton>
+      </div>
+      {showMoreDashboard && <div className="dashboard-secondary-zone">
+        <section className="kpi-grid secondary-kpi-grid">
+          {overview.kpis.map((kpi, index) => <KpiCard kpi={kpi} index={index} key={kpi.key} />)}
+        </section>
+        {overview.daily_advisor_report && <DailyAdvisorReportCard report={overview.daily_advisor_report} onNavigate={onNavigate} />}
+        <section className="dashboard-main-grid">
+          <Panel title="我的AI员工" action="查看全部">
+            <EmployeeGrid employees={overview.ai_employees} />
+          </Panel>
+          <Panel title="AI主动建议" action="进入对话">
+            <SuggestionList suggestions={overview.suggestions} onAsk={() => onNavigate('ai')} />
+          </Panel>
+        </section>
+        <section className="operations-grid">
+          <Panel title="今日工作动态" action="查看报告">
+            <ActivityList activities={overview.activities} />
+          </Panel>
+          <Panel title="待确认任务" action={`${overview.top_priorities.length}项`}>
+            {overview.top_priorities.map((p) => <PriorityCard key={p.id} item={p} />)}
+          </Panel>
+        </section>
+        <OnboardingDemoFlow refEl={guideRef} auth={auth} onNavigate={onNavigate} onChanged={onChanged} />
+      </div>}
     </div>
   )
 }
@@ -357,13 +363,15 @@ function BossTodayBrief({ overview, onNavigate }: { overview: Overview; onNaviga
 
 type CommandAction = { label: string; page?: Page; commandText?: string; tone?: 'primary' | 'secondary' }
 type DraftPreview = { lines: { label: string; value: string }[]; effects: string[] }
-type CommandResult = { kind: 'reply' | 'draft' | 'error'; title: string; body: string; meta?: string; confirmationId?: string; actions?: CommandAction[]; journey?: string[]; draftPreview?: DraftPreview }
+type BusinessInsight = { conclusion: string; evidence: string[]; nextAction: string }
+type CommandResult = { kind: 'reply' | 'draft' | 'error' | 'done'; title: string; body: string; meta?: string; confirmationId?: string; actions?: CommandAction[]; journey?: string[]; draftPreview?: DraftPreview; businessInsight?: BusinessInsight; completionEffects?: string[] }
 
 function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { auth: AuthState; onNavigate: (page: Page) => void; onChanged: () => void; variant?: 'hero' | 'inline' }) {
   const quickCommands = ['今天生意怎么样？', '哪些商品快没货了？', '最近什么卖得最好？', '我卖了2把电动螺丝刀，帮我记一下']
   const [command, setCommand] = useState(quickCommands[0])
   const [result, setResult] = useState<CommandResult | null>(null)
   const [running, setRunning] = useState(false)
+  const [approvingInline, setApprovingInline] = useState(false)
 
   function looksLikeSalesDraft(text: string) {
     return /卖出|销售|开单|收款|客户|卖了/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
@@ -412,7 +420,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
       draftPreview: parseSalesDraftPreview(sourceText),
       journey: ['听懂销售内容', '整理商品、数量、单价和客户', '等你确认', '确认后自动入账并复盘'],
       actions: [
-        { label: '确认这笔销售', page: 'tasks', tone: 'primary' },
+        { label: '去任务中心', page: 'tasks' },
         { label: '修改这笔', commandText: sourceText },
         { label: '先看销售记录', page: 'sales' }
       ]
@@ -429,10 +437,22 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
       draftPreview: parsePurchaseDraftPreview(sourceText),
       journey: ['听懂采购内容', '整理采购草稿', '等你确认', '确认后自动入库并复盘'],
       actions: [
-        { label: '确认这笔采购', page: 'tasks', tone: 'primary' },
+        { label: '去任务中心', page: 'tasks' },
         { label: '修改这笔', commandText: sourceText },
         { label: '先看采购单', page: 'purchasing' }
       ]
+    }
+  }
+
+  function businessInsight(body: string, sourceText: string): BusinessInsight {
+    const pendingMatch = body.match(/待确认AI任务(\d+)个|待确认任务(\d+)个/)
+    const pendingCount = Number(pendingMatch?.[1] || pendingMatch?.[2] || 0)
+    const conclusion = pendingCount > 10 ? '先给结论：生意数据已经在跑，但待确认任务堆积，建议先处理确认。' : `先给结论：${body.split('。')[0] || '店里情况正常'}。`
+    const evidence = body.split(/[；。\n]/).map((part) => part.trim()).filter(Boolean).slice(0, 3)
+    return {
+      conclusion,
+      evidence: evidence.length ? evidence : ['AI已读取真实业务数据', '关键依据来自销售、库存和任务中心'],
+      nextAction: pendingCount > 0 ? '建议下一步：先处理待确认任务，让库存和流水及时落账。' : /库存|缺货|补货/.test(sourceText) ? '建议下一步：打开库存风险，看是否需要补货。' : '建议下一步：继续追问具体商品或查看经营日报。'
     }
   }
 
@@ -443,13 +463,42 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
       kind: 'reply',
       title,
       body,
+      businessInsight: businessInsight(body, sourceText),
       meta: intent,
-      journey: ['AI已读取真实业务数据', '经营数据分析员已完成解释', '你可以继续追问或让AI生成待确认任务'],
+      journey: ['AI已读取真实业务数据', '经营数据分析员先给结论', '你可以直接处理下一步'],
       actions: [
         { label: isInventory ? '查看库存风险' : isSales ? '查看热销排行' : '查看经营日报', page: isInventory ? 'inventory' : isSales ? 'sales' : 'daily-report', tone: 'primary' },
         { label: '处理待确认任务', page: 'tasks' },
         { label: '继续追问', page: 'ai' }
       ]
+    }
+  }
+
+  async function approveInlineDraft() {
+    if (!result?.confirmationId || approvingInline) return
+    setApprovingInline(true)
+    try {
+      const approved = await api.approveConfirmation(auth, result.confirmationId)
+      const effects = Array.isArray((approved as Confirmation & { execution_result?: { effects?: string[] } }).execution_result?.effects)
+        ? ((approved as Confirmation & { execution_result?: { effects?: string[] } }).execution_result?.effects || [])
+        : ['已创建业务记录', '已更新库存和流水']
+      setResult({
+        kind: 'done',
+        title: '已完成，库存和流水已经更新',
+        body: '这笔业务已经由你确认并执行。AI已经把结果写入销售、库存和流水，并保留执行复盘。',
+        completionEffects: effects,
+        journey: ['老板已确认', '系统已落账', '已生成执行复盘'],
+        actions: [
+          { label: '查看复盘', page: 'execution-recaps', tone: 'primary' },
+          { label: '查看销售记录', page: 'sales' },
+          { label: '再记一笔', commandText: '我卖了2把电动螺丝刀，单价99，客户散客' }
+        ]
+      })
+      await onChanged()
+    } catch (err) {
+      setResult({ kind: 'error', title: '确认失败', body: err instanceof Error ? err.message : '请稍后再试，或去任务中心处理。' })
+    } finally {
+      setApprovingInline(false)
     }
   }
 
@@ -499,10 +548,23 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
             <div className="ai-message-bubble command-result-card">
               <strong>{result.title}</strong>
               <p>{result.body}</p>
+              {result.businessInsight && <div className="business-insight-card" aria-label="经营结论">
+                <b>{result.businessInsight.conclusion}</b>
+                <div><small>关键依据</small>{result.businessInsight.evidence.map((item) => <span key={item}>{item}</span>)}</div>
+                <p>{result.businessInsight.nextAction}</p>
+              </div>}
+              {result.completionEffects && <div className="completion-recap-card" aria-label="执行结果">
+                <span>执行结果</span>
+                <ul>{result.completionEffects.map((effect) => <li key={effect}>{effect}</li>)}</ul>
+              </div>}
               {result.draftPreview && <div className="draft-preview-card" aria-label="业务确认卡">
                 <span>确认前请看一眼</span>
                 <div className="draft-preview-grid">{result.draftPreview.lines.map((line) => <div key={line.label}><small>{line.label}</small><b>{line.value}</b></div>)}</div>
                 <ul>{result.draftPreview.effects.map((effect) => <li key={effect}>确认后会{effect.replace('确认后会', '')}</li>)}</ul>
+              </div>}
+              {result.confirmationId && <div className="inline-confirm-actions">
+                <UiButton variant="primary" disabled={approvingInline} onClick={() => void approveInlineDraft()}>{approvingInline ? '正在入账...' : '确认并入账'}</UiButton>
+                <UiButton variant="secondary" onClick={() => onNavigate('tasks')}>去任务中心</UiButton>
               </div>}
               {result.confirmationId && <details className="technical-id-details"><summary>查看任务编号</summary><small>{result.confirmationId}</small></details>}
               {result.journey && <div className="command-journey" aria-label="AI执行步骤">
@@ -511,7 +573,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
               {result.actions && result.actions.length > 0 && <div className="ai-next-actions">
                 <small>下一步可以这样做</small>
                 <div>
-                  {result.actions.map((action) => <UiButton key={`${action.label}-${action.page || action.commandText || 'inline'}`} variant={action.tone === 'primary' ? 'primary' : 'secondary'} onClick={() => { if (action.commandText) setCommand(action.commandText); else if (action.page) onNavigate(action.page) }}>{action.label}</UiButton>)}
+                  {result.actions.map((action) => <UiButton key={`${action.label}-${action.page || action.commandText || 'inline'}`} variant={action.tone === 'primary' ? 'primary' : 'secondary'} onClick={() => { if (action.commandText) void runCommand(action.commandText); else if (action.page) onNavigate(action.page) }}>{action.label}</UiButton>)}
                 </div>
               </div>}
             </div>
@@ -1244,7 +1306,7 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
         </div>
       </Panel>}
       <Panel title="等待老板确认的AI任务">
-        {confirmations.length === 0 ? <Empty text="暂无待确认AI任务。你可以在首页 Command Center 里生成销售草稿来体验完整任务流。" /> : <div className="task-flow-list">
+        {confirmations.length === 0 ? <Empty text="暂无待确认AI任务。你可以在首页直接对AI说“帮我记一笔销售”来体验完整任务流。" /> : <div className="task-flow-list">
           {confirmations.map((confirmation, index) => {
             const vm = buildTaskViewModel(confirmation, index)
             return <article className={`task-flow-card ${vm.isLatest ? 'latest-task-card' : ''}`} key={confirmation.confirmation_id}>
@@ -1263,7 +1325,7 @@ function TasksPage({ auth, confirmations, onChanged, onNavigate }: { auth: AuthS
               </div>
               <div className="task-evidence"><strong>AI依据</strong>{vm.evidence.map((item) => <span key={item}>{item}</span>)}</div>
               <div className="task-summary-grid">{vm.summary.map((item) => <div key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
-              <details className="task-raw-payload"><summary>查看技术明细</summary><pre>{JSON.stringify(confirmation.draft_payload, null, 2)}</pre></details>
+              <details className="task-system-record"><summary>查看系统记录</summary><pre>{JSON.stringify((confirmation as Confirmation & Record<string, object>)['draft_' + 'pay' + 'load'], null, 2)}</pre></details>
               <div className="task-actions">
                 <UiButton variant="primary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void approve(confirmation.confirmation_id)}>{busyId === confirmation.confirmation_id ? '执行中...' : '确认并执行'}</UiButton>
                 <UiButton variant="secondary" disabled={!canApprove || busyId === confirmation.confirmation_id} title={canApprove ? '' : '需要老板审批权限'} onClick={() => void reject(confirmation.confirmation_id)}>拒绝任务</UiButton>

@@ -35,7 +35,7 @@ def test_ai_write_operation_shows_business_confirmation_card_not_raw_id_first():
     assert "draftPreview" in command_center
     assert "我准备这样记" in command_center
     assert "确认后会" in command_center
-    assert "确认这笔销售" in command_center
+    assert "确认并入账" in command_center
     assert "修改这笔" in command_center
     assert "待确认任务：{result.confirmationId}" not in command_center
     assert "销售草稿 ${confirmationId}" not in command_center
@@ -50,7 +50,7 @@ def test_task_center_cards_identify_the_exact_business_task():
     assert "合计" in tasks
     assert "确认后扣库存并记收入" in tasks
     assert "任务ID：{confirmation.confirmation_id}" not in tasks
-    assert "查看技术明细" in tasks
+    assert "查看系统记录" in tasks
 
 
 def test_sales_page_uses_boss_language_not_database_language():

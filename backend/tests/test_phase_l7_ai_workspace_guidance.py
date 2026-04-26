@@ -24,7 +24,7 @@ def test_dashboard_ai_draft_result_links_confirmation_and_recap_flow():
     source = read_app()
 
     assert "我准备这样记" in source
-    assert "确认这笔销售" in source
+    assert "确认并入账" in source
     assert "修改这笔" in source
     assert "先看销售记录" in source
     assert "confirmations/${confirmationId}/approve" not in source, "首页 AI 入口不能绕过任务中心直接审批"

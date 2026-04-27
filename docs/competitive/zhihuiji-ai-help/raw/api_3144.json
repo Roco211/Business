@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3144,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品删除指南",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/bcc204601578af42b53530867779c57f.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n删除商品教学视频\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>当您需要清理误添加的商品时，可通过删除商品功能维护商品列表的整洁。系统支持单个删除和批量删除两种方式。</p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E5%85%A5%E5%8F%A3\" tabindex=\"-1\">操作入口<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E5%85%A5%E5%8F%A3\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【商品】 → 【商品】</p>\n<h2 id=\"%E5%88%A0%E9%99%A4%E6%96%B9%E5%BC%8F\" tabindex=\"-1\">删除方式<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E6%96%B9%E5%BC%8F\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%8D%95%E4%B8%AA%E5%95%86%E5%93%81%E5%88%A0%E9%99%A4\" tabindex=\"-1\">单个商品删除<a class=\"header-anchor\" href=\"#%E5%8D%95%E4%B8%AA%E5%95%86%E5%93%81%E5%88%A0%E9%99%A4\" aria-hidden=\"true\"></a></h3>\n<p>在目标商品右侧点击【更多】→ 选择【删除】即可完成单个商品删除</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c7f5818f7d7fa1b08fc8107076f89eb2.png\" alt=\"单个删除示意图\"></p>\n<h3 id=\"%E6%89%B9%E9%87%8F%E5%95%86%E5%93%81%E5%88%A0%E9%99%A4\" tabindex=\"-1\">批量商品删除<a class=\"header-anchor\" href=\"#%E6%89%B9%E9%87%8F%E5%95%86%E5%93%81%E5%88%A0%E9%99%A4\" aria-hidden=\"true\"></a></h3>\n<ol>\n<li>勾选需要删除的多个商品</li>\n<li>点击顶部的【批量操作】</li>\n<li>选择【删除】完成批量删除</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e04ef195f93c1428d4946ef75da2488b.png\" alt=\"批量删除示意图\"></p>\n<h2 id=\"%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">重要注意事项<a class=\"header-anchor\" href=\"#%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%88%A0%E9%99%A4%E9%99%90%E5%88%B6%E8%AF%B4%E6%98%8E\" tabindex=\"-1\">删除限制说明<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E9%99%90%E5%88%B6%E8%AF%B4%E6%98%8E\" aria-hidden=\"true\"></a></h3>\n<p><strong>若商品已产生业务数据，系统将禁止删除</strong></p>\n<ul>\n<li>商品关联历史单据时无法直接删除</li>\n<li>需要先<a href=\"https://www.zhihuiji.cn/help/doc/3298#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\">处理完所有关联单据</a>后才能删除商品</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d9ad233196cbe3160ee333cc8bc4a479.png\" alt=\"删除失败提示\"></p>\n<h3 id=\"%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%81%9C%E7%94%A8%E5%95%86%E5%93%81\" tabindex=\"-1\">替代方案：停用商品<a class=\"header-anchor\" href=\"#%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%81%9C%E7%94%A8%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p>对于暂时不用或售完的商品，推荐使用<strong>停用功能</strong>：</p>\n<ul>\n<li>停用后商品不会在开单时显示</li>\n<li>避免冗余商品干扰正常操作</li>\n<li>保留完整历史数据</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/dc0c7fc0c9397dd73266200056552043.png\" alt=\"停用商品操作\"></p>\n<hr>\n<p><strong>温馨提示</strong>：删除操作不可逆，请谨慎操作。建议优先考虑停用商品而非删除。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4200,
+    "publish_time": "2025-11-14T07:33:57.501Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2020-01-01T08:21:57.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

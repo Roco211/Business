@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2839,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店下单库存锁定介绍",
+    "keywords": "库存锁定",
+    "description": "",
+    "content": "<p><strong>更新云店下单库存锁定之前：</strong></p>\n<p>比如货品01库存是10个，如果不发货的话，货品01的下单数量可以下超过10个，这样导致超过10个后的订单无法发货的。只能有一个人盯着后台，来一个订单里面进货接单发货的操作，这样就比较麻烦。</p>\n<p><strong>增加了库存锁定功能之后，为了避免超卖：</strong></p>\n<p>1、小程序的商品库存对应进行扣减（例如系统库存100个，小程序下单40个，则剩余库存显示60个）\n2、销售开单，超出可卖库存后进行提示</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/7226e08a0173490cdda0fe6c58e455ed.png\" alt=\"Description\"></p>\n<p>小程序若不想校验库存，关闭系统设置的“允许负库存”即可</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/48b5382b42e2d67542da08191ae0bef2.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5228,
+    "publish_time": "2025-10-23T02:49:30.719Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-10-26T08:48:27.360Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

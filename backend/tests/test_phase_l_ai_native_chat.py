@@ -89,8 +89,7 @@ def test_get_llm_service_uses_real_provider_when_business_prefixed_config_exists
 
     service = v2_llm.get_llm_service()
 
-    assert service._use_mock is False
-    assert service._provider is not None
+    assert service.provider is not None
 
 
 def test_http_chat_unknown_intent_uses_ai_general_reply_not_format_instruction(client, db_session, monkeypatch):

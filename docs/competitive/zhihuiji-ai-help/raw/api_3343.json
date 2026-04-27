@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3343,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何进行批次盘点",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径</strong>：【库存】-【盘点】-【新增盘点单】</p>\n<p>批次盘点用于<strong>核对与修正</strong>已启用批次或保质期管理的商品的库存明细。适用于：</p>\n<ul>\n<li><strong>库存纠错</strong>：实际库存与系统记录不符时。</li>\n<li><strong>批次重建</strong>：关闭保质期/批次管理后重新启用，需重新整理批次库存（比如存在“无生产日期”记录）。</li>\n<li><strong>初始化录入</strong>：为已有库存的商品首次建立批次/保质期档案。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/ff14d4190400a2108c8b642bad39f812.png\" alt=\"新增盘点单路径\"></p>\n<p><strong>操作步骤</strong></p>\n<ol>\n<li>\n<p><strong>创建盘点单</strong></p>\n<p>点击【新增盘点单】，进入编辑界面。</p>\n</li>\n<li>\n<p><strong>选择商品</strong></p>\n<p>在“商品名称”输入框搜索或选择<strong>已启用批次或保质期管理</strong>的商品。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/d5130aee248b69ef258304ab7bf99fe9.png\" alt=\"选择商品\"></p>\n</li>\n<li>\n<p><strong>进入批次盘点</strong></p>\n<p>选中商品后，系统将自动弹出<strong>批次盘点弹窗</strong>。弹窗内会列出该商品<strong>当前系统中所有存在的批次/生产日期记录</strong>。</p>\n</li>\n<li>\n<p><strong>核对与录入数量</strong></p>\n<ul>\n<li><strong>修正现有批次</strong>：在每个已有批次的行中，输入当前仓库中的<strong>实际数量</strong>。</li>\n<li><strong>新增批次</strong>：若实际有但列表中无的批次，可在底部空白行进行添加。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/91cc4e20f922d4b9ea739a6f031f843e.png\" alt=\"批次盘点弹窗\"></li>\n</ul>\n</li>\n<li>\n<p><strong>完成盘点</strong></p>\n<p>确认所有批次数量填写无误后，点击弹窗中的【确定】。</p>\n<p>返回盘点单界面，<strong>保存单据</strong>。系统将根据您录入的实际数量，更新该商品的批次库存记录。</p>\n</li>\n</ol>\n<hr>\n<p><strong>核心应用场景</strong></p>\n<ul>\n<li><strong>关闭保质期后重新启用</strong>：这是<strong>必须步骤</strong>，用于核对和清理因关闭期间混合出库产生的“无生产日期”等异常库存记录。</li>\n<li><strong>日常库存差异调整</strong>：用于定期校准批次库存，确保账实相符。</li>\n</ul>\n<hr>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/983\">批次与保质期使用指南</a> - 了解批次与保质期管理完整操作流程</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2604,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4756,
+    "publish_time": "2025-12-02T06:48:18.414Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-02T06:46:55.708Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2604,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

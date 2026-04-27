@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2967,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "核对账户余额明细",
+    "keywords": "",
+    "description": "",
+    "content": "<p>目的：方便用户在核对流水时，快速找到异常的款项单据。</p>\n<p>调整账户页面的标题名称，并针对除现金外的账户，增加了核对余额的功能。</p>\n<p>操作路径：左侧栏资金-账户概览-核对余额</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/20b99bdad456aa542d0911c6359e8c86.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/ef45eb481be9b47b5c4c9cebe9e34cfc.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2620,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4306,
+    "publish_time": "2025-03-27T01:53:24.026Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-03-27T01:47:01.546Z",
+    "tags": [
+      {
+        "id": 156,
+        "name": "账户概览"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2620,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

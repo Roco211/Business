@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2149,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」查看经营利润",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径</strong>：底部点击【分析】-【经营利润】卡片-【经营利润】</p>\n<p>利润=收入-支出。可以选择门店，日期查询。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/31c20c3019cf3fe0ab722255c0419dc0.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2112,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7427,
+    "publish_time": "2026-01-08T01:20:22.179Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-22T06:48:01.661Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2112,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

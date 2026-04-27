@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 960,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户对账及分享账单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>客户对账</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/d1e0f05dec6ef92059ead244e8d2296b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>路径</strong>：1.【资金】-【客户对账】-【对账】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/2b52a18ec423b95e58b11be849a7e3fb.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/b67085c5ae4c62de67b7c5a94717e971.png\" alt=\"Description\"></p>\n<pre><code>      2.【客户】-【对账】\n</code></pre>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/7a8c9202b94fa29bcf9ca798468c98cd.png\" alt=\"Description\"></p>\n<p>可以筛选单据日期、门店、客户进行查询。</p>\n<p>该功能主要针对的是销售已开单、但未收款的业务场景，可以得知还有多少款项未收到。</p>\n<p>点击“明细”，可以看到当前的欠款是如何产生的，以及查看应收对账单详情。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/5484a177fa48a305937584952ed9c8e4.png\" alt=\"Description\"></p>\n<p>点击【微信对账】，然后用手机微信扫码后可以把该对账单分享给客户。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/cc4ef25873b42955e7f96e797e2ffd6f.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2626,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15287,
+    "publish_time": "2026-01-05T03:12:26.274Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "3206-05-17T08:13:43.000Z",
+    "tags": [
+      {
+        "id": 140,
+        "name": "客户对账单"
+      },
+      {
+        "id": 141,
+        "name": "客户对账"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2626,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

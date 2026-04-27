@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2811,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店客户如何修改绑定手机号",
+    "keywords": "",
+    "description": "",
+    "content": "<p>云店客户修改绑定手机号，可通过以下两种方式：</p>\n<hr>\n<h2 id=\"%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E5%AE%A2%E6%88%B7%E8%87%AA%E8%A1%8C%E6%8D%A2%E7%BB%91\" tabindex=\"-1\">方式一：客户自行换绑<a class=\"header-anchor\" href=\"#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E5%AE%A2%E6%88%B7%E8%87%AA%E8%A1%8C%E6%8D%A2%E7%BB%91\" aria-hidden=\"true\"></a></h2>\n<p>适用场景：客户可正常登录小程序。</p>\n<p><strong>操作路径：</strong> 云店小程序 → 【我的】→ 换绑手机号</p>\n<p>客户在小程序内直接换绑即可，无需商家操作。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202407/c3f0f7d76ae0b47d1186bdd6180b8115.png\" alt=\"客户自行换绑示意图\"></p>\n<hr>\n<h2 id=\"%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E5%95%86%E5%AE%B6%E8%A7%A3%E7%BB%91%E5%90%8E%E9%87%8D%E6%96%B0%E7%BB%91%E5%AE%9A\" tabindex=\"-1\">方式二：商家解绑后重新绑定<a class=\"header-anchor\" href=\"#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E5%95%86%E5%AE%B6%E8%A7%A3%E7%BB%91%E5%90%8E%E9%87%8D%E6%96%B0%E7%BB%91%E5%AE%9A\" aria-hidden=\"true\"></a></h2>\n<p>适用场景：原微信无法使用，需更换其他微信绑定。</p>\n<p><strong>操作步骤：</strong></p>\n<p>（1）商家在后台解绑原微信（参考 <a href=\"https://www.zhihuiji.cn/help/doc/3529\">云店客户如何解绑</a>）。<br>\n（2）解绑成功后，点击「尚未成为云店客户」，分享二维码给客户。<br>\n（3）客户用新微信扫码，重新绑定即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/d17aad700348b979181aedd7cd0a3a63.png\" alt=\"云店客户解绑示意图\"></p>\n<hr>\n<blockquote>\n<p><strong>说明</strong>：解绑后，原微信号变为游客身份，与现有订单的关联关系保持不变。客户新微信绑定后将自动关联新手机号下的云店订单。</p>\n</blockquote>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2904,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5184,
+    "publish_time": "2026-04-09T05:53:24.894Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-07-18T06:08:15.212Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2904,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

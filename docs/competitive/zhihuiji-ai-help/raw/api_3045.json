@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3045,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店“店长推荐”类目中的商品如何添加？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>操作路径：【商品】--【商品】<br>\n新建/修改商品时，在「云店信息」-「云店商品标签」中选择「店长推荐」，保存并上架商品后，客户可在“店长推荐”类目中看到此商品。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/954e98d790a213705dcf51979b27babe.png\" alt=\"选择店长推荐\"></p>\n<ul>\n<li>可以在【云店】--【云店商品排序】--「店长推荐」中查看已上架、已推荐的商品</li>\n<li>排序方式：点击排序按钮拖拽排序，或点击操作栏的“置顶”“置底”</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/8a7b9fe791e2a7c030eae5688663e691.png\" alt=\"查看与排序\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2949,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3934,
+    "publish_time": "2025-12-10T08:19:33.797Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-11T09:45:16.469Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2949,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

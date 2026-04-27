@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2221,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "开票状态使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>用户场景：</strong> 系统无开票记录，商户无法判断该客户的单据是否已开票，若多次开票则多次计税，会给商户造成直接经济损失</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/8a2b6a16160caa91418d1d4f880d5a17.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>（1）操作路径：销售-销售，找到对应的销售单查看，点击顶部的标注已开票，开票状态就变成已开票，如果点击错已开票，也可以改成未发票状态。默认新增的销售单是显示未开票的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/a1cb5b92ba5b4e54ab791f2cd23fedc6.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/f7dc87029fc0c950ce85e7b4e7d9cbec.png\" alt=\"Description\"></p>\n<p>（2）销售单列表点击左侧的设置按钮，把开票状态添加到已显示字段，就可以直接在销售单列表显示开票状态，并且可以选择发票状态查看单据。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/61f677adeb750673e9548f279413aa54.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/53a102c5f5341dd164851e7abd0d05be.png\" alt=\"Description\"></p>\n<p>（3）销售单列表勾选对应的销售单，然后点击批量操作，改为已开票，就可以批量更改发票状态。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/82116362fd3e62cdac18ccc44f0f2959.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7884,
+    "publish_time": "2025-08-15T06:15:05.032Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-11-08T02:14:15.813Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      },
+      {
+        "id": 78,
+        "name": "查看销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

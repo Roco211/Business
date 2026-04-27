@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 885,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售单个打折",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/c859260ce707de2a8cea91de87fbf8de.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>业务场景：</strong> 满足老板日常经营中，需要给客户单个商品优惠折扣时使用。</p>\n<p>1.操作路径：设置-系统设置-单据设置-勾选启用单行折扣。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/c64a49e60a2c45b3ce8dde1b5dcfc9fd.png\" alt=\"Description\"></p>\n<p>2.开销售单可以输入单个商品的折扣率，从而对单个商品进行打折。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/7e6b0365fea1b28bf696f5c0e1a287cd.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 13816,
+    "publish_time": "2024-02-27T02:47:40.648Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-26T03:19:08.000Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

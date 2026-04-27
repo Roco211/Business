@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3346,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」收尾款销账",
+    "keywords": "",
+    "description": "",
+    "content": "<p>对于尚未结清的销售单，您可通过以下任一方式完成收款：</p>\n<ol>\n<li>\n<p><strong>在销售单详情页收款</strong><br>\n在销售列表中找到目标单据，点击进入详情页，点击底部的【收尾款】按钮。</p>\n<ul>\n<li>输入本次收款金额及优惠（如抹零）。</li>\n<li>系统会自动计算并显示剩余待收金额。<strong>当剩余待收变为0时，该单据状态将自动更新为「已结清」</strong>。</li>\n<li>若仍有待收，后续可继续操作。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/5e522ee7eaeefa3d948c371b4d43634f.png\" alt=\"收尾款\"></p>\n</li>\n<li>\n<p><strong>通过收款单批量/账期收款</strong><br>\n此方式适用于同时收取多笔单据的款项。</p>\n<ul>\n<li>进入【收付款】-【新增收款单】。</li>\n<li>选择客户后，<strong>必须在下方的“关联单据”列表中勾选本次要结清的具体销售单</strong>。</li>\n<li>完成收款后，被勾选的销售单状态将自动变为「已结清」。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/6af69a64d6f4bcdaed8485a04860dae3.png\" alt=\"收款单流程\"></p>\n</li>\n</ol>\n<p><strong>💡 提示</strong>：<br>两种方式创建的记录均可在【收付款】列表的“收款单”中统一查询。在销售单详情页点击「本单实收」也可查看该单的所有收款记录。</p>\n<hr>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3353\">「手机端」销售功能使用指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3679,
+    "publish_time": "2025-12-05T08:40:36.596Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-03T07:26:34.605Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

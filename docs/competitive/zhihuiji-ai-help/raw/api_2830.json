@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2830,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售税额设置",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/dc20600d9612173bef6e988265cf3326.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E7%A8%8E%E9%A2%9D%E6%A8%A1%E5%BC%8F%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">税额模式设置<a class=\"header-anchor\" href=\"#%E7%A8%8E%E9%A2%9D%E6%A8%A1%E5%BC%8F%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h2>\n<p><strong>场景：</strong> 在商业运营中，准确计算税额对于评估利润和经营状况至关重要。系统提供了两种销售税额计算方式：单价不含税和含税，前者适用于国外商户或跨境业务，后者适用于国内商户。</p>\n<p><strong>路径：</strong> 电脑端，左侧导航栏【设置】-【基础设置-系统设置】-【单据设置】，根据业务需求设置税额规则</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/96eca4b2329f9d92feca3bb7ed782f75.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202502/b0224be52a14f3544dea803d252cb6f3.png\" alt=\"Description\"></p>\n<p><strong>注意：开单前，一定要留意设置税额模式（勾选含税或取消勾选不含税）；系统默认按开单时的模式计税，不支持修改价税规则，除非作废后重做（可直接复制单据快速重做）。</strong></p>\n<h2 id=\"%E9%94%80%E5%94%AE%E5%8D%95%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5%E3%80%90%E7%A8%8E%E7%8E%87%E3%80%91%E3%80%90%E7%A8%8E%E9%A2%9D%E3%80%91%E3%80%90%E5%90%AB%E7%A8%8E%E9%87%91%E9%A2%9D%E3%80%91\" tabindex=\"-1\">销售单添加字段【税率】【税额】【含税金额】<a class=\"header-anchor\" href=\"#%E9%94%80%E5%94%AE%E5%8D%95%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5%E3%80%90%E7%A8%8E%E7%8E%87%E3%80%91%E3%80%90%E7%A8%8E%E9%A2%9D%E3%80%91%E3%80%90%E5%90%AB%E7%A8%8E%E9%87%91%E9%A2%9D%E3%80%91\" aria-hidden=\"true\"></a></h2>\n<p>系统设置税额模式后，还需在销售单界面手动添加相关字段；开单时会自动根据税额规则计算税额。</p>\n<p><strong>路径：</strong> 开单界面【销售单】-自定义表头【已显示字段】-添加【税率】/【税额】/【含税金额】-【确定】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/7f61444661bb1ebb471f87b165c696e3.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%A8%A1%E5%BC%8F%E4%B8%80%EF%BC%9A%E5%9B%BD%E5%A4%96%E4%BB%B7%E7%A8%8E%E5%88%86%E7%A6%BB%E8%AE%A1%E7%AE%97%EF%BC%8C%E5%8D%95%E4%BB%B7%E4%B8%8D%E5%90%AB%E7%A8%8E\" tabindex=\"-1\">模式一：国外价税分离计算，单价不含税<a class=\"header-anchor\" href=\"#%E6%A8%A1%E5%BC%8F%E4%B8%80%EF%BC%9A%E5%9B%BD%E5%A4%96%E4%BB%B7%E7%A8%8E%E5%88%86%E7%A6%BB%E8%AE%A1%E7%AE%97%EF%BC%8C%E5%8D%95%E4%BB%B7%E4%B8%8D%E5%90%AB%E7%A8%8E\" aria-hidden=\"true\"></a></h2>\n<p>单价不含税就是商品售价和税额分开计算，需清晰展示净价与税额，如国际贸易或国外标价100元+10元税。</p>\n<p><strong>关键设置：</strong> 取消勾选【商品价格包含税额】，则销售开单时保存为不含税单价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/1d707dbcb224cc97fcce55c941caa538.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/f8c9a9881a69a23bffc9b53cbac8075e.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/91e7241a02acbed072649b4ce87ab457.png\" alt=\"Description\"></p>\n<ul>\n<li><strong>商品税额</strong> = 不含税单价 × 税率</li>\n<li><strong>商品含税价</strong> = 不含税单价 × （1 + 税率）</li>\n<li><strong>示例：</strong> 商品不含税单价100元，税率10% → 商品税额10元，总价110元</li>\n</ul>\n<h2 id=\"%E6%A8%A1%E5%BC%8F%E4%BA%8C%EF%BC%9A%E5%9B%BD%E5%86%85%E4%BB%B7%E7%A8%8E%E4%B8%8D%E5%88%86%E7%A6%BB%E8%AE%A1%E7%AE%97%EF%BC%8C%E5%8D%95%E4%BB%B7%E5%90%AB%E7%A8%8E\" tabindex=\"-1\">模式二：国内价税不分离计算，单价含税<a class=\"header-anchor\" href=\"#%E6%A8%A1%E5%BC%8F%E4%BA%8C%EF%BC%9A%E5%9B%BD%E5%86%85%E4%BB%B7%E7%A8%8E%E4%B8%8D%E5%88%86%E7%A6%BB%E8%AE%A1%E7%AE%97%EF%BC%8C%E5%8D%95%E4%BB%B7%E5%90%AB%E7%A8%8E\" aria-hidden=\"true\"></a></h2>\n<p>单价含税就是商品售价已包含税额，如国内零售标价100元含税，由系统反推商品原净价90.9元和税额9.09元。注意：价税不分离时，系统隐藏税前净价90.9元（不含税），需自行代入公式计算。</p>\n<p><strong>关键设置：</strong> 勾选【商品价格包含税额】，则销售开单时保存为含税单价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/9905c703c6f3eb32ff6477cb31880b7a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/23b0eb5868bc161200d279f8fc053ac5.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/f79257953f4e0447da17f52c7c283670.png\" alt=\"Description\"></p>\n<ul>\n<li><strong>商品原净价</strong> = 含税单价 ÷ （1+税率）——注意：系统反推隐藏，仅供计算税额参考</li>\n<li><strong>商品税额</strong> = 原净价 × 税率</li>\n<li><strong>示例：</strong> 商品含税单价100元，税率10% → 商品原净价≈90.9元，税额≈9.09元</li>\n</ul>\n<h2 id=\"%E9%94%80%E5%94%AE%E6%AF%9B%E5%88%A9%E7%BB%9F%E8%AE%A1\" tabindex=\"-1\">销售毛利统计<a class=\"header-anchor\" href=\"#%E9%94%80%E5%94%AE%E6%AF%9B%E5%88%A9%E7%BB%9F%E8%AE%A1\" aria-hidden=\"true\"></a></h2>\n<p>在销售统计报告中，商品销售额全部默认为<strong>税后金额</strong>，毛利计算需扣除税额。注意：统计报告暂不支持显示税前净价。</p>\n<ul>\n<li>销售单商品金额，为税前（净价）时，系统自动相加税前和税额；销售统计显示税后金额；</li>\n<li>销售单商品金额，为税后（含税）时，商品金额本身为税后金额。</li>\n<li><strong>销售毛利 = 商品销售额（已含税） - 销售商品成本 - 销售税额</strong></li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/53c43b1de914a8ac4d05161aa6649d0e.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%93%E5%8D%B0%E7%A8%8E%E7%8E%87%E5%92%8C%E7%A8%8E%E9%A2%9D\" tabindex=\"-1\">打印税率和税额<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E7%A8%8E%E7%8E%87%E5%92%8C%E7%A8%8E%E9%A2%9D\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 电脑端，左侧导航栏【设置】-【打印设置】-【打印模版-销售单】，点击进入打印模板编辑界面，可以设置打印税率和税额</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/5041ccf910c2c461fc17395ab78bb39a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/a6868e3364ce7b3657325462134d807d.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8410,
+    "publish_time": "2025-11-13T06:15:07.578Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2037-10-23T01:48:19.000Z",
+    "tags": [
+      {
+        "id": 1,
+        "name": "系统设置"
+      },
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

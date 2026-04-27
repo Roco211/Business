@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2771,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店订单维护",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>云店订单维护</strong></p>\n<p>下游客户下单后，同步在小程序生成一笔云店订单，商家可进行接单/拒绝操作，确认接单表示同意此笔生意；接单后商家可进行发货，发货（转销售单）扣减库存</p>\n<p>路径：智慧记AI进销存 销售-云店订单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202405/75759f1fab6f4a119d86d364ab7ee304.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5329,
+    "publish_time": "2025-08-07T02:25:47.690Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-05-08T14:08:26.000Z",
+    "tags": [
+      {
+        "id": 139,
+        "name": "云店"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

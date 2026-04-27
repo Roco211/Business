@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3274,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店下单提醒",
+    "keywords": "",
+    "description": "",
+    "content": "<p>订单公众号提醒：绑定微信后，新订单提醒将通过【金蝶智慧记进销存】公众号推送给商家，暂不支持关联其他公众号。生意动态即刻掌握，轻松打理！</p>\n<p><strong>绑定微信号：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/8fd686e2c821f444652176b77c6c7d9e.png\" alt=\"Description\"></p>\n<p><strong>关注【金蝶智慧记进销存】公众号以接收订单消息：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/28c705d73e2fcd64b2b0be35ceb29392.png\" alt=\"Description\"></p>\n<p><strong>方式1：公众号消息推送</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/de441b41d12fb2de6bdd5a463080dfc5.png\" alt=\"Description\"></p>\n<p><strong>方式2：服务号通知推送</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/45a60b1ba567591ed25a1ae37a9e9ea2.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3622,
+    "publish_time": "2025-11-05T09:01:41.905Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-05T08:50:34.499Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

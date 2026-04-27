@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2105,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」如何批量改价",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/cbd1b64e983550d49004444590fb96a7.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>操作路径</strong>：【商品】→【批量操作】→【批量改价】</p>\n<p><strong>操作步骤：</strong></p>\n<ol>\n<li>进入商品列表，点击「批量操作」，选择「批量改价」</li>\n<li>勾选需要调价的商品，点击底部「批量改价」按钮</li>\n<li>在改价界面，选择按<strong>比例</strong>（百分比）或按<strong>金额</strong>进行上调/下调</li>\n<li>设置好调价幅度后，点击保存即可</li>\n</ol>\n<p><strong>按比例：</strong>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f7306d5595536881eeea84f65949472d.png\" alt=\"批量改价入口界面\">\n<strong>按金额：</strong>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/bf53023e30dc46e3eb01712e78eabcdb.png\" alt=\"按金额调价界面\"></p>\n<p><strong>适用场景</strong></p>\n<p>因进货价变动、市场波动或促销活动，需要一次性调整多个商品售价。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2108,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10133,
+    "publish_time": "2026-01-05T07:23:33.142Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-15T02:01:17.046Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2108,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

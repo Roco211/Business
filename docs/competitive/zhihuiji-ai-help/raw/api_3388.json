@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3388,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "设置销售/进货开单默认仓库",
+    "keywords": "",
+    "description": "",
+    "content": "<p>在销售或进货开单时，可为当前登录账号设置默认选择的仓库，以提升开单效率。</p>\n<p><strong>操作路径：</strong>【设置】→【用户偏好设置】→【销售/进货开单，支持设置默认仓库】→ 启用后选择默认仓库</p>\n<p><strong>说明：</strong></p>\n<ul>\n<li>此设置仅对当前登录的账号生效。</li>\n<li>设置后，开单时将自动选中此处设置的仓库作为默认值，开单时可手动修改为其他仓库。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/8cb117ddf291e18a1902c60082aa3fd3.png\" alt=\"设置默认仓库\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2967,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4353,
+    "publish_time": "2025-12-23T02:24:48.614Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-23T02:22:31.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2967,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

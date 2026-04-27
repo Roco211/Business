@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2824,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "员工门店/仓库权限设置",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>应用场景：</strong> 员工只负责自己所属门店/仓库的管理和开单发货，不能操作其他的门店/仓库。\n<strong>操作步骤：</strong> 设置--员工管理--修改--选择所属门店--勾选仓库--确定</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/001a9d1b09b62be53f406211208b4f86.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/bc23f3be18d2a54f3b37e60864a10c49.png\" alt=\"Description\"></p>\n<p>设置好之后营业员开单就只能选择有权限的门店/仓库</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/3a0cdc5b2c1f13cc82bcdf3724eaf2eb.png\" alt=\"Description\"></p>\n<p>只能看到有权限门店/仓库的库存数量（包括开单、库存统计、库存查询等查询商品数量的地方）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/18af60f958a0bf67c2c345a0b8e8cab2.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/0aa82c578cdf784dc100bdb21b6fad8b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/81b875e452598a89bc40a3462056beb9.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2632,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6566,
+    "publish_time": "2025-11-17T06:43:06.892Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-08-16T01:51:48.576Z",
+    "tags": [
+      {
+        "id": 59,
+        "name": "员工管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2632,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

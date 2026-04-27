@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3134,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店订单自动确认收货是多少天？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>云店订单点发货后，如果客户不主动确认收货的话，系统是发货后<strong>7天</strong>自动确认收货。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3821,
+    "publish_time": "2025-08-07T02:16:45.201Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-07T02:16:45.201Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3273,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "在商品录入保质期后，保质期查询查不到刚刚录入的商品？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>保质期查询是根据填写的生产日期，推算出的失效日期，所以需做了进货单后才能查询到。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2679,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3577,
+    "publish_time": "2025-11-05T03:12:35.012Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-05T03:12:35.012Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2679,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

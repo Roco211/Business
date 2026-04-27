@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3395,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "设置员工调整供应商欠款权限",
+    "keywords": "",
+    "description": "",
+    "content": "<p>如需限制员工调整供应商欠款的权限，可通过角色权限设置进行管理。</p>\n<p><strong>操作路径：</strong>【设置】→【角色权限】→ 修改对应角色 → 取消勾选「进货」-「供应商」-「调整欠款」→【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/a4ad30f9dfa3165ebdb5b17712da6bac.png\" alt=\"调整欠款权限\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2633,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3234,
+    "publish_time": "2025-12-23T09:32:39.918Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-23T08:31:33.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2633,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

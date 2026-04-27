@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3473,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么已结清的销售单，在客户对账单中仍显示“实收金额为0”？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>这是系统为了清晰区分不同收款方式而进行的记录，是正常现象。</p>\n<p><strong>核心原因</strong>：<br>\n客户对账单中，“实收金额”<strong>仅记录在销售单创建时直接收取的金额</strong>。如果您是通过后续单独创建的<strong>收款单</strong>来完成收款的，对账单会分开显示两条记录，以便您追溯完整的资金流水：</p>\n<ol>\n<li><strong>销售单记录</strong>：显示 “实收金额：0元，应收金额：X元”。</li>\n<li><strong>收款单记录</strong>：显示 “实收金额：X元”。</li>\n</ol>\n<p>这两条记录会<strong>相互抵消</strong>，因此客户的累计欠款总额为0（除非存在其他未结清单据）。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/d79cd8025129e2788b2659e732a2674b.png\" alt=\"客户对账单页面示例\"></p>\n<p><strong>核对提醒：注意对账周期！</strong>\n在对账时，请确保您筛选的<strong>日期范围包含了收款单的日期</strong>。</p>\n<ul>\n<li><strong>例如</strong>：1月的销售单在2月才创建收款单收款。</li>\n<li><strong>若仅筛选1月</strong>：则账单中只显示1月的销售单（显示欠款），而2月的收款单不会被计入，导致“合计欠款”统计不准确。</li>\n<li><strong>正确做法</strong>：筛选日期范围应覆盖从销售到收款的全部周期（如1月1日-2月28日）。</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 404,
+    "publish_time": "2026-02-05T03:16:16.935Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-02-05T03:15:43.900Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

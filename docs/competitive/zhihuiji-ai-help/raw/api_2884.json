@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2884,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "快捷改价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>操作路径：点击左侧栏【客户】-【报价管理】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/81cc491226a21b8eed00fa818a7a78b6.png\" alt=\"Description\"></p>\n<p>输入商品名称查询，然后点击【快捷改价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/07c9f2d077e14d7366026a26ffd5dfd7.png\" alt=\"Description\"></p>\n<p>可以单独修改每个客户的价格</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/f455664b0eb8e7c324386735cb137f02.png\" alt=\"Description\"></p>\n<p>或者勾选全部客户后，点击【批量改价】，可以选择按最新报价，进货价，原零售价，原批发价，上调或者下调百分之几的价格。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/2247a612ba9e751c33e290a90a6dfa9d.png\" alt=\"Description\"></p>\n<p>设置好价格后点击【改价完成】即可。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2875,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5048,
+    "publish_time": "2025-01-15T08:53:21.802Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-15T08:53:21.802Z",
+    "tags": [
+      {
+        "id": 145,
+        "name": "报价管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2875,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

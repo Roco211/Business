@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1525,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "开单收银台操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>一、什么是开单收银台</strong>？</p>\n<p>针对老板们在门店开单和收银的需求，智慧记AI进销存，秉持简单好用的原则，打造专门的开单界面，突出产品“极致开单”的特性，为老板们推出了开单收银台，<strong>与智慧记AI进销存数据互通</strong>，能更好满足零售、餐饮、服装、母婴、生活服务等多个行业的门店管理需求。</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202210/8eb0956897de54dc2ee69af4262cf44e.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n</video></p>\n<p><strong>二、开单收银台有哪些功能和亮点</strong>？</p>\n<p>1、扫码收银，收款语音播报，</p>\n<p>2、门店取单/挂单，告别排队困扰</p>\n<p>3、超大图标全屏显示，简单易用好用</p>\n<p>4、打印小票，简单方便</p>\n<p>5、数据和智慧记AI进销存打通，方便查询</p>\n<p><strong>三、开单收银台操作指引</strong></p>\n<p><strong>1、进入开单收银台</strong></p>\n<p>操作路径：【首页】-【收银】-【开单收银台】-【立即使用】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/5f40051cb462f28c12722be8eb219b4a.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/7fa13c1173e9dc504721bca43dafb4b6.jpg\" alt=\"\"></p>\n<p><strong>2、选择商品开单收银</strong></p>\n<p>操作路径：【扫码/点击右侧选择商品】-加入购物车-【收款】，可以选择【现金收款】、【扫码收款】或者【记账收银】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/0ba256351ad13c887743365f15025015.jpg\" alt=\"\">如果您是选择商品，支持在右侧查看热销商品、常购商品，以及查看商品分类或者输入商品名称搜索商品，更加方便的找到指定的商品进行开单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/c5896963b60c3d23c2d784941b01280c.jpg\" alt=\"\"></p>\n<p><strong>3、修改商品</strong></p>\n<p>操作路径：【购物车】-点击【指定商品】-可修改价格、数量、规格、单品备注</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/6814c75496c2e6674cd4ff0dee3de406.png\" alt=\"修改页面\"></p>\n<p><strong>4、给客户优惠</strong></p>\n<p>操作路径：【优惠】-【整单折扣】/【整单立减】，支持自定义折扣力度和自定义立减金额</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/c6c43ba01a1264c02846dcacd42215f5.jpg\" alt=\"\"></p>\n<p><strong>5、给单据抹零</strong></p>\n<p>在收银设置开启抹零后，点击【抹零】则根据设置的规则给客户的单据抹零</p>\n<p>操作路径：右上角【设置】-【抹零设置】，选择抹零规则</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/bee4a537fa43fd188fd5136aaca1a3c8.jpg\" alt=\"\">选择好抹零规则后，点击【抹零】即可</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/a94ba8a4f2dbcc1aa8c1e8f925e79dfa.jpg\" alt=\"\"></p>\n<p><strong>6. 整单备注</strong></p>\n<p>操作路径：【整单备注】-【输入备注信息】-【确定】。会记录最近三条的备注供选择</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/d297f3739965ff471b4e8319f468771e.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/2abf1dda157fb5b0033a288b6887b6de.jpg\" alt=\"\"></p>\n<p><strong>7、取/挂单</strong></p>\n<p>当在店铺经营繁忙时，可以使用取/挂单功能</p>\n<p>操作路径：【挂单】/【取单】，在购物车有商品是，点击为挂单（挂单数量目前限制50）；购物车没有商品时，点击为取单。</p>\n<p>挂单，会记录客户、商品（主要是价格）、挂单时间</p>\n<p>取单，如果商品、客户被删除/停用，取单会移除商品或客户；其他信息有变更，则会更新。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202208/17ebe26494f41b93fa1ab6ca71d76179.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2647,
+    "status": 2,
+    "recommend": 0,
+    "hits": 18489,
+    "publish_time": "2025-12-25T03:20:48.226Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-09-01T06:07:17.220Z",
+    "tags": [
+      {
+        "id": 71,
+        "name": "开单收银台"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2647,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

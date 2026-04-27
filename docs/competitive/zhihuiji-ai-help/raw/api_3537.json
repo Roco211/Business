@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3537,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "核对销售毛利",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/bf361728a56b248f885f7bd47118f0f1.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频\n</video></p>\n",
+    "is_video": 0,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/b64b004cd6d3d47037009c1f45feb82d.jpg",
+    "category_id": 2981,
+    "status": 2,
+    "recommend": 0,
+    "hits": 37,
+    "publish_time": "2026-04-17T01:34:57.611Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-16T07:59:17.485Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1826,
+        "name": "视频",
+        "alias": "xh-shipin"
+      },
+      {
+        "id": 2981,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

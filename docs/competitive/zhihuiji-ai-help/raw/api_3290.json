@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3290,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "小程序二次授权新店",
+    "keywords": "",
+    "description": "",
+    "content": "<p>微信小程序本身不存储智慧记的进销存数据，仅作为前端的一个“展示窗口”，二者完全独立。C端消费者通过小程序，访问<strong>您指定并授权</strong>的店铺。如需更换绑定店铺，请按以下步骤操作：</p>\n<p><strong>1、解除授权：</strong> 登录小程序后台（<a href=\"https://mp.weixin.qq.com/\">https://mp.weixin.qq.com/</a>），取消当前店铺的授权；</p>\n<p><strong>路径：</strong> 小程序后台，左下角【账号设置】-【第三方设置】-【第三方平台授权管理-智慧记】-【解除授权】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/535aa647512d96cbd8ad58f3db3a6e6e.png\" alt=\"Description\"></p>\n<p><strong>2、重新授权：</strong> 登录微店或云店后台，再次执行授权流程，关联至新店铺。</p>\n<p>云店授权：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/386b5794cf7bce385af0802853ba2579.png\" alt=\"Description\"></p>\n<p>微店授权：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/2d3c6f26416055e01b8a2c26f01062e8.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong> 一个小程序只能授权绑定一个店铺，无法同时关联多个。如需管理多个店铺，建议注册多个小程序，为每个店铺单独配置。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2905,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3743,
+    "publish_time": "2025-11-12T02:13:03.090Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-12T02:12:37.947Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2905,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

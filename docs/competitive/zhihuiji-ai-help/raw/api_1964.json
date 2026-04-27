@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1964,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "智慧记迁移智慧记AI进销存",
+    "keywords": "",
+    "description": "",
+    "content": "<p>操作路径：智慧记点击系统设置-迁移智慧记AI进销存-勾选我已了解数据迁移智慧记AI进销存功能，然后点击数据迁移智慧记AI进销存。</p>\n<p><strong>注意：</strong></p>\n<p>1.仅能迁移货品基础资料、客户资料和供应商资料，单据不支持迁移。</p>\n<p>2.需要在智慧记会员有效期内才能迁移数据，开始迁移前，请先执行云同步，保证各端数据统一。</p>\n<p>3.迁移后，智慧记没有任何改变还能正常继续使用，但是智慧记和智慧记AI进销存数据不互通的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/fcfc70f2786b38636e3db2eba049362f.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11552,
+    "publish_time": "2026-02-25T02:36:40.464Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-21T06:59:29.570Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

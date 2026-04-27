@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1719,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "批次保质期＆业绩提成如何与智慧记AI进销存组合使用？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>批次保质期、业绩提成是智慧记AI进销存的增值服务，可在智慧记AI进销存内订购使用。</strong></p>\n<p><strong>批次保质期</strong></p>\n<p>批次保质期是非常重要的商品标记，对小微个体户的老板们来说它不仅能够保证产品质量和安全，还能保证产品库存健康，对产品溯源有着极大的帮助。</p>\n<p><strong>业绩提成</strong></p>\n<p>业绩提成是一种激励员工提高业绩的方式，从而直接推动公司收入的增长。而对于员工而言，业绩提成则可以带来更高的经济回报，同时也能够增强其对工作的投入感和责任心。用智慧记AI进销存的业绩提成服务，可以让老板们自由设置多种提成规则。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12734,
+    "publish_time": "2026-02-25T02:50:03.002Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-05-19T06:25:29.168Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

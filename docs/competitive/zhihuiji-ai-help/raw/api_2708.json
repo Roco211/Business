@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2708,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」开销售预订单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【销售开单】→ 顶部切换至【销售预订单】→ 选择客户与商品 →【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/74430328807d7b6533aaf2e09f59b8aa.png\" alt=\"开销售预订单流程\"></p>\n<p><strong>支持操作：</strong></p>\n<ul>\n<li><strong>收订金</strong>：开单时可收取订金</li>\n<li><strong>转销售</strong>：预订单可转为正式销售单</li>\n<li><strong>打印</strong>：打印当前预订单</li>\n<li><strong>分享</strong>：可分享预订单给客户</li>\n<li><strong>查看详情</strong>：进入详情页进行打印、修改、分享、复制、关闭、作废等操作</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/172a224a0a2d31b6a3d3d3461dce3804.png\" alt=\"销售预订单详情\"></p>\n<p><strong>💡 温馨提示：</strong></p>\n<p>创建销售预订单不影响商品库存，仅在转为正式销售单后才会扣减库存。</p>\n<p>关闭预订单：关闭预订单后，本单将无法继续转销售</p>\n<p>作废预订单：未转销售的预订单可随时作废，已转销售的需先作废对应销售单。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1260\">「手机端」如何开销售单</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2115\">「手机端」如何开销售退货单</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6492,
+    "publish_time": "2025-12-03T09:14:09.975Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-18T06:57:41.942Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

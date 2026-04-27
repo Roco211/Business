@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1260,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」开销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202210/094d27ba0d40242d545c0df5a86c6ce1.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频教程\n</video></p>\n<p><strong>操作路径：</strong> 首页【销售开单】→ 选择客户 → 添加商品 → 【收款】或【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/03344116b7e97667c80fc3f54edee03c.png\" alt=\"Description\"></p>\n<p><strong>保存后支持操作：</strong></p>\n<ul>\n<li><strong>再来一单</strong>：继续开销售单</li>\n<li><strong>立即发货</strong>：将当前销售单标记为已发货</li>\n<li><strong>打印</strong>：打印当前销售单</li>\n<li><strong>分享</strong>：分享当前销售单给客户</li>\n<li><strong>查看详情</strong>：进入详情页进行修改、作废、标记开票、复制等操作</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/dd44d10b953e48b8da5af546b35736a9.png\" alt=\"销售单详情\"></p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1479\">「手机端」如何设置并使用抹零</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1763\">「手机端」使用客户预存款</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2115\">「手机端」开销售退货单</a></li>\n</ul>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3353\">「手机端」销售功能使用指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 13665,
+    "publish_time": "2026-01-19T07:32:28.833Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-19T07:32:26.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

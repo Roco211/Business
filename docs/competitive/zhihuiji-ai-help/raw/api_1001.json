@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1001,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何安装打印控件",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>打印单据前，需要先安装智慧记AI进销存打印服务，下面来看看是怎么操作的吧</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/5a1de801564147b7dd0efea1d7cbfdfd.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>安装Web打印服务</p>\n<p><strong>路径</strong>：【设置】-【基础设置】-【打印设置】-【打印模板】-【模板】-点击进入模板-【编辑打印模板】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/91a3e269a391a739eaca79e94f34fb80.png\" alt=\"\"></p>\n<p><strong>功能说明</strong>：</p>\n<ol>\n<li>\n<p>需先安装Web打印服务（CLodop_Setup_for_Win32NT.exe ），才可以启动打印。</p>\n</li>\n<li>\n<p>打印服务安装成功后，请刷新打印模板编辑页面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/9c80f2674f9ad8b4eb6624adfc996606.png\" alt=\"\"></p>\n</li>\n</ol>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 21493,
+    "publish_time": "2025-04-14T08:25:25.972Z",
+    "useful_count": 7,
+    "useless_count": 39,
+    "create_time": "2110-12-30T15:25:21.000Z",
+    "tags": [
+      {
+        "id": 1,
+        "name": "系统设置"
+      },
+      {
+        "id": 4,
+        "name": "打印设置"
+      },
+      {
+        "id": 72,
+        "name": "编辑打印模板"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

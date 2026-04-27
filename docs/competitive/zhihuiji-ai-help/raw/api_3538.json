@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3538,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何设置不让员工查看进货价/成本价？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径：</strong> 【设置】→【角色权限】→ 找到对应角色 → 点击【修改】</p>\n<p>取消勾选以下权限：</p>\n<ul>\n<li><strong>「进货价」</strong></li>\n<li><strong>「成本价和利润」</strong></li>\n</ul>\n<p>点击【保存】即可生效。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/f05ca7d7f19f1fde5ca48e8fb12b8141.png\" alt=\"设置进货价成本价权限\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2633,
+    "status": 2,
+    "recommend": 0,
+    "hits": 23,
+    "publish_time": "2026-04-22T03:31:43.705Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-22T03:31:43.705Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2633,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

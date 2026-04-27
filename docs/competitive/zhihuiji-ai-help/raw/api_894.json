@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 894,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "绑定营业员提成规则",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>员工绑定提成规则</strong></p>\n<p><strong>路径</strong>：【销售】-【业绩提成】-【业绩设置】-选择加入的提成规则-【修改】-【适用员工】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/ac518bf6123d0a2f2f7b73658a6195eb.png\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2597,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12959,
+    "publish_time": "2023-07-06T07:42:07.372Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2021-05-15T08:50:06.000Z",
+    "tags": [
+      {
+        "id": 7,
+        "name": "服务订阅"
+      },
+      {
+        "id": 27,
+        "name": "服务详情"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2597,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

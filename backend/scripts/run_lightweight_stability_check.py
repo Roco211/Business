@@ -24,7 +24,10 @@ REQUIRED_EXPORT_PATHS = {
 
 def main() -> int:
     os.environ.setdefault("APP_RUNTIME_MODE", "local-demo")
-    os.environ.setdefault("LLM_PROVIDER", "mock")
+    os.environ.setdefault("LLM_PROVIDER", "deepseek")
+    os.environ.setdefault("LLM_PROVIDER_API_URL", "https://api.deepseek.com/v1/chat/completions")
+    os.environ.setdefault("LLM_PROVIDER_MODEL", "deepseek-v4-flash")
+    os.environ.setdefault("LLM_PROVIDER_API_KEY", "stability-check-placeholder")
     os.environ.setdefault("ASR_PROVIDER", "mock")
     os.environ.setdefault("OCR_PROVIDER", "mock")
     os.environ.setdefault("VISION_PROVIDER", "mock")

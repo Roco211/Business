@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2047,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "库存盘点",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/2b03e33ac691fdf41c3f2b717d2e99bc.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n操作演示视频\n</video></p>\n<p><strong>业务场景</strong>：当实际库存数量与软件库存数量不一致时，可通过<strong>盘点单</strong>调整库存数量。</p>\n<hr>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E7%9B%98%E7%82%B9%E5%8D%95\" tabindex=\"-1\">新增盘点单<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E7%9B%98%E7%82%B9%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【库存】→【盘点单】→【新增盘点单】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/d45bc2a83e7f4885fcc7659c4f773a72.png\" alt=\"新增盘点单\"></p>\n<h3 id=\"%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" tabindex=\"-1\">操作步骤<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" aria-hidden=\"true\"></a></h3>\n<p>（1）<strong>锁定库存（可选）</strong>：点击「锁定」，锁定后不允许进行库存进出业务，直至解锁或完成盘点。<br>\n（2）<strong>选择商品</strong>：选择或搜索需要盘点的商品。<br>\n（3）<strong>填写实际数量</strong>：系统自动计算盈亏数量。<br>\n（4）<strong>保存</strong>：确认无误后点击保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/f9f572128d74b17a2fe9543f51737837.png\" alt=\"填写盘点单\"></p>\n<h3 id=\"%E7%9B%98%E7%82%B9%E5%8D%95%E8%AF%A6%E6%83%85\" tabindex=\"-1\">盘点单详情<a class=\"header-anchor\" href=\"#%E7%9B%98%E7%82%B9%E5%8D%95%E8%AF%A6%E6%83%85\" aria-hidden=\"true\"></a></h3>\n<p>保存后进入盘点单详情页，左上角可<strong>作废</strong>单据或<strong>查看历史单据</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/818639979eade845b82b164fd61403f6.png\" alt=\"盘点单详情\"></p>\n<hr>\n<h2 id=\"%E7%9B%98%E7%82%B9%E5%8D%95%E5%88%97%E8%A1%A8\" tabindex=\"-1\">盘点单列表<a class=\"header-anchor\" href=\"#%E7%9B%98%E7%82%B9%E5%8D%95%E5%88%97%E8%A1%A8\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【库存】→【盘点单】\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/b84e58fb3af490e5a1f55719a1bbd682.png\" alt=\"盘点单列表\"></p>\n<h3 id=\"%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D\" tabindex=\"-1\">功能介绍<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D\" aria-hidden=\"true\"></a></h3>\n<table>\n<thead>\n<tr>\n<th>功能</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>查询</strong></td>\n<td>支持按单据日期、商品名称、规格、货号、条形码、仓库、业务员、制单人、备注筛选</td>\n</tr>\n<tr>\n<td><strong>筛选</strong></td>\n<td>可勾选“隐藏作废单据”“隐藏无盈亏单据”</td>\n</tr>\n<tr>\n<td><strong>导出</strong></td>\n<td>点击【导出】可导出盘点单内容</td>\n</tr>\n<tr>\n<td><strong>操作</strong></td>\n<td>每条单据后可点击【查看】或【作废】</td>\n</tr>\n<tr>\n<td><strong>商品明细</strong></td>\n<td>选中单据后，点击底部【商品明细】可查看详细信息</td>\n</tr>\n</tbody>\n</table>\n<hr>\n<h2 id=\"%E7%BB%8F%E8%90%A5%E5%88%A9%E6%B6%A6\" tabindex=\"-1\">经营利润<a class=\"header-anchor\" href=\"#%E7%BB%8F%E8%90%A5%E5%88%A9%E6%B6%A6\" aria-hidden=\"true\"></a></h2>\n<p>盘点产生的<strong>盈亏金额</strong>将参与经营利润统计。</p>\n<p><strong>查看路径：</strong> 【分析】→【经营利润】，可查看盘盈金额、盘亏金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/b5312f03d126a132293bb78113c77e11.png\" alt=\"经营利润\"></p>\n<hr>\n<p><strong>了解更多</strong><br>\n需要批量盘点？可点此查看👉 <a href=\"https://www.zhihuiji.cn/help/doc/2887\">Excel盘点</a></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2604,
+    "status": 2,
+    "recommend": 0,
+    "hits": 13411,
+    "publish_time": "2026-04-23T06:17:47.379Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "3205-08-03T01:58:30.000Z",
+    "tags": [
+      {
+        "id": 48,
+        "name": "盘点单列表"
+      },
+      {
+        "id": 146,
+        "name": "新增盘点单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2604,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

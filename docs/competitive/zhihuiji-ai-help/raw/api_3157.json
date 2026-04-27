@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3157,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店小程序怎么设置显示剩余库存",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>如下图所示，云店小程序需要显示剩余库存怎么设置呢？</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/23966ef7b000aea43c270eae6a92c1be.png\" alt=\"Description\"></p>\n<p><strong>步骤一：</strong> 设置--系统设置--取消勾选允许负库存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/c7d5f06a9a0410733110a96414cef348.png\" alt=\"Description\"></p>\n<p><strong>步骤二：</strong> 云店--云店设置--商品设置里勾选库存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/0812dc21ea80e711b736f815bb48a53c.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2871,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3890,
+    "publish_time": "2025-08-29T07:37:06.726Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-29T07:37:06.726Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2871,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

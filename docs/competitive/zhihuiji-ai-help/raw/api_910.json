@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 910,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "条码标签打印",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>商品本身没有条码，可以通过此方式打印条码，贴上商品，方便扫码管理。</p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" tabindex=\"-1\">操作路径<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" aria-hidden=\"true\"></a></h2>\n<p>【商品】-【商品】- 勾选要打印的商品 -【批量操作】-【打印标签】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/167cad5250dbc2d547ec5f9532c1b83a.png\" alt=\"Description\"></p>\n<p>自动选择默认模板，也可手动切换为其他模板，模板设置可点此查看<a href=\"https://www.zhihuiji.cn/help/doc/3269#%E6%89%93%E5%8D%B0%E8%AE%BE%E7%BD%AE\">商品标签打印模板设置教程</a></p>\n<p>若未设置打印机可根据提示进行设置</p>\n<p>确认打印份数后点击打印\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/58f2d66d715fe04d4514d22601c98a6a.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">注意事项<a class=\"header-anchor\" href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<ul>\n<li>\n<p>若商品没有条形码，需要先生成商品条形码，点此查看<a href=\"https://www.zhihuiji.cn/help/doc/909\">批量操作生成商品条码</a></p>\n</li>\n<li>\n<p>需要提前链接好标签打印机。</p>\n</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15837,
+    "publish_time": "2025-11-13T01:53:06.351Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-12T03:44:16.000Z",
+    "tags": [
+      {
+        "id": 3,
+        "name": "商品列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

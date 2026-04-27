@@ -405,7 +405,7 @@ def create_llm_provider(
     import os
 
     # Detect provider type from env
-    env_provider = os.getenv("LLM_PROVIDER", "openrouter").lower().strip()
+    env_provider = os.getenv("LLM_PROVIDER", "deepseek").lower().strip()
 
     # Config priority: explicit args > Business app provider-prefixed env vars > legacy generic/provider vars > defaults.
     # Business Settings exposes LLM_PROVIDER_API_*; keep legacy LLM_* and VOLCANO_* for compatibility.
@@ -444,7 +444,7 @@ def create_llm_provider(
         if env_provider == "volcano":
             _model = "ep-20260416043519-v4vzq"  # Default endpoint ID
         elif env_provider == "deepseek":
-            _model = "deepseek-chat"  # DeepSeek V3
+            _model = "deepseek-v4-flash"
         elif env_provider in ("openrouter", "openai"):
             _model = "nvidia/nemotron-3-super-120b-a12b:free"
         else:

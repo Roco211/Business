@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3358,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」分享单据",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【销售】- 进入单据详情页 - 点击【分享】</p>\n<p>您可以将销售单、预订单或退货单快速分享给客户或同事，支持多种格式。</p>\n<ol>\n<li>\n<p><strong>找到并点击【分享】按钮</strong><br>\n在目标单据的详情页右上角，找到并点击【分享】按钮。</p>\n</li>\n<li>\n<p><strong>选择分享格式</strong><br>\n系统将弹出分享选项，您可以选择：</p>\n<ul>\n<li><strong>单据卡片</strong>：简洁的信息摘要，适合在即时通讯软件内发送，客户可点开查看详情和单据单据凭证。</li>\n<li><strong>单据图片</strong>：生成直观的单据截图。</li>\n<li><strong>PDF文件</strong>：生成标准的PDF格式文件，便于打印或存档。</li>\n</ul>\n</li>\n<li>\n<p><strong>选择分享渠道</strong><br>\n选择格式后，点击底部【分享至微信好友】，您可以选择相应联系人完成发送。</p>\n</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/bdfa950e8decbb763c9d3cf44e47c3a9.png\" alt=\"分享单据流程\"></p>\n<p><strong>💡 提示</strong>：<br>\n分享内容会包含单据的核心信息（单号、商品、金额、客户等），方便对方快速确认。</p>\n<hr>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3353\">「手机端」销售功能使用指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3637,
+    "publish_time": "2025-12-05T09:11:23.218Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-03T06:30:46.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

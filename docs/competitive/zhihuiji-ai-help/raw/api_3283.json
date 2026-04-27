@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3283,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "蓝牙打印小票",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>1、添加和配对蓝牙打印机</strong></p>\n<p><strong>路径：</strong> 手机端，销售单详情页 - 左下角打印-打印预览页，右上角【打印设置】-【打印机管理-蓝牙打印机】添加蓝牙打印机，找到需要配对的蓝牙打印机，点击名称自动配对</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/888a02aac2f3c41d59fa61c450022d4a.png\" alt=\"配对流程\"></p>\n<p><strong>2、在打印预览页，选择【打印模板】和【目标打印机】进行打印</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/dce527b8d20d31c2dfb65a16cb7012c0.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2726,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4710,
+    "publish_time": "2026-02-25T02:28:29.289Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-07T01:07:01.345Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2726,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

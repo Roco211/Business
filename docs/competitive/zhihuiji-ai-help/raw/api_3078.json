@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3078,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "查看其他用户销售预订单的方法",
+    "keywords": "",
+    "description": "",
+    "content": "<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/76999b7609b99791c2bfa2b6d13efe25.png\" alt=\"Description\"></p>\n<p>1.设置--角色权限。修改对应用户的员工角色</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/fdd4d3ecf6c0995731505d1c29347a10.png\" alt=\"Description\"></p>\n<p>2.点击左侧敏感数据，下拉勾选'查看其他用户的销售预订单权限'。保存后生效</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/acd4a18ad7061436e1694a58cd3cd8de.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2633,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3830,
+    "publish_time": "2025-07-11T03:29:08.218Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-07-11T03:27:21.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2633,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

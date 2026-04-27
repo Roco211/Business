@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3216,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店订单状态说明",
+    "keywords": "",
+    "description": "",
+    "content": "<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202405/75759f1fab6f4a119d86d364ab7ee304.png\" alt=\"Description\"></p>\n<p>云店拒绝/作废订单后，“已支付的货款将原路退回”，若余额不足只能线下自行退款。<strong>注意：请提前检查关联的微信小程序支付账户，确保可用余额充足。</strong></p>\n<table>\n<thead>\n<tr>\n<th>订单状态</th>\n<th>说明</th>\n<th>操作</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>待接单</td>\n<td>顾客已下单，但商家尚未受理</td>\n<td>接单；<strong>拒绝后，已支付的货款将原路退回</strong>；系统不会自动取消</td>\n</tr>\n<tr>\n<td>待发货</td>\n<td>商家已接单，但尚未发货</td>\n<td>发货；<strong>作废后，已支付的货款将原路退回</strong>；系统不支持修改微信支付和预存款支付的订单</td>\n</tr>\n<tr>\n<td>部分发货</td>\n<td>已发部分货物，剩余未发完</td>\n<td>发货；<strong>不支持作废</strong>；系统不支持修改微信支付和预存款支付的订单</td>\n</tr>\n<tr>\n<td>待收货</td>\n<td>商家已发完货，但客户尚未收货</td>\n<td>仅查看</td>\n</tr>\n<tr>\n<td>已完成</td>\n<td>已确认收货</td>\n<td>仅查看；<strong>发货完成后，超过7天自动确认收货</strong></td>\n</tr>\n<tr>\n<td>已取消</td>\n<td>系统自动取消</td>\n<td>仅查看；<strong>在线支付未完成，超过半小时自动取消</strong></td>\n</tr>\n</tbody>\n</table>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4259,
+    "publish_time": "2025-11-20T02:42:16.199Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-09-29T03:45:23.791Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

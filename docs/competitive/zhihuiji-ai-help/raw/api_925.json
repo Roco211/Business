@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 925,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "零售价与批发价管理",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E9%9B%B6%E5%94%AE%E4%BB%B7%E5%92%8C%E6%89%B9%E5%8F%91%E4%BB%B7\" tabindex=\"-1\"><strong>添加/修改零售价和批发价</strong><a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E9%9B%B6%E5%94%AE%E4%BB%B7%E5%92%8C%E6%89%B9%E5%8F%91%E4%BB%B7\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【商品】-【商品】-新增/修改商品-【商品价格】-【零售价】/【批发价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9e2c55ed2b6d2ef913cacfbe542c79fd.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：日常业务销售时，需要用到货品的统一零售价或者统一批发价，属于基础的销售价格资料。</p>\n<p><strong>功能说明：</strong></p>\n<p>1、添加/修改销售价格时，不会影响到已发生业务的单据价格。</p>\n<p>2、另外支持新增商品的好友价与会员价等（可自定义名称），点此查看<a href=\"https://www.zhihuiji.cn/help/doc/891\">价格等级</a>。</p>\n<h2 id=\"%E7%BB%9F%E4%B8%80%E9%9B%B6%E5%94%AE%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" tabindex=\"-1\"><strong>统一零售价 • 使用示例</strong><a class=\"header-anchor\" href=\"#%E7%BB%9F%E4%B8%80%E9%9B%B6%E5%94%AE%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" aria-hidden=\"true\"></a></h2>\n<p><strong>业务场景</strong>：日常业务销售时，开单销售时需要能自动带出货品的统一零售价。</p>\n<p><strong>功能说明：</strong></p>\n<p>1、使用前，必须先设置客户价格等级：【首页】-【客户】- 找到客户 -【修改】-【价格等级】-【零售价】-【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7280af52f256d44cb2e32fd7be2cc3e6.png\" alt=\"Description\"></p>\n<p>2、开单销售时，先选择「零售客户」或「价格等级为零售价的客户」，再选择货品，则会自动带出货品的统一零售价。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/bf8225427082ec2efbd588f215dc8f98.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/efe9d36d2296e88545bec316972abe69.png\" alt=\"Description\"></p>\n<h2 id=\"%E7%BB%9F%E4%B8%80%E6%89%B9%E5%8F%91%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" tabindex=\"-1\"><strong>统一批发价 • 使用示例</strong><a class=\"header-anchor\" href=\"#%E7%BB%9F%E4%B8%80%E6%89%B9%E5%8F%91%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" aria-hidden=\"true\"></a></h2>\n<p><strong>业务场景</strong>：日常业务销售时，开单销售时需要能自动带出货品的统一批发价。</p>\n<p><strong>功能说明：</strong></p>\n<p>1、使用前，必须先设置好客户价格等级：【首页】-【客户】- 找到客户 -【修改】-【价格等级】-【批发价】-【保存】\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/0eab6ed8f5406b080f5237724ff9d4aa.png\" alt=\"Description\"></p>\n<p>2、开单销售时，先选择「批发客户」或「价格等级为批发价的客户」，再选择货品，则会自动带出货品的统一批发价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b0a27187672ae1f120b8a08b1ee7723b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c0fa819e0335b251255f4a09d352f843.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 21040,
+    "publish_time": "2025-11-13T05:35:23.661Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2024-01-19T01:49:19.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

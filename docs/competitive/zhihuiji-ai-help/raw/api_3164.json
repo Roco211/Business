@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3164,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "其他收入怎么关联客户/供应商",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>使用场景：</strong> 和客户/供应商相关的其他收入需要单独记录，便于后续查账；记录后可在资金流水明细里面查询</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/11c5fb8f729d87df49c553e872b8561c.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2624,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3717,
+    "publish_time": "2025-09-09T07:42:13.062Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-09-09T07:42:13.062Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2624,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

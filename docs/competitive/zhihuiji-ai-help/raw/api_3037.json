@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3037,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么员工看不到新增的仓库？",
+    "keywords": "",
+    "description": "员工看不到新仓库",
+    "content": "<p>创建新仓库后，员工开单时无法显示或选择该仓库，通常是因为<strong>未给员工配置仓库权限</strong>。</p>\n<p><strong>解决方法</strong></p>\n<p><strong>路径：</strong> 【设置】→【员工管理】→ 找到对应员工 → 修改 → 勾选新增的仓库 → 确定</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/6620fd7b70325315e59d77f3f71cc6ba.png\" alt=\"仓库权限设置\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2682,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3950,
+    "publish_time": "2026-04-22T03:24:25.856Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-06T08:04:23.894Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2682,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

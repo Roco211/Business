@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1481,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "收付款单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径</strong>：右下角【更多】-【收付款】-【收款】/【付款】-选择门店、客户、收/付款金额，点击【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/981643def8ca4937d27b23c4af7b9b8d.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/05a47b4d33091809f23f6ec835ed044f.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/719a8a365fa34c85c6a3e0b6841be002.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2226,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8604,
+    "publish_time": "2024-04-09T02:56:13.711Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-07-18T06:59:57.043Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2226,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

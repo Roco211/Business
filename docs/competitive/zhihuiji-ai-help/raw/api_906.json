@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 906,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "快捷改价操作",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>快捷改价</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1c6317750d52aaa00a2effed50df7826.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>当商品因进货价变化、市场价格变化、经营策略等原因需要<strong>批量调整售价</strong>时，可使用“快捷改价”功能，快速完成价格更新，大幅提升效率。</p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" tabindex=\"-1\">操作路径<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径1：</strong> 【商品】-【商品】-【快捷改价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/cae9a1fa1a75961eb7aeb43286aebad6.png\" alt=\"Description\"></p>\n<p><strong>路径2：</strong> 【商品】-【价格管理】-【快捷改价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/13f0b85afc2d0b670b5de286823be7e1.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95\" tabindex=\"-1\">操作方法<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>方式一：直接改价（适用于精确调价）</strong></p>\n<p>（1）进入【快捷改价】界面。</p>\n<p>（2）在商品对应的价格输入框中，直接输入<strong>新的价格</strong>。</p>\n<p>（3）全部修改完成后，点击 <strong>【改价完成】</strong> 。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/195a7d24d0a2e7d59640e7abf8eacf53.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/da720ca377033797b8db976ff412989f.png\" alt=\"Description\"></p>\n<p><strong>方式二：批量按比例调价（适用于统一折扣或涨价）</strong></p>\n<p>（1）进入【快捷改价】界面，<strong>勾选</strong>需要调价的商品。</p>\n<p>（2）点击 <strong>【批量改价】</strong> 按钮。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/a3f028984e70a97c7521c7fa7dd39906.png\" alt=\"Description\"></p>\n<p>（3）在弹窗中设置调价规则：</p>\n<p><strong>调价范围：</strong> 选择对「选中的商品」或「当前查询条件下的所有商品」生效。</p>\n<p><strong>价格类型：</strong> 选择需要调整的价格，如零售价、批发价等。</p>\n<p><strong>计算基准：</strong> 以商品的「进货价」、「原零售价」、「原批发价」等作为基准。</p>\n<p><strong>调整方式：</strong> 上调或下调指定的<strong>百分比</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/fa7a9013994f3d28e85daa52fa30f519.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15237,
+    "publish_time": "2025-11-13T01:51:15.533Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2024-01-06T05:30:12.000Z",
+    "tags": [
+      {
+        "id": 3,
+        "name": "商品列表"
+      },
+      {
+        "id": 10,
+        "name": "价格查询"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

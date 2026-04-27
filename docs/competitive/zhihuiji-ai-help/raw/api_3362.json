@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3362,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "员工查看客户对账单为什么没有显示累计欠款",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>员工查看客户对账单没有显示累计欠款一般是以下两个原因导致的：</strong></p>\n<p><strong>原因一：</strong> 查询的时候选择了某一个门店了，没有选择全部门店，把选择全部门店即可全部看到</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/1bc58be677659e5d94785d6dab43be90.png\" alt=\"Description\"></p>\n<p><strong>原因二：</strong> 该员工的权限只有部分门店可查看，如果需要累计欠款的话，需要让老板把全部的门店都归属给该员工。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/5732017bcf85e344dc462a234c27917f.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/542df3e5a2c15878cd58e7ad964cc6d4.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3505,
+    "publish_time": "2025-12-09T02:10:02.732Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-09T02:10:02.732Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

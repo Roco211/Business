@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 951,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "【多店多仓】如何应用多店多仓功能管理生意？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>李先生有3家门店，2个仓库，他如何用智慧记AI进销存的**【多店多仓】**功能管理生意呢？</p>\n<p><strong>一、添加门店/添加仓库</strong>：</p>\n<p>首先，需要添加门店和仓库</p>\n<p>操作路径：在【首页】-【设置】-【门店管理】里面，把3个门店添加上；</p>\n<p>在【首页】-【设置】-【仓库管理】里面，把2个仓库添加上，并且设置好门店与仓库是否关联。</p>\n<p>如果关联，门店就能够售卖关联仓库的货品。</p>\n<p>像李先生3家门店，A店,B店位于深圳市，关联了仓库1；C店位于广州市，关联了仓库2。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202203/abb9161591b1495edfb71540c1e809f7.jpg\" alt=\"\"></p>\n<p><strong>二、进货/销货</strong>：</p>\n<p>开进货单/销售单的时候，要选择对应的门店，以及和该门店已关联的仓库。</p>\n<p>这样，仓库和门店的库存数据就能一致。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202203/f8fe75ac31ac3b473b0283f56ed0aed6.jpg\" alt=\"\"></p>\n<p><strong>三、库存盘点</strong>：</p>\n<p>盘点的时候，可以选择不同的仓库来盘点，确保每个仓库的库存数据的精准。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202203/0db9ecadc1baa7022c0a3dface80ecaa.jpg\" alt=\"\"></p>\n<p><strong>四、查看报告</strong>：</p>\n<p>可以按门店查看销售统计/利润统计/进货统计等报告。</p>\n<p>支持按仓库查看库存统计报告。</p>\n<p><strong>注：智慧记AI进销存高级版支持多店多仓，购买智慧记AI进销存高级版后，可开启多店多仓，并可单独增购门店数和用户数</strong>。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2682,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14115,
+    "publish_time": "2024-08-06T05:56:00.805Z",
+    "useful_count": 2,
+    "useless_count": 0,
+    "create_time": "2119-12-30T05:50:43.000Z",
+    "tags": [
+      {
+        "id": 6,
+        "name": "版本订阅"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2682,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

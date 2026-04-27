@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3280,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么销售统计中的利润与开单时看到的利润不一致？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>销售统计中的销售毛利与新增/修改销售单页面显示的毛利润不一致，是因为两者采用了不同的成本计算基准，属于正常现象。</p>\n<table>\n<thead>\n<tr>\n<th></th>\n<th>销售统计报告</th>\n<th>新增/修改销售单页面</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>计算基准</td>\n<td>历史成本：按照销售当时的商品成本计算</td>\n<td>实时成本：按照当前/结余的商品成本计算</td>\n</tr>\n<tr>\n<td>目的</td>\n<td>反映历史交易的真实盈利情况</td>\n<td>基于最新成本，预估本次销售的利润</td>\n</tr>\n</tbody>\n</table>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/30e5d9bac67a897db8af37fab1390f45.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/16531c28d1f6ae27894be3ef02e5ef44.png\" alt=\"Description\"></p>\n<p><strong>结论：</strong> 当两者不一致时，说明在开单之后，商品的成本发生了变动（如：录入了新的进货单）</p>\n<p><strong>如何核实？</strong></p>\n<p>您可以通过以下路径查看商品的成本变动记录，追溯问题：</p>\n<p>【库存】-【库存查询】- 搜索指定商品 -查看【成本明细】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/2259b0f6c74a52c2758f6b709f38f5e0.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2681,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3593,
+    "publish_time": "2025-11-07T06:53:15.928Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-06T08:38:16.241Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2681,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

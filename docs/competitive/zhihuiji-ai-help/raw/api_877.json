@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 877,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增在线账户",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>新增在线账户</strong></p>\n<p><strong>路径</strong>：【资金】-【账户】-【在线账户】</p>\n<p>在线账户需要申请，开通后可进行微信、支付宝、云闪付等支付方式。</p>\n<p><a href=\"http://www.zhihuiji.cn/help/doc/2271\">在线收银相关问题汇总</a></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2620,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15880,
+    "publish_time": "2025-03-27T02:00:04.925Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2106-12-28T10:29:03.000Z",
+    "tags": [
+      {
+        "id": 156,
+        "name": "账户概览"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2620,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

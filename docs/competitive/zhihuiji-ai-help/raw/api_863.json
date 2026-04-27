@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 863,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货预订单列表操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/398496899182d4e4f36f75669877a6ec.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>进货预定列表</strong></p>\n<p><strong>路径</strong>：【进货】-【进货预订】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/6d236e8c4b4479e710e7066384d8b530.png\" alt=\"Description\"></p>\n<p><strong>查看/复制/关闭进货订单</strong></p>\n<p><strong>路径</strong>：【进货】-【进货预订】</p>\n<p>1.可通过筛选单据的日期、供应商名称、单据编号、商品名称，来查询具体某一个单据。</p>\n<p>2.在对应的单据右侧有”查看““复制””关闭“操作</p>\n<p>（1）查看：点开可查看具体信息</p>\n<p>（2）复制：可以复制一张相同的进货订单。如果本次进货订单和之前类似，就可以直接复制或简单修改，快速完成进货订单</p>\n<p>（3）关闭：关闭进货订单后，就无法转进货单。相当于作废该单据。</p>\n<p>3.可勾选是否”隐藏作废单据“。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/1ae99659d6888c6c5f63f1b73afc96d5.png\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2601,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12932,
+    "publish_time": "2025-01-23T06:50:40.557Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2107-12-25T06:03:53.000Z",
+    "tags": [
+      {
+        "id": 152,
+        "name": "进货预订列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2601,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

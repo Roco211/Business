@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3033,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "小程序开通——微信小程序备案",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>小程序备案整体流程：</strong><a href=\"https://developers.weixin.qq.com/miniprogram/product/record_guidelines.html\">https://developers.weixin.qq.com/miniprogram/product/record_guidelines.html</a></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/464461a4f86ff1cbcc9a0eb0cc64b529.png\" alt=\"Description\"></p>\n<p><strong>备案成功效果：已备案</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202403/abc141cc310eca80a98be81f97ba8d71.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%A4%87%E6%A1%88%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" tabindex=\"-1\">小程序备案操作指引<a class=\"header-anchor\" href=\"#%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%A4%87%E6%A1%88%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" aria-hidden=\"true\"></a></h2>\n<ul>\n<li>登录微信公众平台：<a href=\"https://mp.weixin.qq.com/\">https://mp.weixin.qq.com/</a></li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/ca3a590a9932fdfc9f69efed859e075e.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/81a1d5e904f24f56e8c6b7d797935252.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%AE%A1%E6%A0%B8%E6%97%B6%E6%95%88%EF%BC%9A1-20%E4%B8%AA%E5%B7%A5%E4%BD%9C%E6%97%A5\" tabindex=\"-1\">审核时效：1-20个工作日<a class=\"header-anchor\" href=\"#%E5%AE%A1%E6%A0%B8%E6%97%B6%E6%95%88%EF%BC%9A1-20%E4%B8%AA%E5%B7%A5%E4%BD%9C%E6%97%A5\" aria-hidden=\"true\"></a></h2>\n<p>各省通信管理局将在1-20个工作日（具体以实际审核时间为准）完成审核，审核结果以站内信、模板消息、短信等形式通知。</p>\n<h2 id=\"%E5%B7%A5%E4%BF%A1%E9%83%A8%E7%9F%AD%E4%BF%A1%E6%A0%B8%E9%AA%8C\" tabindex=\"-1\">工信部短信核验<a class=\"header-anchor\" href=\"#%E5%B7%A5%E4%BF%A1%E9%83%A8%E7%9F%AD%E4%BF%A1%E6%A0%B8%E9%AA%8C\" aria-hidden=\"true\"></a></h2>\n<p>工信部核验网址：<a href=\"https://beian.miit.gov.cn/\">https://beian.miit.gov.cn/</a></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/caec7569780f52174c236ac1764e469e.jpg\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/1237555e0be92ae94a44f18b44f7c4fa.jpg\" alt=\"Description\"></p>\n<p>注：若没有收到短信验证码，或者核验时提示验证码错误无效，可选择【短信重发】触发一次短信重发；24小时内未核验成功，备案将被工信部系统自动驳回，你需到微信公众平台重新提交备案申请。</p>\n<h2 id=\"%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98\" tabindex=\"-1\">常见问题<a class=\"header-anchor\" href=\"#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%AE%A1%E7%90%86%E5%91%98%E8%A7%84%E8%8C%83\" tabindex=\"-1\">小程序管理员规范<a class=\"header-anchor\" href=\"#%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%AE%A1%E7%90%86%E5%91%98%E8%A7%84%E8%8C%83\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li>需跟微信小程序管理员（负责人）信息一致；</li>\n<li>若跟营业执照法人不一致，各地管局要求可能有所不同，参考：<a href=\"https://developers.weixin.qq.com/miniprogram/product/record/record_material.html#%E4%BA%94%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%B4%9F%E8%B4%A3%E4%BA%BA%E6%8E%88%E6%9D%83%E4%B9%A6\">https://developers.weixin.qq.com/miniprogram/product/record/record_material.html</a></li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/59818ee601bcb49660178271f4e2badd.png\" alt=\"Description\"></p>\n<h3 id=\"%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%B4%9F%E8%B4%A3%E4%BA%BA%E6%89%8B%E6%9C%BA%E5%8F%B7%E7%A0%81%EF%BC%8C%E4%B8%8D%E5%85%81%E8%AE%B8%E8%A2%AB%E5%A4%9A%E4%BA%BA%E4%BD%BF%E7%94%A8\" tabindex=\"-1\">小程序负责人手机号码，不允许被多人使用<a class=\"header-anchor\" href=\"#%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%B4%9F%E8%B4%A3%E4%BA%BA%E6%89%8B%E6%9C%BA%E5%8F%B7%E7%A0%81%EF%BC%8C%E4%B8%8D%E5%85%81%E8%AE%B8%E8%A2%AB%E5%A4%9A%E4%BA%BA%E4%BD%BF%E7%94%A8\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li>需填写本人使用的有效手机号码，且没有给其他人使用过进行备案；</li>\n<li>更换成一个符合要求的手机号即可。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/0740b450f44f04fa257146abb3401b08.png\" alt=\"Description\"></p>\n<h3 id=\"%E4%BA%92%E8%81%94%E7%BD%91%E4%BF%A1%E6%81%AF%E6%9C%8D%E5%8A%A1%E5%89%8D%E7%BD%AE%E5%AE%A1%E6%89%B9%E9%A1%B9\" tabindex=\"-1\">互联网信息服务前置审批项<a class=\"header-anchor\" href=\"#%E4%BA%92%E8%81%94%E7%BD%91%E4%BF%A1%E6%81%AF%E6%9C%8D%E5%8A%A1%E5%89%8D%E7%BD%AE%E5%AE%A1%E6%89%B9%E9%A1%B9\" aria-hidden=\"true\"></a></h3>\n<p>无涉及相关领域，则选择“<strong>以上都不涉及前置审批项</strong>”。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/faec82eb3e95ae029bd49b5531cbce3c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/cbf923d4e73b0fbe5a5f2b64717487fa.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2879,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5246,
+    "publish_time": "2025-06-06T01:57:55.316Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-05T05:33:55.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2879,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2703,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」盘点单",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%96%B0%E5%A2%9E%E7%9B%98%E7%82%B9%E5%8D%95\" tabindex=\"-1\">新增盘点单<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E7%9B%98%E7%82%B9%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>路径：点击右下角【更多】-【盘点】-右下角【盘点】，选择要盘点的商品信息，然后输入实际数量保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/b2f65cddacc4f3749aa01d0bfb6ae134.png\" alt=\"Description\"></p>\n<h2 id=\"%E4%BD%9C%E5%BA%9F%E7%9B%98%E7%82%B9%E5%8D%95\" tabindex=\"-1\">作废盘点单<a class=\"header-anchor\" href=\"#%E4%BD%9C%E5%BA%9F%E7%9B%98%E7%82%B9%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>路径：点击进入盘点单详情界面，然后点击底部的【作废】按钮即可作废盘点单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/db6150b5d1fd594ea5bb28a075162052.png\" alt=\"Description\"></p>\n<p>注意：盘点单做错了是不支持修改的，只能作废后重新做盘点单。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4983,
+    "publish_time": "2026-01-06T07:11:03.020Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-16T02:56:18.876Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

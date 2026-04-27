@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2266,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "AI开单教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>用户背景：</strong></p>\n<p>1.客户通过微信/QQ等平台，在线向客户下单。</p>\n<p>2.客户发手写单的图片来下单/商户把手写单录入系统中。</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/59140cb88a95ee453984ba2b8e2d94ae.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>操作路径：</strong>【销售】-【销售】-【新增销售单】，进入到新增销售单界面，然后点击【AI开单】按钮。支持文字识别和者图片识别。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/3c5c1e909377cc2ee922ff8f26e704c5.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/157199e202c6ba5b31c94870af3e7aea.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%EF%BC%9A\" tabindex=\"-1\">文字识别：<a class=\"header-anchor\" href=\"#%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB%EF%BC%9A\" aria-hidden=\"true\"></a></h2>\n<p>把文字粘贴到搜索框里，然后点击开始识别。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/423590da84ecbe73d98e8ff28c376495.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%9B%BE%E7%89%87%E8%AF%86%E5%88%AB\" tabindex=\"-1\">图片识别<a class=\"header-anchor\" href=\"#%E5%9B%BE%E7%89%87%E8%AF%86%E5%88%AB\" aria-hidden=\"true\"></a></h2>\n<p>点击添加上传图片，支持拖拽上传和复制粘贴上传。支持jpg，png格式，识别出商品后点击下一步。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/1b74849e6a1322151fc87d9731bd8dc8.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/1ca6c40768ee90d59b0db877d1f65730.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/a64434fc860cbbbc93065aea06e48844.png\" alt=\"Description\"></p>\n<p>（1）识别完成后，若匹配到唯一商品，则提示匹配成功；</p>\n<p>（2）若一个都未命中，则提示未匹配，录入单据会自动创建为新商品；</p>\n<p>（3）若命中了多个商品，则系统自动选中一个，并且支持更换。在操作栏，点击【更换】，弹出更换商品页面，可选择要更换的商品，顶部支持搜索商品、规格、货号等信息定位商品;</p>\n<p>（4）操作栏鼠标移入，可删除该行匹配结果。</p>\n<p>（5）确定商品无误后点击录入商品，然后保存商品信息即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/57cb643cfbe0744347307265da26e09a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/bbf587d93d89b7f60a04542e2a937d58.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/239e2d34320cc6a9186e4998f210b886.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11022,
+    "publish_time": "2025-10-13T06:05:59.533Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-11-30T10:04:15.000Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1614,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "App管理批次保质期使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存app支持管理商品的批次保质期，若您有批次保质期的管理需求，可订阅【批次保质期】服务，进行使用。</p>\n<p><strong>一、什么是批次保质期</strong>？</p>\n<p>批次：区分商品批次，追溯批次动向和库存</p>\n<p>保质期：管理商品生产日期，防止商品过期导致的亏损</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/3a5657704ec20bf49a4e1008c7dfb0bc.jpg\" alt=\"\"></p>\n<p>此图中：121103为批次，2012/11/26为保质期到期时间</p>\n<p><strong>二、适合行业</strong></p>\n<p>典型行业：食品，药品，美妆个护，日化洗涤</p>\n<p>如：</p>\n<p>日化用品的批发商，商品主要是洗衣液，消毒液。商品销售后，如果商品出现了变质等质量问题，商家需要根据批次号去判断变质的商品是不是自己卖的，借此和客户及供应商沟通。</p>\n<p>乳制品批发商，商品主要是冰淇淋，蛋糕，牛奶等。商品一旦过期会造成较大的损失，比如哈根达斯如果过期的量大，几万元就没有了，所以需要严格管理批次，保障商品是先入先出的。</p>\n<p><strong>三、操作教程</strong></p>\n<p><strong>1、新增批次商品</strong></p>\n<p><strong>操作路径</strong>：【商品】-【+】-【扫码或手动新增商品】-【库存】-打开批次管理和保质期管理-选择对应仓库-录入批次和生产日期</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/57cb05bd82c34a45d04526c447f651b2.jpg\" alt=\"\"></p>\n<p><strong>2、进货批次商品</strong></p>\n<p><strong>操作路径</strong>：【【进货】-【选择商品】-【输入商品的数量】-【录入批次】-【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/6eb729de869129b05abeefa51781484a.jpg\" alt=\"\"></p>\n<p><strong>3、销售批次商品</strong></p>\n<p><strong>操作路径</strong>：【销售】-【销售单】-【开单】-点击选择有批次的商品-选择开单的批次-保存开单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/ebb6b62fb23bf995040bb8495e7e1786.jpg\" alt=\"\"></p>\n<p><strong>4、盘点批次商品</strong></p>\n<p><strong>操作路径</strong>：【库存】-【盘点】-选择对应批次商品商品-输入盘点后的实际数量-保存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/b0100304cfb7f290c6a6b68d85c584bb.jpg\" alt=\"\"></p>\n<p><strong>5、查看批次保质期</strong></p>\n<p><strong>操作路径</strong>：右下角【更多】-【库存查询】-【保质期查询】，可查看不同批次商品的生产日期</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/c744a615a3e0d88b5b6b542f560b41e1.jpg\" alt=\"\"></p>\n<p><strong>6、查看批次库存</strong></p>\n<p><strong>操作路径</strong>：右下角【更多】-【库存查询】-点击需要查看的商品-进入详情-可以看到对应的商品库存和生产日期</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202301/1a779bdfb55112dea964e001a8dd2851.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15900,
+    "publish_time": "2025-12-03T01:49:30.546Z",
+    "useful_count": 19635303,
+    "useless_count": 84,
+    "create_time": "2023-01-13T02:22:39.969Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

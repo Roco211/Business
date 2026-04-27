@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3319,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "停用仓库",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>场景：</strong> 中止仓库的【对外业务职能】，包括进货和销售，但保留其【内部物流属性】调出功能。</p>\n<ul>\n<li>公司有两个小仓库A和B，为了降低管理成本，决定关闭仓库A，将其功能合并到仓库B；</li>\n<li>一个为促销活动设立的“临时爆款仓库”，活动结束后需要关闭。</li>\n</ul>\n<p><strong>路径：</strong> 左侧【设置】-【仓库设置】-【仓库管理-停用】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/de9b0cbc525108bd032701e8edfe583c.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong> 仓库停用仍可调出，不支持调入和销售进货。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/a7173c74f9467157a2e1a1f6474473dc.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/cd30cb5202f145cd543184a240d9f243.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f45856c1456e8613e5d39dd0ca891259.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2631,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3693,
+    "publish_time": "2025-11-20T03:24:40.986Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-20T01:40:35.697Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2631,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

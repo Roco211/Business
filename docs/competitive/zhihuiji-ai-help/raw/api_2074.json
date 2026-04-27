@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2074,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售统计教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/83d77977ec7949c3c0b980a43b71de97.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>操作路径：点击【分析】-【销售统计】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/0ef667a4b0bc003e36e0fe629983fa03.png\" alt=\"Description\"></p>\n<p>1.可以按单据/按商品/按客户分别统计销售额和利润。</p>\n<p>2.可以输入单据日期，门店，客户名称，单据编号，营业员查询。</p>\n<p>3.点击【导出】可以导出统计报告的信息。</p>\n<p>4.点击【详细】可以看到单据的详细内容。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/2fc4a6c0c61c31ee2ff38eda90a507df.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2641,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9067,
+    "publish_time": "2025-03-10T07:45:11.375Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-04T02:00:50.233Z",
+    "tags": [
+      {
+        "id": 55,
+        "name": "销售统计"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2641,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

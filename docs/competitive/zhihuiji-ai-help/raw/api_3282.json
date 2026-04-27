@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3282,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "库存统计报告中的期末结存是如何计算的？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>功能路径：</strong> 【分析】-【库存统计】</p>\n<p>库存统计报告中的 <strong>“期末结存”</strong> ，反映了您在特定时间点或实时状态下的库存总价值，其计算基于 <strong>“结余成本加权平均法”</strong></p>\n<p>库存统计报告中期末结存的“数量”与“金额”，与 <strong>「成本明细」</strong> 中最后一行 “结余” 列的“数量”“成本总额”一致，您可以通过成本明细追溯期末结存的详细过程：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/5e36afa984924bd8976545d47db7b7c7.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7c9ad95925c9af3631acab2cea9bce80.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%A0%B8%E5%BF%83%E8%AE%A1%E7%AE%97%E9%80%BB%E8%BE%91\" tabindex=\"-1\">核心计算逻辑<a class=\"header-anchor\" href=\"#%E6%A0%B8%E5%BF%83%E8%AE%A1%E7%AE%97%E9%80%BB%E8%BE%91\" aria-hidden=\"true\"></a></h2>\n<table>\n<thead>\n<tr>\n<th></th>\n<th>库存统计报告-期末结存“数量”<br>成本明细-结余“数量”</th>\n<th>库存统计报告-期末结存“金额”<br>成本明细-结余“成本总额”</th>\n<th>成本明细-成本价</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>释义</td>\n<td>剩余的库存数量</td>\n<td>所有库存商品的总成本<br>商品增加：成本总额=上一次成本总额+本次成本总额<br>商品减少：成本总额=上一次成本总额-本次成本总额</td>\n<td>成本价=成本总额/数量</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"%E7%BB%9F%E8%AE%A1%E6%97%B6%E9%97%B4%E8%8C%83%E5%9B%B4\" tabindex=\"-1\">统计时间范围<a class=\"header-anchor\" href=\"#%E7%BB%9F%E8%AE%A1%E6%97%B6%E9%97%B4%E8%8C%83%E5%9B%B4\" aria-hidden=\"true\"></a></h2>\n<table>\n<thead>\n<tr>\n<th></th>\n<th>设置了「结束日期」</th>\n<th>未设置「结束日期」</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>统计结果</td>\n<td>截止到该日期结束时的历史库存</td>\n<td>当前最新、实时的库存</td>\n</tr>\n<tr>\n<td>适用场景</td>\n<td>用于历史对账、月度或年度盘点</td>\n<td>用于日常实时查看库存情况</td>\n</tr>\n</tbody>\n</table>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1b7c1f879c5ba337d381d1705b077002.png\" alt=\"Description\"></p>\n<h2 id=\"%E8%AE%A1%E7%AE%97%E5%AE%9E%E4%BE%8B%E8%AF%B4%E6%98%8E\" tabindex=\"-1\">计算实例说明<a class=\"header-anchor\" href=\"#%E8%AE%A1%E7%AE%97%E5%AE%9E%E4%BE%8B%E8%AF%B4%E6%98%8E\" aria-hidden=\"true\"></a></h2>\n<p>以下示例展示了库存成本是如何随着业务动态变化的：</p>\n<h3 id=\"%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%BF%9B%E8%B4%A7%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E8%BF%9B%E8%B4%A710%E4%BB%B6%EF%BC%8C%E5%8D%95%E4%BB%B710%E5%85%83\" tabindex=\"-1\">第一次进货：A商品，进货10件，单价10元<a class=\"header-anchor\" href=\"#%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%BF%9B%E8%B4%A7%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E8%BF%9B%E8%B4%A710%E4%BB%B6%EF%BC%8C%E5%8D%95%E4%BB%B710%E5%85%83\" aria-hidden=\"true\"></a></h3>\n<p>结余成本总额=10件*10元=100元</p>\n<p>总库存数量=10件</p>\n<p>此时成本价=100元/10件=10元</p>\n<h3 id=\"%E7%AC%AC%E4%BA%8C%E6%AC%A1%E8%BF%9B%E8%B4%A7%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E8%BF%9B%E8%B4%A710%E4%BB%B6%EF%BC%8C%E5%8D%95%E4%BB%B78%E5%85%83\" tabindex=\"-1\">第二次进货：A商品，进货10件，单价8元<a class=\"header-anchor\" href=\"#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E8%BF%9B%E8%B4%A7%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E8%BF%9B%E8%B4%A710%E4%BB%B6%EF%BC%8C%E5%8D%95%E4%BB%B78%E5%85%83\" aria-hidden=\"true\"></a></h3>\n<p>结余成本总额=100元+(10件*8元)=180元</p>\n<p>总库存数量=10件+10件=20件</p>\n<p>此时成本价=180元/20件=9元</p>\n<h3 id=\"%E9%94%80%E5%94%AE%E5%87%BA%E5%BA%93%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E9%94%80%E5%94%AE5%E4%BB%B6\" tabindex=\"-1\">销售出库：A商品，销售5件<a class=\"header-anchor\" href=\"#%E9%94%80%E5%94%AE%E5%87%BA%E5%BA%93%EF%BC%9Aa%E5%95%86%E5%93%81%EF%BC%8C%E9%94%80%E5%94%AE5%E4%BB%B6\" aria-hidden=\"true\"></a></h3>\n<p>系统按当前成本价9元扣减：出库成本=5件*9元=45元</p>\n<p>结余成本总额=180元-45元=135元</p>\n<p>总库存数量=20件-5件=15件</p>\n<p>成本价保持不变=135元/15件=9元</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/874c6ed423e50fe538f11356bc24ed97.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e4106b66933df01208d7017cf5e9a6ec.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2681,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4910,
+    "publish_time": "2025-11-07T02:00:32.993Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-06T10:00:08.386Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2681,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

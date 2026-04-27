@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3466,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "下载导入模板时无法选择模板",
+    "keywords": "",
+    "description": "",
+    "content": "<p>【商品】- - 【商品列表】- -【导入新增】</p>\n<p>支持在导出时，配置导入需填写的字段。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/8a84ca07cc18dabc29d519408103f4f5.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/855dacfe83f04470a3fbe59b31631d41.png\" alt=\"Description\"></p>\n<p>若点击下载无弹窗，请到商品新增界面开启规格显示。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/ec75b7cee32d56d1c30989ba3f843a1b.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2678,
+    "status": 2,
+    "recommend": 0,
+    "hits": 514,
+    "publish_time": "2026-01-29T06:59:11.857Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-29T06:59:11.857Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2678,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

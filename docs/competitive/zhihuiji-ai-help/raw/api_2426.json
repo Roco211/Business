@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2426,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "调整字体大小",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>智慧记AI进销存调整字体大小</strong></p>\n<ol>\n<li>网页登录：调整浏览器分辨率，比如360浏览器右下角【缩放页面比例】。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/03bd5f18980a1a27eeadb9e16a472eb7.png\" alt=\"Description\"></p>\n<ol start=\"2\">\n<li>客户端登录</li>\n</ol>\n<p>缩放页面：Ctrl + 减号键-</p>\n<p>放大页面：Ctrl + 加号键+</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6695,
+    "publish_time": "2026-02-25T02:38:36.844Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-19T02:49:13.745Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

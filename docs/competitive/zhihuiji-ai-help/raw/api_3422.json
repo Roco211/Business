@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3422,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」新增收款账户",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径</strong>：【更多】→【资金】→【账户】→ 右上角【+】，输入账户信息后保存</p>\n<p><strong>系统预设</strong>：现金、微信、支付宝</p>\n<p><strong>可新增</strong>：自定义账户名称，如银行卡、信用卡、对公账户等其他收款方式\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/93bfcfea50a797b9da9d1fe08f3d7853.png\" alt=\"新增收款账户\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2226,
+    "status": 2,
+    "recommend": 0,
+    "hits": 2535,
+    "publish_time": "2026-01-06T02:36:25.098Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-06T02:35:02.908Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2226,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

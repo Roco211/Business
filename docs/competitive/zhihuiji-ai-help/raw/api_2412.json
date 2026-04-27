@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2412,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增/修改/删除客户类别",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%96%B0%E5%A2%9E%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" tabindex=\"-1\">新增客户类别<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" aria-hidden=\"true\"></a></h2>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/4c10873c3459f7fc9fb1c8a7cebe3a03.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>1.操作路径：【客户】-【客户】-点击左侧客户分类【编辑】-右侧【+】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/698f558769ad6a7be2fa6cd6f33cd883.png\" alt=\"Description\"></p>\n<p>2.如果要设置一级类别就点击全部后面的加号新增类别,上级类别选择无，然后保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/5121e23d5c50add88d89a2d6d7d9a5b8.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/9a1be5a880a48f1b8047714d3cde5b4e.png\" alt=\"Description\"></p>\n<p>3.如果要新增二级类别，就点击对应类别后面的加号新增类别。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/6b883d3faff3711a025b55277392534a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/7c028eda77b406cf3e574b60e1a36b35.png\" alt=\"Description\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" tabindex=\"-1\">修改客户类别<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" aria-hidden=\"true\"></a></h2>\n<p>1.操作路径：【客户】-【客户】-点击左侧客户分类【编辑】-选中要修改类别然后点击中间的编辑按钮修改即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/a85b5699d2f9609e9ee92be335884d7a.png\" alt=\"Description\"></p>\n<p>2.可以修改类别的名称和上级类别</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/3bf84bdf5b9c84492ac4d519a194b986.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%88%A0%E9%99%A4%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" tabindex=\"-1\">删除客户类别<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E5%AE%A2%E6%88%B7%E7%B1%BB%E5%88%AB\" aria-hidden=\"true\"></a></h2>\n<p>1.操作路径：【客户】-【客户】-点击左侧客户分类【编辑】-选中要修改类别然后点击最后面的删除按钮。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/05ba6a25baeee7efdf0d11791e5ef6c8.png\" alt=\"Description\"></p>\n<p>2.注意：类别名称下面没有子类别和商品信息的类别才支持删除。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6914,
+    "publish_time": "2024-02-26T01:23:26.552Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-18T06:03:19.336Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

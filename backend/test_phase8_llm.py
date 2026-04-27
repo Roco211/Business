@@ -64,11 +64,7 @@ def test_intent_parsing():
         v2_llm_module._llm_service = None
 
         service = get_llm_service()
-        print(f"Mock mode: {service._use_mock}")
-
-        if service._use_mock:
-            print("[SKIP] No real provider available")
-            return False
+        print(f"Provider: {service.provider.provider_name}")
 
         test_cases = [
             "查一下螺丝刀还有多少个",

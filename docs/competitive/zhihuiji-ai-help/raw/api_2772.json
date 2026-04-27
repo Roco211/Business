@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2772,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」云店使用指南",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%BC%80%E9%80%9A%E4%BA%91%E5%BA%97\" tabindex=\"-1\">开通云店<a class=\"header-anchor\" href=\"#%E5%BC%80%E9%80%9A%E4%BA%91%E5%BA%97\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：底部导航栏【云店】模块 → 点击“免费试用”</p>\n<h3 id=\"%E6%8F%90%E4%BA%A4%E8%B5%84%E8%B4%A8%E5%B9%B6%E5%88%9B%E5%BB%BA%E5%BA%97%E9%93%BA\" tabindex=\"-1\">提交资质并创建店铺<a class=\"header-anchor\" href=\"#%E6%8F%90%E4%BA%A4%E8%B5%84%E8%B4%A8%E5%B9%B6%E5%88%9B%E5%BB%BA%E5%BA%97%E9%93%BA\" aria-hidden=\"true\"></a></h3>\n<p>填写云店信息、上传营业执照后点击【创建云店】即可完成开通。</p>\n<p>智慧记AI进销存各版本用户均可开通，开通成功后即可创建线上店铺。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/9eb2e45bed1238f25a398f3f049e636e.png\" alt=\"手机端开通云店\"></p>\n<h3 id=\"%E5%AE%8C%E6%88%90%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE-%E2%9A%99%EF%B8%8F\" tabindex=\"-1\">完成基础设置 ⚙️<a class=\"header-anchor\" href=\"#%E5%AE%8C%E6%88%90%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE-%E2%9A%99%EF%B8%8F\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径</strong>：【云店】→【云店设置】</p>\n<p><strong>必做设置</strong>：</p>\n<ul>\n<li><strong>访问权限</strong>：是否开启“游客审批”（建议开启）</li>\n<li><strong>商品展示字段</strong>：是否显示销量、库存、货号、条形码</li>\n<li><strong>支付设置</strong>：<a href=\"https://www.zhihuiji.cn/help/doc/3035\">微信支付/B2b支付配置（专属版）</a>、预存款支付、欠款结算、货到付款</li>\n<li><strong>配送设置</strong>：运费规则</li>\n<li><strong>消息通知</strong>：公众号消息（绑定微信号）</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/63286bb2db1a4c47c0fa710672ff432a.png\" alt=\"云店设置\"></p>\n<hr>\n<h2 id=\"%E5%95%86%E5%93%81%E7%AE%A1%E7%90%86\" tabindex=\"-1\">商品管理<a class=\"header-anchor\" href=\"#%E5%95%86%E5%93%81%E7%AE%A1%E7%90%86\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%95%86%E5%93%81%E4%B8%8A%E4%B8%8B%E6%9E%B6\" tabindex=\"-1\">商品上下架<a class=\"header-anchor\" href=\"#%E5%95%86%E5%93%81%E4%B8%8A%E4%B8%8B%E6%9E%B6\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径</strong>：【商品】→【批量操作】→ 勾选商品 →【上架/下架】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/86d15a28f65e67bbfc7e0850b519bfb2.png\" alt=\"商品上下架\"></p>\n<h3 id=\"%E4%BA%91%E5%BA%97%E5%95%86%E5%93%81%E6%8E%92%E5%BA%8F\" tabindex=\"-1\">云店商品排序<a class=\"header-anchor\" href=\"#%E4%BA%91%E5%BA%97%E5%95%86%E5%93%81%E6%8E%92%E5%BA%8F\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径</strong>：【云店】→【云店商品排序】</p>\n<ul>\n<li>长按拖动商品调整顺序</li>\n<li>搜索商品 → 点击【置顶】让重要商品优先展示</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/7c132bf3901084d82ebbd2f6be776743.png\" alt=\"云店商品排序\"></p>\n<hr>\n<h2 id=\"%E5%AE%A2%E6%88%B7%E9%82%80%E8%AF%B7%E4%B8%8E%E7%AE%A1%E7%90%86\" tabindex=\"-1\">客户邀请与管理<a class=\"header-anchor\" href=\"#%E5%AE%A2%E6%88%B7%E9%82%80%E8%AF%B7%E4%B8%8E%E7%AE%A1%E7%90%86\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E9%82%80%E8%AF%B7%E5%AE%A2%E6%88%B7%E8%BF%9B%E5%BA%97\" tabindex=\"-1\">邀请客户进店<a class=\"header-anchor\" href=\"#%E9%82%80%E8%AF%B7%E5%AE%A2%E6%88%B7%E8%BF%9B%E5%BA%97\" aria-hidden=\"true\"></a></h3>\n<p><strong>方式一</strong>：分享店铺二维码<br>\n<strong>路径</strong>：【云店】→【云店推广】→ 获得二维码 → 分享到微信或保存后分享给客户</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/e959c2475ea30323e97982f1ac09ee8b.png\" alt=\"云店推广\"></p>\n<p><strong>方式二</strong>：从客户详情页邀请<br>\n<strong>路径</strong>：【客户】→ 点击客户详情 →【尚未成为云店客户】→【分享给微信好友】<br>\n<strong>优势</strong>：自动关联云店客户与智慧记AI进销存客户信息<br>\n<strong>注意</strong>：此处是直接邀请客户注册成为云店客户，客户访问时将不需要审批</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/dcf9c118d61e89c5d78b374f81ba959a.png\" alt=\"从客户详情邀请客户\"></p>\n<h3 id=\"%E5%AE%A2%E6%88%B7%E5%AE%A1%E6%89%B9%EF%BC%88%E5%A6%82%E5%BC%80%E5%90%AF%E5%AE%A1%E6%89%B9%E5%8A%9F%E8%83%BD%EF%BC%89\" tabindex=\"-1\">客户审批（如开启审批功能）<a class=\"header-anchor\" href=\"#%E5%AE%A2%E6%88%B7%E5%AE%A1%E6%89%B9%EF%BC%88%E5%A6%82%E5%BC%80%E5%90%AF%E5%AE%A1%E6%89%B9%E5%8A%9F%E8%83%BD%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径</strong>：【客户】→【待审批客户】</p>\n<ul>\n<li>查看申请进店的客户信息</li>\n<li>点击“通过”或“拒绝”</li>\n<li>接受后客户即可正常访问下单</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/990c41eba93a7e63122c31697908cc69.png\" alt=\"审批客户\"></p>\n<h3 id=\"%E5%AE%A2%E6%88%B7%E7%AE%A1%E7%90%86\" tabindex=\"-1\">客户管理<a class=\"header-anchor\" href=\"#%E5%AE%A2%E6%88%B7%E7%AE%A1%E7%90%86\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li><strong>查看客户</strong>：【客户】模块查看所有客户，客户详情页会显示「云店客户」标签</li>\n<li><strong>停用客户</strong>：点击客户【...】→【停用】（相当于黑名单）</li>\n<li><strong>启用客户</strong>：在同一路径可重新启用</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/625128f87b6bd60e9caebc82e13e9b97.png\" alt=\"查看和停用客户\"></p>\n<hr>\n<h2 id=\"%E8%AE%A2%E5%8D%95%E5%A4%84%E7%90%86\" tabindex=\"-1\">订单处理<a class=\"header-anchor\" href=\"#%E8%AE%A2%E5%8D%95%E5%A4%84%E7%90%86\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E6%9F%A5%E7%9C%8B%E8%AE%A2%E5%8D%95\" tabindex=\"-1\">查看订单<a class=\"header-anchor\" href=\"#%E6%9F%A5%E7%9C%8B%E8%AE%A2%E5%8D%95\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径</strong>：</p>\n<ul>\n<li>APP首页【销售】→【云单】</li>\n<li>APP底部【云店】→【待接云单/待发货云单】</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/ffbefc36d5d41f40d755a83aab0c6c98.png\" alt=\"手机端查看订单\"></p>\n<h3 id=\"%E8%AE%A2%E5%8D%95%E7%8A%B6%E6%80%81%E5%A4%84%E7%90%86\" tabindex=\"-1\">订单状态处理<a class=\"header-anchor\" href=\"#%E8%AE%A2%E5%8D%95%E7%8A%B6%E6%80%81%E5%A4%84%E7%90%86\" aria-hidden=\"true\"></a></h3>\n<table>\n<thead>\n<tr>\n<th>订单状态</th>\n<th>商家操作</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>待接单</strong></td>\n<td>接单 / 拒绝</td>\n<td>客户已下单，等待商家确认。拒绝后货款原路退回</td>\n</tr>\n<tr>\n<td><strong>待发货</strong></td>\n<td>发货 / 作废</td>\n<td>已接单，准备发货。作废后货款原路退回</td>\n</tr>\n<tr>\n<td><strong>部分发货</strong></td>\n<td>继续发货</td>\n<td>分批发货中，不可作废</td>\n</tr>\n<tr>\n<td><strong>待收货</strong></td>\n<td>仅查看</td>\n<td>商家已发完货，但客户尚未收货</td>\n</tr>\n<tr>\n<td><strong>已完成</strong></td>\n<td>仅查看</td>\n<td>客户已确认收货（发货后7天自动确认）</td>\n</tr>\n<tr>\n<td><strong>已取消</strong></td>\n<td>仅查看</td>\n<td>商家主动作废；或在线支付未完成，超过半小时自动取消</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"%E5%8F%91%E8%B4%A7%E6%93%8D%E4%BD%9C\" tabindex=\"-1\">发货操作<a class=\"header-anchor\" href=\"#%E5%8F%91%E8%B4%A7%E6%93%8D%E4%BD%9C\" aria-hidden=\"true\"></a></h3>\n<p>在待发货订单中点击【发货】：</p>\n<ul>\n<li>确认商品和金额信息</li>\n<li>配送信息：司机送货/快递物流（录入快递单号）</li>\n<li>点击保存即确认发货，系统自动生成销售单并扣减库存</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/1b164b903cb97c5333fad8a78c0b59d0.png\" alt=\"发货\"></p>\n<hr>\n<h2 id=\"%E4%BA%91%E5%BA%97%E7%AE%A1%E7%90%86\" tabindex=\"-1\">云店管理<a class=\"header-anchor\" href=\"#%E4%BA%91%E5%BA%97%E7%AE%A1%E7%90%86\" aria-hidden=\"true\"></a></h2>\n<p>在【云店】页面，可快速查看数据概览、待审批客户、待接单/待发货订单，方便统一管理。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/b97daf8499de1819e7a9e49e32455622.png\" alt=\"云店管理页面\"></p>\n<hr>\n<h2 id=\"%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E9%80%9F%E6%9F%A5\" tabindex=\"-1\">常见问题速查<a class=\"header-anchor\" href=\"#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E9%80%9F%E6%9F%A5\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E4%BA%91%E5%BA%97%E5%BA%93%E5%AD%98%E5%92%8C%E6%99%BA%E6%85%A7%E8%AE%B0ai%E8%BF%9B%E9%94%80%E5%AD%98%E5%BA%93%E5%AD%98%E4%B8%8D%E4%B8%80%E8%87%B4%EF%BC%9F\" tabindex=\"-1\">云店库存和智慧记AI进销存库存不一致？<a class=\"header-anchor\" href=\"#%E4%BA%91%E5%BA%97%E5%BA%93%E5%AD%98%E5%92%8C%E6%99%BA%E6%85%A7%E8%AE%B0ai%E8%BF%9B%E9%94%80%E5%AD%98%E5%BA%93%E5%AD%98%E4%B8%8D%E4%B8%80%E8%87%B4%EF%BC%9F\" aria-hidden=\"true\"></a></h3>\n<p>云店会锁定待发货订单的库存。发货后两边库存自动同步一致。</p>\n<h3 id=\"%E5%AE%A2%E6%88%B7%E6%89%AB%E7%A0%81%E5%90%8E%E6%8F%90%E7%A4%BA%E2%80%9C%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AE%E8%AF%A5%E5%BA%97%E9%93%BA%E2%80%9D%EF%BC%9F\" tabindex=\"-1\">客户扫码后提示“无法访问该店铺”？<a class=\"header-anchor\" href=\"#%E5%AE%A2%E6%88%B7%E6%89%AB%E7%A0%81%E5%90%8E%E6%8F%90%E7%A4%BA%E2%80%9C%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AE%E8%AF%A5%E5%BA%97%E9%93%BA%E2%80%9D%EF%BC%9F\" aria-hidden=\"true\"></a></h3>\n<p>检查该客户是否被“停用”，在客户列表中重新启用即可。</p>\n<h3 id=\"%E5%A6%82%E4%BD%95%E8%AE%A9%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%98%BE%E7%A4%BA%E5%89%A9%E4%BD%99%E5%BA%93%E5%AD%98%EF%BC%9F\" tabindex=\"-1\">如何让小程序显示剩余库存？<a class=\"header-anchor\" href=\"#%E5%A6%82%E4%BD%95%E8%AE%A9%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%98%BE%E7%A4%BA%E5%89%A9%E4%BD%99%E5%BA%93%E5%AD%98%EF%BC%9F\" aria-hidden=\"true\"></a></h3>\n<p>两步设置：</p>\n<ol>\n<li>【我的】→【设置】→【开单设置】→ 取消勾选“允许负库存”</li>\n<li>【云店】→【云店设置】→【云店商品展示字段】→ 勾选“显示库存”</li>\n</ol>\n<hr>\n<h2 id=\"%E5%BC%80%E5%A7%8B%E6%82%A8%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AC%94%E4%BA%91%E5%BA%97%E8%AE%A2%E5%8D%95%E5%90%A7%EF%BC%81\" tabindex=\"-1\">开始您的第一笔云店订单吧！<a class=\"header-anchor\" href=\"#%E5%BC%80%E5%A7%8B%E6%82%A8%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AC%94%E4%BA%91%E5%BA%97%E8%AE%A2%E5%8D%95%E5%90%A7%EF%BC%81\" aria-hidden=\"true\"></a></h2>\n<p><strong>行动路线图</strong>：</p>\n<ol>\n<li>✅ 开通云店 + 基础设置</li>\n<li>✅ 批量上架商品</li>\n<li>✅ 邀请首批客户进店</li>\n<li>✅ 处理第一笔线上订单</li>\n</ol>\n<hr>\n<p><strong>智慧记云店，让您的传统生意轻松转型线上，抓住每一份可能！</strong> 🚀</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2873,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5667,
+    "publish_time": "2026-03-27T03:05:34.102Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-05-08T14:07:58.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2873,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

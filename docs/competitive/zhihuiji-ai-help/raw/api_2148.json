@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2148,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」查看销售统计",
+    "keywords": "",
+    "description": "",
+    "content": "<p>查看路径：底部点击【分析】→【销售统计】卡片→【销售统计】\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/87f563103103bb83bb9937b1fd4fc6e4.png\" alt=\"查看销售统计\"></p>\n<ul>\n<li>支持两种统计维度：【按商品】和【按客户】查询。</li>\n<li>在查询框中输入名称、条形码、编码货号或简拼，可筛选对应商品或客户，并更新下方的销售额、销售成本、毛利率、销量/销售笔数、毛利及税额等统计结果。</li>\n<li>若存在多个门店，可在查询前选择具体门店。</li>\n<li>点击【筛选】，可按商品分类、客户分类、客户名称、业务员等条件进一步筛选。</li>\n<li>点击【日期】，可自定义查询时间范围。</li>\n<li>点击【排序】，支持按商品销售额、销售量、销售毛利进行升序或降序排列。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/52389b96d932f9387201f020ab215258.png\" alt=\"各种筛选方式\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2112,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8558,
+    "publish_time": "2026-01-08T09:05:37.439Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-22T06:35:31.727Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2112,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

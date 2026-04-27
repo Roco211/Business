@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1539,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」商品如何设置多规格",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>视频教程</strong>：<a href=\"https://www.zhihuiji.cn/help/video/3300\">点此查看【手机端设置多规格】</a></p>\n<p><strong>操作路径</strong>：【商品】→【编辑/新增商品】→ 打开【多规格】开关</p>\n<p><strong>操作步骤：</strong></p>\n<ol>\n<li>进入商品编辑页，在【详情】中打开多规格开关</li>\n<li>在规格管理中，选择或输入商品的具体规格（如颜色、尺寸）</li>\n<li>（可选）点击右上角批量按钮，快速设置各规格的价格与库存</li>\n<li>确认无误，点击保存</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202209/ee848a664024a3a2d6f7c4e686d74a9f.jpg\" alt=\"手机端设置多规格界面\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c660a743c720464244444a6db9801949.png\" alt=\"Description\"></p>\n<p><strong>功能价值</strong><br>\n轻松管理同一商品的不同型号、颜色或尺寸，实现快速开单。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2108,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10007,
+    "publish_time": "2025-11-17T03:06:52.666Z",
+    "useful_count": 2,
+    "useless_count": 1,
+    "create_time": "2022-09-23T08:57:03.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2108,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

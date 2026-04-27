@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 878,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "【开单】快速新增和查看销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%96%B0%E5%A2%9E%E5%92%8C%E6%9F%A5%E7%9C%8B%E9%94%80%E5%94%AE%E5%8D%95\" tabindex=\"-1\">新增和查看销售单<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E5%92%8C%E6%9F%A5%E7%9C%8B%E9%94%80%E5%94%AE%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/8ed10ced9d9c58711bbd80087c0b0c5a.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>新增销售单路径</strong>：【首页】-【销售】-【+】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/628bec9247293b62869daef2fa7c024e.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：确认货品出库的证明，通过销售单来体现货品转移，是货品实际出库的重要标志和原始凭证。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、新增销售单时，必须填写客户名称，才能记录到该客户产生欠款。支持0收款。</p>\n<p>2、新增销售单时，支持销售出货和销售退货两种开单模式：销售出货填正数，库存自动减少；退货填负数，库存自动增加。</p>\n<p>3、支持销售折扣，包括整单折扣和客户专属折扣，并且支持折上折的打折方式。</p>\n<p><strong>查看销售单路径</strong>：【销售】-【销售】-【查看】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/e62c351e932f637672be1d6af1038d37.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：满足老板查找已开出【销售单】的需求，方便业务处理。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 2,
+    "hits": 29849,
+    "publish_time": "2025-10-28T05:54:21.427Z",
+    "useful_count": 19788092,
+    "useless_count": 69,
+    "create_time": "3208-12-30T02:02:00.000Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

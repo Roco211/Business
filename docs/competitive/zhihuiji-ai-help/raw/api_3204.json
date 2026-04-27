@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3204,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "分类删除指南",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" tabindex=\"-1\">操作路径<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" aria-hidden=\"true\"></a></h2>\n<p>【商品】-【商品】</p>\n<h2 id=\"%E5%88%A0%E9%99%A4%E6%AD%A5%E9%AA%A4\" tabindex=\"-1\">删除步骤<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E6%AD%A5%E9%AA%A4\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E8%BF%9B%E5%85%A5%E7%BC%96%E8%BE%91%E6%A8%A1%E5%BC%8F\" tabindex=\"-1\">进入编辑模式<a class=\"header-anchor\" href=\"#%E8%BF%9B%E5%85%A5%E7%BC%96%E8%BE%91%E6%A8%A1%E5%BC%8F\" aria-hidden=\"true\"></a></h3>\n<ol>\n<li>在商品页面左侧分类栏点击【编辑】按钮</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/182e1fc154cceed78a10cc38261815a8.png\" alt=\"进入编辑模式\"></p>\n<ol start=\"2\">\n<li>找到需要删除的分类，点击右侧的删除图标</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/c335e0c0256d4dd6a9efed2a850112cb.png\" alt=\"删除分类操作\"></p>\n<h3 id=\"%E6%89%A7%E8%A1%8C%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C\" tabindex=\"-1\">执行删除操作<a class=\"header-anchor\" href=\"#%E6%89%A7%E8%A1%8C%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C\" aria-hidden=\"true\"></a></h3>\n<p>确认删除操作，完成分类清理</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7106b331a5d821c6d40e4034b0988069.png\" alt=\"确认删除\"></p>\n<h2 id=\"%E9%87%8D%E8%A6%81%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6\" tabindex=\"-1\">重要前提条件<a class=\"header-anchor\" href=\"#%E9%87%8D%E8%A6%81%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E6%B8%85%E7%A9%BA%E5%88%86%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%99%AE%E9%80%9A%E5%95%86%E5%93%81\" tabindex=\"-1\">清空分类中的普通商品<a class=\"header-anchor\" href=\"#%E6%B8%85%E7%A9%BA%E5%88%86%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%99%AE%E9%80%9A%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p><strong>必须先将该分类下的所有商品转移到其他分类</strong></p>\n<ul>\n<li>如果分类中仍有商品，系统会提示“分类已被商品占用，不支持删除”</li>\n<li>商品转移操作方法详见：<a href=\"https://www.zhihuiji.cn/help/doc/905\">设置/修改商品所在分类</a></li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/2920502144a10af12f151088abf9dc86.png\" alt=\"Description\"></p>\n<h3 id=\"%E6%A3%80%E6%9F%A5%E5%B9%B6%E5%A4%84%E7%90%86%E5%A5%97%E9%A4%90%E5%95%86%E5%93%81\" tabindex=\"-1\">检查并处理套餐商品<a class=\"header-anchor\" href=\"#%E6%A3%80%E6%9F%A5%E5%B9%B6%E5%A4%84%E7%90%86%E5%A5%97%E9%A4%90%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p><strong>即使普通商品已全部转移，仍需检查套餐商品</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c0b712197f583949d47d6fff7ca8f947.png\" alt=\"套餐商品修改入口\"></p>\n<p><strong>操作步骤：</strong></p>\n<ol>\n<li>找到关联的套餐商品</li>\n<li>进入编辑页面修改商品类别</li>\n<li>将套餐商品重新分配到其他分类</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c6527e8ff6279eef75d3c5f6dbfdcdb9.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%88%A0%E9%99%A4%E5%A4%B1%E8%B4%A5%E6%8E%92%E6%9F%A5%E6%8C%87%E5%8D%97\" tabindex=\"-1\">删除失败排查指南<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E5%A4%B1%E8%B4%A5%E6%8E%92%E6%9F%A5%E6%8C%87%E5%8D%97\" aria-hidden=\"true\"></a></h2>\n<p>当无法删除分类时，请按以下顺序检查：</p>\n<ol>\n<li>\n<p><strong>检查普通商品</strong></p>\n<ul>\n<li>确认分类下无任何普通商品</li>\n<li>如有商品，先完成转移操作</li>\n</ul>\n</li>\n<li>\n<p><strong>检查套餐商品</strong></p>\n<ul>\n<li>进入套餐商品管理页面</li>\n<li>修改关联套餐商品的分类归属</li>\n</ul>\n</li>\n<li>\n<p><strong>重新尝试删除</strong></p>\n<ul>\n<li>完成所有商品转移后</li>\n<li>返回分类编辑页面执行删除</li>\n</ul>\n</li>\n</ol>\n<h2 id=\"%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">注意事项<a class=\"header-anchor\" href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<ul>\n<li>删除分类操作不可逆，请谨慎操作</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3911,
+    "publish_time": "2025-11-13T01:52:12.245Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-08T16:00:00.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

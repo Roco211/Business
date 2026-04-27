@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1903,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "员工业绩统计",
+    "keywords": "",
+    "description": "",
+    "content": "<p>业务场景：当有多个业务员开单需要分别统计每个营业员的业绩，就可以查看员工业绩统计报表。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/ebd583d85bfd7f8636a78ae16c74486f.png\" alt=\"Description\"></p>\n<p>路径：分析-员工业绩统计。可以查询到每个业务员总的销售金额和总的销售利润。</p>\n<p>1.可以根据单据日期和门店查询。</p>\n<p>2.点击【导出】按钮可以导出该报表。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/c116fc874174c44321d559c1993d0004.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2643,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8320,
+    "publish_time": "2023-08-04T06:51:53.936Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-10T08:42:42.437Z",
+    "tags": [
+      {
+        "id": 85,
+        "name": "员工业绩统计"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2643,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

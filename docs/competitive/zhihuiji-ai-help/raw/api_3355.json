@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3355,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」查询历史单据",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【销售】- 使用筛选与搜索</p>\n<p>开单后，所有销售、预订、退货单据均统一在【销售】模块中管理。您可以通过以下方式快速查找：</p>\n<ol>\n<li><strong>切换单据类型</strong>：在【销售】列表页顶部，通过点击或左右滑动，在<strong>销售单、预订单、退货单</strong>之间切换。</li>\n<li><strong>搜索单据</strong>：在顶部搜索框中，可直接输入<strong>单号、客户名称、商品名称或备注</strong>进行查找。也支持<strong>扫描商品条形码</strong>来查找单据。</li>\n<li><strong>筛选单据</strong>：点击搜索框右侧的筛选图标，可按<strong>日期、客户、门店、业务员、单据状态（如待发货、已结清）</strong> 等多种条件组合筛选，精准定位目标。<br>\n<strong>请注意</strong>：系统默认隐藏“已作废”单据，如需查看，请在筛选条件中将“隐藏作废单据”改为“不隐藏”。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/f70a0d57a2f5949c3ad348d87e5288cf.png\" alt=\"查询单据流程\"></p>\n<p>找到目标单据后，直接点击即可进入详情页，进行查看、分享、打印、修改、复制、作废等操作。</p>\n<hr>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3353\">「手机端」销售功能使用指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3671,
+    "publish_time": "2025-12-05T08:47:35.912Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-12-06T08:44:32.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2112,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」开报价单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【更多】→ 【报价】→ 右下角【报价】→ 选择客户与商品 →【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/57961244653c6d6aae54972afc63fa7f.png\" alt=\"开报价单流程\"></p>\n<p><strong>保存后支持操作：</strong></p>\n<ul>\n<li><strong>再来一单</strong>：继续开报价单</li>\n<li><strong>转销售</strong>：直接转为正式销售单</li>\n<li><strong>打印/分享</strong>：打印单据或分享给客户</li>\n<li><strong>查看详情</strong>：进入详情页进行修改、作废等操作</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/ebdf4d2a85a442d8d893c0532c6e6220.png\" alt=\"报价单详情\"></p>\n<p><strong>💡 温馨提示：</strong></p>\n<p>报价单仅用于记录报价信息，不影响商品库存。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1260\">「手机端」如何开销售单</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2108\">「手机端」如何快速查价</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7042,
+    "publish_time": "2025-12-04T02:19:32.531Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-03T05:19:24.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

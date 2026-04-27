@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2101,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "系统初始化教程",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D\" tabindex=\"-1\">功能介绍<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D\" aria-hidden=\"true\"></a></h2>\n<p>系统初始化用于清除前期试用或误操作产生的无效数据，将系统恢复至初始状态。</p>\n<p><strong>⚠️ 重要提示</strong>：数据清除后<strong>不可恢复</strong>，操作前请务必确认您的需求并<strong>确认您登录的是正确的账号</strong>。</p>\n<h2 id=\"%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9A%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96-vs-%E8%B4%A6%E5%8F%B7%E6%B3%A8%E9%94%80%EF%BC%9F\" tabindex=\"-1\">如何选择：系统初始化 vs 账号注销？<a class=\"header-anchor\" href=\"#%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9A%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96-vs-%E8%B4%A6%E5%8F%B7%E6%B3%A8%E9%94%80%EF%BC%9F\" aria-hidden=\"true\"></a></h2>\n<p>很多用户容易混淆这两个功能，请根据您的目标选择正确的操作：</p>\n<table>\n<thead>\n<tr>\n<th style=\"text-align:left\">您的目标</th>\n<th style=\"text-align:left\">应选择的操作</th>\n<th style=\"text-align:left\">操作后果</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align:left\"><strong>恢复系统至初始状态</strong>，但<strong>保留账号和会员权益</strong></td>\n<td style=\"text-align:left\">✅ <strong>系统初始化</strong></td>\n<td style=\"text-align:left\">清除业务数据，账号和会员权益保留</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>永久删除账号</strong>，放弃会员权益</td>\n<td style=\"text-align:left\">❌ <strong>账号注销</strong></td>\n<td style=\"text-align:left\"><strong>会员权益立即永久清除</strong>，账号将释放为未注册状态（可用于注册新账号）</td>\n</tr>\n</tbody>\n</table>\n<hr>\n<h2 id=\"%E7%94%B5%E8%84%91%E7%AB%AF%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" tabindex=\"-1\">电脑端操作指引<a class=\"header-anchor\" href=\"#%E7%94%B5%E8%84%91%E7%AB%AF%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>操作路径</strong>：登录电脑端后台 → 左侧导航栏点击【设置】→ 选择【系统初始化】\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/f56c76c63afd618a2e42f4d63fbf9d42.png\" alt=\"Description\"></p>\n<p>进入页面后，您可以根据需要选择两种不同的清除模式：</p>\n<h3 id=\"%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%88%E5%BD%BB%E5%BA%95%E6%B8%85%E7%A9%BA%EF%BC%89\" tabindex=\"-1\">系统初始化（彻底清空）<a class=\"header-anchor\" href=\"#%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%88%E5%BD%BB%E5%BA%95%E6%B8%85%E7%A9%BA%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li><strong>清除范围</strong>：清除该商户的<strong>所有数据</strong>，包括：\n<ul>\n<li>基本信息（商品、客户、供应商等）</li>\n<li>所有单据信息（进货单、销售单等）</li>\n</ul>\n</li>\n<li><strong>恢复状态</strong>：恢复至<strong>初次登录</strong>时的空白状态</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/435b227c1be494cb8d417716b215f133.png\" alt=\"Description\"></p>\n<h3 id=\"%E6%B8%85%E9%99%A4%E5%8D%95%E6%8D%AE%EF%BC%88%E4%BF%9D%E7%95%99%E5%9F%BA%E7%A1%80%E8%B5%84%E6%96%99%EF%BC%89\" tabindex=\"-1\">清除单据（保留基础资料）<a class=\"header-anchor\" href=\"#%E6%B8%85%E9%99%A4%E5%8D%95%E6%8D%AE%EF%BC%88%E4%BF%9D%E7%95%99%E5%9F%BA%E7%A1%80%E8%B5%84%E6%96%99%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li><strong>清除范围</strong>：仅清空所有<strong>单据信息</strong></li>\n<li><strong>保留范围</strong>：保留<strong>基本信息</strong>（商品、客户、供应商等）</li>\n<li><strong>后续状态</strong>：系统将基于当前保留的基础数据进行结存</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/dee4e898f550294035998e048fa45157.png\" alt=\"Description\"></p>\n<hr>\n<h2 id=\"%E6%89%8B%E6%9C%BA%E7%AB%AF%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" tabindex=\"-1\">手机端操作指引<a class=\"header-anchor\" href=\"#%E6%89%8B%E6%9C%BA%E7%AB%AF%E6%93%8D%E4%BD%9C%E6%8C%87%E5%BC%95\" aria-hidden=\"true\"></a></h2>\n<p>如果您希望通过手机完成数据清除，可按以下步骤操作：</p>\n<p><strong>操作路径</strong>：<br>\n① 打开App，进入「我的」页面<br>\n② 点击顶部您的用户名，进入个人信息页<br>\n③ 选择「账号注销」（请注意，系统初始化功能在此入口内）<br>\n④ 仔细阅读提示后，选择「<strong>我希望清空当前产品的所有数据</strong>」<br>\n⑤ 获取并输入验证码，系统将自动清除数据</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/448fe6727e3b3d298578e0af06be3600.png\" alt=\"手机端操作流程示意图\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2638,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7192,
+    "publish_time": "2026-03-02T06:15:52.659Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-11T03:18:35.282Z",
+    "tags": [
+      {
+        "id": 91,
+        "name": "系统初始化"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2638,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

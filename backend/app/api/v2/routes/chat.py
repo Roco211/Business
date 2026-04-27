@@ -18,7 +18,7 @@ from app.api.deps.v2_context import (
 from app.contracts.v2.common import V2DataEnvelope
 from app.db.session import get_db_session
 from app.services.v2_chat_session import get_chat_session_store
-from app.services.v2_main_agent import get_main_agent, AgentPlan, ToolCall
+from app.services.v2_main_agent import DeepSeekMainAgent, AgentPlan, ToolCall
 from app.services.v2_llm import get_llm_service
 from app.services.v2_conversation import create_v2_confirmation, create_v2_message_and_task_run
 from app.services.v2_analytics import (
@@ -56,7 +56,7 @@ def chat_v2(
     chat_session.add_turn("user", user_message)
 
     # DeepSeek Main Agent: plan + execute + synthesize
-    main_agent = get_main_agent()
+    main_agent = _create_main_agent()
     plan = main_agent.plan(user_message, db_session, history=chat_session.to_messages())
 
     # Execute planned tools
@@ -110,7 +110,7 @@ def chat_stream_v2(
     chat_session.add_turn("user", user_message)
 
     async def event_generator() -> AsyncGenerator[str, None]:
-        main_agent = get_main_agent()
+        main_agent = _create_main_agent()
 
         # 1. Planning phase: DeepSeek understands intent
         plan = main_agent.plan(user_message, db_session, history=chat_session.to_messages())
@@ -166,6 +166,11 @@ def chat_stream_v2(
 # ───────────────────────────────────────────────
 # 3. Tool Execution Engine
 # ───────────────────────────────────────────────
+
+def _create_main_agent() -> DeepSeekMainAgent:
+    """Create a Main Agent bound to the currently configured real LLM service."""
+    return DeepSeekMainAgent(llm_service=get_llm_service())
+
 
 def _execute_plan(
     plan: AgentPlan,

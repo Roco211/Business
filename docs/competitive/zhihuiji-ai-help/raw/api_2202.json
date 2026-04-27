@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2202,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "套餐和组装单的区别",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存套餐和组装单的区别：</p>\n<p><strong>1、业务场景不同。</strong> 套餐偏营销，套餐中的商品本身都是独立可售卖的个体，只是组合在一起打包售卖；而组装偏生产转化过程，组装前的商品可能都不会单独售卖，只有组装在一起才有意义；</p>\n<p><strong>2、开单方式不同。</strong> 销售开单时选择套餐，套餐内商品库存自动减少；而组装需单独做组装单，不支持销售时自动增减组件和子件库存；</p>\n<p><strong>3、组装过程可能会产生额外的加工费</strong>（焊接、人工等），会计入成本，而套餐没有。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/46a04ec4f8da1976d1b40868b39ff551.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/6d8c99873fd5cc23fa2d71b23f94d3f6.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2679,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6545,
+    "publish_time": "2026-02-25T02:50:29.698Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-14T07:46:09.452Z",
+    "tags": [
+      {
+        "id": 65,
+        "name": "套餐列表"
+      },
+      {
+        "id": 96,
+        "name": "组装单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2679,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

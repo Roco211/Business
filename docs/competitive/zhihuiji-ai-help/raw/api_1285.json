@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1285,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」开启多门店",
+    "keywords": "",
+    "description": "",
+    "content": "<ul>\n<li>智慧记AI进销存多店版支持启用多门店</li>\n</ul>\n<p><strong>操作路径：</strong> 【我的】→【设置】→【基础设置】→ 开启【多门店】按钮即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/10aad0bdf777b6659d508242f0e63b4e.png\" alt=\"Description\"></p>\n<hr>\n<p><strong>关联阅读</strong></p>\n<p><a href=\"https://www.zhihuiji.cn/help/doc/1276\">「手机端」新增门店</a>：启用多门店后创建新门店</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2726,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11017,
+    "publish_time": "2026-01-04T06:41:50.786Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2022-02-17T03:10:43.773Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2726,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

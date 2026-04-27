@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3370,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "【管库存】库存管理全指南",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/177fa5dea4f7363db984685db98e883d.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n库存管理视频\n</video></p>\n<h2 id=\"%F0%9F%94%84-%E5%BA%93%E5%AD%98%E7%AE%A1%E7%90%86%E6%A0%B8%E5%BF%83%E9%93%BE%E8%B7%AF\" tabindex=\"-1\">🔄 库存管理核心链路<a class=\"header-anchor\" href=\"#%F0%9F%94%84-%E5%BA%93%E5%AD%98%E7%AE%A1%E7%90%86%E6%A0%B8%E5%BF%83%E9%93%BE%E8%B7%AF\" aria-hidden=\"true\"></a></h2>\n<p>建立初始库存 → 业务驱动库存变动 → 查询核对 → 修正库存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/c5105b1e25f84401346d6dc5642ad4d1.png\" alt=\"图解\"></p>\n<h2 id=\"%F0%9F%8E%81-%E5%BB%BA%E7%AB%8B%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" tabindex=\"-1\">🎁 建立初始库存<a class=\"header-anchor\" href=\"#%F0%9F%8E%81-%E5%BB%BA%E7%AB%8B%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" aria-hidden=\"true\"></a></h2>\n<p>在开始日常业务前，首先需要建立准确的初始库存。</p>\n<p>初始库存表示在启用本软件前已有的商品库存，录入初始库存可以使后续成本价、毛利等值的计算更准确。</p>\n<p>录入的初始库存将在库存流水中标记为“期初库存”。</p>\n<h3 id=\"%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AE%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" tabindex=\"-1\">如何设置初始库存<a class=\"header-anchor\" href=\"#%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AE%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" aria-hidden=\"true\"></a></h3>\n<h4><strong>单个商品新增时设置</strong></h4>\n<ul>\n<li><strong>操作流程</strong>：【商品】→【商品】→【新增商品】→ 在商品编辑页面找到【初始库存】字段 → 填写当前实际库存数量 → 填写初始成本 → 保存商品</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/774083411b2d7e3355820dbe176e7ada.png\" alt=\"单个商品填写初始库存\"></p>\n<h4><strong>批量导入商品时设置</strong></h4>\n<ul>\n<li><strong>操作流程</strong>：【商品】→【商品】→【导入新增】→ 下载模板 → 在Excel中填写商品信息和初始库存数量 → 导入系统</li>\n<li><strong>优势</strong>：适合大批量商品一次性初始化，效率极高</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/f451e25d9556ae6c8ebf127ebb6c3332.png\" alt=\"导入商品流程\"></p>\n<h3 id=\"%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">重要注意事项<a class=\"header-anchor\" href=\"#%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h3>\n<p>（1）<strong>所有初始库存都必须在首次录入商品时设置</strong>，商品保存后只能调整当前库存，无法再添加初始库存记录。</p>\n<p>（2）若直接通过开单页面填写新商品名称，则创建的商品默认初始库存为0</p>\n<h2 id=\"%F0%9F%93%8B-%E4%B8%9A%E5%8A%A1%E9%A9%B1%E5%8A%A8%E5%BA%93%E5%AD%98%E5%8F%98%E5%8A%A8\" tabindex=\"-1\">📋 业务驱动库存变动<a class=\"header-anchor\" href=\"#%F0%9F%93%8B-%E4%B8%9A%E5%8A%A1%E9%A9%B1%E5%8A%A8%E5%BA%93%E5%AD%98%E5%8F%98%E5%8A%A8\" aria-hidden=\"true\"></a></h2>\n<p><strong>所有库存的增减，都应通过开立相应的业务单据来完成。</strong> 系统会自动、实时地更新库存数量。</p>\n<p>您可根据业务场景来选择开什么单：</p>\n<table>\n<thead>\n<tr>\n<th style=\"text-align:left\">业务场景</th>\n<th style=\"text-align:left\">开具单据</th>\n<th style=\"text-align:left\">库存会怎样？</th>\n<th style=\"text-align:left\">核心注意事项</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align:left\"><strong>从供应商进货</strong></td>\n<td style=\"text-align:left\"><strong>进货单</strong></td>\n<td style=\"text-align:left\"><strong>增加</strong></td>\n<td style=\"text-align:left\">录入成本价</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>把货卖给客户</strong></td>\n<td style=\"text-align:left\"><strong>销售单</strong></td>\n<td style=\"text-align:left\"><strong>减少</strong></td>\n<td style=\"text-align:left\">系统自动扣减</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>客户退货</strong></td>\n<td style=\"text-align:left\"><strong>销售退货单</strong></td>\n<td style=\"text-align:left\"><strong>增加</strong></td>\n<td style=\"text-align:left\">货品退回仓库</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>退还给供应商</strong></td>\n<td style=\"text-align:left\"><strong>进货退货单</strong></td>\n<td style=\"text-align:left\"><strong>减少</strong></td>\n<td style=\"text-align:left\">成本按原进货价计算</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>商品加工/组装</strong></td>\n<td style=\"text-align:left\"><strong>组装单</strong></td>\n<td style=\"text-align:left\">子件<strong>减少</strong>，成品<strong>增加</strong></td>\n<td style=\"text-align:left\">可设置配方，下次复用</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>商品拆卸/拆分</strong></td>\n<td style=\"text-align:left\"><strong>拆分单</strong></td>\n<td style=\"text-align:left\">被拆品<strong>减少</strong>，零件<strong>增加</strong></td>\n<td style=\"text-align:left\">常用于维修、拆解</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>货从一个仓调到另一个仓</strong></td>\n<td style=\"text-align:left\"><strong>调拨单</strong></td>\n<td style=\"text-align:left\">调出仓<strong>减少</strong>，调入仓<strong>增加</strong></td>\n<td style=\"text-align:left\">公司内部转移，总量不变</td>\n</tr>\n</tbody>\n</table>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/1d09c39a6508465210f95689d223f918.png\" alt=\"业务单据驱动库存变动\"></p>\n<h2 id=\"%F0%9F%94%8D-%E6%9F%A5%E8%AF%A2%E6%A0%B8%E5%AF%B9%E5%BA%93%E5%AD%98%E7%8A%B6%E5%86%B5\" tabindex=\"-1\">🔍 查询核对库存状况<a class=\"header-anchor\" href=\"#%F0%9F%94%8D-%E6%9F%A5%E8%AF%A2%E6%A0%B8%E5%AF%B9%E5%BA%93%E5%AD%98%E7%8A%B6%E5%86%B5\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%BA%93%E5%AD%98%E6%9F%A5%E8%AF%A2\" tabindex=\"-1\">库存查询<a class=\"header-anchor\" href=\"#%E5%BA%93%E5%AD%98%E6%9F%A5%E8%AF%A2\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【库存】→【库存查询】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/e4780b82b551625e07c377be8bcbf2fd.png\" alt=\"库存查询页面\"></p>\n<p>这里是您随时查看库存状况的“总控台”，核心功能：</p>\n<p>（1）<strong>📊 看总数</strong>：了解当前所有商品的库存总量和总价值。<br>\n（2）<strong>🔍 快速搜</strong>：用商品名、条码快速查找，或按仓库、类别筛选。<br>\n（3）<strong>📈 深度分析</strong>（最关键）：</p>\n<ul>\n<li><strong>点【库存分布】</strong>：查看该商品在<strong>所有仓库/门店</strong>的详细库存数量。</li>\n<li><strong>点【库存流水】</strong>：该商品<strong>每一次库存变动的完整记录</strong>，发现库存不对，第一时间来这里查原因。</li>\n<li><strong>点【成本明细】</strong>：了解当前库存的平均成本、成本总额。</li>\n</ul>\n<h3 id=\"%E5%BA%93%E5%AD%98%E9%A2%84%E8%AD%A6\" tabindex=\"-1\">库存预警<a class=\"header-anchor\" href=\"#%E5%BA%93%E5%AD%98%E9%A2%84%E8%AD%A6\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【商品】-【修改商品】-【商品库存】，勾选启用库存预警，然后输入最低库存、安全库存、最高库存数量。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/b83a0da753450dc1d14ed44dd3b8374b.png\" alt=\"设置库存预警\"></p>\n<p>当库存达到预警条件，首页会显示库存预警数量，点击数量会跳转到库存预警界面，可进行查询或快速补货。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/baac45ab8577047dd62b3352e32c6766.png\" alt=\"首页查看库存预警\"></p>\n<h2 id=\"%F0%9F%9B%A0%EF%B8%8F-%E4%BF%AE%E6%AD%A3%E5%BA%93%E5%AD%98%E5%B7%AE%E5%BC%82\" tabindex=\"-1\">🛠️ 修正库存差异<a class=\"header-anchor\" href=\"#%F0%9F%9B%A0%EF%B8%8F-%E4%BF%AE%E6%AD%A3%E5%BA%93%E5%AD%98%E5%B7%AE%E5%BC%82\" aria-hidden=\"true\"></a></h2>\n<p>当系统库存与实际库存出现差异时，可按以下步骤操作：</p>\n<h3 id=\"%E6%A0%B8%E5%AF%B9%E5%8D%95%E6%8D%AE%EF%BC%88%E9%A6%96%E9%80%89%EF%BC%89\" tabindex=\"-1\">核对单据（首选）<a class=\"header-anchor\" href=\"#%E6%A0%B8%E5%AF%B9%E5%8D%95%E6%8D%AE%EF%BC%88%E9%A6%96%E9%80%89%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>通过库存查询中的<strong>库存流水</strong>进行核对。若能找到错误单据，则<strong>修改或作废错误单据</strong>；若是单据漏做，可进行<strong>补录单据</strong>。</p>\n<ul>\n<li>特点：系统将根据更正后的业务单据重新计算库存，不影响利润。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/3f2ee4f2bb882388648239f1aa5b77d8.png\" alt=\"库存流水\"></p>\n<h3 id=\"%E6%89%B9%E9%87%8F%E6%A0%A1%E6%AD%A3%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89\" tabindex=\"-1\">批量校正（推荐）<a class=\"header-anchor\" href=\"#%E6%89%B9%E9%87%8F%E6%A0%A1%E6%AD%A3%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>若单据过多很难核对，或是<strong>多个商品整体盘点</strong>，则可直接创建盘点单，输入实际库存数量。</p>\n<ul>\n<li><strong>操作路径</strong>：【库存】→【盘点】→【新增盘点单】</li>\n<li>特点：系统自动生成<strong>盈亏记录</strong>，<strong>影响利润计算</strong>，是最规范的校正方式。</li>\n<li><strong>大批量技巧</strong>：商品数量极多时，可使用 <strong>【Excel盘点】</strong> 功能，导出表格线下盘点后再导入，效率更高。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/5f5d84279bd1c062cfe203c712bd2cfd.png\" alt=\"盘点页面路径\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/871a853a960466b4b6c32843a04f5ef4.png\" alt=\"盘点单填写\"></p>\n<h3 id=\"%E5%BF%AB%E9%80%9F%E8%B0%83%E6%95%B4%EF%BC%88%E5%BA%94%E6%80%A5%EF%BC%89\" tabindex=\"-1\">快速调整（应急）<a class=\"header-anchor\" href=\"#%E5%BF%AB%E9%80%9F%E8%B0%83%E6%95%B4%EF%BC%88%E5%BA%94%E6%80%A5%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>对于<strong>单个商品、少量、且原因明确</strong>的差异（如刚录入错误），可在商品详情页直接修改当前库存。</p>\n<ul>\n<li><strong>操作路径</strong>：【商品】→ 找到商品 →【查看】→ 点击库存数旁边的编辑按钮</li>\n<li>特点：操作最快，库存流水会记录“调整库存”，但<strong>不产生盈亏，不影响利润</strong>。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/7c3d84b61df3eeee747391b18fef0cce.png\" alt=\"修改单个商品库存\"></li>\n</ul>\n<h2 id=\"%F0%9F%93%9A-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%BB%BA%E7%AB%8B%E5%81%A5%E5%BA%B7%E5%BA%93%E5%AD%98%E5%BE%AA%E7%8E%AF\" tabindex=\"-1\">📚 总结：建立健康库存循环<a class=\"header-anchor\" href=\"#%F0%9F%93%9A-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%BB%BA%E7%AB%8B%E5%81%A5%E5%BA%B7%E5%BA%93%E5%AD%98%E5%BE%AA%E7%8E%AF\" aria-hidden=\"true\"></a></h2>\n<p><strong>填准期初 → 业务开单 → 随时查询 → 定期盘点</strong></p>\n<p>只要遵循这个循环，您的库存数据就会保持清晰、准确，成为您经营决策的可靠依据。</p>\n<hr>\n<p>🔗 拓展阅读</p>\n<ul>\n<li><strong><a href=\"https://www.zhihuiji.cn/help/doc/983\">批次与保质期管理完整指南</a></strong>：如果您经营食品、药品等需要管理效期，或手机、服装等需要区分批次，可了解如何启用、录入和查询批次与保质期。</li>\n<li><strong><a href=\"https://www.zhihuiji.cn/help/doc/923\">库存预警教程</a></strong></li>\n<li><strong><a href=\"https://www.zhihuiji.cn/help/doc/2186\">组装单教程</a></strong></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2962,
+    "status": 2,
+    "recommend": 2,
+    "hits": 5202,
+    "publish_time": "2025-12-22T09:09:16.009Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-11T08:09:26.785Z",
+    "tags": [
+      {
+        "id": 34,
+        "name": "库存查询"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2962,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

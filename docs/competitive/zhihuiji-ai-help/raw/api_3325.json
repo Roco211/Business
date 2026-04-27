@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3325,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "主体信息为空或校验不通过",
+    "keywords": "",
+    "description": "",
+    "content": "<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1b082ff2186c1c25e062671161bd4dc6.png\" alt=\"Description\"></p>\n<p><strong>解决方案：</strong> 请核对下以下信息后重新提交申请。</p>\n<p><strong>1. 请检查营业执照图片</strong>：已完成上传；如果已上传，通常是图片自动识别有误；</p>\n<p><strong>2. 需仔细检查统一社会信用代码/主体名称：</strong> 正确填写且无字符错误（如0与O/Q、1与I等）或多余空格，包括括号内的补充信息（如“xxxx(个体工商户)”）；</p>\n<p><strong>3. 工商信息完全一致：</strong> 法定代表人信息与工商登记完全一致、营业执照信息与注册信息完全匹配。</p>\n<p><strong>4. 更换浏览器或隔天再试。</strong></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2905,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3614,
+    "publish_time": "2025-11-21T07:48:15.380Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-21T06:41:32.757Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2905,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

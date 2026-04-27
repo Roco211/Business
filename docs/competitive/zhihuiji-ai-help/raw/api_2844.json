@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2844,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售预订转进货预订",
+    "keywords": "进货预订",
+    "description": "",
+    "content": "<p><strong>销售预订转进货预订</strong></p>\n<p><strong>功能介绍：</strong> 可将销售预订转为进货预订，满足先销售后采购场景，提高开单效率</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/fb29adfaed0181ccd393945d57c82d3b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/537eb077c44711961845441920dbf986.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2594,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4438,
+    "publish_time": "2025-01-23T06:41:29.410Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-11-07T01:12:45.657Z",
+    "tags": [
+      {
+        "id": 149,
+        "name": "销售预订列表"
+      },
+      {
+        "id": 151,
+        "name": "查看销售预订"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2594,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

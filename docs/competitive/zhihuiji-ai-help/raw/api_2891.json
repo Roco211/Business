@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2891,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货单界面如何给新商品设置销售价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>当进货单有录入新商品时，可以在进货界面快速输入新商品的销售价格。</p>\n<p>1.操作路径：左侧栏进货-再点击进货旁的+号-输入新商品名称-右上角新品定价</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/71e26f7d35c27fe7dce30eeb685fbe08.png\" alt=\"Description\"></p>\n<p>2.新品定价界面可以输入新商品的各个等级价格。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/e0be0ddd798cddbb80354c269da60a46.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2600,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5040,
+    "publish_time": "2025-01-17T02:15:23.778Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-17T02:15:23.778Z",
+    "tags": [
+      {
+        "id": 12,
+        "name": "新增进货单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2600,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1822,
+    "type": "help",
+    "format": "html",
+    "alias": "",
+    "title": "模板商城",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>1.打开路径</strong>：</p>\n<p>路径1：设置-打印设置-模板商城。</p>\n<p>路径2：设置-打印设置-编辑模板。</p>\n<p>(1)右侧增加10个模板，支持滚动；</p>\n<p>(2)点击右上角【查看更多】进入模板商城；</p>\n<p>(3)模板显示小图样式，名称和价格。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/fb2e1106462df6da08f4386d91d21cad.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/2acd5b28fabf01eaf5a3209a6d579846.jpg\" alt=\"\"></p>\n<p><strong>2.单击模板会显示模板详情</strong>：</p>\n<p>(1)详情有模板纸张、优势、说明、价格等信息；</p>\n<p>(2)点击预览可以弹出预览效果，预览界面会显示商户的真实信息，支持打印；</p>\n<p>(3)点击购买模板，跳转到官网进入购买流程。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/4708b944b1ff5a02cc4bd6d10864bfa2.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/7cc5a7863729e04f97f2066f5ab4acab.jpg\" alt=\"\"></p>\n<p><strong>3.模板商城</strong></p>\n<p>（1）顶部显示筛选，默认按最新发布时间排序。</p>\n<p>（2）单据特点目前有显示logo、支持多联、收款码、有条款4个，默认全部勾选，勾选则显示。</p>\n<p>（3）纸张类型默认显示全部纸张，默认全部勾选。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/08a730ab44b0fe914353274fdde7104f.jpg\" alt=\"\"></p>\n<p><strong>4.购买流程</strong></p>\n<p>1.在智慧记AI进销存里点击购买模板，直接进入官网提交订单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/c8600f90401176a7d90fc4abd59d30b1.jpg\" alt=\"\"></p>\n<p>2.提交订单-支付-支付完成</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/e478a3a03b9d89d4fd29f6ef370c1840.jpg\" alt=\"\"></p>\n<p>3.返回智慧记AI进销存后，显示购买成功提示弹窗点击【使用模板】可进入编辑模板</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/5584b48ba19fa992ad9e359b6e854516.jpg\" alt=\"\"></p>\n<ol start=\"4\">\n<li>在打印设置中，会自动创建已购买模板，在对应的单据分类下，购买的模板显示红色的【新购】标签。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/6372b53a55b33d723d8de78753183fa0.jpg\" alt=\"\"></p>\n<p>5.原模板会显示【已购买】标签，点击使用模板可进入编辑页面</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9164,
+    "publish_time": "2023-06-16T09:02:55.472Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-16T09:00:57.069Z",
+    "tags": [
+      {
+        "id": 4,
+        "name": "打印设置"
+      },
+      {
+        "id": 72,
+        "name": "编辑打印模板"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

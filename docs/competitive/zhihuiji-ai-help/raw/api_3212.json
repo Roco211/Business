@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3212,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店客户审批",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>场景：</strong> 云店设置勾选了游客进入审批，扫码进到云店的客户需要提交申请，申请通过之后才能查看云店商品并下单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/52be19a2d48fce035ae343eaa9c6bd83.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/6b517281a6490528c423c0de326bf81f.png\" alt=\"Description\"></p>\n<p><strong>如何审批：</strong> 客户--客户--待审批客户--接受或者拒绝</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/5e2cc77d6d40e7895fdfa86f78033b02.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/77b85525efefbfc9eeae65ad0785a44a.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2904,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3741,
+    "publish_time": "2025-09-29T02:22:25.582Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-09-29T02:22:25.582Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2904,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

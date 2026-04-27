@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2196,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售单配送信息使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>使用场景：顾客有多个店铺地址，商户希望在开单时可以直接记录对应的地址，后续配送的时候可以直接根据地址进行配送，方便快捷。</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/86d48458f703cb3bc53735c6288b060e.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E9%85%8D%E9%80%81%E5%9C%B0%E5%9D%80\" tabindex=\"-1\">新增配送地址<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E9%85%8D%E9%80%81%E5%9C%B0%E5%9D%80\" aria-hidden=\"true\"></a></h2>\n<p>操作路径：【客户】-【客户】，找到对应的客户信息-点击【更多】-【修改】-【+配送信息】</p>\n<p>1.在编辑客户的时候，可以增加多个联系人/联系电话/地址，最多支持5个。</p>\n<p>2.可以设置为默认地址，在开销售单勾选配送地址时，自动带出默认地址。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/0657bf4ebe7e46e9819cf2ddf3b5ea10.png\" alt=\"Description\"></p>\n<h2 id=\"%E4%BD%BF%E7%94%A8%E9%85%8D%E9%80%81%E5%9C%B0%E5%9D%80\" tabindex=\"-1\">使用配送地址<a class=\"header-anchor\" href=\"#%E4%BD%BF%E7%94%A8%E9%85%8D%E9%80%81%E5%9C%B0%E5%9D%80\" aria-hidden=\"true\"></a></h2>\n<p>操作路径：销售-销售-新增销售单-勾选配送信息，选择司机配送或快递物流。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/6eaf6dfdc437c7d2c323c1087a94e6cc.png\" alt=\"Description\"></p>\n<p>1.自动带出默认地址，点击选择客户其他地址，若该客户有多个地址，可在弹窗里选择客户的其他地址。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/f17a35d32e62440e8a236d6ffec436e2.png\" alt=\"Description\"></p>\n<p>2.开销售单勾选配送信息后，在单据详情页可以查看配送方式/客户联系人/联系电话/送货地址</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/be5b87323aeda86fba826791fd15fde6.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%93%E5%8D%B0%E9%85%8D%E9%80%81%E4%BF%A1%E6%81%AF\" tabindex=\"-1\">打印配送信息<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E9%85%8D%E9%80%81%E4%BF%A1%E6%81%AF\" aria-hidden=\"true\"></a></h2>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/84c7aa94a53506ea1221a69397249f9c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/94361f38bdfe7fb860ba01d004ca253c.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8326,
+    "publish_time": "2025-11-27T01:19:58.391Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-13T11:55:11.594Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 70,
+        "name": "新增客户"
+      },
+      {
+        "id": 95,
+        "name": "修改客户"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

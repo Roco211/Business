@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1985,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何结清单据？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/2fac7fe940407ec0b2cb849638eb9939.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>收尾款有三种办法，只要选择其中一种操作即可，不可重复操作，否则会导致欠款为负数。<strong>建议使用方法2和方法3来收尾款。</strong></p>\n<p><strong>方法1：修改销售单本次实收金额</strong></p>\n<p>到销售单列表找到对应的销售单，点击修改，然后填写本次实收金额保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/2920703dc3ebd3c78961e2449c7d4edc.png\" alt=\"Description\"></p>\n<p><strong>方法2：查看销售单点击收尾款</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/2bbe34c59114ca888da98e186f2756ca.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>点击销售单列表的查看按钮，进入到查看销售单界面，点击右下角的收尾款，或者点击右下角查看收款记录，本单待收金额右侧的收尾款。收尾款成功后会自动生成一个收款单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/e220fb1286f308655cd0c482b07ae8b1.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/5ddec927f124154c9f0a21ad0521dc0e.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/c41387919aa3450dbf0f39b05c3ffff3.png\" alt=\"Description\"></p>\n<p><strong>方法3：开收款单进行收尾款</strong></p>\n<p><strong>路径：</strong>【资金】-【收支】-【收款】右侧的“+”。或者点击客户列表-客户名称后面的收款按钮进入到新增收款单界面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/315fccbcaacd7d2c9c1134c392e13f43.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/c158a53c353082a42c42a5692ff9602e.png\" alt=\"Description\"></p>\n<p>（1）选择选择门店</p>\n<p>（2）选择收款的客户</p>\n<p>（3）选择欠款单据，勾选要收款的单据关联</p>\n<p>（4）输入本次的收款金额，点击保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/9e355fa8a918051fa894f8d4bfca2bd5.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong></p>\n<p>1.输入的收款金额要大于或者等于本次结算金额，否则会提示“本单收款不能小于本次结算”。</p>\n<p>2.如果需要抹零可以点击本次结算的优惠按钮。</p>\n<p>3.如果只是收一部分的款，需要填写欠款单据后面的本次收款金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/9cb6ce50c916d89e8c9f46a8a625ca3c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/70b290752a6c93df4aa308a5790d264d.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9624,
+    "publish_time": "2025-03-11T06:12:47.029Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-26T03:10:14.019Z",
+    "tags": [
+      {
+        "id": 22,
+        "name": "客户列表"
+      },
+      {
+        "id": 58,
+        "name": "应收对账单"
+      },
+      {
+        "id": 78,
+        "name": "查看销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

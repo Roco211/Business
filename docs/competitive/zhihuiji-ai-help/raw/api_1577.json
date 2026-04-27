@@ -1,0 +1,60 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1577,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "编辑账户昵称",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存暂不支持更换头像，可以修改账户昵称</p>\n<p><strong>路径</strong>：【首页】-右上角【账号信息】-【基本信息】-昵称【编辑】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/b9ad40fc873ec8685c3cb2c082942d96.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11185,
+    "publish_time": "2024-12-02T06:14:50.813Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-11-08T02:44:26.686Z",
+    "tags": [
+      {
+        "id": 1,
+        "name": "系统设置"
+      },
+      {
+        "id": 35,
+        "name": "账号信息"
+      },
+      {
+        "id": 73,
+        "name": "首页"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3293,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店客户访问提示“抱歉,您无法访问该店铺”",
+    "keywords": "",
+    "description": "",
+    "content": "<p>云店客户访问提示 <strong>“抱歉,您无法访问该店铺”</strong>，如下图所示：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/ef810234e1d4ac61f991219a0683748a.png\" alt=\"Description\"></p>\n<p><strong>解决方案：</strong> 在云店客户列表里面找到对应的客户，检查是否停用，停用的客户会无法访问云店，重新启用就可以</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7b713f55791cd939d2c109f61057c9ca.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/ca6d899ccae9c228bbaa20d47a01cf86.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2905,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3501,
+    "publish_time": "2025-11-13T02:50:33.381Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-13T02:50:33.381Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2905,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

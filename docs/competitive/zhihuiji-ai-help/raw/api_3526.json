@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3526,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店商品的界面上如何去掉【已售罄】三个字",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>问题：</strong> 云店商品的界面上如何去掉【已售罄】三个字，如下图所示：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/ee8fd6deabe53fa4c49d2da0b7daeedd.png\" alt=\"Description\"></p>\n<p><strong>解决方案：</strong> 点开设置--系统设置--选择勾选销售/调拨/组装/拆分时允许负库存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/27d0a8ae47d3b2c2bc0bf4f7d6aa1f1f.png\" alt=\"Description\"></p>\n<p>注：允许负库存销售意味着商品即便显示售罄仍可正常售卖，因此无需设置售罄标识。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2905,
+    "status": 2,
+    "recommend": 0,
+    "hits": 63,
+    "publish_time": "2026-04-08T02:36:28.398Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-08T02:36:28.398Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2905,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 922,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "初始库存与初始成本设置",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>（1）初始库存：指使用软件前商品的数量，在新增货品时可填入，后续不支持再修改。如库存有变化，可通过盘点单修改当前实际库存。</p>\n<p>（2）初始成本：有盘点单、期初库存或负库存销售的情况，需填写初始成本，若未填写则会导致利润计算错误，点此查看<a href=\"https://www.zhihuiji.cn/help/doc/2088\">智慧记AI进销存商品成本问题</a>。</p>\n<h2 id=\"%E5%A1%AB%E5%86%99%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" tabindex=\"-1\">填写初始库存<a class=\"header-anchor\" href=\"#%E5%A1%AB%E5%86%99%E5%88%9D%E5%A7%8B%E5%BA%93%E5%AD%98\" aria-hidden=\"true\"></a></h2>\n<p>路径：【商品】-【商品】- 新增商品</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1dc16d70b52056381533e7107ec1a3ea.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%A1%AB%E5%86%99%E5%88%9D%E5%A7%8B%E6%88%90%E6%9C%AC\" tabindex=\"-1\">填写初始成本<a class=\"header-anchor\" href=\"#%E5%A1%AB%E5%86%99%E5%88%9D%E5%A7%8B%E6%88%90%E6%9C%AC\" aria-hidden=\"true\"></a></h2>\n<p>路径：【商品】-【商品】- 新增/修改商品\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/0659168374c3645d8d8b3019eb004820.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16249,
+    "publish_time": "2025-11-13T05:36:03.863Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-19T00:33:54.000Z",
+    "tags": [
+      {
+        "id": 2,
+        "name": "商品"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

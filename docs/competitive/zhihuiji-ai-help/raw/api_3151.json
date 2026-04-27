@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3151,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "开单自动新增商品",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>使用场景：</strong> 新增单据支持输入新增的商品并自动保存到商品列表。（仅对销售/进货/报价/组装拆分的单据有效）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/2c705682b79ab6f4c11b555987525d0e.png\" alt=\"Description\"></p>\n<p><strong>备注：</strong> 如果开单时不希望输入一些类似的商品名导致商品统计有误（比如心相印面纸巾，开单的时候输入心相印纸巾、心相印纸，实际都是同一个商品），可关掉此设置。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2635,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3846,
+    "publish_time": "2025-08-20T02:23:00.946Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-20T02:21:36.791Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2635,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

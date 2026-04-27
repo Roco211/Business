@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 869,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "付款单操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/c4d380a5b96d1d4caa8723407f0cc6c6.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n<strong>新增付款单</strong></p>\n<p><strong>应用场景：</strong> 开进货单的时候，本次付款只填写了部分金额，或者没有本次实付金额是0，那么剩下的尾款，可使用付款单功能来操作。</p>\n<p><strong>路径1：</strong>【资金】-【付款】旁边的【+】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/121a95e761d3f24579a977341ef5f09f.png\" alt=\"Description\"></p>\n<p><strong>路径2：</strong>【资金】-【付款】-【新增付款单】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f6f5791bbf67b2916726229dc820bca1.png\" alt=\"Description\"></p>\n<p><strong>1.直接付款</strong></p>\n<p>供应商有初始欠款，但没有欠款单据，可以直接付款。</p>\n<p>（1）选择付款的供应商</p>\n<p>（2）选择付款的账户，输入付款金额</p>\n<p>（3）点击保存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f7c1e62123037b16d8ce9ceae6b14303.png\" alt=\"Description\"></p>\n<p><strong>2.按单付款</strong></p>\n<p>供应商有欠款，并且有对应的欠款单据，需要按单付款，这样付款单列表才会显示已付金额。</p>\n<p>（1）选择供应商名称</p>\n<p>（2）选择欠款单据，可以根据单据编号，业务员，单据日期查询进货单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/ac6cafa50c674f32a0e931b3aac09f32.png\" alt=\"Description\"></p>\n<p>（3）输入付款金额，结算账户，保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f09193d00b429dad168f4f20603d3f3d.png\" alt=\"Description\"></p>\n<p><strong>注意：填写的付款金额要大于或者等于勾选的单据总金额，否则会提示“付款金额不能小于本次付款金额”。</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/99bd13e785df0e25dfe9cd9a6c63758e.png\" alt=\"Description\"></p>\n<p><strong>付款单列表</strong></p>\n<p><strong>路径：</strong>【资金】-【收支】-【付款】</p>\n<p>（1）可通过筛选单据的日期、供应商名称、单据编号，业务员，备注，单据类型来查询单据。</p>\n<p>（2）在对应的单据右侧有【查看】【修改】【作废】操作.</p>\n<p>（3）可勾选是否”隐藏作废单据“。</p>\n<p>（4）可以点击导出，导出付款单列表的内容。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/65097995ea07f484d701a1bf7fab384e.png\" alt=\"Description\"></p>\n<p><strong>付款单详情</strong></p>\n<p>路径：付款单列表点击【查看】可以进入到付款单详情界面。</p>\n<p>付款单详情界面的左上角可以点击【修改】【作废】【单据列表】，右上角可以【导出PDF】【打印】操作。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/ec9c3f1725934229a517cd261f92b732.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2623,
+    "status": 2,
+    "recommend": 0,
+    "hits": 19308,
+    "publish_time": "2024-02-29T05:44:19.701Z",
+    "useful_count": 1,
+    "useless_count": 1,
+    "create_time": "2106-12-30T07:12:56.000Z",
+    "tags": [
+      {
+        "id": 51,
+        "name": "付款单列表"
+      },
+      {
+        "id": 52,
+        "name": "新增付款单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2623,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

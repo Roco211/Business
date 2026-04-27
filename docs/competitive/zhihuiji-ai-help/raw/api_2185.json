@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2185,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "打印模板设置指南",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/d76b1f8e44472eae567ba40aa811521a.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>🖨️ 单据打印样式不满意？表格字段不对？想自定义打印内容？这篇指南帮你搞定所有打印模板设置。</p>\n<hr>\n<h2 id=\"%E8%BF%9B%E5%85%A5%E6%89%93%E5%8D%B0%E6%A8%A1%E6%9D%BF%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">进入打印模板设置<a class=\"header-anchor\" href=\"#%E8%BF%9B%E5%85%A5%E6%89%93%E5%8D%B0%E6%A8%A1%E6%9D%BF%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h2>\n<p><strong>操作路径</strong>：【设置】→【打印设置】→ 找到需要调整的单据类型（如“销售单”）→ 可修改已有模板，或点击“+”号创建新模板</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/20b1aa8bee894a262a6e6e890bc0cf5a.png\" alt=\"进入打印模板设置界面，展示设置菜单中的打印设置入口和单据类型选择页面\"></p>\n<hr>\n<h2 id=\"%E6%A8%A1%E6%9D%BF%E7%BC%96%E8%BE%91%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D\" tabindex=\"-1\">模板编辑界面介绍<a class=\"header-anchor\" href=\"#%E6%A8%A1%E6%9D%BF%E7%BC%96%E8%BE%91%E7%95%8C%E9%9D%A2%E4%BB%8B%E7%BB%8D\" aria-hidden=\"true\"></a></h2>\n<p>进入编辑界面后：</p>\n<ul>\n<li><strong>中间区域</strong>：模板编辑区</li>\n<li><strong>上方</strong>：操作栏</li>\n<li><strong>左侧</strong>：工具与信息栏</li>\n<li><strong>右侧</strong>：组件设置栏\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/b1f39c44091406ef529ff7b67eac02a2.png\" alt=\"编辑页面介绍\"></li>\n</ul>\n<hr>\n<h2 id=\"%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">基础设置<a class=\"header-anchor\" href=\"#%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h2>\n<p>在编辑模板前，建议先完成以下基础设置：</p>\n<ul>\n<li><strong>模板名称</strong>：为模板起一个便于识别的名称</li>\n<li><strong>纸张类型</strong>：选择合适的纸张尺寸</li>\n<li><strong>自定义尺寸</strong>：如有特殊宽高需求，可手动填写实际尺寸\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/a0bdddeab88bd31452f329f390b81a02.png\" alt=\"基础设置\"></li>\n</ul>\n<hr>\n<h2 id=\"%E8%AE%BE%E7%BD%AE%E5%95%86%E5%93%81%E8%A1%A8%E6%A0%BC\" tabindex=\"-1\">设置商品表格<a class=\"header-anchor\" href=\"#%E8%AE%BE%E7%BD%AE%E5%95%86%E5%93%81%E8%A1%A8%E6%A0%BC\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E8%AE%BE%E7%BD%AE%E8%A1%A8%E6%A0%BC%E5%AD%97%E6%AE%B5\" tabindex=\"-1\">设置表格字段<a class=\"header-anchor\" href=\"#%E8%AE%BE%E7%BD%AE%E8%A1%A8%E6%A0%BC%E5%AD%97%E6%AE%B5\" aria-hidden=\"true\"></a></h3>\n<p>表格中显示的字段可以自由勾选或取消。</p>\n<p><strong>操作步骤</strong>：<br>\n（1） 点击选中表格<br>\n（2） 在右侧【信息设置】中，找到【列设置】<br>\n（3） 勾选需要打印的字段，取消勾选不需要的字段</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/82098b6753e997d4c6c323cf029a1f30.gif\" alt=\"设置表格字段的操作演示：选中表格后在右侧列设置中勾选或取消字段\"></p>\n<hr>\n<h3 id=\"%E8%B0%83%E6%95%B4%E5%AD%97%E6%AE%B5%E9%A1%BA%E5%BA%8F\" tabindex=\"-1\">调整字段顺序<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E5%AD%97%E6%AE%B5%E9%A1%BA%E5%BA%8F\" aria-hidden=\"true\"></a></h3>\n<p>字段的左右顺序也可以灵活调整。</p>\n<p><strong>操作步骤</strong>：<br>\n（1） 点击选中表格<br>\n（2） 在右侧【信息设置】→【列设置】中<br>\n（3） 鼠标按住字段名称，拖拽到目标位置即可</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/b4902a2ca361cf4c5cd65e5434597d13.gif\" alt=\"调整字段顺序的操作演示：在列设置中拖拽字段名称调整顺序\"></p>\n<h3 id=\"%E8%B0%83%E6%95%B4%E8%A1%A8%E6%A0%BC%E5%88%97%E5%AE%BD\" tabindex=\"-1\">调整表格列宽<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E8%A1%A8%E6%A0%BC%E5%88%97%E5%AE%BD\" aria-hidden=\"true\"></a></h3>\n<p>可以通过鼠标拖动表格线调整列宽。\n<video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/44deff19d1c1830cfee217b981637164.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n调整列宽\n</video></p>\n<hr>\n<h3 id=\"%E5%B0%BA%E7%A0%81%E6%A8%AA%E6%8E%92%E6%98%BE%E7%A4%BA\" tabindex=\"-1\">尺码横排显示<a class=\"header-anchor\" href=\"#%E5%B0%BA%E7%A0%81%E6%A8%AA%E6%8E%92%E6%98%BE%E7%A4%BA\" aria-hidden=\"true\"></a></h3>\n<p>如需在多尺码场景下一眼看清所有尺码数据，可开启<strong>尺码横排</strong>功能，避免上下翻找，提升查看效率。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/c43fa16b08e782a7e23c7c82ab03068c.png\" alt=\"尺码横排\"></p>\n<hr>\n<h2 id=\"%E8%AE%BE%E7%BD%AE%E5%85%B6%E4%BB%96%E6%89%93%E5%8D%B0%E5%86%85%E5%AE%B9\" tabindex=\"-1\">设置其他打印内容<a class=\"header-anchor\" href=\"#%E8%AE%BE%E7%BD%AE%E5%85%B6%E4%BB%96%E6%89%93%E5%8D%B0%E5%86%85%E5%AE%B9\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%88%A0%E9%99%A4%E4%B8%8D%E9%9C%80%E8%A6%81%E7%9A%84%E5%86%85%E5%AE%B9\" tabindex=\"-1\">删除不需要的内容<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E4%B8%8D%E9%9C%80%E8%A6%81%E7%9A%84%E5%86%85%E5%AE%B9\" aria-hidden=\"true\"></a></h3>\n<p>模板中不需要的文本框，可以直接删除。</p>\n<p><strong>操作方法</strong>（二选一）：</p>\n<ul>\n<li>选中文本框，按键盘 <strong>Delete</strong> 键</li>\n<li>右键点击文本框，选择【删除】</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/c1bbbb97b1cc69a9ea5c6186f0d710a9.png\" alt=\"删除文本框的操作演示：右键点击文本框选择删除或按Delete键\"></p>\n<hr>\n<h3 id=\"%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5%EF%BC%88%E6%B4%BB%E5%8A%A8%E6%96%87%E6%9C%AC%EF%BC%89\" tabindex=\"-1\">添加字段（活动文本）<a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5%EF%BC%88%E6%B4%BB%E5%8A%A8%E6%96%87%E6%9C%AC%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>需要从单据中带出数据（如客户名称、单据日期等），可通过添加活动文本实现。</p>\n<p><strong>操作步骤</strong>：<br>\n（1） 在左侧信息栏中找到需要打印的字段<br>\n（2） 按住鼠标左键，拖拽到编辑界面中（文本框带有 <strong>@符号</strong>，表示动态读取数据）<br>\n（3） 点击已添加的文本框，在右侧【信息设置】→【名称】中，可修改或删除前面的说明文字</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/9d4f5f35cae56693486d3306781634ed.png\" alt=\"设置活动文本：从左侧拖拽字段到编辑区，并在右侧修改名称\"></p>\n<hr>\n<h3 id=\"%E6%B7%BB%E5%8A%A0%E5%9B%BA%E5%AE%9A%E5%86%85%E5%AE%B9%EF%BC%88%E8%87%AA%E5%AE%9A%E4%B9%89%E6%96%87%E6%9C%AC%EF%BC%89\" tabindex=\"-1\">添加固定内容（自定义文本）<a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%E5%9B%BA%E5%AE%9A%E5%86%85%E5%AE%B9%EF%BC%88%E8%87%AA%E5%AE%9A%E4%B9%89%E6%96%87%E6%9C%AC%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>如需添加“感谢惠顾”“温馨提示”等固定文字，请使用自定义文本。</p>\n<p><strong>操作步骤</strong>：<br>\n（1） 在左侧工具栏中找到【自定义文本】<br>\n（2） 按住鼠标左键，拖拽到编辑界面<br>\n（3） 在右侧“内容”中输入文字即可</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/78657d6f702d1d599983c8796582a6ff.png\" alt=\"添加自定义文本：从左侧拖拽自定义文本组件到编辑区\"></p>\n<hr>\n<h2 id=\"%E6%A0%B7%E5%BC%8F%E4%B8%8E%E6%89%93%E5%8D%B0%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">样式与打印设置<a class=\"header-anchor\" href=\"#%E6%A0%B7%E5%BC%8F%E4%B8%8E%E6%89%93%E5%8D%B0%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E8%B0%83%E6%95%B4%E5%AD%97%E4%BD%93%E4%B8%8E%E6%A0%B7%E5%BC%8F\" tabindex=\"-1\">调整字体与样式<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E5%AD%97%E4%BD%93%E4%B8%8E%E6%A0%B7%E5%BC%8F\" aria-hidden=\"true\"></a></h3>\n<p>每个文本框的字体、大小、对齐方式均可单独设置。</p>\n<p><strong>操作步骤</strong>：<br>\n（1） 点击要修改的文本框<br>\n（2） 在顶部或右侧【样式设置】→【文本】中<br>\n（3） 调整：</p>\n<ul>\n<li>字体大小</li>\n<li>字体类型</li>\n<li>对齐方式（左 / 中 / 右）</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/f16985d24e37ffb0152ed43d14205277.png\" alt=\"设置字体样式：选中文本框后在样式设置中调整字体大小、类型和对齐方式\"></p>\n<hr>\n<h3 id=\"%E6%89%93%E5%8D%B0%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">打印设置<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h3>\n<p>点击右上角【打印设置】，可以设置：</p>\n<p>（1） <strong>页边距</strong>：可调整文档的页边距，满足不同打印机的裁切需求。</p>\n<p>（2） <strong>每页设置</strong>：多页打印时，可控制表格上方和下方的信息是否每页都出现。</p>\n<ul>\n<li><strong>都勾选</strong>：每页都打印表格上方和下方内容</li>\n<li><strong>都不勾选</strong>：只在第一页打印上方内容，最后一页打印下方内容</li>\n</ul>\n<p>（3） <strong>页脚</strong>：可设置页脚线距离页面底部的高度，调整页脚线的位置。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/cc69267dfdfdcb741f25b6bd7ed82791.png\" alt=\"打印设置\"></p>\n<hr>\n<h3 id=\"%E8%AE%BE%E4%B8%BA%E9%BB%98%E8%AE%A4%E6%A8%A1%E6%9D%BF\" tabindex=\"-1\">设为默认模板<a class=\"header-anchor\" href=\"#%E8%AE%BE%E4%B8%BA%E9%BB%98%E8%AE%A4%E6%A8%A1%E6%9D%BF\" aria-hidden=\"true\"></a></h3>\n<p>编辑完成后，可在左上角将当前模板<strong>设为默认模板</strong>，开单时将自动使用。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/87739cfd51aaaa548062b45faf6a59ea.png\" alt=\"设为默认模板：在模板编辑界面顶部勾选开启默认模板选项\"></p>\n<hr>\n<h3 id=\"%E9%87%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF\" tabindex=\"-1\">重置模板<a class=\"header-anchor\" href=\"#%E9%87%8D%E7%BD%AE%E6%A8%A1%E6%9D%BF\" aria-hidden=\"true\"></a></h3>\n<p>如果编辑过程中想恢复初始状态，可点击右上角【重置】，一键恢复模板初始配置。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/24949898d5a27bc32d35e2a828cee4a8.png\" alt=\"重置\"></p>\n<hr>\n<h2 id=\"%E6%89%93%E5%8D%B0%E6%97%B6%E5%88%87%E6%8D%A2%E6%A8%A1%E6%9D%BF\" tabindex=\"-1\">打印时切换模板<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E6%97%B6%E5%88%87%E6%8D%A2%E6%A8%A1%E6%9D%BF\" aria-hidden=\"true\"></a></h2>\n<p>打印时，系统默认使用你设置的默认模板，也可以手动切换为其他模板。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/2177586c1c0bcbcf8dbf3455ab5fa181.png\" alt=\"打印选择模板\"></p>\n<hr>\n<h2 id=\"%E5%A4%9A%E7%94%A8%E6%88%B7%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">多用户场景<a class=\"header-anchor\" href=\"#%E5%A4%9A%E7%94%A8%E6%88%B7%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>如果店铺有多个用户，每个人可以在【设置】→【用户偏好设置】中，选择自己常用的销售单默认打印模板，互不影响。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/6b3e6c9d8c80ea300701718d8a19562b.png\" alt=\"个人默认模板\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 20286,
+    "publish_time": "2026-04-07T05:37:58.153Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2027-03-30T05:37:49.000Z",
+    "tags": [
+      {
+        "id": 4,
+        "name": "打印设置"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

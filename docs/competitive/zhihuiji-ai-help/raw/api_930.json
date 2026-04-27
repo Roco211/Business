@@ -1,0 +1,69 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 930,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "完善商户信息",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径</strong>：【首页】-左侧【设置】-【商户管理】-【商户信息】</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/03d15b738daf1cae19ade7cfde78c2fa.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/f9c32dd4720ea4b10aaaf9e06b767db9.png\" alt=\"Description\"></p>\n<p>点击【修改】。依次填写对应信息，带*的为必填</p>\n<p><img src=\"blob:https://www.zhihuiji.cn/d5437bb6-fa3e-4f8d-a8f6-17e949b9bf06\" alt=\"\"><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202211/3be748a83ee025305644fbcbc1a39cad.jpg\" alt=\"\"></p>\n<p>填写完毕后，点击【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202211/d25bcfb3ce114aa8620555a929b418ec.jpg\" alt=\"\"></p>\n<p><img src=\"blob:https://www.zhihuiji.cn/73538bc8-fbb1-43a8-97dd-81c349952298\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2629,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15860,
+    "publish_time": "2025-03-11T02:56:44.189Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2110-12-30T13:56:48.000Z",
+    "tags": [
+      {
+        "id": 1,
+        "name": "系统设置"
+      },
+      {
+        "id": 35,
+        "name": "账号信息"
+      },
+      {
+        "id": 68,
+        "name": "商户信息"
+      },
+      {
+        "id": 69,
+        "name": "店铺信息"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2629,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

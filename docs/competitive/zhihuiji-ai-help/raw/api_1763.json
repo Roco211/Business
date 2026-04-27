@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1763,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "手机端客户预存款教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>1.预存款录入：</strong> 点击左侧销售-底部选择客户-客户详情点击当前预存款-存款。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/054c11c25caafb49a4bdea2e59719299.jpg\" alt=\"\"><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/1b074ff17a1ad670c4d8acf690c5b34e.jpg\" alt=\"\"></p>\n<p><strong>2.销售单抵扣余额：</strong> 开单界面点击底部的明细-勾选抵扣，然后再点保存即可。默认是自动抵扣的，如果需要不抵扣把勾去掉，然后点击结算账户保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/fa05dea18c4729d2f1685518f6f5d728.jpg\" alt=\"\"><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/6e06c85f91f1928c2e20c5eb7451b537.jpg\" alt=\"\"></p>\n<p><strong>3.收款单抵扣余额：</strong> 左侧资金-收款-新增收款单选择客户名称，勾选客户预存款抵扣，然后点击保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/10366d95f304608c481f4242eebe2a52.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14342,
+    "publish_time": "2023-07-06T03:06:02.122Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-07T03:44:59.227Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

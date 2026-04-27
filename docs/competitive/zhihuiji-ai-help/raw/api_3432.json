@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3432,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」AI批量录入商品使用指南",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/b21dbc92a67cc1c11edb2bd98db97bb3.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>「AI批量录入」是智慧记AI进销存App推出的智能商品信息录入功能。<br>\n您只需通过手机上传<strong>单据图片、Excel表格、PDF或微信聊天文件</strong>，系统即可自动识别并批量提取商品信息，一键完成录入。<br>\n该功能极大地简化了商品信息初始化流程，帮助您快速上手，提升经营效率。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/a66e3975fad2604ad951997c49d2ebde.png\" alt=\"AI批量录入流程\"></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E5%85%A5%E5%8F%A3%E4%B8%8E%E5%90%AF%E5%8A%A8\" tabindex=\"-1\">功能入口与启动<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E5%85%A5%E5%8F%A3%E4%B8%8E%E5%90%AF%E5%8A%A8\" aria-hidden=\"true\"></a></h2>\n<p><strong>请按此路径启动AI批量录入功能</strong>：首页【商品】 → 右上角【+】 → 进入【新增商品】页面 → 点击【AI批量录入】按钮</p>\n<ul>\n<li>可选择两种识别方式：<strong>图片识别</strong> 与 <strong>文件识别</strong>。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/bc0350b3198586ebabf1f721482f4cb1.jpg\" alt=\"功能入口与识别方式\"></p>\n<h2 id=\"%E8%AF%86%E5%88%AB%E6%96%B9%E5%BC%8F\" tabindex=\"-1\">识别方式<a class=\"header-anchor\" href=\"#%E8%AF%86%E5%88%AB%E6%96%B9%E5%BC%8F\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%9B%BE%E7%89%87%E8%AF%86%E5%88%AB\" tabindex=\"-1\">图片识别<a class=\"header-anchor\" href=\"#%E5%9B%BE%E7%89%87%E8%AF%86%E5%88%AB\" aria-hidden=\"true\"></a></h3>\n<p>此方式适用于直接拍摄或已有单据图片。</p>\n<ul>\n<li><strong>从相册导入</strong>：从手机相册中选择已保存的单据图片。</li>\n<li><strong>立即拍照</strong>：当场拍摄单据进行识别。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/cdb139f79d1fb1758ebc7078db705c89.jpg\" alt=\"从相册导入示意\"></li>\n</ul>\n<h3 id=\"%E6%96%87%E4%BB%B6%E8%AF%86%E5%88%AB\" tabindex=\"-1\">文件识别<a class=\"header-anchor\" href=\"#%E6%96%87%E4%BB%B6%E8%AF%86%E5%88%AB\" aria-hidden=\"true\"></a></h3>\n<p>此方式适用于批量处理来自聊天记录或其他应用的单据文件。</p>\n<ul>\n<li>\n<p><strong>微信聊天文件导入</strong></p>\n<ul>\n<li>点击底部按钮跳转至微信小程序</li>\n<li>选择聊天记录中的文件（图片/Excel/PDF）</li>\n<li>上传后选择“返回App”<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/5cafa87c78fe67a7955384b139768b60.png\" alt=\"导入微信文件\"></li>\n</ul>\n</li>\n<li>\n<p><strong>其他App文件导入</strong></p>\n<ul>\n<li>在支持文件分享的App（如微信、WPS）中，长按文件选择“打开”</li>\n<li>选择“用其他应用打开” → 选择“智慧记AI进销存” → 点击“AI新增商品”\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/4a8019d4cc0e8d23bf8e44e15ced3ec2.jpg\" alt=\"从其他应用导入\"></li>\n</ul>\n</li>\n</ul>\n<h2 id=\"ai%E8%AF%86%E5%88%AB%E5%BD%95%E5%85%A5\" tabindex=\"-1\">AI识别录入<a class=\"header-anchor\" href=\"#ai%E8%AF%86%E5%88%AB%E5%BD%95%E5%85%A5\" aria-hidden=\"true\"></a></h2>\n<p>启动识别后，系统将自动完成以下步骤，您只需在关键节点确认即可：</p>\n<p>① <strong>AI识别提取信息</strong>  ：系统自动分析您上传的文件，智能提取所有商品信息。<br>\n② <strong>匹配商品字段</strong>  ：</p>\n<ul>\n<li>AI会将您文件中的表头（如“品名”、“规格”）与智慧记AI进销存系统的标准字段进行智能匹配。</li>\n<li>您可以在此步骤手动检查并修改匹配关系，确保信息准确对应。</li>\n</ul>\n<p>③ <strong>商品数据预览</strong></p>\n<ul>\n<li>查看并确认商品信息</li>\n<li>AI会根据条码自动补充缺失信息（如图片、单位等）</li>\n</ul>\n<p>④<strong>完成导入与处理失败数据</strong></p>\n<ul>\n<li>\n<p>显示导入成功与失败的数量<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/a4aacd975acfe3b5f12813fe16b6d834.png\" alt=\"AI识别录入\"></p>\n</li>\n<li>\n<p>对于导入失败的商品，可点击“修改失败数据”查看每条失败的具体原因，进行修正后重新导入<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/408ae58670508a69546b722cf8cb3edd.png\" alt=\"Description\"></p>\n</li>\n</ul>\n<h2 id=\"%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C%E6%94%AF%E6%8C%81\" tabindex=\"-1\">后台运行支持<a class=\"header-anchor\" href=\"#%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C%E6%94%AF%E6%8C%81\" aria-hidden=\"true\"></a></h2>\n<p>AI识别处理大量数据可能需要一些时间。为此，我们提供了<strong>后台运行</strong>功能：</p>\n<ul>\n<li>在识别过程中，如果您需要退出当前页面，系统会提示您是否选择 <strong>【后台运行】</strong>。</li>\n<li>选择后，您可以正常使用App的其他功能。识别完成后，系统会通过<strong>弹窗通知</strong>提醒您查看结果。</li>\n<li>您也可以随时通过原入口返回，继续处理未完成的任务。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/207123f127ff4668d88172bbb8f9e768.png\" alt=\"后台运行\"></li>\n</ul>\n<h2 id=\"%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">注意事项<a class=\"header-anchor\" href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<p>① 目前不支持商品多单位、多仓库信息录入<br>\n② 商品图片仅支持通过“商品URL”（图片网络链接）方式录入<br>\n③ 建议在Wi-Fi环境下进行大文件识别，以节省流量与时间</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2964,
+    "status": 2,
+    "recommend": 0,
+    "hits": 1010,
+    "publish_time": "2026-03-26T09:11:14.059Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-12T02:04:11.722Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2964,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

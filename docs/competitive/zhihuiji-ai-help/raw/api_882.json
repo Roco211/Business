@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 882,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "批量导出销售单及货品明细",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>批量导出销售单明细</strong></p>\n<p><strong>路径</strong>：【首页】-【销售】-【查看历史单据】-筛选销售单-【导出】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/dccd1a5ecd381f433f865830a156686a.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：将销售单及货品明细导出到Excel表格文件中。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、支持导出单据说明。</p>\n<p>2、支持导出销售单列表中的已收金额。</p>\n<p>3、不支持导出关联的销售订单编号。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 18730,
+    "publish_time": "2023-07-05T07:52:04.353Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-29T02:59:46.000Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

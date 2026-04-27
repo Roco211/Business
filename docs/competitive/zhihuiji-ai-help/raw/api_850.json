@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 850,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售预定操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/c11db15033772d786da07b02a9724393.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n新增销售预定订单  <strong>————————————————————</strong></p>\n<p><strong>新增销售预定订单路径</strong>：【销售】-【销售预定】-【新增销售预定】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/21f84f8ea6cc988e38b1c8548623b79f.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：销售预订货品，以便仓库备货出库，一般用于与客户达成协议的合同记录，货品并不实际出库。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、新增销售预定订单时，客户和货品是必须填入的。</p>\n<p>2、支持预付定金。</p>\n<p>查看销售预定订单  <strong>————————————————————</strong></p>\n<p><strong>查看销售预定订单路径</strong>：【销售】-【销售订单-列表】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/e0a1bce2de93ea7267ed6a2d4366867f.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：满足老板查找已开出【销售订单】的需求，方便业务处理。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2594,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16206,
+    "publish_time": "2025-01-23T06:47:01.398Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2022-12-29T04:20:27.000Z",
+    "tags": [
+      {
+        "id": 149,
+        "name": "销售预订列表"
+      },
+      {
+        "id": 150,
+        "name": "新增销售预订"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2594,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

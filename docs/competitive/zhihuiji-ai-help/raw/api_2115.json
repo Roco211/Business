@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2115,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」开销售退货单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【销售开单】→ 顶部切换至【销售退货单】→ 选择客户与商品 →【收款】或【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/b539b341fb75ab161e154b0085b05697.png\" alt=\"开退货单流程\"></p>\n<p><strong>保存后支持操作：</strong></p>\n<ul>\n<li><strong>再来一单</strong>：继续开退货单</li>\n<li><strong>打印</strong>：打印当前退货单</li>\n<li><strong>查看详情</strong>：进入详情页进行修改、作废、分享等操作</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/f7ca6e91fc577b23cecd783e17121ca8.png\" alt=\"退货单详情\"></p>\n<p><strong>💡 温馨提示：</strong></p>\n<p>退货单开单流程与销售单相似，保存后原商品库存将自动恢复。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1260\">「手机端」如何开销售单</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2148\">「手机端」如何查看销售统计</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8694,
+    "publish_time": "2025-12-04T02:18:52.713Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-03T06:18:43.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

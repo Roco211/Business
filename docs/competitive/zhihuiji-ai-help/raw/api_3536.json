@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3536,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何修改商品初始成本价？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>业务场景：</strong> 以下场景需要填写正确的初始成本，以确保毛利计算准确：</p>\n<ul>\n<li>商品存在初始库存（使用软件之前已有的库存）</li>\n<li>商品入库时不使用进货单（正常建议先做进货单，如跳过此步骤，需填写初始成本）</li>\n</ul>\n<blockquote>\n<p>⚠️ 商品资料中的「进货价」不参与成本计算，一定要正确输入「初始成本」。</p>\n</blockquote>\n<p><strong>操作路径：</strong></p>\n<p>【商品】→【商品】→ 搜索目标商品 → 点击【修改】→ 在「初始成本」中填写正确成本价 → 点击【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/ea2383467b3d7a57ca226cf0708707ea.png\" alt=\"修改初始成本路径\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2678,
+    "status": 2,
+    "recommend": 0,
+    "hits": 45,
+    "publish_time": "2026-04-16T08:35:11.872Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-16T07:58:30.587Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2678,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

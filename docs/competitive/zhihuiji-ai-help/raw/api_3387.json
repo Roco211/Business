@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3387,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "作废进货单",
+    "keywords": "",
+    "description": "",
+    "content": "<p>当您制作了错误的进货单时，可通过此功能作废单据。</p>\n<p><strong>操作路径：</strong>【进货】→【进货】→ 列表右侧操作栏点击【作废】→ 确认作废</p>\n<p><strong>注意事项：</strong></p>\n<ul>\n<li>作废后单据将无法恢复，请谨慎操作。</li>\n<li>若进货单已关联付款单，系统会提示您选择处理方式。</li>\n</ul>\n<p><strong>操作图示：</strong></p>\n<ol>\n<li>\n<p>点击【作废】按钮<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/cee72a9ceea4400429e4cc3cbb4cf841.png\" alt=\"点击作废按钮\"></p>\n</li>\n<li>\n<p>确认作废操作<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/833ce3a34b866150746a8a9fc891f0b0.png\" alt=\"确认作废\"></p>\n</li>\n<li>\n<p>已关联付款单的处理选择（如出现）<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/1a8dcc68dc2a5593679529dd5b1584b9.png\" alt=\"弹窗选择\"></p>\n</li>\n</ol>\n<p><strong>关联付款单处理说明：</strong></p>\n<ul>\n<li><strong>转为预付款</strong>：仅作废进货单，付款单保留为预付款，后续可重新关联其他单据。</li>\n<li><strong>一起作废</strong>：同时作废进货单及关联的付款单（仅当两者金额完全一致时可操作）。</li>\n<li><strong>取消</strong>：放弃本次作废操作。</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2600,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3437,
+    "publish_time": "2025-12-22T09:41:20.748Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-22T09:41:20.748Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2600,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

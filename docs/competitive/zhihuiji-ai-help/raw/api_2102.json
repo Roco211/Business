@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2102,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "设置退货单打印模板",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>销售单和退货单模板默认是共用同一个模板的，如果需要区分销售单和退货单抬头，要单独设置退货单模板。</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/ecc83993571c99bb3545fe30782d8773.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>1.路径：点击【设置】-【打印设置】-点击销售单默认模板进入到编辑界面-右上角【复制】-输入模板名称-确定。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/bb488d22be85d9bc90dad52c877afd09.png\" alt=\"Description\"></p>\n<p>2.把抬头的销售单改成退货单，保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/6004814d0a7ee54b26c82277966efb22.png\" alt=\"Description\"></p>\n<p>3.到销售退货单点击打印时候选择新增的销售退货单模板。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/03f4db27f5e47d3f8efc63108c0b6864.png\" alt=\"Description\"></p>\n<p>4.预览效果如下：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/44af5592ce42f6356cd6a8daf2c14011.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7314,
+    "publish_time": "2025-11-13T01:06:18.232Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-11T06:25:05.744Z",
+    "tags": [
+      {
+        "id": 4,
+        "name": "打印设置"
+      },
+      {
+        "id": 41,
+        "name": "销售退货单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

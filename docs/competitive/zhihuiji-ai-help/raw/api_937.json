@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 937,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "首页常用功能管理",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%BF%9B%E5%85%A5%E7%BC%96%E8%BE%91\" tabindex=\"-1\">常用功能：进入编辑<a class=\"header-anchor\" href=\"#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E8%BF%9B%E5%85%A5%E7%BC%96%E8%BE%91\" aria-hidden=\"true\"></a></h2>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/d57159d245f26c73e19b41a230dd84f8.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n<strong>路径</strong>：【首页】-【常用功能】-编辑图标</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/a8445c94c0ea548a41e6b09d97ff15da.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：</p>\n<p>在首页配置常用功能，快捷打开更方便。</p>\n<h2 id=\"%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E6%96%B0%E5%A2%9E\" tabindex=\"-1\">常用功能：新增<a class=\"header-anchor\" href=\"#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E6%96%B0%E5%A2%9E\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【首页】-【常用功能】-编辑图标</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/1cd56a51cfd8f97eaeef8d55d9c76f15.png\" alt=\"Description\"></p>\n<p><strong>功能说明</strong>：</p>\n<ol>\n<li>常用功能最多可选择10个。</li>\n<li>编辑常用功能时，上方为已选定区域，下方为待选区域。</li>\n</ol>\n<h2 id=\"%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E5%88%A0%E9%99%A4\" tabindex=\"-1\">常用功能：删除<a class=\"header-anchor\" href=\"#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E5%88%A0%E9%99%A4\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【首页】-【常用功能】-编辑图标-【-】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/b4832ade870640a88560c9685737e94c.png\" alt=\"\"></p>\n<h2 id=\"%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E6%8E%92%E5%BA%8F\" tabindex=\"-1\">常用功能：排序<a class=\"header-anchor\" href=\"#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD%EF%BC%9A%E6%8E%92%E5%BA%8F\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【首页】-【常用功能】-编辑图标-拖拽文本框可调整顺序</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/99f218e25034c593a201755b69126de2.png\" alt=\"Description\"></p>\n<p><strong>功能说明</strong>：</p>\n<p>编辑常用功能时，在上方已选定区域内可自定义排序。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16671,
+    "publish_time": "2024-02-20T06:44:19.388Z",
+    "useful_count": 1,
+    "useless_count": 1,
+    "create_time": "2110-12-22T14:47:21.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

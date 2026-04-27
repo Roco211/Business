@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3298,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何作废与修改历史单据",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>当系统提示 <strong>“删除失败，已关联单据”</strong> 或 <strong>“规格内容已关联单据，不可删除”</strong> 时，说明您要操作的商品或规格已被业务单据锁定。本指南将帮助您通过定位并处理相关单据来解决此问题。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d125fef5809188fabf260daaa5ee4114.png\" alt=\"删除失败提示\"></p>\n<h2 id=\"%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">使用场景<a class=\"header-anchor\" href=\"#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>在以下情况需要此操作：</p>\n<ul>\n<li>删除已产生业务数据的<strong>商品</strong></li>\n<li>删除商品中已产生业务数据的<strong>规格</strong></li>\n<li>清理错误的或测试用的业务单据</li>\n</ul>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B\" tabindex=\"-1\">操作流程<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%A4%84%E7%90%86%E5%BD%B1%E5%93%8D%E5%BA%93%E5%AD%98%E7%9A%84%E5%8D%95%E6%8D%AE\" tabindex=\"-1\">处理影响库存的单据<a class=\"header-anchor\" href=\"#%E5%A4%84%E7%90%86%E5%BD%B1%E5%93%8D%E5%BA%93%E5%AD%98%E7%9A%84%E5%8D%95%E6%8D%AE\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【库存】-【库存查询】- 搜索目标商品 -【库存流水】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e9c9b7aa0de0a60ebda9f3c378573d07.png\" alt=\"库存查询入口\"></p>\n<p>在库存流水页面，查看所有与该商品关联的、影响库存的业务单据记录，包括：</p>\n<p><strong>销售单、销售退货单、进货单、进货退货单、盘点单、组装单、拆分单、调拨单</strong></p>\n<p>如已开通云店，还需检查<strong>云店订单</strong>。</p>\n<p>点击单据编号即可跳转至详情页处理。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/89355b600f9c0586d99290e4821a3ecf.png\" alt=\"库存流水页面\"></p>\n<ul>\n<li>\n<p><strong>方案一：作废单据</strong></p>\n<p><strong>适用情况</strong>：单据中<strong>仅包含</strong>要删除的商品，或整张单据均需废弃。</p>\n<p><strong>操作</strong>：在单据详情页点击【作废】按钮。</p>\n<p><strong>注意</strong>：作废后状态变为&quot;已作废&quot;，无法再次编辑或恢复，请谨慎操作！</p>\n<p><strong>特殊说明</strong>：⚠️ <strong>盘点单不支持修改，只能作废</strong>。若盘点单包含其他正常商品，作废会影响这些商品的库存，建议谨慎操作，或考虑停用商品而非删除。</p>\n</li>\n<li>\n<p><strong>方案二：修改单据</strong></p>\n<p><strong>适用情况</strong>：单据中<strong>包含其他需要保留的商品</strong>。</p>\n<p><strong>操作</strong>：在单据详情页点击【修改】按钮，移除目标商品后保存。</p>\n</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b3a7657d34f7da2339b74cf904f5d337.png\" alt=\"销售单详情页\"></p>\n<h3 id=\"%E5%A4%84%E7%90%86%E4%B8%8D%E5%BD%B1%E5%93%8D%E5%BA%93%E5%AD%98%E7%9A%84%E5%8D%95%E6%8D%AE\" tabindex=\"-1\">处理不影响库存的单据<a class=\"header-anchor\" href=\"#%E5%A4%84%E7%90%86%E4%B8%8D%E5%BD%B1%E5%93%8D%E5%BA%93%E5%AD%98%E7%9A%84%E5%8D%95%E6%8D%AE\" aria-hidden=\"true\"></a></h3>\n<p>包括：<strong>销售预订单、进货预订单、报价单</strong></p>\n<ul>\n<li><strong>销售预订单</strong>查询路径：【销售】-【销售预订】</li>\n<li><strong>进货预订单</strong>查询路径：【进货】-【进货预订】</li>\n<li><strong>报价单</strong>查询路径：【销售】-【报价单】</li>\n</ul>\n<p>⚠️ <strong>重要提示</strong>：若预订单已执行“<strong>转销售/转进货</strong>”，则需先处理生成的销售单或进货单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d88fe7b01e86f16add61f48be68afe94.png\" alt=\"预订单据查询入口\"></p>\n<p>在列表中找到目标单据，进行修改或作废处理。</p>\n<p>注：作废预订单需点击「查看」进入详情页点击「作废」。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/222dd75d3d3b76ff1aa942408c61eca7.png\" alt=\"销售预订单列表\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7370d2a4c4f685176bbe9642be48adb7.png\" alt=\"销售预订单详情\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d038494b42a74d7849e6994e2efd0f9b.png\" alt=\"报价单列表\"></p>\n<h2 id=\"%E5%AE%8C%E6%88%90%E5%90%8E%E7%BB%AD%E6%93%8D%E4%BD%9C\" tabindex=\"-1\">完成后续操作<a class=\"header-anchor\" href=\"#%E5%AE%8C%E6%88%90%E5%90%8E%E7%BB%AD%E6%93%8D%E4%BD%9C\" aria-hidden=\"true\"></a></h2>\n<p>确认所有关联单据都已处理完毕后：</p>\n<p>（1）返回【商品】-【商品】列表</p>\n<p>（2）继续执行您原本的<strong>删除商品</strong>或<strong>删除商品规格</strong>操作</p>\n<hr>\n<p><strong>关联阅读</strong>：</p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3144\">商品删除操作指南</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/917\">商品规格管理</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5602,
+    "publish_time": "2025-12-22T07:14:05.268Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-14T07:24:57.717Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 860,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "收款单操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/a5e1ae9973d4265b0d72449792ea57d6.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>路径：</strong>【资金】-【收支】-【收款】右侧的“+”。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202310/5e6c6f0bc29565f809cb49a6ea0fbb60.png\" alt=\"Description\"></p>\n<p><strong>1.直接收款</strong></p>\n<p>输入客户名称和金额保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/07eb5cefe4698eae2f1c43d3e5279fc1.png\" alt=\"Description\"></p>\n<p><strong>2.按单收款和按单优惠</strong></p>\n<p>（1）选择选择门店</p>\n<p>（2）选择收款的客户</p>\n<p>（3）选择欠款单据，勾选要收款的单据关联</p>\n<p>（4）输入本次的收款金额，点击保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/9e355fa8a918051fa894f8d4bfca2bd5.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong></p>\n<p>1.输入的收款金额要大于或者等于本次结算金额，否则会提示“本单收款不能小于本次结算”。</p>\n<p>2.如果需要抹零可以点击本次结算的优惠按钮。</p>\n<p>3.如果只是收一部分的款，需要填写欠款单据后面的本次收款金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/9cb6ce50c916d89e8c9f46a8a625ca3c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/70b290752a6c93df4aa308a5790d264d.png\" alt=\"Description\"></p>\n<p><strong>3.收款单详情</strong></p>\n<p>点击收款单列表的查看按钮，或者在保存收款单后会显示收款单的详情，左上角可以点击修改，作废，查看单据列表，右上角点击导出PDF，分享，打印。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/d20f36b76c52e0047c7994f19a8ec8f2.png\" alt=\"Description\"></p>\n<p><strong>4.收款单列表</strong></p>\n<p><strong>路径：</strong>【资金】-【收支】-【收款】</p>\n<p>（1）在收款单列表，可通过筛选单据的日期、客户名称、单据编号，业务员名称，收款类型，备注来查询具体某一个单据。<strong>收款类型有直接收款和按单收款两种，直接收款是指没有关联销售单的收款单，按单收款是指关联了销售单的收款单。</strong></p>\n<p>（2）点击导出可以导出收款单列表</p>\n<p>（3）在对应的单据右侧有查看，修改，分享，作废的操作</p>\n<p>（4）可勾选是否”隐藏作废单据“。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/1ac2c58a77df397905593c36b866024e.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2622,
+    "status": 2,
+    "recommend": 0,
+    "hits": 23341,
+    "publish_time": "2025-11-29T03:14:06.374Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2106-12-30T02:59:40.000Z",
+    "tags": [
+      {
+        "id": 49,
+        "name": "收款单列表"
+      },
+      {
+        "id": 50,
+        "name": "新增收款单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2622,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

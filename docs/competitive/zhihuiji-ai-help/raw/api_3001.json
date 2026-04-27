@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3001,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "扫码收款异常",
+    "keywords": "",
+    "description": "",
+    "content": "<p>扫码收款异常，多为客户支付时网络波动导致异步支付延迟：</p>\n<p>1、扫码收款后，<strong>请务必让客户展示支付成功页面</strong> 进行人工核验；若支付失败，需重新发起支付，或线下收款再自行补录系统；</p>\n<p>2、登录乐刷商户平台查询交易流水，若存在记录但系统未同步，资金将按风控规则于T+1个工作日17:00前自动更新支付结果，到时如未到账请联系客服处理。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202504/983c3a6312a2d5ec52fcf51701dcf586.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202504/20a3cc402e00518f8ce6c017fd154321.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202504/e3eafbe06475af79b8ab014d44310bbb.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4211,
+    "publish_time": "2025-04-27T03:12:58.848Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-04-27T02:59:14.241Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

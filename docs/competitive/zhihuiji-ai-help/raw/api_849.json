@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 849,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增进货单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/bfa8ef2a9bca8595c82b2093971044de.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n新增进货单\n</video></p>\n<p><strong>操作路径：</strong>【进货】→【进货】→【新增进货单】</p>\n<p><strong>操作步骤：</strong></p>\n<ol>\n<li>\n<p><strong>选择供应商</strong><br>\n选择供应商名称，点击“+”可快速新增供应商。<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/3ad9bcf6db50fb4823aa46f10edfcaf7.png\" alt=\"选择供应商\"></p>\n</li>\n<li>\n<p><strong>选择仓库</strong><br>\n若已启用多仓库，可为每个商品分别选择仓库。<br>\n<em>注：可通过<a href=\"https://www.zhihuiji.cn/help/doc/3388\">“设置-用户偏好设置”</a>设置进货单的默认仓库。</em><br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/891667761421fcd3c3a9e22bf9806caf.png\" alt=\"选择仓库\"></p>\n</li>\n<li>\n<p><strong>添加商品</strong><br>\n支持以下两种方式：</p>\n</li>\n</ol>\n<ul>\n<li><strong>手动添加</strong>：扫码或点击商品名称空白处添加。<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/73f4204c874274260ac43ea040e120ea.png\" alt=\"手动添加\"></li>\n<li><strong>导入添加</strong>：下载模板 → 填写商品信息 → 上传文件 → 确认导入。<br>\n<em>注：请勿修改模板表头及文件格式。</em><br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/3b79193cc62b3e3ad023302415d759fc.png\" alt=\"导入模板\"><br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/44a80704c65ba8e653a30db0ae30073a.png\" alt=\"导入界面\"></li>\n</ul>\n<ol start=\"4\">\n<li><strong>填写数量与价格</strong></li>\n</ol>\n<ul>\n<li>手动添加的商品：需在页面中输入数量和进货价。</li>\n<li>导入添加的商品：可在模板中预先填写数量和进货价。</li>\n</ul>\n<ol start=\"5\">\n<li><strong>保存单据</strong></li>\n</ol>\n<ul>\n<li>点击【保存】：直接保存单据；</li>\n<li>点击【保存并打印】：保存的同时打印；</li>\n<li>勾选左下角「保存后继续开单」可连续开单。<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/e9d25548c34e73b89f9ba7a22977445b.png\" alt=\"保存选项\"></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2600,
+    "status": 2,
+    "recommend": 0,
+    "hits": 21574,
+    "publish_time": "2025-12-23T08:28:23.509Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2107-12-30T06:03:16.000Z",
+    "tags": [
+      {
+        "id": 12,
+        "name": "新增进货单"
+      },
+      {
+        "id": 21,
+        "name": "进货单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2600,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

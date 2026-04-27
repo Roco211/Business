@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1746,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "打印单位换算结果",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>用户场景：</strong> 销售单增加换算结果，方便打印单据用来出货点货的。</p>\n<p><strong>操作步骤：</strong></p>\n<p>1.设置-打印设置-选择要设置的销售单模板。点击表格，出现蓝色的虚线边框就说明选中了，然后右侧勾选单位换算结果。点击“？”可以看到字段说明。</p>\n<p>2、勾选后，打印若有辅单位的商品，会显示主辅单位之间的换算结果，仅支持显示辅单位。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/42eb87243c2cfb7e2286cf67632aea82.jpg\" alt=\"\"></p>\n<p>例如：卫龙 亲嘴软豆皮(豆品) 60g的辅单位是件，1件=12包。开销售单数量是30包，换算成辅单位就是2件6包。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/edd3c296eb26b19db8f1e00a3c109e0f.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/5ccbe71865df110f3c117b85cf8e64a3.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11027,
+    "publish_time": "2023-07-06T03:03:28.603Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-06T01:22:51.118Z",
+    "tags": [
+      {
+        "id": 4,
+        "name": "打印设置"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

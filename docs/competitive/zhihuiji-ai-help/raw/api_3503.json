@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3503,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何设置打印单据时尺码横排",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径</strong>：【设置】→【打印设置】→ 编辑已有模板或新增模板 → 勾选【尺码横排】，并选择要展示的尺码（默认展示前5个，最多可选20个）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/c8e37c04629146c482c598856834f052.png\" alt=\"尺码横排打印设置\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 138,
+    "publish_time": "2026-04-08T07:03:33.479Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-03-25T09:44:49.682Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

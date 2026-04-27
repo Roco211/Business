@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3150,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "隐藏报价",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>场景：</strong> 开单时不想被客户看到相关价格，防止价格泄露</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/de0ef3952cb1d58cfa18c655118a69b1.png\" alt=\"Description\"></p>\n<p>设置后开单的效果：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/b0d80f072d3548f802f371a5b660335a.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2635,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3736,
+    "publish_time": "2025-08-20T02:12:38.408Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-20T02:12:38.408Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2635,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

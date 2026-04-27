@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3061,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么客户累计欠款与销售单待收金额不一致？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>客户累计欠款与销售单待收金额不一致：\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/0150ac150db4789538bf7f09779d30b9.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/f0d1e13b6b4359615b3b42d77fbc0fd6.png\" alt=\"Description\"></p>\n<p>原因是：<strong>客户列表的客户欠款=客户对账单累计欠款=客户初始欠款+销售单待收金额-未按单收款的金额+调整单调整的金额</strong>（注：未启用「客户/供应商双身份」）</p>\n<p>客户累计欠款与销售单待收金额不一致可检查以下页面：</p>\n<p>1、客户详情检查是否有初始欠款\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/d056b9d33639697a9d4e9bb158e1ca81.png\" alt=\"Description\"></p>\n<p>2、收款单未按单收款的金额，有两种情况：</p>\n<p>①单据是直接收款，未关联单据，那么收款的金额需从欠款金额减去；\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/d4ce2eeddac94840b20dbf7b9bd60b7f.png\" alt=\"Description\"></p>\n<p>②单据是按单收款，已关联单据，但是收的金额大于单据合计金额，那么多出来的钱也需从欠款中减去\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/df5c03c611c66b9390949cbd3f5302ae.png\" alt=\"Description\"></p>\n<p>3、调整单：通过客户详情可以直接调整欠款金额，会生成调整单\n可以在客户对账单明细中，查找“调整单”类型的记录，欠款金额为正数就是增加欠款，负数就是减少欠款</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/edc2a6ed9c9b4cddf2fcb61d8fc56056.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/f00f5005a5f33c44f641ae347e6d5ada.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4665,
+    "publish_time": "2025-06-26T02:29:49.597Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-26T02:27:55.677Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

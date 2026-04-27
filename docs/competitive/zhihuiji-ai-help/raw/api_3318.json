@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3318,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售单无法作废或更换客户，怎么办？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>销售单无法更换客户或作废，通常是由于该单据已与其他业务关联被锁定。请优先检查以下两种情况：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/4adbccf3df29c5f8aba7113562bdea37.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%B7%B2%E5%8F%91%E7%94%9F%E3%80%90%E6%94%B6%E6%AC%BE%E3%80%91\" tabindex=\"-1\">已发生【收款】<a class=\"header-anchor\" href=\"#%E5%B7%B2%E5%8F%91%E7%94%9F%E3%80%90%E6%94%B6%E6%AC%BE%E3%80%91\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 销售单列表，点击【查看】销售单-【查看收款记录】，查看关联的收款单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/21d0dabe9a7683c086fd4a3f95045ada.png\" alt=\"Description\"></p>\n<p><strong>解除关联：</strong> 【资金】-【收款】单据列表-【修改】收款单-【选择欠款单据】-取消勾选销售单，确认后保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/a4b44d256344e33f822bc4daf49bfe87.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/25bf6bf9b878502195516d9af50701b5.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%B7%B2%E5%85%B3%E8%81%94%E3%80%90%E9%94%80%E5%94%AE%E8%AE%A2%E5%8D%95%E3%80%91\" tabindex=\"-1\">已关联【销售订单】<a class=\"header-anchor\" href=\"#%E5%B7%B2%E5%85%B3%E8%81%94%E3%80%90%E9%94%80%E5%94%AE%E8%AE%A2%E5%8D%95%E3%80%91\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 销售单列表，点击【查看】销售单-【关联订单号】，查看关联的销售订单</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b205bc91592e43f6c68142a0ad5e12b5.png\" alt=\"Description\"></p>\n<p><strong>解除关联：</strong> 作废当前销售单，再打开原始【销售订单】更换为正确客户，最后重新生成新销售单。</p>\n<p><strong>作废当前销售单：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/4cd18adc2c9682b0d6d0c3cc8a2ff509.png\" alt=\"Description\"></p>\n<p><strong>更正销售预订单，生成新销售单：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/4befffca8430560eac25ba7320d1f9cc.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2677,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3557,
+    "publish_time": "2025-11-25T07:03:21.000Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-19T03:32:38.689Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2677,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

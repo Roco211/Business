@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1996,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "快速查价教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/110dffc04a5c7a441ac1a7794310faa1.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>用户场景</strong>：客户询问价格时，快速报出准确的商品售价。</p>\n<p><strong>功能介绍</strong>：支持按客户、按商品快速查询售价。</p>\n<hr>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" tabindex=\"-1\">操作步骤<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" aria-hidden=\"true\"></a></h2>\n<p>（1）点击软件右上角的<strong>快速查价</strong>搜索框。<br>\n（2）输入客户名称和货品名称（支持简拼、条形码、货号）。<br>\n  - 搜索界面会显示<strong>最近搜索记录</strong>和<strong>客户常购商品</strong>。<br>\n（3）查询结果页面显示：<br>\n  - 商品基本信息<br>\n  - 建议售价<br>\n  - 价格管理信息<br>\n  - 该客户该商品的近期销售记录<br>\n  - 改商品的近期进货记录</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/0b15b86a559af9a14f866d1f5f317e5e.jpg\" alt=\"快速查价流程示意图\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2616,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10260,
+    "publish_time": "2026-04-09T07:06:12.116Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-27T06:03:45.240Z",
+    "tags": [
+      {
+        "id": 73,
+        "name": "首页"
+      },
+      {
+        "id": 144,
+        "name": "价格管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2616,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

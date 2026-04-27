@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3501,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何设置员工可查看所有客户",
+    "keywords": "",
+    "description": "",
+    "content": "<blockquote>\n<p>适用于已在【系统设置】中勾选“启用关联业务员”功能的商户。</p>\n</blockquote>\n<p>如需设置部分员工可查看所有客户的客户信息，可通过角色权限实现。</p>\n<p><strong>操作路径</strong>：【设置】→【角色权限】→ 新增或修改员工的角色 → 在「敏感数据」→「客户权限」中，勾选【查看其他业务员/用户关联的客户】→ 保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/d3c4b3d316acefcee8f151f85ee5c41f.png\" alt=\"角色权限设置路径\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2633,
+    "status": 2,
+    "recommend": 0,
+    "hits": 115,
+    "publish_time": "2026-03-25T03:40:22.266Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-03-25T03:40:22.266Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2633,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

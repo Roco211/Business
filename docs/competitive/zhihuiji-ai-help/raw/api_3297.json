@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3297,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "手机app查询打印次数",
+    "keywords": "",
+    "description": "",
+    "content": "<p>1、开单成功：底部</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/0a411d064d4c483ff39e2ec36d5fda66.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2677,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3510,
+    "publish_time": "2025-11-14T06:34:10.747Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-14T06:34:10.747Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2677,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

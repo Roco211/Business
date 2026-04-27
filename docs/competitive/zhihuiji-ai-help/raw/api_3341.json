@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3341,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "批量启用保质期管理",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径</strong>：【商品】-【商品】-【批量操作】-【启用保质期管理】</p>\n<p><strong>操作前确认</strong></p>\n<p>请确保您已在【设置】-【系统设置】-【商品设置】中，勾选了【启用保质期管理】。</p>\n<p><strong>批量设置步骤</strong></p>\n<ol>\n<li><strong>选择商品范围</strong>：    在商品列表勾选目标商品，或通过筛选确定范围。</li>\n<li><strong>进入批量设置</strong>：    点击顶部【批量操作】，选择【启用保质期管理】。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/6c9bc83240105be95cc6c0e953128d47.png\" alt=\"批量启用入口\"></p>\n<ol start=\"3\">\n<li><strong>设置统一规则</strong>\n在弹窗中依次设置：\n<ul>\n<li><strong>生效范围</strong>：选择“只修改选中商品”或“修改当前查询条件下的所有商品”。</li>\n<li><strong>保质期</strong>：填写正整数并选择单位（天/月/年）。</li>\n<li><strong>预警（可选）</strong>：勾选“启用预警”并设置提前预警天数，了解<a href=\"https://www.zhihuiji.cn/help/doc/3345\">如何查看保质期预警</a>。</li>\n</ul>\n</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/78cbfcca3515ea62f7971e94f334a286.png\" alt=\"批量设置弹窗\"></p>\n<ol start=\"4\">\n<li><strong>点击【确定】</strong></li>\n</ol>\n<p>系统将为所选商品统一启用保质期管理并应用设置。</p>\n<p><strong>核心价值</strong></p>\n<p>一次性为多个同类商品（如所有饮料、所有调料）完成保质期设置，极大提升初始化效率。</p>\n<hr>\n<p><strong>更多帮助</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2861\">如何使用保质期管理</a> - 了解单个商品如何启用保质期</li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3340\">保质期计算规则</a> - 了解“天”与“月/年”的区别</li>\n</ul>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/983\">批次与保质期使用指南</a> - 了解完整的批次与保质期管理流程</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2608,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3581,
+    "publish_time": "2025-12-03T05:49:54.550Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-02T02:05:53.357Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2608,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

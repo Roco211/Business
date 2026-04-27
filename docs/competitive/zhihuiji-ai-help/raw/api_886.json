@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 886,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增和修改客户",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>新增客户</strong></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202210/535644384172af0267ad6f985eeaf6a1.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n</video></p>\n<p><strong>路径</strong>：【首页】-【客户】-【新增客户】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/8a83fdf3a7cc0f25f6393cb28ad55095.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：通过客户资料及时了解客户信息，并利用客户信息开着相关业务工作，更好地满足客户需求。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、新增客户时，“客户名称”是必须填入的。</p>\n<p>2、新增客户时，智慧记提供了以下3种新增方式：</p>\n<p><strong>•  从客户-【新增客户】</strong></p>\n<p></p>\n<p><strong>•  从客户-批量导入新客户</strong></p>\n<p></p>\n<p><strong>•  销售开单时点击 “+” ：新增客户</strong></p>\n<p></p>\n<p><strong>修改客户资料</strong></p>\n<p><strong>路径</strong>：【首页】-【客户】-找到客户-【修改】</p>\n<p><strong>操作视频</strong>：https://v.qq.com/x/page/t0778d2nigc.html</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/1860fdd32a24e7868e6d8ace71b3d5e4.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：客户资料可以设置对应客户分类和默认的价格等级、折扣等关联使用信息。修改客户资料，是日常业务中不可或缺的功能。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、修改客户资料的折扣时，不会影响到已保存的单据货品价格。</p>\n<p>2、修改客户资料时，智慧记提供了以下2种修改方式：</p>\n<p><strong>•  从客户-找到客户【修改】</strong></p>\n<p></p>\n<p><strong>•  从客户-批量修改导入客户资料</strong></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 17743,
+    "publish_time": "2024-08-13T02:36:22.864Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-30T03:26:05.000Z",
+    "tags": [
+      {
+        "id": 22,
+        "name": "客户列表"
+      },
+      {
+        "id": 70,
+        "name": "新增客户"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

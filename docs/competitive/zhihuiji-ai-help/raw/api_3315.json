@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3315,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "复制打印模板",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>适用场景：</strong></p>\n<ul>\n<li>退货单：将表头标题“销售单”字样修改为“退货单”，并可调整其他内容；</li>\n<li>【二等分】模板适配为【三等分】样式：现有的打印模板是为二等分纸设计的，但需要使用三等分纸打印，并可调整页面布局。</li>\n</ul>\n<p><strong>1、打印模板设置：</strong> 左侧【设置-基础设置】-【打印设置】，点击目标模板；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/2bd126762d752e560d642e7b263fdfc4.png\" alt=\"Description\"></p>\n<p><strong>2、复制出新模板：</strong> 在打印模板编辑界面，点击右上角【复制】，填写新模板名称；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7d1443fc0b876f852774f4b4f2e46dff.png\" alt=\"Description\"></p>\n<p><strong>3、保存新模板：</strong> 重新调整打印内容（比如将标题“销售单”改成“退货单”），选择纸张大小，如有需要可勾选默认模板，保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/dbb437269c2f17596a37ae0ac7939795.png\" alt=\"Description\"></p>\n<p><strong>4、预览打印</strong>：销售单打印时，选择复制出的新模板</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b6d38ba04f618d8c61618992a5be88e7.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3821,
+    "publish_time": "2025-11-20T07:36:20.539Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-18T09:56:35.698Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

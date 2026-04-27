@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2856,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店发货后如何查询快递信息",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>客户云店下单后需要查询快递信息怎么查询呢？</strong></p>\n<p>客户订单详情页是无法查询的，需要商家在云店订单发货后的单据详情页查询，具体操作如下：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/dc61338635df5eb766c43b93832f5fd7.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/1690ee06193b7dd091c8842d8ac171a5.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/85368df8353dd4ca941780aabef2c1a6.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/d0f2c680dce65f6fb3daf490f1dea74e.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4457,
+    "publish_time": "2025-08-07T02:29:42.948Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-11-20T03:24:35.752Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

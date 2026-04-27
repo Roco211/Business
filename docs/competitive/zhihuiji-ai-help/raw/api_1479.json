@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1479,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」使用抹零",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%BC%80%E5%90%AF%E6%8A%B9%E9%9B%B6%E5%8A%9F%E8%83%BD\" tabindex=\"-1\">开启抹零功能<a class=\"header-anchor\" href=\"#%E5%BC%80%E5%90%AF%E6%8A%B9%E9%9B%B6%E5%8A%9F%E8%83%BD\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【我的】-【设置】-【开单设置】</p>\n<ul>\n<li>启用【销售单抹零】功能</li>\n<li>选择抹零方式：抹分、抹角、四舍五入到&quot;角&quot;、四舍五入到&quot;元&quot;</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/e8a3eaf82ec74f7cdf6d14183b49161f.png\" alt=\"设置抹零\"></p>\n<h2 id=\"%E5%BC%80%E5%8D%95%E6%97%B6%E4%BD%BF%E7%94%A8%E6%8A%B9%E9%9B%B6\" tabindex=\"-1\">开单时使用抹零<a class=\"header-anchor\" href=\"#%E5%BC%80%E5%8D%95%E6%97%B6%E4%BD%BF%E7%94%A8%E6%8A%B9%E9%9B%B6\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【销售开单】-【添加商品】-【抹零】</p>\n<ul>\n<li>点击【抹零】按钮，系统自动按设定规则减去零头</li>\n<li>确认金额后，完成收款或保存单据</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/10cf86f0d5ba4291eac0a130873d321b.png\" alt=\"使用抹零\"></p>\n<p><strong>💡 温馨提示：</strong></p>\n<p>抹零功能开启后对所有销售单生效，开单时可根据需要选择是否使用。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1260\">「手机端」如何开销售单</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3346\">「手机端」如何使用收尾款优惠</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11828,
+    "publish_time": "2025-12-05T09:30:05.826Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-15T02:20:13.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

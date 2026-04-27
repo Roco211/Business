@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 899,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品基础管理指南",
+    "keywords": "进销存",
+    "description": "进销存",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/f6f90d598d80a96b3faeb8ef243a836b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n商品基础操作视频\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>商品是智慧记AI进销存中最核心的业务资料，进货、销售、库存管理等所有业务都围绕商品展开。本指南将带您快速掌握商品的<strong>新增、修改、查询、停用与删除</strong>五大基础操作。</p>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E5%95%86%E5%93%81\" tabindex=\"-1\">新增商品<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h2>\n<p>您可以通过多种方式将商品录入系统。</p>\n<p><strong>(1) 操作路径</strong></p>\n<p>【商品】-【商品】-【新增商品】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/5ecce39b7d8c72f1063838b239ee579e.png\" alt=\"新增商品与批量新增入口\"></p>\n<p><strong>(2) 三种录入方式，任您选择</strong></p>\n<ul>\n<li><strong>扫码识别（最快）</strong>：使用扫码枪扫描商品条形码，<strong>自动识别并填充</strong>商品名称、图片等信息，高效准确。</li>\n<li><strong>智能推荐（便捷）</strong>：在商品名称中输入关键词，系统将<strong>智能推荐相关商品</strong>，双击即可完成录入，带出标准名称、条码和图片。</li>\n<li><strong>手动填写（灵活）</strong>：根据需要，自由填写各项商品信息。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/e9c0b3cc26e38052bc0da69423f99776.png\" alt=\"智能录入\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/532cffeb9fef43969972d0c99855bfa3.png\" alt=\"填写商品基础信息\"></p>\n<p><strong>(3) 完善其他信息</strong></p>\n<ul>\n<li><strong>商品价格</strong>：设置零售价、批发价、进货价等。</li>\n<li><strong>商品库存</strong>：设置初始库存与成本。</li>\n</ul>\n<p><strong>注意：初始库存指第一次录入货品信息时已有的库存，保存商品之后无法修改初始库存，后续库存变化可<a href=\"https://www.zhihuiji.cn/help/doc/858\">修改当前库存</a>。</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/0a239b509a54bb39b63fb9e29b3cc2e1.png\" alt=\"填写商品价格\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/520b7377f03a89d9159b4eb5cf2022c7.png\" alt=\"填写商品库存\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E5%95%86%E5%93%81\" tabindex=\"-1\">修改商品<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h2>\n<p>当商品信息发生变化时，您需要及时更新。</p>\n<p><strong>操作路径</strong></p>\n<p>【商品】-【商品】- 找到目标商品 - 点击【修改】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/83f7e8edd9dd7457a1990f07f3ebc76d.png\" alt=\"修改商品入口\"></p>\n<p><strong>请注意</strong>：修改商品资料的价格时，<strong>不会影响</strong>已保存单据的实际价格。</p>\n<h2 id=\"%E6%9F%A5%E8%AF%A2%E5%95%86%E5%93%81\" tabindex=\"-1\">查询商品<a class=\"header-anchor\" href=\"#%E6%9F%A5%E8%AF%A2%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h2>\n<p>快速找到您需要的商品。</p>\n<p><strong>(1) 快速搜索</strong></p>\n<p>在商品列表顶部的搜索框，输入商品名称、简拼、条形码等即可查询。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9309b5080e5245378891ef23076673a7.png\" alt=\"快速搜索\"></p>\n<p><strong>(2) 高级查询</strong></p>\n<p>展开“高级查询”，可根据品牌、供应商、重量等更多条件精准筛选。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e0c83e5ae9707c1741e9bc7a2e39814e.png\" alt=\"高级查询\"></p>\n<h2 id=\"%E5%81%9C%E7%94%A8%E4%B8%8E%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81\" tabindex=\"-1\">停用与删除商品<a class=\"header-anchor\" href=\"#%E5%81%9C%E7%94%A8%E4%B8%8E%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%81%9C%E7%94%A8%E5%95%86%E5%93%81%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89\" tabindex=\"-1\">停用商品（推荐）<a class=\"header-anchor\" href=\"#%E5%81%9C%E7%94%A8%E5%95%86%E5%93%81%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p>对于<strong>暂时不销售但有历史记录</strong>的商品，建议使用停用功能。</p>\n<p><strong>效果</strong>：停用后商品不会在开单时显示，避免干扰，同时<strong>完整保留所有历史数据</strong>。</p>\n<p><strong>(1) 单个停用</strong></p>\n<p>在商品右侧点击【更多】→ 选择【停用】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/dc0c7fc0c9397dd73266200056552043.png\" alt=\"停用商品\"></p>\n<p><strong>(2) 批量停用</strong></p>\n<p>勾选多个商品后，点击顶部【批量操作】-【启用/停用】，在弹窗中选择停用。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c5c794542ff99b688259a4b27dd7529e.png\" alt=\"批量停用路径\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/62262b740b6f64d90b8d57883154c8d6.png\" alt=\"选择停用\"></p>\n<h3 id=\"%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81\" tabindex=\"-1\">删除商品<a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p>仅适用于<strong>彻底清理误添加且无任何业务记录</strong>的商品。</p>\n<p><strong>(1) 单个删除</strong></p>\n<p>在目标商品右侧点击【更多】→ 选择【删除】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c7f5818f7d7fa1b08fc8107076f89eb2.png\" alt=\"单个删除\"></p>\n<p><strong>(2) 批量删除</strong></p>\n<p>勾选多个商品后，点击顶部【批量操作】-【删除】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e04ef195f93c1428d4946ef75da2488b.png\" alt=\"批量删除\"></p>\n<p><strong>(3) 删除限制</strong></p>\n<p><strong>若商品已产生业务数据，系统将禁止删除</strong></p>\n<ul>\n<li>商品关联历史单据时无法直接删除</li>\n<li>需要先<a href=\"https://www.zhihuiji.cn/help/doc/3298#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\">处理完所有关联单据</a>后才能删除商品</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d9ad233196cbe3160ee333cc8bc4a479.png\" alt=\"删除失败提示\"></p>\n<hr>\n<p><strong>更多帮助</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/903\">上传商品图片</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/905\">设置商品分类</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2795\">智能录入详解</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/7471dddbdad8690522a9f9b5f76fe487.png",
+    "category_id": 2950,
+    "status": 2,
+    "recommend": 0,
+    "hits": 28497,
+    "publish_time": "2025-11-26T01:10:19.785Z",
+    "useful_count": 0,
+    "useless_count": 2,
+    "create_time": "2025-11-26T01:10:14.000Z",
+    "tags": [
+      {
+        "id": 2,
+        "name": "商品"
+      },
+      {
+        "id": 3,
+        "name": "商品列表"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2950,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

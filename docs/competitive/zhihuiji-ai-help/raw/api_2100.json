@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2100,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户积分调整",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/ffd8ecb58916b9ee9ba1a0479aa6f55b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>操作路径：左侧导航客户-客户-点击对应客户后面的查看-当前积分-去调整，输入实际积分保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/da068b6b5efc435a977d269880fa575b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/db5dff246f83622a15a2b057a218100a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/221edd195f0853d9dbb5f275b3f8ca7f.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2637,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6940,
+    "publish_time": "2024-02-27T06:21:12.378Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-11T03:05:19.224Z",
+    "tags": [
+      {
+        "id": 22,
+        "name": "客户列表"
+      },
+      {
+        "id": 90,
+        "name": "积分设置"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2637,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

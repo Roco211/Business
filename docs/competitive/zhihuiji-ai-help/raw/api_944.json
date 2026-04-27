@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 944,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "查看重要提醒",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>重要提醒</strong></p>\n<p><strong>路径</strong>：【首页】-【重要提醒】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/9e8762d79728accc37152e084b7cac0e.png\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11735,
+    "publish_time": "2023-08-01T06:35:20.231Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2100-12-17T15:31:15.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3304,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店首页装修",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9eb147e709ac501baf2d121154460f6b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>云店首页装修是「云店专属版」的核心功能之一，支持通过拖拽组件和使用模板，快速搭建个性化店铺首页，满足不同行业的展示与营销需求。</p>\n<p><strong>功能权限说明</strong>：</p>\n<ul>\n<li><strong>云店专属版用户</strong>：在有效期内拥有本功能的完整使用权。</li>\n<li><strong>云店订货版用户</strong>：可限时试用，体验完整功能。</li>\n</ul>\n<h2 id=\"%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88\" tabindex=\"-1\">核心流程概览<a class=\"header-anchor\" href=\"#%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88\" aria-hidden=\"true\"></a></h2>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/363b267608026539e81c786a64850a27.png\" alt=\"云店装修流程图\"></p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B\" tabindex=\"-1\">操作流程<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E8%BF%9B%E5%85%A5%E8%A3%85%E4%BF%AE%E9%A1%B5%E9%9D%A2\" tabindex=\"-1\">进入装修页面<a class=\"header-anchor\" href=\"#%E8%BF%9B%E5%85%A5%E8%A3%85%E4%BF%AE%E9%A1%B5%E9%9D%A2\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【云店】-【云店装修】-【首页】</p>\n<ul>\n<li>最多支持创建<strong>5个</strong>页面</li>\n<li>只能发布上线<strong>1个</strong>页面</li>\n<li>可对已创建的页面进行装修、预览、复制、删除等操作</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9b5d9eef2e7ea74d361c43e654fa6b57.jpg\" alt=\"进入云店装修页面\"></p>\n<h3 id=\"%E5%88%9B%E5%BB%BA%E9%A1%B5%E9%9D%A2\" tabindex=\"-1\">创建页面<a class=\"header-anchor\" href=\"#%E5%88%9B%E5%BB%BA%E9%A1%B5%E9%9D%A2\" aria-hidden=\"true\"></a></h3>\n<p>点击「新建页面」，可选择以下方式：</p>\n<ul>\n<li><strong>新建空白页面</strong>：从零开始自由设计</li>\n<li><strong>使用模板</strong>：\n<ul>\n<li><strong>行业模板</strong>：目前提供“商超便利”、“食品生鲜”、“五金家装”3种</li>\n<li><strong>主题模板</strong>：根据营销节点提供（目前提供：“迎新屯年货_新春通用模板”）</li>\n<li><strong>说明</strong>：选择模板后，<strong>模板内的素材和导航链接会默认填充</strong>，您可以直接使用，也可以根据需要重新编辑。</li>\n</ul>\n</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/2e9da13cffb98c47c47c846539883488.jpg\" alt=\"选择创建方式\"></p>\n<h3 id=\"%E8%A3%85%E4%BF%AE%E9%A1%B5%E9%9D%A2\" tabindex=\"-1\">装修页面<a class=\"header-anchor\" href=\"#%E8%A3%85%E4%BF%AE%E9%A1%B5%E9%9D%A2\" aria-hidden=\"true\"></a></h3>\n<p>进入装修界面，通过三大区域协同操作：</p>\n<ul>\n<li><strong>左侧</strong>：选择需要添加的组件</li>\n<li><strong>中间</strong>：实时预览页面效果</li>\n<li><strong>右侧</strong>：编辑和配置组件参数</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/ea0dd9e608945b5f2a1922e0117edc82.png\" alt=\"装修界面说明\"></p>\n<h2 id=\"%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3\" tabindex=\"-1\">核心功能详解<a class=\"header-anchor\" href=\"#%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E7%BB%84%E4%BB%B6%E5%BA%93\" tabindex=\"-1\">组件库<a class=\"header-anchor\" href=\"#%E7%BB%84%E4%BB%B6%E5%BA%93\" aria-hidden=\"true\"></a></h3>\n<p>目前支持7种组件：<strong>轮播海报</strong>、<strong>图文导航</strong>、<strong>标题</strong>、<strong>商品搜索</strong>、<strong>公告</strong>、<strong>商品</strong>、<strong>商品分组</strong></p>\n<h3 id=\"%E7%B4%A0%E6%9D%90%E7%AE%A1%E7%90%86\" tabindex=\"-1\">素材管理<a class=\"header-anchor\" href=\"#%E7%B4%A0%E6%9D%90%E7%AE%A1%E7%90%86\" aria-hidden=\"true\"></a></h3>\n<p>在为「轮播海报」或「图文导航」上传或更换图片时，将弹出「选择图片」弹窗。</p>\n<h4>选择图片</h4>\n<ul>\n<li>可在「图片库」中使用系统提供的素材（含节日主题素材与各行业通用素材）。</li>\n<li>支持在「我的素材」中上传自定义素材。</li>\n<li>系统会保留最近上传的 <strong>30</strong> 张素材，方便重复使用。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/0c178a201ab69fb76916b45dbbbc20e0.png\" alt=\"选择图片页面\"></p>\n<h4>AI生图</h4>\n<ul>\n<li><strong>操作入口</strong>：在「选择图片」弹窗的右上角点击「AI生图」按钮。</li>\n<li><strong>功能简介</strong>：无需设计基础，输入活动主题或风格描述，AI即可智能生成多张专属海报图供您选择。</li>\n<li><strong>使用场景</strong>：适用于节日促销、新品推广、活动宣传等需要快速制作宣传图的场景。</li>\n<li><strong>使用规则（专属版权益）</strong>：\n<ul>\n<li><strong>月度免费额度</strong>：每位专属版用户每月享有 <strong>100次</strong> 免费生成额度。</li>\n<li><strong>超额购买</strong>：若免费额度用完，您可按需购买生成次数包：￥9.9（10次）、￥29（30次）、￥89（100次）。</li>\n</ul>\n</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/62e082c3873473aaa742268628fa5c49.jpg\" alt=\"AI生图入口\"></p>\n<h3 id=\"%E9%93%BE%E6%8E%A5%E8%B7%B3%E8%BD%AC%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">链接跳转设置<a class=\"header-anchor\" href=\"#%E9%93%BE%E6%8E%A5%E8%B7%B3%E8%BD%AC%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h3>\n<p>海报和导航支持设置跳转至：</p>\n<ul>\n<li>具体商品详情页</li>\n<li>选购页的商品分类</li>\n<li>商品标签页</li>\n<li><strong>特别注意</strong>：使用<strong>模板</strong>创建的页面，其导航链接已默认关联至您店铺的一级商品分类。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/8f1d24c9bb9457ee4057a6b4655609f7.png\" alt=\"跳转设置\"></p>\n<h3 id=\"%E5%95%86%E5%93%81%E5%B1%95%E7%A4%BA%E9%85%8D%E7%BD%AE\" tabindex=\"-1\">商品展示配置<a class=\"header-anchor\" href=\"#%E5%95%86%E5%93%81%E5%B1%95%E7%A4%BA%E9%85%8D%E7%BD%AE\" aria-hidden=\"true\"></a></h3>\n<p>通过「商品分组」组件，可选择按“分类”或“标签”展示对应商品。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1e4df9c27ad01420d988e4525f2e149b.jpg\" alt=\"商品分组设置\"></p>\n<hr>\n<p><strong>关联阅读</strong>：</p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3306\">云店商品标签使用指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2876,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3853,
+    "publish_time": "2026-02-03T09:20:55.391Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-17T09:52:38.552Z",
+    "tags": [
+      {
+        "id": 73,
+        "name": "首页"
+      },
+      {
+        "id": 147,
+        "name": "云店装修"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2876,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

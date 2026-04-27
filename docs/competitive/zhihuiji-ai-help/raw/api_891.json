@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 891,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "价格等级",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/c54c6c91e48def7079759012d8c00c41.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>业务场景：</strong> 日常业务销售时，经常用价格等级对客户进行销售分组，以便开单销售时自动带出货品的指定分组销售价。</p>\n<h2 id=\"%E4%BB%B7%E6%A0%BC%E7%AD%89%E7%BA%A7%E8%AE%BE%E7%BD%AE%EF%BC%9A\" tabindex=\"-1\"><strong>价格等级设置：</strong><a class=\"header-anchor\" href=\"#%E4%BB%B7%E6%A0%BC%E7%AD%89%E7%BA%A7%E8%AE%BE%E7%BD%AE%EF%BC%9A\" aria-hidden=\"true\"></a></h2>\n<p>使用前，必须先自定义客户价格等级：【客户】-【价格等级】-【启用】，可点击【修改】设置【价格等级名称】</p>\n<h2 id=\"%E7%BB%99%E5%AE%A2%E6%88%B7%E8%AE%BE%E7%BD%AE%E4%BB%B7%E6%A0%BC%E7%AD%89%E7%BA%A7\" tabindex=\"-1\"><strong>给客户设置价格等级</strong><a class=\"header-anchor\" href=\"#%E7%BB%99%E5%AE%A2%E6%88%B7%E8%AE%BE%E7%BD%AE%E4%BB%B7%E6%A0%BC%E7%AD%89%E7%BA%A7\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【首页】-【客户管理】- 找到客户 -【修改】-选择【价格等级】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/56b5ceb7f7b78f845f47e52bf41597d3.png\" alt=\"\"></p>\n<p><strong>注意：</strong></p>\n<p>1.开单销售时，选择好客户后，添加商品时，系统会自动带出该名客户所对应的价格等级。\n2.使用前，必须先自定义客户价格等级：【销售】-【价格等级】-【启用】，可点击【修改】设置【价格等级名称】</p>\n<h2 id=\"%E5%95%86%E5%93%81%E4%BF%A1%E6%81%AF%E2%80%94%E2%80%94%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%80%E5%94%AE%E4%BB%B7%E6%A0%BC\" tabindex=\"-1\"><strong>商品信息——添加/修改自定义销售价格</strong><a class=\"header-anchor\" href=\"#%E5%95%86%E5%93%81%E4%BF%A1%E6%81%AF%E2%80%94%E2%80%94%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%80%E5%94%AE%E4%BB%B7%E6%A0%BC\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【首页】-【商品】-选中商品【修改】-【价格管理】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/3001d84f352cc88246aa399d78485642.png\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/cf926df7f0e44c6f432efcba9462b56b.png\" alt=\"\"></p>\n<p><strong>注意：</strong>\n1.添加/修改自定义价格时，不会影响到已发生业务的单据价格。\n2.不支持快速导入自定义的销售价格。\n3.使用前，必须先自定义客户价格等级：【销售】-【价格等级】-【启用】，可点击【修改】设置【价格等级名称】</p>\n<h2 id=\"%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\"><strong>注意事项</strong><a class=\"header-anchor\" href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<p>对应客户带出统一报价时，比如商超一个价格，流通一个价格，则需关闭记忆价格功能，不支持一客一价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202504/948c0044a7ca092d44b077fef8823a14.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2619,
+    "status": 2,
+    "recommend": 0,
+    "hits": 21493,
+    "publish_time": "2025-04-10T02:36:10.257Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-27T07:20:19.000Z",
+    "tags": [
+      {
+        "id": 23,
+        "name": "价格等级"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2619,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 909,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品条码批量生成",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>批量生成条码</strong></p>\n<p><strong>路径：</strong>【商品】-【商品】-【批量操作】，勾选或筛选商品后，点击【生成条形码】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f65a987a98d1a4f38b2291641c889122.png\" alt=\"Description\"></p>\n<p>选择只修改选中的商品，或修改当前查询条件下的所有商品，点击确认\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/003177ecc1fcdc60e3e3864bb808679b.png\" alt=\"Description\"></p>\n<p><strong>业务场景：</strong> 商品无条码，可以通过此方式快速生成条码，方便出入库管理。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 18257,
+    "publish_time": "2025-11-13T01:53:25.787Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-13T04:41:32.000Z",
+    "tags": [
+      {
+        "id": 3,
+        "name": "商品列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2795,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品智能录入",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/80e83fd601021e63f8a9b163a169f828.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>商品录入智能匹配，是智慧记AI进销存全新推出的一款轻量级数据服务，基于智慧记1.4亿云标准商品库，在新增商品的过程中智能推荐相关商品，帮助快速录入商品，减轻时间成本。</p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">功能设置<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E9%80%89%E6%8B%A9%E9%80%82%E7%94%A8%E8%A1%8C%E4%B8%9A\" tabindex=\"-1\">选择适用行业<a class=\"header-anchor\" href=\"#%E9%80%89%E6%8B%A9%E9%80%82%E7%94%A8%E8%A1%8C%E4%B8%9A\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：设置 → 店铺信息</p>\n<p>选择您的行业类型，当前支持以下行业：</p>\n<ul>\n<li>食品酒饮</li>\n<li>商超便利</li>\n<li>数码电器</li>\n<li>美妆个护</li>\n<li>文体图书</li>\n<li>母婴玩具</li>\n</ul>\n<blockquote>\n<p><strong>提示</strong>：更多行业支持正在陆续开放中</p>\n</blockquote>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/44b361d42144071640ff04e6ae88f2a0.png\" alt=\"选择行业界面\"></p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\" tabindex=\"-1\">操作指南<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E4%BD%BF%E7%94%A8%E6%99%BA%E8%83%BD%E5%8C%B9%E9%85%8D%E5%BD%95%E5%85%A5%E5%95%86%E5%93%81\" tabindex=\"-1\">使用智能匹配录入商品<a class=\"header-anchor\" href=\"#%E4%BD%BF%E7%94%A8%E6%99%BA%E8%83%BD%E5%8C%B9%E9%85%8D%E5%BD%95%E5%85%A5%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【商品】-【商品】-【新增商品】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f5492caec48970cabf5ad12525760cb5.png\" alt=\"新增商品入口\"></p>\n<p><strong>操作步骤</strong>：</p>\n<ol>\n<li>\n<p><strong>输入商品关键词</strong></p>\n<ul>\n<li>在【商品名称】栏输入商品关键字</li>\n<li>系统将自动显示最多10个相关商品推荐</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/e9c0b3cc26e38052bc0da69423f99776.png\" alt=\"智能匹配界面\"></p>\n</li>\n<li>\n<p><strong>选择推荐商品</strong></p>\n<ul>\n<li>在推荐列表中双击目标商品</li>\n<li>系统自动填充以下信息：\n<ul>\n<li>商品名称</li>\n<li>商品条形码</li>\n<li>商品图片</li>\n<li>零售价格</li>\n</ul>\n</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/42de71886eb284b31581a5e065496ec3.png\" alt=\"商品信息自动填充\"></p>\n</li>\n<li>\n<p><strong>保存商品信息</strong></p>\n<ul>\n<li>确认信息无误后，点击保存按钮</li>\n<li>商品录入完成</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/7a2f857c55cdec51fcd6902e47952095.png\" alt=\"保存商品\"></p>\n</li>\n</ol>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6251,
+    "publish_time": "2025-11-13T06:15:59.120Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2020-01-02T11:49:27.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

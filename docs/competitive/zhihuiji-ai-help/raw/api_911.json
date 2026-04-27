@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 911,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增和修改单位",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/bdef9529557d8e92007ba00fc246296a.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E4%B8%BB%E5%8D%95%E4%BD%8D\" tabindex=\"-1\"><strong>新增主单位</strong><a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E4%B8%BB%E5%8D%95%E4%BD%8D\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E6%96%B9%E5%BC%8F%E4%B8%80\" tabindex=\"-1\"><strong>方式一</strong><a class=\"header-anchor\" href=\"#%E6%96%B9%E5%BC%8F%E4%B8%80\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-商品基础资料-【主单位】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/77cd7c4d683b9d4c6ef54a60c122e406.png\" alt=\"Description\"></p>\n<p>勾选“<strong>启用多单位</strong>”后，可以添加辅单位。例如牛奶的主单位可以为“支”，辅单位为“箱”。</p>\n<p>添加辅单位后，需填写<strong>换算关系</strong>。例如：1箱 = 12支。</p>\n<p><strong>设置建议</strong>：<br>\n建议将<strong>主单位设为较小单位</strong>，辅单位设为较大单位。  <br>\n若相反（主单位设为“箱”，辅单位设为“支”），换算关系为 1箱 = 12支，则换算率实际为：<br>\n主单位 ÷ 辅单位 = 1 ÷ 12 ≈ 0.08333…<br>\n由于该值为无限小数，在后续开具辅单位单据并换算为主单位进行库存统计时，会因四舍五入产生<strong>数据误差</strong>，可能出现小数统计结果。</p>\n<p>若按建议设置（主单位“支”，辅单位“箱”），则换算率为整数，统计结果<strong>更加准确</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/edf2039fddaa9e67e24d4e224b2c1c0a.png\" alt=\"Description\"></p>\n<p><strong>业务场景：</strong> 货品发生业务时，需要以基础计量单位标记，以便进行相关统计。</p>\n<h3 id=\"%E6%96%B9%E5%BC%8F%E4%BA%8C\" tabindex=\"-1\"><strong>方式二</strong><a class=\"header-anchor\" href=\"#%E6%96%B9%E5%BC%8F%E4%BA%8C\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-【单位管理】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/3a77c5e91dcd3b9fc31e6261b641b7d7.png\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/a3a0eab58230895b783f8d18e837ad7d.png\" alt=\"\"></p>\n<p>注意，在这里只能新增主单位，不支持新增辅单位。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2613,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16093,
+    "publish_time": "2025-12-17T01:45:18.028Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2109-12-29T03:59:39.000Z",
+    "tags": [
+      {
+        "id": 8,
+        "name": "单位管理"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      },
+      {
+        "id": 15,
+        "name": "修改商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2613,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3464,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "资金流水全部门店总收入≠单个门店总收入合计是什么原因？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>问题：资金流水全部门店总收入≠单个门店总收入合计是什么原因？</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/ce940631ef1316581ef5194e6bc3b5a1.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/fde1126c535c838d5441b562c5016d0a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/a2d91df36aaa653acf029c548fa5016b.png\" alt=\"Description\"></p>\n<p><strong>解决方案：检查是否有做客户预存款，客户预存款产生的收入是统计到所有门店的，单个门店的收入合计是重复统计了预存款收入部分</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/379105d66d18cb814024182d5faa5670.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 750,
+    "publish_time": "2026-02-05T06:50:18.036Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-28T01:39:17.096Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

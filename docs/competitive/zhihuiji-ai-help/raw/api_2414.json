@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2414,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货后快捷修改销售价教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/c94693df6f736d3c85d63f4ad5b136a5.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频演示\n</video></p>\n<p><strong>适用场景</strong>：进货后需要快速调整商品售价，避免亏本销售或优化定价策略。</p>\n<hr>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E8%BF%9B%E8%B4%A7%E5%8D%95\" tabindex=\"-1\"><strong>新增进货单</strong><a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E8%BF%9B%E8%B4%A7%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>进入【进货】→【进货】→【新增进货单】，选择要进货的商品信息并保存。</p>\n<h2 id=\"%E6%9F%A5%E7%9C%8B%E6%8F%90%E7%A4%BA%E5%B9%B6%E8%B0%83%E6%95%B4\" tabindex=\"-1\"><strong>查看提示并调整</strong><a class=\"header-anchor\" href=\"#%E6%9F%A5%E7%9C%8B%E6%8F%90%E7%A4%BA%E5%B9%B6%E8%B0%83%E6%95%B4\" aria-hidden=\"true\"></a></h2>\n<p>保存后进入进货单详情页，系统会提示：<strong>“本次采购了X个商品，是否需要快速调整商品售价？”</strong>  <br>\n点击【立即调整】即可进入售价修改界面。</p>\n<blockquote>\n<p>无论进货价是否变动，均可通过此功能快速调整售价。</p>\n</blockquote>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/a4889bb28c6a4bdca36dad5cb79f4936.png\" alt=\"调整售价提示\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E5%B9%B6%E4%BF%9D%E5%AD%98%E5%94%AE%E4%BB%B7\" tabindex=\"-1\"><strong>修改并保存售价</strong><a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E5%B9%B6%E4%BF%9D%E5%AD%98%E5%94%AE%E4%BB%B7\" aria-hidden=\"true\"></a></h2>\n<p>进入售价调整界面，修改商品的售价后点击【保存】即可。修改后的价格将自动更新到商品列表中。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/1969ec90dcd7d5b21b6e73e77da428d6.png\" alt=\"售价调整界面\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2600,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6499,
+    "publish_time": "2026-03-26T01:00:08.976Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-18T07:02:26.613Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2600,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

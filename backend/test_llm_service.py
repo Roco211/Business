@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
-"""Test LLM intent parsing via the service layer."""
+"""Smoke test LLM intent parsing via the real DeepSeek service layer.
 
-import sys
+Set LLM_PROVIDER_API_KEY in your shell before running this script.
+"""
+
+from __future__ import annotations
+
 import os
+import sys
 
-# Set environment variables before importing
-os.environ["LLM_API_URL"] = "https://gptrr.qzz.io/v1/chat/completions"
-os.environ["LLM_API_KEY"] = "sk-c4f3546c266c51bacfb1e329ae3bf344192ee677f262c32bbab192e4f02c5e5c"
-os.environ["LLM_MODEL"] = "kimi-k2.6"
+os.environ.setdefault("LLM_PROVIDER", "deepseek")
+os.environ.setdefault("LLM_PROVIDER_API_URL", "https://api.deepseek.com/v1/chat/completions")
+os.environ.setdefault("LLM_PROVIDER_MODEL", "deepseek-v4-flash")
 
-sys.path.insert(0, "/tmp/Business/backend")
+sys.path.insert(0, "/root/business-clone/backend")
 
-from app.services.v2_llm import get_llm_service, parse_stock_query_intent
+from app.services.v2_llm import get_llm_service
 
 print("=" * 60)
 print("LLM Service Integration Test")
 print("=" * 60)
 
-# Initialize service
 print("\nInitializing LLM service...")
 service = get_llm_service()
-print(f"  Mock mode: {service._use_mock}")
-if not service._use_mock:
-    print(f"  Provider URL: {service._provider.api_url}")
-    print(f"  Provider model: {service._provider.model}")
+print(f"  Provider URL: {service.provider.api_url}")
+print(f"  Provider model: {service.provider.model}")
 
-# Test cases
 test_queries = [
     "查一下螺丝刀还有多少个",
     "进50个黄色手枪钻",
@@ -33,7 +33,7 @@ test_queries = [
     "扳手多少钱",
 ]
 
-print("\n Testing intent parsing:")
+print("\nTesting intent parsing:")
 for query in test_queries:
     print(f"\n  Query: '{query}'")
     result = service.parse_intent(query)
@@ -43,5 +43,5 @@ for query in test_queries:
     print(f"    Confidence: {result.confidence}")
 
 print("\n" + "=" * 60)
-print("✅ LLM Service integration test complete!")
+print("LLM Service integration test complete")
 print("=" * 60)

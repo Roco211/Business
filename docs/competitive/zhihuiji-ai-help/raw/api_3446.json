@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3446,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」AI开单",
+    "keywords": "",
+    "description": "",
+    "content": "<p>AI开单能通过语音、图片或文字，快速识别并添加商品，简化开单流程。</p>\n<p><strong>操作路径</strong>\n首页点击【销售开单】→ 进入后点击右上角【AI开单】。</p>\n<p><strong>三大识别方式</strong></p>\n<ul>\n<li><strong>语音识别</strong>：直接说出商品信息（如“两箱可乐”）。</li>\n<li><strong>图片识别</strong>：拍摄或从相册上传包含商品信息的单据、货架照片。</li>\n<li><strong>文本识别</strong>：将商品文字信息粘贴到搜索框后，点击开始识别。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/597f878a360719fef415fc9e4a3b5cd0.png\" alt=\"语音/图片/文本识别界面示意图\"></li>\n</ul>\n<p><strong>后续操作</strong></p>\n<ol>\n<li>识别成功后，确认或更换系统匹配的商品。</li>\n<li>商品信息将自动填充至销售单。</li>\n<li>核对并修改其他信息（如数量、价格），点击收款/保存即可完成开单。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/8f2a285870198e535c2c5d8d86983594.png\" alt=\"识别成功并填充商品后的界面示意图\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 1905,
+    "publish_time": "2026-01-19T07:29:10.829Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-19T07:29:10.829Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

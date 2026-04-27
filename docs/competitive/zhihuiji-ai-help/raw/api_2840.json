@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2840,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "收尾款自定义营业员",
+    "keywords": "收尾款",
+    "description": "",
+    "content": "<p><strong>背景：</strong> 以前的版本收尾款时默认业务员为开单的业务员，商家无法自己修改，会有商家期望尾款能划给实际的收款人，方便自己在用资金流水查看各人员收款金额时，快速判断每个人收了多少款，然后再去找相关人员核对。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/2caf1bb65b6df839a1418a0b2d0053e7.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/9ee02f389e00d4b431a89db5b50b9011.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4702,
+    "publish_time": "2024-10-26T08:54:51.483Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-10-26T08:54:51.483Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

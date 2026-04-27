@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2707,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "套餐",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%96%B0%E5%A2%9E%E5%A5%97%E9%A4%90\" tabindex=\"-1\">新增套餐<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E5%A5%97%E9%A4%90\" aria-hidden=\"true\"></a></h2>\n<p>当您有需要将商品组合销售时，如新品和畅销品组合、临期商品组合、节日活动套餐等；</p>\n<p>这时候可以使用智慧记AI进销存的商品套餐功能，在开单时能够快速选择，提高开单效率。</p>\n<p>（1）路径：点击底部【商品】-顶部【套餐】-右上角【+】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/f701e75a3f40c41891f3b21d71180b07.png\" alt=\"Description\"></p>\n<p>（2）输入套餐名称，选择组成套餐商品信息，填写好套餐的零售和批发价格保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/b22dd2c28a9376104a9d09365b59a86f.png\" alt=\"Description\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E5%A5%97%E9%A4%90\" tabindex=\"-1\">修改套餐<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E5%A5%97%E9%A4%90\" aria-hidden=\"true\"></a></h2>\n<p>（1）点击套餐名称后面的【...】，可以打印标签，编辑套餐，停用套餐，和删除套餐等；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/13c45eed9d2c6f1ef2697f5a9bd413fc.png\" alt=\"Description\"></p>\n<p>（2）点击套餐名称可以进入到套餐详情界面，点击右上角的编辑按钮可以修改套餐信息，点击底部的开单可以进入到开销售单界面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/8236cb637cd282d78126ee2e2ea0567a.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2108,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5216,
+    "publish_time": "2024-04-16T07:37:29.649Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-16T07:37:29.649Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2108,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

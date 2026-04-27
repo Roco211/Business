@@ -117,11 +117,11 @@ def test_chat_service_integration():
     print("Test 5: Chat Service Integration")
     print("=" * 60)
 
-    # Restore a valid config
-    os.environ["LLM_PROVIDER"] = "openrouter"
-    os.environ["LLM_API_KEY"] = "sk-test-integration"
-    os.environ["LLM_API_URL"] = "https://openrouter.ai/api/v1/chat/completions"
-    os.environ["LLM_MODEL"] = "nvidia/nemotron-3-super-120b-a12b:free"
+    # Restore a valid DeepSeek config shape without making a network call
+    os.environ["LLM_PROVIDER"] = "deepseek"
+    os.environ["LLM_PROVIDER_API_KEY"] = "test-key"
+    os.environ["LLM_PROVIDER_API_URL"] = "https://api.deepseek.com/v1/chat/completions"
+    os.environ["LLM_PROVIDER_MODEL"] = "deepseek-v4-flash"
 
     try:
         from app.services.v2_llm import get_llm_service
@@ -131,8 +131,8 @@ def test_chat_service_integration():
         v2_llm_module._llm_service = None
 
         service = get_llm_service()
-        print(f"  Mock mode: {service._use_mock}")
-        print(f"  Provider: {service._provider.provider_name if service._provider else 'None'}")
+        print(f"  Provider: {service.provider.provider_name if service.provider else 'None'}")
+        print(f"  Model: {service.provider.model if service.provider else 'None'}")
         print(f"  [PASS] Chat service initialized")
     except Exception as e:
         print(f"  [FAIL] {e}")

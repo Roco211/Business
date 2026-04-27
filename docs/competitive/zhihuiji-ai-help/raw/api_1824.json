@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1824,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增，修改和删除商品属性",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/42910d772ed3e231be8dd7677aa71e2b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E5%95%86%E5%93%81%E5%B1%9E%E6%80%A7\" tabindex=\"-1\">新增商品属性<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E5%95%86%E5%93%81%E5%B1%9E%E6%80%A7\" aria-hidden=\"true\"></a></h2>\n<p><strong>操作路径一：</strong> 左侧导航商品-商品属性-添加商品属性，最多可以添加6项属性。</p>\n<p>选择型：是指新增商品时可以从下拉框直接选择属性值。</p>\n<p>输入型：是指新增商品时每次都需要手动输入属性值。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/71c687ae3ba461ff064c853a40a446ef.jpg\" alt=\"\"></p>\n<p><strong>操作路径二：</strong> 商品列表点修改-点击设置</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/b2b8bdd784895cc39327fb01dd3c0956.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/ff5797c212a78d1472ba7d44e865420b.png\" alt=\"Description\"></p>\n<h2 id=\"%E7%BC%96%E8%BE%91%2F%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81%E5%B1%9E%E6%80%A7%E5%90%8D%E7%A7%B0\" tabindex=\"-1\">编辑/删除商品属性名称<a class=\"header-anchor\" href=\"#%E7%BC%96%E8%BE%91%2F%E5%88%A0%E9%99%A4%E5%95%86%E5%93%81%E5%B1%9E%E6%80%A7%E5%90%8D%E7%A7%B0\" aria-hidden=\"true\"></a></h2>\n<p><strong>操作路径：</strong> 商品-商品属性，编辑/删除。</p>\n<p><strong>编辑：</strong> 支持编辑属性名称和属性值，属性类型不能修改，品牌和重量不能修改属性名称。</p>\n<p><strong>删除：</strong> 没有使用的属性可以删除，已经使用过的属性不支持删除，品牌和重量不支持删除。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/4b69b2fd0c3379980180a4d14c4f876b.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2614,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10850,
+    "publish_time": "2025-07-29T07:52:33.536Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-16T09:28:59.383Z",
+    "tags": [
+      {
+        "id": 16,
+        "name": "商品属性"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2614,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

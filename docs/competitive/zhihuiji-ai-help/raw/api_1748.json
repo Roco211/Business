@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1748,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户预存款的调整和抵扣",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/cd898600360eee4a15f69776faedfd48.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>用户场景</strong>：为了减少交易风险，批发商户会要求客户提前支付一部分金额，这笔金额在后续开单、收款的时候可以抵扣单据金额和欠款。常见叫法包括：预存款、预收款、预付款、订金。</p>\n<p><strong>功能介绍</strong>：在客户管理中存入客户的预存款，并在销售开单、收款时可以抵扣单据金额和客户欠款。</p>\n<p><strong>目标客户</strong>：面向全部客户，常见于食品，建材，服装，五金，农资</p>\n<p><strong>其他</strong>：可满足零售商户商户先储值，再消费的场景</p>\n<p>1.操作步骤：点击客户-查看-去存款。输入存款金额，结算账户，确定。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/d128ad76f83a58e9e7aa7197141f981c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/948d584c54ee3aea455e2ab93e030c68.png\" alt=\"Description\"></p>\n<p>点击存款的金额可以查看到存款和消费记录。也可以点击调整，调整当前的存款金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/3e9b9931f0c76662229ce063177eb169.jpg\" alt=\"\"></p>\n<p>2.销售单可以用客户的预存款抵扣单据金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/9683199a1cc3335f412ed4ce9c38b0ee.jpg\" alt=\"\"></p>\n<p>3.在收款单中，可以使用预存款抵扣客户欠款或结清单据</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/a39f4ad33de22643ecffd5fba46f509f.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16458,
+    "publish_time": "2026-01-04T09:08:51.093Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-06T01:58:17.000Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 22,
+        "name": "客户列表"
+      },
+      {
+        "id": 102,
+        "name": "客户详情"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

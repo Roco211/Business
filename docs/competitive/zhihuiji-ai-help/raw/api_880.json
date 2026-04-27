@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 880,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售退货单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/8e4582f38522d2670fc2058cb78464a5.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>销售退货</strong></p>\n<p><strong>路径1</strong>：【销售】-【销售退货】-【新增销售退货单】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/acbd9bc1971bd52a376d71df7d22ccf2.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/c5f5fb0841815ebf358de78b77698a2f.png\" alt=\"Description\"></p>\n<p><strong>路径2</strong>：【销售】-【销售】-【查看】-【退货】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/f63a291fc0ce6086473d4620dfc11f8c.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/292ac0a75c31ec6a87dfa87b08ac3744.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：由于质量不合格、价格不正确等因素、或与销售合同相关条款不相符等原因，客户将销售货品退回。</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、销售退货时，已出库的旧销售单不要修改。</p>\n<p>2、选择好退货商品后，只需要填入数量，自动显示负数</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2595,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14185,
+    "publish_time": "2025-12-23T09:01:15.744Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-23T09:01:13.000Z",
+    "tags": [
+      {
+        "id": 41,
+        "name": "销售退货单列表"
+      },
+      {
+        "id": 78,
+        "name": "查看销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2595,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

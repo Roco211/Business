@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3436,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么员工看不到客户？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>员工账号有查看客户权限，但登录后看不到全部客户，通常是因为启用了 <strong>“关联业务员”</strong> 规则。</p>\n<hr>\n<h2 id=\"%E6%A3%80%E6%9F%A5%E4%B8%8E%E8%AF%B4%E6%98%8E\" tabindex=\"-1\">检查与说明<a class=\"header-anchor\" href=\"#%E6%A3%80%E6%9F%A5%E4%B8%8E%E8%AF%B4%E6%98%8E\" aria-hidden=\"true\"></a></h2>\n<p><strong>检查路径：</strong> 【设置】→【系统设置】</p>\n<p>若勾选了「启用关联业务员」，员工默认只能查看<strong>已关联给自己的客户</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/399268ac3406c1608a59df8459407ffc.png\" alt=\"系统设置\"></p>\n<blockquote>\n<p>📖 如何关联客户？请参考：<a href=\"https://www.zhihuiji.cn/help/doc/889\">客户关联业务员教程</a></p>\n</blockquote>\n<hr>\n<h2 id=\"%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88\" tabindex=\"-1\">解决方案<a class=\"header-anchor\" href=\"#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88\" aria-hidden=\"true\"></a></h2>\n<p>如需让员工查看全部客户，管理员可选择以下任一方式：</p>\n<p><strong>方式一：</strong> 取消勾选「启用关联业务员」，则所有员工可查看全部客户。</p>\n<p><strong>方式二：</strong> 通过【设置】→【角色权限】→ 修改对应角色 → 勾选「查看其他业务员/用户关联的客户」，则该角色的员工可查看全部客户。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/f3de746741488be4531288e230b9f1ab.png\" alt=\"角色权限设置\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2976,
+    "status": 2,
+    "recommend": 0,
+    "hits": 2066,
+    "publish_time": "2026-04-17T03:32:02.451Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-01-13T07:39:38.015Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2976,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

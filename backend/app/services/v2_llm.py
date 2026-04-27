@@ -65,7 +65,11 @@ class LLMService:
 
     def __init__(self, provider: OpenAILLMProvider | None = None):
         self._provider = provider
-        self._use_mock = provider is None
+
+    @property
+    def provider(self) -> OpenAILLMProvider | None:
+        """Configured real LLM provider."""
+        return self._provider
     
     def _get_provider(self) -> OpenAILLMProvider:
         """Lazy load provider if not provided."""
@@ -89,11 +93,6 @@ class LLMService:
         Returns:
             ParsedIntent with type, item_name, quantity, confidence
         """
-        if self._use_mock:
-            intent = self._mock_parse_intent(text)
-            # Apply context resolution if item_name is missing
-            return self._resolve_context(intent, text, history)
-
         # Fast path: high-confidence operational phrases should not block on remote LLM.
         # The LLM remains available as fallback for genuinely ambiguous input, while common
         # owner questions like “今天生意怎么样” answer from deterministic business tools first.
@@ -329,10 +328,6 @@ class LLMService:
         
         return None
     
-    def _mock_parse_intent(self, text: str) -> ParsedIntent:
-        """Mock intent parsing for testing without LLM."""
-        return self._rule_based_parse_intent(text)
-    
     def generate_response(
         self,
         query_result: dict[str, Any],
@@ -349,9 +344,6 @@ class LLMService:
         Returns:
             GeneratedResponse with natural language content
         """
-        if self._use_mock:
-            return self._mock_generate_response(query_result)
-        
         try:
             provider = self._get_provider()
             
@@ -377,8 +369,8 @@ class LLMService:
             
         except LLMProviderError as exc:
             logger.error("LLM generate response failed: %s", exc.message)
-            # Fallback
-            return self._mock_generate_response(query_result)
+            # Safe deterministic fallback when the real LLM provider is temporarily unavailable.
+            return self._build_inventory_response(query_result)
     
     def generate_business_response(
         self,
@@ -389,9 +381,6 @@ class LLMService:
         history: list[dict] | None = None,
     ) -> GeneratedResponse:
         """Generate an AI-native business reply from deterministic tool results."""
-        if self._use_mock:
-            return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.72)
-
         if self._should_use_fast_business_reply(intent_type, query_result, original_text):
             return GeneratedResponse(content=self._build_deterministic_business_reply(intent_type, query_result), confidence=0.82)
 
@@ -425,12 +414,6 @@ class LLMService:
         history: list[dict] | None = None,
     ) -> GeneratedResponse:
         """Generate a helpful general business-assistant reply for ambiguous input."""
-        if self._use_mock:
-            return GeneratedResponse(
-                content="我理解你想让我帮你看店铺经营。你可以直接问：今天生意怎么样、哪些商品快没货、最近什么卖得最好；如果要开单或改库存，我会先生成待确认草稿。",
-                confidence=0.65,
-            )
-
         try:
             provider = self._get_provider()
             messages = [{"role": "system", "content": self.GENERAL_ASSISTANT_PROMPT}]
@@ -504,8 +487,8 @@ class LLMService:
         unit = query_result.get("unit", "个")
         return f"{item_name}目前还有{quantity}{unit}，需要我继续帮你判断是否要补货吗？"
     
-    def _mock_generate_response(self, query_result: dict[str, Any]) -> GeneratedResponse:
-        """Mock response generation."""
+    def _build_inventory_response(self, query_result: dict[str, Any]) -> GeneratedResponse:
+        """Deterministic inventory response used only as a safe fallback after real LLM failure."""
         item_name = query_result.get("item_name", "商品")
         quantity = query_result.get("quantity", 0)
         unit = query_result.get("unit", "个")
@@ -527,17 +510,26 @@ def get_llm_service() -> LLMService:
             # Try to create with real provider
             settings = get_settings()
             provider = create_llm_provider(
+                api_key=settings.llm_provider_api_key,
+                model=settings.llm_provider_model,
+                api_url=settings.llm_provider_api_url,
+                provider_name=settings.llm_provider,
                 timeout_seconds=settings.llm_timeout_seconds,
                 max_tokens=settings.llm_max_tokens,
                 temperature=settings.llm_temperature,
             )
             _llm_service = LLMService(provider=provider)
             logger.info("LLM service initialized with real provider")
-        except ValueError:
-            # Fallback to mock
-            _llm_service = LLMService(provider=None)
-            logger.warning("LLM service initialized with mock provider")
+        except ValueError as exc:
+            logger.error("LLM service cannot start without a configured real provider: %s", str(exc))
+            raise
     return _llm_service
+
+
+def reset_llm_service() -> None:
+    """Reset the singleton (for tests and runtime reconfiguration)."""
+    global _llm_service
+    _llm_service = None
 
 
 def parse_stock_query_intent(

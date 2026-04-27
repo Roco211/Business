@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1386,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "【产品介绍】三分钟了解什么是智慧记AI进销存",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D\" tabindex=\"-1\">产品介绍<a class=\"header-anchor\" href=\"#%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D\" aria-hidden=\"true\"></a></h2>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/2e1b3ec0c779f0917507600a81ed57db.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>智慧记AI进销存</strong>是金蝶旗下专为个体小微商户打造的SaaS化云进销存产品，满足批发、零售、批零兼营多模式的经营管理需求。</p>\n<p><strong>AI帮你开单、记账、管库存，省心！</strong> 提供AI商品导入、AI极速开单、AI生意助手等智能功能，帮助商户大幅提升开单录入效率，并获得经营数据分析与决策建议。</p>\n<p>您可通过电脑、手机多端使用，数据实时同步，随时随地掌握经营状况。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/2c088819c6f8abe12d704bf5558b65fb.jpg\" alt=\"多端同步示意图：手机与电脑屏幕显示相同数据，实时同步\"></p>\n<hr>\n<h2 id=\"%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97\" tabindex=\"-1\">核心功能模块<a class=\"header-anchor\" href=\"#%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%F0%9F%A4%96-ai%E9%BB%91%E7%A7%91%E6%8A%80%EF%BC%8C%E6%95%88%E7%8E%87%E5%80%8D%E5%A2%9E\" tabindex=\"-1\">🤖 AI黑科技，效率倍增<a class=\"header-anchor\" href=\"#%F0%9F%A4%96-ai%E9%BB%91%E7%A7%91%E6%8A%80%EF%BC%8C%E6%95%88%E7%8E%87%E5%80%8D%E5%A2%9E\" aria-hidden=\"true\"></a></h3>\n<h4>AI商品导入快10倍</h4>\n<p>拍张照、导个表，商品自动入库，不用手工一个个录，数据迁移分分钟搞定。</p>\n<ul>\n<li><strong>拍照识别入库</strong>：对商品图片进行智能识别，自动提取信息完成入库</li>\n<li><strong>Excel/PDF批量导入</strong>：直接导入商品清单，快速批量录入商品信息</li>\n<li><strong>扫码入库</strong>：通过扫码枪或手机扫码，快速识别商品条码并完成入库<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/f383ba0172a00b1d00e2a75ac26ebb51.png\" alt=\"商品导入\"></li>\n</ul>\n<h4>1秒极速开单</h4>\n<p>说句话、拍张照、微信复制粘贴，系统自动识别商品信息，秒速生成销售单据。</p>\n<ul>\n<li><strong>语音开单</strong>：通过语音指令快速录入商品信息，完成开单操作</li>\n<li><strong>拍照开单</strong>：拍摄单据照片，系统自动识别并生成开单信息</li>\n<li><strong>文本开单</strong>：支持复制粘贴文本内容，系统自动解析并生成开单</li>\n<li><strong>扫码开单</strong>：内置1.4亿云商品库，扫描条码自动带出商品信息<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/ee4ed79b03c041868edf68451cdeb444.png\" alt=\"开单\"></li>\n</ul>\n<h4>24小时AI生意助手</h4>\n<p>系统内置强大AI助手，24小时在线，帮您分析生意、写文案、做决策。</p>\n<ul>\n<li><strong>热销商品分析</strong>：分析热销商品，为经营决策提供数据支持</li>\n<li><strong>库存分析</strong>：实时监控库存状况，优化库存管理</li>\n<li><strong>销售分析</strong>：全面分析销售数据，掌握销售趋势</li>\n<li><strong>收款分析</strong>：统计收款情况，优化收款流程</li>\n<li><strong>利润分析</strong>：精准计算利润，助力经营决策</li>\n<li><strong>营销文案生成</strong>：自动生成商品描述、朋友圈文案，帮您引流获客<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/737d6b1d8bd23a0ad2bfd3ad253163f8.png\" alt=\"Description\"></li>\n</ul>\n<hr>\n<h3 id=\"%F0%9F%93%A6-%E7%AE%A1%E8%B4%A7%E7%AE%A1%E8%B4%A6%E7%AE%A1%E5%BA%97%EF%BC%8C%E7%94%9F%E6%84%8F%E5%A4%A7%E5%B0%8F%E4%BA%8B%EF%BC%8C%E7%BB%9F%E7%BB%9F%E9%83%BD%E6%90%9E%E5%AE%9A\" tabindex=\"-1\">📦 管货管账管店，生意大小事，统统都搞定<a class=\"header-anchor\" href=\"#%F0%9F%93%A6-%E7%AE%A1%E8%B4%A7%E7%AE%A1%E8%B4%A6%E7%AE%A1%E5%BA%97%EF%BC%8C%E7%94%9F%E6%84%8F%E5%A4%A7%E5%B0%8F%E4%BA%8B%EF%BC%8C%E7%BB%9F%E7%BB%9F%E9%83%BD%E6%90%9E%E5%AE%9A\" aria-hidden=\"true\"></a></h3>\n<table>\n<thead>\n<tr>\n<th style=\"text-align:left\">功能模块</th>\n<th style=\"text-align:left\">核心价值</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align:left\"><strong>精细化库存管理</strong></td>\n<td style=\"text-align:left\">库存实时更新，货有多少、去哪里、值多少钱一目了然；系统自动预估成本、利润，让你知道该不该进货、该备多少钱。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>多仓多店实时掌控</strong></td>\n<td style=\"text-align:left\">不用跑来跑去，手机一点就能调货，所有门店和仓库库存实时更新，无论身在何处，生意情况都清楚。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>库存预警</strong></td>\n<td style=\"text-align:left\">可查看库存短缺、超出、临期商品情况，避免断货或积压。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>24h微信小程序商城</strong></td>\n<td style=\"text-align:left\">客户随时在微信下单，系统自动接收订单，你只管接单、发货，即开即用，生意不打烊。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>一客一价</strong></td>\n<td style=\"text-align:left\">老客、新客、批发者，不同客户不同价，报价更快更准确，客户觉得上心，开单更省心。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>看利润查欠款</strong></td>\n<td style=\"text-align:left\">对店铺账，对员工账，对客户账，利润报表、销售统计一眼明了。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>微信分享账单</strong></td>\n<td style=\"text-align:left\">单据一键转微信，客户点开即确认，无需来回沟通催问，回款也更快。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>经营报表自动生成</strong></td>\n<td style=\"text-align:left\">利润、销售、库存、员工业绩等报表自动生成，经营状况一目了然。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>多端多员工协作</strong></td>\n<td style=\"text-align:left\">电脑、手机多端使用，多员工同时开单，系统按权限分工管理，销售开单，仓管同步接收订单，快速响应发货需求。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>30+行业生意管通</strong></td>\n<td style=\"text-align:left\">适配五金、服装、酒水等30多个行业，支持颜色、尺码、批号、批次、保质期等精细管理，再多规格也不怕，库存一目了然。</td>\n</tr>\n</tbody>\n</table>\n<hr>\n<h3 id=\"%F0%9F%A7%91%E2%80%8D%F0%9F%92%BC-%E4%BB%8E%E8%80%81%E6%9D%BF%E5%88%B0%E5%BA%97%E5%91%98%EF%BC%8C%E5%90%84%E5%8F%B8%E5%85%B6%E8%81%8C\" tabindex=\"-1\">🧑‍💼 从老板到店员，各司其职<a class=\"header-anchor\" href=\"#%F0%9F%A7%91%E2%80%8D%F0%9F%92%BC-%E4%BB%8E%E8%80%81%E6%9D%BF%E5%88%B0%E5%BA%97%E5%91%98%EF%BC%8C%E5%90%84%E5%8F%B8%E5%85%B6%E8%81%8C\" aria-hidden=\"true\"></a></h3>\n<p>一套系统，多角色协作，每个人只做自己该做的事。</p>\n<ul>\n<li><strong>老板</strong>：全面掌控经营数据，进行战略决策</li>\n<li><strong>销售</strong>：报价快、开单准，一客一价自动匹配，折扣自动计算</li>\n<li><strong>库管</strong>：库存数量随时可查，发货、收货、调拨实时同步，库存变化自动更新</li>\n<li><strong>财务</strong>：账目报表自动生成，微信一键分享对账单，催款结账更高效</li>\n</ul>\n<hr>\n<h3 id=\"%F0%9F%96%A8%EF%B8%8F-%E9%80%82%E9%85%8D%E5%90%84%E7%B1%BB%E7%A1%AC%E4%BB%B6%EF%BC%8C%E7%81%B5%E6%B4%BB%E6%89%A9%E5%B1%95\" tabindex=\"-1\">🖨️ 适配各类硬件，灵活扩展<a class=\"header-anchor\" href=\"#%F0%9F%96%A8%EF%B8%8F-%E9%80%82%E9%85%8D%E5%90%84%E7%B1%BB%E7%A1%AC%E4%BB%B6%EF%BC%8C%E7%81%B5%E6%B4%BB%E6%89%A9%E5%B1%95\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li><strong>针式打印机</strong>：超高速打印，一台顶多台</li>\n<li><strong>票据标签打印机</strong>：小巧便携，随时随地轻松打</li>\n<li><strong>打印云盒</strong>：让普通打印机秒变远程打印机</li>\n<li><strong>门店收银机</strong>：收银记账，一机搞定</li>\n<li><strong>智慧记PDA</strong>：入库开单盘点，比手机快3倍<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202602/0e0204a03fd872623cc6e8895614a5e2.png\" alt=\"各类硬件\"></li>\n</ul>\n<hr>\n<h2 id=\"%E6%B3%A8%E5%86%8C%E4%BD%BF%E7%94%A8\" tabindex=\"-1\">注册使用<a class=\"header-anchor\" href=\"#%E6%B3%A8%E5%86%8C%E4%BD%BF%E7%94%A8\" aria-hidden=\"true\"></a></h2>\n<p><strong>网页端注册</strong>：<a href=\"https://space.zhihuiji.cn/\">https://space.zhihuiji.cn</a></p>\n<p><strong>手机端下载</strong>：</p>\n<ul>\n<li>方法一：应用宝或苹果应用市场，搜索“<strong>智慧记AI进销存</strong>”下载</li>\n<li>方法二：扫描下方二维码即可下载</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202204/9e53c1f9fac46bd63c3f86b272538d4e.jpg\" alt=\"\"></p>\n<hr>\n<h2 id=\"%E7%89%88%E6%9C%AC%E4%B8%8E%E8%B4%AD%E4%B9%B0%E6%8E%A8%E8%8D%90\" tabindex=\"-1\">版本与购买推荐<a class=\"header-anchor\" href=\"#%E7%89%88%E6%9C%AC%E4%B8%8E%E8%B4%AD%E4%B9%B0%E6%8E%A8%E8%8D%90\" aria-hidden=\"true\"></a></h2>\n<p>智慧记AI进销存目前有三个版本可选：</p>\n<table>\n<thead>\n<tr>\n<th style=\"text-align:left\">版本</th>\n<th style=\"text-align:left\">门店/用户数</th>\n<th style=\"text-align:left\">核心权益</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align:left\"><strong>开单版</strong></td>\n<td style=\"text-align:left\">1门店1用户。不可增购用户。</td>\n<td style=\"text-align:left\">销售开单、远程云打印、商品管理、经营报表</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>单店版</strong></td>\n<td style=\"text-align:left\">1门店1用户。可增购用户数。</td>\n<td style=\"text-align:left\">开单版权益 + 多仓库、进货、库存管理、多单位/多规格/多价格、报价单、商品套餐、库存预警、客户归属、开单收银台等功能。</td>\n</tr>\n<tr>\n<td style=\"text-align:left\"><strong>多店版</strong></td>\n<td style=\"text-align:left\">2门店3用户。可增购门店数和用户数。</td>\n<td style=\"text-align:left\">单店版权益 + 多门店管理</td>\n</tr>\n</tbody>\n</table>\n<p><strong>增值服务</strong>：</p>\n<ul>\n<li><strong>智慧记云店</strong>：开通微信小程序商城，线上线下打通</li>\n<li><strong>员工业绩提成</strong>：自定义提成规则，自动计算业绩</li>\n</ul>\n<p>关于购买详情可点击：<a href=\"https://www.zhihuiji.cn/mall\">https://www.zhihuiji.cn/mall</a></p>\n<hr>\n<h2 id=\"%E5%AE%89%E5%85%A8%E4%BF%9D%E9%9A%9C\" tabindex=\"-1\">安全保障<a class=\"header-anchor\" href=\"#%E5%AE%89%E5%85%A8%E4%BF%9D%E9%9A%9C\" aria-hidden=\"true\"></a></h2>\n<p>您的每一笔生意，都有银行级安全守护。</p>\n<ul>\n<li><strong>安全无忧</strong>：二级信息安全等级保护</li>\n<li><strong>数据保障</strong>：电信级IDC机房，数据存储与容灾备份</li>\n<li><strong>金蝶品质</strong>：全球CSA云安全联盟成员，致力于提供最佳安全解决方案</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2877,
+    "status": 2,
+    "recommend": 0,
+    "hits": 126713,
+    "publish_time": "2026-04-22T08:39:50.451Z",
+    "useful_count": 1,
+    "useless_count": 109,
+    "create_time": "2200-01-01T07:26:08.000Z",
+    "tags": [
+      {
+        "id": 73,
+        "name": "首页"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2877,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

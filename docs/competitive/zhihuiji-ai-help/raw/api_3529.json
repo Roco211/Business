@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3529,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店客户如何解绑",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径：</strong> 客户 → 客户详情 → 【云店客户】→ 解绑</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/d17aad700348b979181aedd7cd0a3a63.png\" alt=\"云店客户解绑\"></p>\n<p><strong>解绑规则：</strong></p>\n<ul>\n<li>解绑成功后，原微信号变为<strong>游客身份</strong>，不再关联该客户</li>\n<li>微信号与现有云店订单的关联关系<strong>保持不变</strong></li>\n<li>客户后续绑定新手机号时，将自动关联新手机号下的云店订单</li>\n</ul>\n<p><strong>限制条件：</strong></p>\n<blockquote>\n<p>若客户存在<strong>待发货、待收货、部分发货</strong>状态的在途订单时，<strong>不允许解绑</strong>。</p>\n</blockquote>\n<p><strong>重新绑定：</strong>\n解绑成功后，点击「尚未成为云店客户」，可分享二维码给客户用新微信扫码绑定。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/d30b3004ac8ab93a4802cf86ec6ba8fc.png\" alt=\"解绑后重新绑定\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2904,
+    "status": 2,
+    "recommend": 0,
+    "hits": 241,
+    "publish_time": "2026-04-09T03:08:12.134Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-09T03:07:26.155Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2904,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

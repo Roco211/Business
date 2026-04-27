@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2338,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "查看操作记录教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/03fc0ef9e110a5c82a0d2bce16ce3636.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>路径：任意界面里，点击软件右上角的账号信息，下拉框点击【操作记录】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/d52ce0e11a8c1592e669447eff16b4cd.png\" alt=\"Description\"></p>\n<p>1.进入到操作记录界面，可以选择操作日期查看，也可以输入商品名称/单据编号/客户/供应商查询。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/51029d01a34b83d1dc065a39e0b448d4.png\" alt=\"Description\"></p>\n<p>2.点击高级查询，可以选择操作人，操作端，操作模块，或者输入单据编号查询。</p>\n<p>操作模块有：商品，套餐，客户，供应商，结算账户，销售单，销售退货单，销售预定单，进货单，进货退货单，进货预定单，收款单，付款单，收支单，盘点单，调拨单，转账单，组装拆分单，报价单，系统设置，初始化。</p>\n<p>查询的结果可以显示操作人，操作模块，操作类型，单据编号，操作内容，操作端和操作时间。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202401/52d2200d2094fd8ce36691276f8b0adc.png\" alt=\"Description\"></p>\n<p>注意；仅支持查看近180天内的操作记录。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9265,
+    "publish_time": "2024-02-27T00:59:42.475Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-04T09:35:01.786Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

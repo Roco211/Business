@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 879,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "复制、作废和分享销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%A4%8D%E5%88%B6%E9%94%80%E5%94%AE%E5%8D%95\" tabindex=\"-1\">复制销售单<a class=\"header-anchor\" href=\"#%E5%A4%8D%E5%88%B6%E9%94%80%E5%94%AE%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>复制销售单路径</strong>：【首页】-【销售】-【查看单据】- 找到单据【复制】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/30ce39fa2fd89c5bf83c6ecbda4ac931.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：客户在店里开的销售单，若想再次下单，老板们可直接点击【复制】，无需再次录入商品。提高店铺开单效率。</p>\n<h2 id=\"%E4%BD%9C%E5%BA%9F%E9%94%80%E5%94%AE%E5%8D%95\" tabindex=\"-1\">作废销售单<a class=\"header-anchor\" href=\"#%E4%BD%9C%E5%BA%9F%E9%94%80%E5%94%AE%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>作废销售单****路径</strong>：【首页】-【销售单】-【查看历史单据】- 找到单据【作废】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/90737a0b746810af8036d28ea05a33dc.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：基于实际业务需求，有时候客户买的货不要了，需要删除/作废掉销售单</p>\n<h2 id=\"%E5%88%86%E4%BA%AB%E9%94%80%E5%94%AE%E5%8D%95\" tabindex=\"-1\">分享销售单<a class=\"header-anchor\" href=\"#%E5%88%86%E4%BA%AB%E9%94%80%E5%94%AE%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>业务场景：</strong> 分享单据到客户微信用于对账</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/347b99d63c95ad55daaa0ec7c4c71873.png\" alt=\"Description\"></p>\n<p>分享后客户扫码即可分享到客户微信\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/e823b00c5eb75a8d0b17f921107b9059.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14644,
+    "publish_time": "2024-11-07T03:19:13.079Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2022-12-28T02:12:32.000Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

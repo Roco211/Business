@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3534,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么成本是小数？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>系统采用 <strong>“加权平均法”</strong> 计算成本，会动态计算商品的结余成本总额和平均成本价，因此成本可能是小数。</p>\n<p><strong>举例：</strong></p>\n<ul>\n<li>第1次进货：10件，单价 10元</li>\n<li>第2次进货：20件，单价 9元</li>\n</ul>\n<p>总数量：30件<br>\n总金额：100元 + 180元 = 280元<br>\n平均成本：280元 ÷ 30件 ≈ 9.33元/件<br></p>\n<p>最终商品成本显示为 9.33元，不是整数。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/dffd377e8ea465963b394eafae671a8e.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2681,
+    "status": 2,
+    "recommend": 0,
+    "hits": 35,
+    "publish_time": "2026-04-16T06:36:34.569Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-16T06:35:52.194Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2681,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

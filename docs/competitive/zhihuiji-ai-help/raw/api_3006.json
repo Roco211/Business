@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3006,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "套餐的销售利润不对",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存套餐的销售利润不对，检查商品销售额和成本。</p>\n<p><strong>1、套餐内，商品销售额计算公式：</strong> 仅跟单据价格和商品零售价有关，无需理会其他价格等级。</p>\n<ul>\n<li><strong>套餐商品占比</strong> =（商品零售价×组成数量）÷组成合计</li>\n<li><strong>商品销售额</strong> = 单据价格×商品占比×销售数量</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202505/a6cec7f8baed9712d6c03a2132694cbe.png\" alt=\"Description\"></p>\n<p><strong>2、开单后，商品零售价发生调整变化：</strong> 需重新保存单据更新销售额，系统将按商品当前零售价自动重算报表销售额。</p>\n<ul>\n<li>步骤1、商品列表，检查零售价和批发价；</li>\n<li>步骤2、销售单列表，找到问题单据，点击修改后直接保存即可，无需任何其他操作。</li>\n</ul>\n<p><strong>3、智慧记AI进销存利润成本规则：</strong> 利润是等于销售价减去成本，成本不是“先进先出”，而是按照加权平均计算的。</p>\n<ul>\n<li>默认取上次进货的结余成本，无进货则取商品初始成本价；</li>\n<li>检查进货单和初始成本价。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202505/14dad1accc56e13e382bf8cf708152cd.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2677,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4382,
+    "publish_time": "2026-02-25T02:33:41.681Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-05-07T02:24:42.892Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2677,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2886,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "自定义表头",
+    "keywords": "",
+    "description": "",
+    "content": "<p>可调整自定义表头的位置，并用于开单，开单的信息将同步影响打印、导出、对账等功能。</p>\n<p>自定义的表头信息，销售单、预订单、报价单、销售退货单可共用\n<video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202502/d46eef037ea33ba72193a04e4fed49fb.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E5%88%9B%E5%BB%BA%E8%A1%A8%E5%A4%B4%EF%BC%9A\" tabindex=\"-1\">创建表头：<a class=\"header-anchor\" href=\"#%E5%88%9B%E5%BB%BA%E8%A1%A8%E5%A4%B4%EF%BC%9A\" aria-hidden=\"true\"></a></h2>\n<p>操作路径：新增销售单界面，点击表头左侧的设置按钮，然后点自定义表格底部的创建表头。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/586abf2b374bb67b370a9012286f79dc.png\" alt=\"Description\"></p>\n<p>创建的表头可以点击右上角的+号，显示到开单界面里，也可以点击修改和删除表头。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/d54ed8568ed7a8b66090e4a910bef59e.png\" alt=\"Description\"></p>\n<p>显示的表头里点击右上角的——号可以设置不显示表格，鼠标拖拽移动可以调整表头的显示顺序。设置好点击右下角的确定按钮保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/249dd99a8ff5e8b28b36698861f5b518.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/1faf05d574ba139f0cd7a838b4591232.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%93%E5%8D%B0%E8%A1%A8%E5%A4%B4\" tabindex=\"-1\">打印表头<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E8%A1%A8%E5%A4%B4\" aria-hidden=\"true\"></a></h2>\n<p>点击设置-打印设置-选择对应的销售单模板修改，再点击表格，右侧可以勾选打印创建的表头信息，然后保存模板。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/245972cf21cdaf4b799994283696a7d1.png\" alt=\"Description\"></p>\n<p>查看销售单界面，点击打印，然后再点击预览，就会显示有创建的表头信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/1f3b5018b8766bb6059a69684b045cc4.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%AF%BC%E5%87%BA%E8%A1%A8%E5%A4%B4\" tabindex=\"-1\">导出表头<a class=\"header-anchor\" href=\"#%E5%AF%BC%E5%87%BA%E8%A1%A8%E5%A4%B4\" aria-hidden=\"true\"></a></h2>\n<p>导出单据明细，会显示有创建的表头信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/c54c3ffdbe7885d3c09547c9343ae5fa.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%AF%B9%E8%B4%A6%E5%8D%95%E6%98%BE%E7%A4%BA%E8%A1%A8%E5%A4%B4\" tabindex=\"-1\">对账单显示表头<a class=\"header-anchor\" href=\"#%E5%AF%B9%E8%B4%A6%E5%8D%95%E6%98%BE%E7%A4%BA%E8%A1%A8%E5%A4%B4\" aria-hidden=\"true\"></a></h2>\n<p>点击分析-客户对账，对账单明细，可以设置显示创建的表头信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/11b640170abf237712766014b614318a.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/4435082538fb7af5c2d6911f9a75a3ec.png\" alt=\"Description\"></p>\n<p>点击设置-打印设置，选择对账单模板，可以设置打印创建的表头。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/4957680c9176c3ce16ccd9a6dac523d8.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6496,
+    "publish_time": "2025-04-14T08:26:31.959Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-16T02:16:12.770Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 948,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何新增收支类型？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/8c69657bc125904f94f86684c66cbd4b.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n<strong>收支类型</strong></p>\n<p><strong>路径</strong>：【资金】-【其他收入】/【其他支出】旁的【+】-【收入类型】旁的【+】，进入到收支类型。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/3c4aae2b9b34f128493c7444b7c201e8.png\" alt=\"Description\"></p>\n<p>除了业务往来，营业过程中还会产生诸如房租、水电、分红等其他开支。</p>\n<p>在这里可以新增收支类型，也可以对已有的账户修改或删除。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f2e99bb8d9d5ca8ea95c2aa879d26b78.png\" alt=\"Description\"></p>\n<p>新增账户类型：点击左上角的“新增账户类型”，在弹出的小窗输入账户名称，选择记收入还是记支出。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/b4f0699af8212a4e9b034e9934fcd06c.png\" alt=\"\"></p>\n<p>修改/删除账户：点击每个账户右侧的“修改”“删除”按钮。</p>\n<p>如果删除该账户，相关联的业务单据将一起删除。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12077,
+    "publish_time": "2024-02-29T05:59:45.172Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2106-12-26T02:04:59.000Z",
+    "tags": [
+      {
+        "id": 53,
+        "name": "收支类型"
+      },
+      {
+        "id": 81,
+        "name": "新增其他收入"
+      },
+      {
+        "id": 82,
+        "name": "新增其他支出"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

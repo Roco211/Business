@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 900,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何查询商品",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【商品】-【商品】</p>\n<p>在顶部搜索框，输入商品名称、简拼、条形码、规格、货号或备注，快速定位商品。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9309b5080e5245378891ef23076673a7.png\" alt=\"快速搜索\"></p>\n<p><strong>1. 使用高级查询</strong></p>\n<p>如需更精确的查找，可展开<strong>高级查询</strong>，按商品名称、规格、品牌、重量、供应商，以及其他自定义属性条件筛选。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e0c83e5ae9707c1741e9bc7a2e39814e.png\" alt=\"高级查询\"></p>\n<p><strong>2. 隐藏无库存/停用商品</strong></p>\n<ul>\n<li>查询时，可勾选 <strong>“隐藏无库存商品”</strong> 或 <strong>“隐藏停用商品”</strong>，让列表更简洁。</li>\n<li>默认勾选隐藏停用商品\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/144b8b0f8da943897b8abb3597584070.png\" alt=\"隐藏设置\"></li>\n</ul>\n<hr>\n<p><strong>更多帮助</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3331\">如何设置商品列表的显示字段</a> - 自定义您想在列表里直接看到的列</li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/899\">商品基础管理指南</a> - 系统学习商品新增、修改、删除等完整操作</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14160,
+    "publish_time": "2025-11-25T06:11:31.618Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2109-12-29T07:05:50.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

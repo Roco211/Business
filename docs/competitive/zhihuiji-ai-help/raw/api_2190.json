@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2190,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售单抹零",
+    "keywords": "",
+    "description": "",
+    "content": "<p>1.操作路径：设置-系统设置-单据设置-勾选销售单抹零，然后选择要抹零的位置。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/1e3c1f88d2fa30e6ba8d82e48ba47a55.png\" alt=\"Description\"></p>\n<p>2.比如选择抹分，开销售单点击抹零，会自动把分抹去。<strong>注意，设置抹零不会自动四舍五入的，后面的数字不管多少直接抹去。</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/ec15bbb0f1ad83b7df351704f72d0cff.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8211,
+    "publish_time": "2023-09-12T02:57:23.781Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-12T02:57:23.781Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 93,
+        "name": "修改销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

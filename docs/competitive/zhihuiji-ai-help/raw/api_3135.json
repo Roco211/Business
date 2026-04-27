@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3135,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店客户如何设置黑名单",
+    "keywords": "",
+    "description": "",
+    "content": "<p>通过停用客户来实现禁止客户访问，操作路径：客户--找到对应的客户--更多--停用</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/c1b3a6c383f8fd2d3aed4c266320ec45.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2904,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3764,
+    "publish_time": "2025-08-07T02:51:21.713Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-07T02:51:21.713Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2904,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

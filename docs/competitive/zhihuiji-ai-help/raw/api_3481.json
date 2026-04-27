@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3481,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "智慧记星火与智慧记AI进销存是什么关系？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记星火已全面升级为智慧记AI进销存。本次升级不仅是名称变更，更在产品能力上实现了全面跃升——将AI技术深度融入开单、数据分析、商品管理等环节，让经营更智能、更高效。您原有的账户和数据将完整保留，更新后使用原账号登录即可体验全新功能。</p>\n<p>本次升级亮点：</p>\n<ol>\n<li>\n<p>AI极速开单：\n彻底解放双手，支持语音、拍照、扫码、识别微信聊天记录等多种方式快速开单，1秒搞定进卖货。</p>\n</li>\n<li>\n<p>AI商品导入：\n支持识别图片、Excel/PDF单据，自动导入商品信息，数据迁移更轻松。</p>\n</li>\n<li>\n<p>AI生意助手：\n覆盖开单、对账、客服、营销、数据分析、整体经营管理，AI帮您分析、决策。</p>\n</li>\n</ol>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 235,
+    "publish_time": "2026-02-25T03:20:55.399Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-02-25T03:20:55.399Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

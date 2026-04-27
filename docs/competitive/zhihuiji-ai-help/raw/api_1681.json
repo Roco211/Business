@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1681,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "多规格商品批量开单教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/afed844abf5c3894e9fe690a58330a12.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n操作演示视频\n</video></p>\n<p><strong>适用场景</strong>：五金、服装等有多规格商品开单需求的行业商户。</p>\n<hr>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E5%BC%80%E5%90%AF\" tabindex=\"-1\">功能开启<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E5%BC%80%E5%90%AF\" aria-hidden=\"true\"></a></h2>\n<p><strong>操作路径</strong>：【设置】→【系统设置】→【单据设置】→ 勾选【多规格商品支持批量选择】，即可完成开启。</p>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/b3572e6fd8cf8e6cbd198579b36a43ff.png\" width=500 alt=\"启用批量选择设置截图\">\n<p>开启后，在智慧记AI进销存电脑端手动选择多规格商品开单时，操作将更加快捷。具体步骤如下：</p>\n<hr>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" tabindex=\"-1\">操作步骤<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E6%90%9C%E7%B4%A2%E5%B9%B6%E9%80%89%E6%8B%A9%E5%95%86%E5%93%81\" tabindex=\"-1\">搜索并选择商品<a class=\"header-anchor\" href=\"#%E6%90%9C%E7%B4%A2%E5%B9%B6%E9%80%89%E6%8B%A9%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p>手动输入多规格商品的名称/规格/货号/条形码搜索，选中搜到的商品。</p>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/1e1e5cd1371bb134abc1e2aac89caee9.png\" width=\"100%\" alt=\"搜索和选择商品\">\n<h3 id=\"%E5%BD%95%E5%85%A5%E6%95%B0%E9%87%8F\" tabindex=\"-1\">录入数量<a class=\"header-anchor\" href=\"#%E5%BD%95%E5%85%A5%E6%95%B0%E9%87%8F\" aria-hidden=\"true\"></a></h3>\n<p>选中后会自动弹窗展示该商品的所有规格，可直接在该页面选择和填写本次开单的数量和价格。</p>\n<ul>\n<li><strong>方式一</strong>：点击【批量】，为所有规格统一录入数量</li>\n<li><strong>方式二</strong>：手动填写单个规格的数量</li>\n<li><strong>方式三</strong>：点击第一列规格两边的【+】或【-】，该规格下所有SKU（如颜色、尺码组合）的数量统一增加或减少1</li>\n</ul>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/9d4a61e25e745ed1f21cc43f2c06e76a.png\" width=\"100%\" alt=\"商品数量录入弹窗\">\n<h3 id=\"%E4%BF%9D%E5%AD%98%E5%8D%95%E6%8D%AE\" tabindex=\"-1\">保存单据<a class=\"header-anchor\" href=\"#%E4%BF%9D%E5%AD%98%E5%8D%95%E6%8D%AE\" aria-hidden=\"true\"></a></h3>\n<p>确认或修改单据的其他信息（如客户、价格、实收金额等）后保存单据。</p>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/f8c3ed587920944c8fbcdb246c7b2926.png\" width=\"100%\" alt=\"保存单据\">",
+    "is_video": 0,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/d4ee678cc5ad4c5fe6e9b9b257dc8bf2.png",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9127,
+    "publish_time": "2026-03-25T01:47:59.464Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-04-13T03:22:26.032Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

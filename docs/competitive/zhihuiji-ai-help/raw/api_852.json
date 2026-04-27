@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 852,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货预订单使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/398496899182d4e4f36f75669877a6ec.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n<strong>新增进货预订单</strong></p>\n<p><strong>路径</strong>：【进货】-【进货预订单】</p>\n<p>1.先选择供应商，如没有可直接新增</p>\n<p>2.选择对应的商品，可直接点击商品名称的空白处来添加，输入对应的数量，自动算出金额</p>\n<p>3.点击“保存”即可；点击“保存并新增”可接着开进货订单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/1fb8658cad0782fd2ce7abf5dd54d463.png\" alt=\"\"></p>\n<p><strong>进货订单转进货单</strong></p>\n<p><strong>路径</strong>：【进货】-【进货预订单】</p>\n<p>【查看】：点开可查看详情，点右小角的“转进货”，即可由进货订单专为进货单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/5fb7615136191502867145a397842088.png\" alt=\"\"></p>\n<p>转成进货单后，若有变动，可直接修改进货单。</p>\n<p>注意：\n1，若进货预定单已转为进货单，进货预定单列表，此单据会显示已完成， 点击【查看】发现已无法作废该进货预定单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/2c89abf40b62113483b7463eebf4c4ea.png\" alt=\"Description\"></p>\n<p>2，若作废进货单，原先的进货预定单不会因此被一同作废。</p>\n<p><strong>作废进货预订单</strong></p>\n<p><strong>路径</strong>：【进货】-【进货预订单】</p>\n<p>可以对进货订单进行查看、复制与关闭操作。</p>\n<p>【作废】：点击“作废”，会再次提醒是否真的废弃，点击“确认”即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/ff467f16377aba56b5883d11890a4f76.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2601,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15545,
+    "publish_time": "2025-01-23T06:50:01.286Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2107-12-26T04:40:42.000Z",
+    "tags": [
+      {
+        "id": 152,
+        "name": "进货预订列表"
+      },
+      {
+        "id": 153,
+        "name": "新增进货预订"
+      },
+      {
+        "id": 154,
+        "name": "查看进货预订"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2601,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

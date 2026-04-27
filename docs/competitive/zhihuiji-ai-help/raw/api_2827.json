@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2827,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "微信公众号跳转云店",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%B8%93%E5%B1%9E%E7%89%88\" tabindex=\"-1\">专属版<a class=\"header-anchor\" href=\"#%E4%B8%93%E5%B1%9E%E7%89%88\" aria-hidden=\"true\"></a></h2>\n<p>登录微信公众号后台<a href=\"http://\">https://mp.weixin.qq.com/</a>，菜单栏可以设置跳转小程序。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/e52385c2cd21c3b602ef94edef23c05a.png\" alt=\"Description\"></p>\n<h2 id=\"%E8%AE%A2%E8%B4%A7%E7%89%88\" tabindex=\"-1\">订货版<a class=\"header-anchor\" href=\"#%E8%AE%A2%E8%B4%A7%E7%89%88\" aria-hidden=\"true\"></a></h2>\n<p>登录微信公众号后台<a href=\"http://\">https://mp.weixin.qq.com/</a>，菜单栏可以设置跳转小程序或设置自动发送商城入口链接。</p>\n<p><strong>方式1（推荐）、直接跳转小程序</strong></p>\n<p>智慧记AI进销存云店小程序路径：pages/index/index?corp_id=智慧记AI进销存店铺商户号</p>\n<p>由于智慧记AI进销存云店属于平台开店，商家没有单独注册小程序，需联系智慧记客服获取智慧记AI进销存<strong>店铺商户号</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202502/6ab406d715f3b14047836e33a8d303b3.png\" alt=\"Description\"></p>\n<p><strong>关联【智慧记云订货】小程序（官方平台，非当前店铺）：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202502/da29a20baf95be97a33e0af6b65313da.png\" alt=\"Description\"></p>\n<p><strong>方式2、自动发送消息</strong></p>\n<p>通过公众号菜单栏设置发送消息，自动回复小程序码图片或者小程序链接，用户再次识别或者点击进入云店小程序。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202409/1e5d09db9e29f85dd868de530655bc04.png\" alt=\"Description\"></p>\n<p><strong>获取云店小程序链接（当前店铺）：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202409/541ea1ccbb6bfd39d1e04a545a2868fd.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2872,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5583,
+    "publish_time": "2026-01-22T03:45:19.951Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-09-20T09:45:05.880Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2872,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

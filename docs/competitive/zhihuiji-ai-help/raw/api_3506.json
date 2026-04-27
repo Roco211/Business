@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3506,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」设置角色权限",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>手机端修改角色权限操作路径</strong> ：【我的】→【店铺管理】→【员工管理】→【角色权限管理】</p>\n<p>进入后编辑角色权限，保存即可生效。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/66850e42c5762c9b4f4616d67613684f.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2726,
+    "status": 2,
+    "recommend": 0,
+    "hits": 94,
+    "publish_time": "2026-03-26T09:19:27.012Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-03-26T08:32:44.037Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2726,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

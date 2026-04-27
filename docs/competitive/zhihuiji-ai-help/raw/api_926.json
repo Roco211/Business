@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 926,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货价管理指南",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>日常业务采购时，需要用到货品的进货价，属于采购的基础价格资料。</p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>填写商品进货价后，日常开单采购时，会自动带出货品的进货价。</p>\n<p>添加/修改进货价时，智慧记AI进销存提供了以下5种方式，根据实际需求选择一种方式即可：</p>\n<p>•  新增/修改单个商品时填写进货价</p>\n<p>•  导入新增商品时填写进货价</p>\n<p>•  批量修改商品进货价</p>\n<p>•  快捷改价修改进货价</p>\n<p>•  开单进货时快速回填进货价</p>\n<h2 id=\"%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E8%BF%9B%E8%B4%A7%E4%BB%B7\" tabindex=\"-1\">添加/修改进货价<a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%2F%E4%BF%AE%E6%94%B9%E8%BF%9B%E8%B4%A7%E4%BB%B7\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E6%96%B0%E5%A2%9E%2F%E4%BF%AE%E6%94%B9%E5%8D%95%E4%B8%AA%E5%95%86%E5%93%81%E6%97%B6%E5%A1%AB%E5%86%99\" tabindex=\"-1\">新增/修改单个商品时填写<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%2F%E4%BF%AE%E6%94%B9%E5%8D%95%E4%B8%AA%E5%95%86%E5%93%81%E6%97%B6%E5%A1%AB%E5%86%99\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-【商品】- 新增/修改商品 -【商品价格】-【进货价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/ddab9517151c8338397741ec5d726412.png\" alt=\"Description\"></p>\n<h3 id=\"%E5%AF%BC%E5%85%A5%E6%96%B0%E5%A2%9E%E4%B8%80%E6%89%B9%E5%95%86%E5%93%81%E6%97%B6%E5%A1%AB%E5%86%99\" tabindex=\"-1\">导入新增一批商品时填写<a class=\"header-anchor\" href=\"#%E5%AF%BC%E5%85%A5%E6%96%B0%E5%A2%9E%E4%B8%80%E6%89%B9%E5%95%86%E5%93%81%E6%97%B6%E5%A1%AB%E5%86%99\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-【商品】-【导入新增】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/75046d2f14314d40c9197531e3eea71d.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/286904a9f07348308b064cd6558988a9.png\" alt=\"Description\"></p>\n<h3 id=\"%E6%89%B9%E9%87%8F%E4%BF%AE%E6%94%B9%E5%95%86%E5%93%81%E8%BF%9B%E8%B4%A7%E4%BB%B7\" tabindex=\"-1\">批量修改商品进货价<a class=\"header-anchor\" href=\"#%E6%89%B9%E9%87%8F%E4%BF%AE%E6%94%B9%E5%95%86%E5%93%81%E8%BF%9B%E8%B4%A7%E4%BB%B7\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-【商品】-【批量曹组】-【修改商品信息】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/aeb9464a5d17908154264567c9eeda19.png\" alt=\"Description\"></p>\n<p>下载模板时，勾选「进货价」字段</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9c13974ebd6575f67bb7800b7949e566.png\" alt=\"Description\"></p>\n<p>在模板文件内修改进货价后，保存，并上传导入</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/cd51e982606567ff8a105e3096fd53e2.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/ef6e813465d304d7ca24fe16b48f4f63.png\" alt=\"Description\"></p>\n<h3 id=\"%E5%BF%AB%E6%8D%B7%E6%94%B9%E4%BB%B7\" tabindex=\"-1\">快捷改价<a class=\"header-anchor\" href=\"#%E5%BF%AB%E6%8D%B7%E6%94%B9%E4%BB%B7\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong>【商品】-【商品】-【快捷改价】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c1b2ac693b7816b2e28ec9a7e111a377.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/333ad404b7f01b9af357db2f463ccf12.png\" alt=\"Description\"></p>\n<h3 id=\"%E9%80%9A%E8%BF%87%E5%BC%80%E5%8D%95%E8%BF%9B%E8%B4%A7%EF%BC%8C%E5%9B%9E%E5%A1%AB%E8%BF%9B%E8%B4%A7%E4%BB%B7\" tabindex=\"-1\">通过开单进货，回填进货价<a class=\"header-anchor\" href=\"#%E9%80%9A%E8%BF%87%E5%BC%80%E5%8D%95%E8%BF%9B%E8%B4%A7%EF%BC%8C%E5%9B%9E%E5%A1%AB%E8%BF%9B%E8%B4%A7%E4%BB%B7\" aria-hidden=\"true\"></a></h3>\n<p><strong>路径：</strong> 【进货】-【进货】-【新增进货单】</p>\n<p>填写单价后保存单据，将自动回填更新此单价至商品资料的进货价</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d892c8d09eeeb4127ff8601c89915a31.png\" alt=\"Description\"></p>\n<h3 id=\"%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">注意事项<a class=\"header-anchor\" href=\"#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h3>\n<p>添加/修改商品进货价，不会影响到货品成本和已发生业务的进货单价格。</p>\n<h2 id=\"%E8%87%AA%E5%8A%A8%E5%B8%A6%E5%87%BA%E8%BF%9B%E8%B4%A7%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" tabindex=\"-1\">自动带出进货价 • 使用示例<a class=\"header-anchor\" href=\"#%E8%87%AA%E5%8A%A8%E5%B8%A6%E5%87%BA%E8%BF%9B%E8%B4%A7%E4%BB%B7-%E2%80%A2-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【进货】-【进货】-【新增进货单】</p>\n<p><strong>功能说明：</strong> 开单采购时，会自动带出货品的进货价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d892c8d09eeeb4127ff8601c89915a31.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 19026,
+    "publish_time": "2025-11-17T07:37:25.923Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-15T01:00:26.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

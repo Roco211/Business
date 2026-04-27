@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3146,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "快捷改价和批量修改商品信息的区别",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>快捷改价</strong>里面<strong>批量改价</strong>使用场景：所选商品价格都是按相同的<strong>固定比例</strong>上调或者下调价格，无法按固定金额上调或者下调价格，主要用来调整<strong>零售价和批发价</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/d78fd7452be5fef1908f11a1d5ca747b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/0b383277b49f7fd8e0b435b7ef78d723.png\" alt=\"Description\"></p>\n<p><strong>批量操作</strong>里<strong>修改商品信息</strong>批量改价使用场景：所选商品价格可以按<strong>固定金额或者固定比例</strong>调整，不同的商品调整价格可以不一样，主要用来调整<strong>零售价、批发价、进货价和自定义的价格等级</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/8466259bbe2b5d2b8ee20ae6a7071893.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202508/9dab67829c3984b6b9ce19a1669253ef.png\" alt=\"Description\"></p>\n<p><strong>二者主要区别：</strong> 1、调整方式不一样</p>\n<pre><code>               2、可以调整的价格不一样\n</code></pre>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2678,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3940,
+    "publish_time": "2025-08-15T06:41:28.930Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-08-15T06:39:05.334Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2678,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

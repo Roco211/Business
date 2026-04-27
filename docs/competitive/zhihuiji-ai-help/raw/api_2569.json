@@ -1,0 +1,69 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2569,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品多单位管理",
+    "keywords": "",
+    "description": "",
+    "content": "<p>商品多单位管理</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/09bf22b1b30273f347f9fa16a40c4493.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%B7%BB%E5%8A%A0%E8%BE%85%E5%8D%95%E4%BD%8D%E5%8F%8A%E6%8D%A2%E7%AE%97%E7%8E%87\" tabindex=\"-1\"><strong>添加辅单位及换算率</strong><a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%E8%BE%85%E5%8D%95%E4%BD%8D%E5%8F%8A%E6%8D%A2%E7%AE%97%E7%8E%87\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【商品】-商品基础资料，勾选“支持多单位”后可添加辅单位</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202302/c54760a9b5f81aab3a3050a03b88f11d.jpg\" alt=\"\"></p>\n<p><strong>业务场景：</strong> 双计量单位使用，除了单个销售，还需要整件销售。以便开单销售或者进货时，比如按箱或按个，用来自动计算价格。</p>\n<p><strong>功能说明：</strong></p>\n<p>1、支持不添加辅单位。</p>\n<p>2、添加辅单位时，需同时添加对应的换算率。当开单销售或进货时，单据将自动变成换算后的价格。</p>\n<p>3、第一次添加换算率时，请务必谨慎操作，换算率一旦发生业务则无法随意修改。</p>\n<p>4、支持1件商品最多2个辅单位</p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E8%BE%85%E5%8D%95%E4%BD%8D\" tabindex=\"-1\"><strong>修改辅单位</strong><a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E8%BE%85%E5%8D%95%E4%BD%8D\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【商品】-商品基础资料，勾选“支持多单位”后可修改辅单位</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/b0a958d88fb1c7ecba9b368629928d03.png\" alt=\"\"></p>\n<p><strong>业务场景：</strong> 货品的辅单位修改是日常业务中不可或缺的功能。</p>\n<p><strong>功能说明：</strong> 支持随意修改辅单位。</p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E6%8D%A2%E7%AE%97%E7%8E%87\" tabindex=\"-1\"><strong>修改换算率</strong><a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E6%8D%A2%E7%AE%97%E7%8E%87\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【商品】-商品基础资料，勾选“支持多单位”后可修改换算率</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/a9d3813e34c85ec35d5eacb9f101f952.png\" alt=\"\"></p>\n<p>注意，点击右侧蓝色符号，可以切换换算的大小单位，比如1打=10盒，切换后可以变成1盒=10打</p>\n<p><strong>业务场景：</strong> 换算率修改是日常业务中不可或缺的功能。</p>\n<p><strong>功能说明：</strong> 不支持修改已发生业务的换算率。</p>\n<h2 id=\"%E5%88%A0%E9%99%A4%E8%BE%85%E5%8D%95%E4%BD%8D%E5%8F%8A%E6%8D%A2%E7%AE%97%E7%8E%87\" tabindex=\"-1\"><strong>删除辅单位及换算率</strong><a class=\"header-anchor\" href=\"#%E5%88%A0%E9%99%A4%E8%BE%85%E5%8D%95%E4%BD%8D%E5%8F%8A%E6%8D%A2%E7%AE%97%E7%8E%87\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong>【商品】-商品基础资料</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/1bf40d16e8b1f3ab70257ca84d3f30cd.png\" alt=\"\"></p>\n<p><strong>业务场景：</strong> 日常业务中，不慎添加了错误的辅单位及换算率，或者仍未确认辅单位用于辅助计量，需要对辅单位及换算率进行删除。</p>\n<p><strong>功能说明：</strong></p>\n<p>1、支持随意删除未发生业务的货品辅单位及换算率。</p>\n<p>2、删除辅单位及换算率时，先要找到关联单据，将已发生业务的辅单位数量进行删除，否则无法删除成功。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2613,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6418,
+    "publish_time": "2024-02-27T01:59:13.298Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-02-28T16:00:00.000Z",
+    "tags": [
+      {
+        "id": 2,
+        "name": "商品"
+      },
+      {
+        "id": 3,
+        "name": "商品列表"
+      },
+      {
+        "id": 8,
+        "name": "单位管理"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2613,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

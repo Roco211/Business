@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2710,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货退货单",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E6%96%B0%E5%A2%9E%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" tabindex=\"-1\">新增进货退货单<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>（1）路径：底部【进货】-顶部【退货】-右下角【退货】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/35c969ede0b2a75c89aeac04e5fad00b.png\" alt=\"Description\"></p>\n<p>（2）选择退货的供应商和退货商品信息，然后点击保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/07a3290a1a18d7f4a79b8f8012ee6510.png\" alt=\"Description\"></p>\n<p>（3）保存成功后可以点击【打印标签】，就可以打印商品的标签，点击底部的打印按钮可以打印该单据。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/1f3b404a5ba92b3816c8a0e90b700af9.png\" alt=\"Description\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" tabindex=\"-1\">修改进货退货单<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>进货退货单列表点击对应的退货单，然后进货到退货单详情界面，然后点击底部的修改按钮即可修改单据。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/c0619332092ac6048c931f11ee72d823.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%A4%8D%E5%88%B6%E5%92%8C%E4%BD%9C%E5%BA%9F%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" tabindex=\"-1\">复制和作废进货退货单<a class=\"header-anchor\" href=\"#%E5%A4%8D%E5%88%B6%E5%92%8C%E4%BD%9C%E5%BA%9F%E8%BF%9B%E8%B4%A7%E9%80%80%E8%B4%A7%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>在进货退货单详情界面，点击右上角的【...】按钮，就可以点击复制本单和作废单据。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/d9e61ef0c282511df31e1dba635ce2ff.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2865,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5084,
+    "publish_time": "2024-04-18T08:18:40.513Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-18T08:18:40.513Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2865,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

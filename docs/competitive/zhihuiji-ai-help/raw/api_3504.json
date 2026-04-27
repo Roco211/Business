@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3504,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」如何隐藏首页数据",
+    "keywords": "",
+    "description": "",
+    "content": "<p>在手机端首页，点击眼睛图标即可切换隐藏或显示数据。<br>\n系统会自动记住您的设置，下次访问时保持上次的显示状态。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/874c25e8f6f078add1b119aae8c103de.png\" alt=\"切换隐藏/显示数据\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2965,
+    "status": 2,
+    "recommend": 0,
+    "hits": 88,
+    "publish_time": "2026-03-26T02:34:25.960Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-03-26T02:34:25.960Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2965,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

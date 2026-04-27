@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3379,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」查看库存预警",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【更多】→【库存】→【库存预警】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/95c2afd6a68be265d120901a6703a4aa.png\" alt=\"进入库存预警列表\"></p>\n<p><strong>在【库存预警】页面，您可以：</strong></p>\n<ol>\n<li><strong>按状态筛选</strong></li>\n</ol>\n<ul>\n<li><strong>全部</strong>：查看所有触发预警的商品。</li>\n<li><strong>库存不足</strong>：仅查看当前库存量 <strong>&lt; 最低库存</strong> 的商品。</li>\n<li><strong>库存较低</strong>：查看当前库存量 <strong>&lt; 安全库存</strong> 的商品（此结果包含“库存不足”的商品）。</li>\n<li><strong>库存过多</strong>：查看当前库存量 <strong>&gt; 最高库存</strong> 的商品。</li>\n</ul>\n<ol start=\"2\">\n<li><strong>按其他条件筛选</strong>\n您还可以结合<strong>商品类别</strong>、<strong>仓库</strong>（若已启用多仓库）和<strong>供应商</strong>进行筛选。</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/c31d4c69a483470beda234ba1a6a5bc8.png\" alt=\"库存预警筛选功能\"></p>\n<ol start=\"3\">\n<li><strong>快速补货</strong>\n点击右上角「<strong>去进货</strong>」，可快速发起补货操作：</li>\n</ol>\n<ul>\n<li><strong>选择补货方式</strong>：切换为「补货至安全库存」或「补货至最高库存」（默认为“补货至安全库存”）。</li>\n<li><strong>勾选商品与调整数量</strong>：系统默认带入已筛选的预警商品（若未筛选，则带入“库存不足”和“库存较低”的商品），并自动计算建议补货量，您也可手动调整。</li>\n<li><strong>完成补货</strong>：确认后，点击「生成进货预订」或「生成进货单」并保存单据即可。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/56e2d4cf66dc2e773ecdbff7516e39f8.png\" alt=\"去进货功能入口\"></p>\n<hr>\n<p><strong>💡 温馨提示：</strong></p>\n<p>只有已设置库存预警并且当前库存达到预警条件的商品，才会显示在此页面中。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3381\">「手机端」如何设置库存预警</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4768,
+    "publish_time": "2025-12-18T09:50:45.559Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-18T08:46:31.385Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

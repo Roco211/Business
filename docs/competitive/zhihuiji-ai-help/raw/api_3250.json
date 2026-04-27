@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3250,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店可售库存",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>云店库存展示：</strong> 可售库存=系统库存-锁定库存</p>\n<ul>\n<li>系统库存：系统中商品关联云店仓库的合计库存；</li>\n<li>锁定库存：待接单/待支付/待发货/部分发货订单中的商品数量。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/23966ef7b000aea43c270eae6a92c1be.png\" alt=\"Description\"></p>\n<p><strong>规则如下：</strong>\n1、下单占用锁定库存，继续下单累加锁定库存；\n2、拒绝接单释放，库存自动还原；\n3、发货时，系统库存和锁定库存同时变化，可售库存不变。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2871,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3777,
+    "publish_time": "2025-10-28T03:14:29.127Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-10-28T03:14:29.127Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2871,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

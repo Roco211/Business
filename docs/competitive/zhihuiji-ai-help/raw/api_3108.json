@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3108,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "智慧记迁移智慧记AI进销存相关问题合集",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>问题一：智慧记迁移到智慧记AI进销存主要是迁移哪些数据呢？</strong></p>\n<p>答：数据迁移，是将智慧记中的部分基础数据迁移到智慧记AI进销存或Ailit（国际版），如商品、客户、供应商、结算账号、营业员信息等（暂不支持单据、报表的迁移)</p>\n<p><strong>问题二：智慧记迁移到智慧记AI进销存停用的商品和客户会迁移过去吗？</strong></p>\n<p>答：停用的商品和客户都会迁移到智慧记AI进销存，迁移后智慧记AI进销存里面也是停用状态</p>\n<p><strong>问题三：智慧记迁移到多店版智慧记AI进销存，数据会到哪一个门店呢？</strong></p>\n<p>答：数据会迁移到智慧记AI进销存最开始创建的门店，如果最开始创建的门店停用了就依次往后推</p>\n<p><strong>问题四：如果智慧记AI进销存里面有部分商品和客户信息与智慧记里面重复，迁移会覆盖吗？</strong></p>\n<p>答：不会覆盖，重复的信息不会迁移</p>\n<p><strong>问题五：智慧记迁移到智慧记AI进销存后，商品库存数量一致但库存金额对不上？</strong></p>\n<p>答：智慧记迁移到智慧记AI进销存成本价取的是商品的进货价，而智慧记中的成本是通过移动加权计算出来的，所以会存在一定的差距</p>\n<p><strong>问题六：智慧记迁移到智慧记AI进销存支持更换手机号码吗？</strong></p>\n<p>答：支持。在智慧记点击迁移后输入新的号码即可。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3955,
+    "publish_time": "2026-02-25T02:31:43.006Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-07-29T07:11:24.296Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

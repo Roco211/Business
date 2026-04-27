@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3510,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "AI进销存会员到期后数据是否会被删除?",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存的会员采用年结方式，年结日期为开通付费会员之日起的第365天，智慧科技在会员期限不足30日时，会向您提供续期提醒，如您未在年结日之前续费，则向您提供的增值服务到期将随之取消，智慧科技将提供最长<strong>7个自然日</strong>的免费数据存储服务，您应在7个自然日内将数据和文件迁移到本地或共他信赖处，或者另行付费委托智慧科技代为保管，否则智慧科技有权将相关数据和文件清理。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 108,
+    "publish_time": "2026-04-01T02:53:26.934Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-01T02:53:26.934Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

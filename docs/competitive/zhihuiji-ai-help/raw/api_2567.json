@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2567,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何创建与编辑规格",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/8b4066eb484f0349a21b1dc19ffc41c7.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>操作路径</strong>：【商品】→【规格管理】</p>\n<ol>\n<li><strong>新增规格</strong>：点击【新增规格】，输入名称（如“颜色”）和内容（如“黑”、“白”），完成编辑后点击保存</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e1f9f54bd7959eea59c3256da60c4e50.png\" alt=\"新增规格界面\"></p>\n<ol start=\"2\">\n<li><strong>修改规格</strong>：在规格列表中找到目标规格，点击右侧【修改】按钮，完成编辑后，点击保存</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/094b4e8a06bd8da5e2b49536c83de96d.png\" alt=\"修改规格界面\"></p>\n<p><strong>核心价值</strong>\n统一管理商品属性，一次创建，多处复用。</p>\n<hr>\n<p><strong>关联阅读</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/918\">商品规格管理完整指南</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2612,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7367,
+    "publish_time": "2025-11-17T06:08:00.927Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-02-27T01:20:00.467Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2612,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

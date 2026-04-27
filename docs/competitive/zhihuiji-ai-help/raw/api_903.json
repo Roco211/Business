@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 903,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品图片上传",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>为商品添加图片后，您可以在管理商品、开单、查询库存等多个场景中直观地看到商品图片，有效防止拿错、卖错商品，提升业务准确性。</p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" tabindex=\"-1\">操作路径<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E8%B7%AF%E5%BE%84\" aria-hidden=\"true\"></a></h2>\n<p>【商品】-【商品】- 「新增商品」或「修改」已有商品 -在【基础信息】模块中上传商品图片</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d36f10b887daebe2312f29c854817850.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\" tabindex=\"-1\">操作指南<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E4%B8%8A%E4%BC%A0%E6%96%B9%E5%BC%8F%EF%BC%88%E4%B8%89%E9%80%89%E4%B8%80%EF%BC%89\" tabindex=\"-1\">上传方式（三选一）<a class=\"header-anchor\" href=\"#%E4%B8%8A%E4%BC%A0%E6%96%B9%E5%BC%8F%EF%BC%88%E4%B8%89%E9%80%89%E4%B8%80%EF%BC%89\" aria-hidden=\"true\"></a></h3>\n<p><strong>点击上传：</strong> 点击 + ，从电脑中选择图片文件；</p>\n<p><strong>拖拽上传：</strong> 直接将电脑中的图片文件拖拽到编辑商品页面；</p>\n<p><strong>粘贴上传：</strong> 复制图片后，在编辑商品页面使用 Ctrl+V 粘贴</p>\n<h3 id=\"%E5%9B%BE%E7%89%87%E8%A7%84%E8%8C%83\" tabindex=\"-1\">图片规范<a class=\"header-anchor\" href=\"#%E5%9B%BE%E7%89%87%E8%A7%84%E8%8C%83\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li>\n<p>支持格式：JPG、PNG、GIF</p>\n</li>\n<li>\n<p>建议尺寸：800 * 800像素</p>\n</li>\n<li>\n<p>上传数量：最多 5 张</p>\n</li>\n</ul>\n<h3 id=\"%E6%8E%92%E5%BA%8F%E6%8A%80%E5%B7%A7\" tabindex=\"-1\">排序技巧<a class=\"header-anchor\" href=\"#%E6%8E%92%E5%BA%8F%E6%8A%80%E5%B7%A7\" aria-hidden=\"true\"></a></h3>\n<p>上传后，直接拖拽图片即可调整顺序，第一张图片将作为  <strong>主图</strong> 显示在商品列表等关键位置。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15685,
+    "publish_time": "2025-11-13T01:53:57.497Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-01-14T05:18:09.000Z",
+    "tags": [
+      {
+        "id": 2,
+        "name": "商品"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

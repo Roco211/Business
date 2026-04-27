@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3076,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "账号开单默认信息设置：仓库、收款账户与日期如何带出",
+    "keywords": "",
+    "description": "",
+    "content": "<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/b3b3948fa9b235a125dbca4729c6b725.png\" alt=\"Description\"></p>\n<p>1、首先登录需要带出默认信息的账号，点击设置- -用户偏好设置</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/e7e6b1f1c76679a9773fa1114a3d42d7.png\" alt=\"Description\"></p>\n<p>2、勾选支持默认仓库配置，选择带出仓库。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/cb8b80ef2e08b6af2e4bd93f8ddbd100.png\" alt=\"Description\"></p>\n<p>3、默认收款账户、日期同理。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2635,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4020,
+    "publish_time": "2025-07-11T02:53:59.380Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-07-11T02:37:07.000Z",
+    "tags": [
+      {
+        "id": 1,
+        "name": "系统设置"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2635,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

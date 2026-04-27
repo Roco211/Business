@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2024,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商城使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径：</strong> 左侧导航栏 → 【商城】</p>\n<hr>\n<h2 id=\"%E5%95%86%E5%9F%8E%E6%A6%82%E8%A7%88\" tabindex=\"-1\">商城概览<a class=\"header-anchor\" href=\"#%E5%95%86%E5%9F%8E%E6%A6%82%E8%A7%88\" aria-hidden=\"true\"></a></h2>\n<p>进入商城页面后，可查看：</p>\n<ul>\n<li>当前订阅的<strong>版本</strong>及<strong>有效期</strong></li>\n<li>可订阅的<strong>应用</strong>和<strong>硬件</strong></li>\n</ul>\n<p>点击 <strong>【立即续费】</strong> 可跳转至购买页面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/59ebfda6d82b5dba2a9a335ce1c86f0b.png\" alt=\"商城页面\"></p>\n<hr>\n<h2 id=\"%E6%88%91%E7%9A%84%E6%9C%8D%E5%8A%A1\" tabindex=\"-1\">我的服务<a class=\"header-anchor\" href=\"#%E6%88%91%E7%9A%84%E6%9C%8D%E5%8A%A1\" aria-hidden=\"true\"></a></h2>\n<p>点击 <strong>【我的服务】</strong> ，可查看已订阅的服务，可按状态筛选：</p>\n<ul>\n<li><strong>全部服务</strong></li>\n<li><strong>生效中</strong></li>\n<li><strong>已失效</strong></li>\n</ul>\n<p><strong>操作说明：</strong></p>\n<ul>\n<li>点击右侧 <strong>【详情】</strong> ，可查看购买的订单单号</li>\n<li>点击 <strong>【续费】</strong> ，可跳转至对应服务的购买界面</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/3ae80e161b7c57dc586b73129bb5e79f.png\" alt=\"我的服务\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2130,
+    "status": 2,
+    "recommend": 0,
+    "hits": 6610,
+    "publish_time": "2026-04-22T08:28:16.752Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-01T07:15:11.151Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2130,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

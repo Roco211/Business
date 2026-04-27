@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3208,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品调价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>商品调价，需更新以下两处价格：</p>\n<h2 id=\"%E8%B0%83%E6%95%B4%E5%9F%BA%E7%A1%80%E4%BB%B7%E6%A0%BC\" tabindex=\"-1\">调整基础价格<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E5%9F%BA%E7%A1%80%E4%BB%B7%E6%A0%BC\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 进入 “<strong>商品列表</strong>” ，修改商品的【零售价】、【批发价】等价格资料，用于维护未创建专属报价的新客户；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/61a6d7aa64d89545dc3704876a0af968.png\" alt=\"Description\"></p>\n<p><strong>批量修改商品信息：</strong> 【商品-批量操作-修改商品信息】下载导入模板表格，修改商品价格资料保存，然后再导入到软件里。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/82cdfa49c9f406ec47afb3f3290dae16.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c68fab0353085b68af3ac48b17824b50.png\" alt=\"Description\"></p>\n<h2 id=\"%E8%B0%83%E6%95%B4%E4%B8%93%E5%B1%9E%E4%BB%B7%E6%A0%BC\" tabindex=\"-1\">调整专属价格<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E4%B8%93%E5%B1%9E%E4%BB%B7%E6%A0%BC\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 进入“<strong>客户-报价管理</strong>”调整最新报价，用于维护已购买过的老客户。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/189dd04a3a57d95c7751ea4815dc46de.png\" alt=\"Description\"></p>\n<p><strong>批量导入改价：</strong> 【报价管理-导入改价】下载导入模板表格，修改最新报价保存，然后再导入到软件里。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/81b0e69299270b595ee37ba9333fd7bb.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/e09b2e8208b5bd1ac8b9be22258c649b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/6a1a4fbdfb395aedfa81669111983672.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong> 仅支持修改导出的报价再导入回去，不能新增报价。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2678,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3855,
+    "publish_time": "2025-11-19T01:25:58.595Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-09-29T01:20:14.756Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2678,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

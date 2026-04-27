@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2825,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何设置不同营业员开单默认仓库和门店？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>场景：</strong> 一个门店一个仓库，两个营业员，需要营业员1开单选择商品默认门店库存、营业员2开单选择商品默认仓库库存。</p>\n<p><strong>操作方法：</strong>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/9ed3b3ca5039ed2be4beaa7f927f36ab.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/f0f329bc495ac22ba236ab32a763d5cb.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/39df419bfd2c3f68f34e9776183c0753.png\" alt=\"Description\"></p>\n<p>这样设置好之后营业员1开单商品就是默认门店库存，营业员2开单商品就是默认仓库库存\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/c35fe62abcb1c3eb45a4bf65685b4887.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/3ee76d220a1bcd9b34992bf0f13cd1cd.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2632,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5086,
+    "publish_time": "2024-08-20T09:33:26.054Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-08-20T09:32:05.958Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2632,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

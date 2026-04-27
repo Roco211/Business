@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3217,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "横向打印销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/1a073a42e3396604957f6cb30a77f629.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/3469e41ab7ea8b82c7413a045610f5eb.png\" alt=\"Description\"></p>\n<p>受打印机进纸限制，横向打印操作步骤如下：</p>\n<p>1、进入打印模板编辑界面，先将【纸张类型】选择<strong>A4</strong></p>\n<p>3、旁边的【宽高】栏，手动输入<strong>实际纸张尺寸</strong></p>\n<p>3、在【打印设置-打印方向】中，勾选“<strong>横向</strong>”</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/24dd89cf71837f8e3cea1a7209db9dbb.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202509/5bbe073b33783a6477cc66519651e533.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3745,
+    "publish_time": "2025-09-30T06:12:44.961Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-09-30T06:11:30.565Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

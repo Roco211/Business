@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 889,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户关联业务员教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/9802119dc77ea4d9ffa4a727fd69224c.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n操作演示视频\n</video></p>\n<blockquote>\n<p><strong>说明</strong>：启用关联业务员后，员工只能查看已关联自己的客户，老板可查看所有客户。</p>\n</blockquote>\n<p><strong>适用场景</strong>：控制哪些客户允许哪些业务员销售。</p>\n<hr>\n<h2 id=\"%E5%90%AF%E7%94%A8%E5%85%B3%E8%81%94%E4%B8%9A%E5%8A%A1%E5%91%98\" tabindex=\"-1\">启用关联业务员<a class=\"header-anchor\" href=\"#%E5%90%AF%E7%94%A8%E5%85%B3%E8%81%94%E4%B8%9A%E5%8A%A1%E5%91%98\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【设置】→【系统设置】→ 勾选 <strong>【启用关联业务员】</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/399268ac3406c1608a59df8459407ffc.png\" alt=\"系统设置\"></p>\n<hr>\n<h2 id=\"%E4%B8%BA%E5%AE%A2%E6%88%B7%E5%85%B3%E8%81%94%E5%91%98%E5%B7%A5\" tabindex=\"-1\">为客户关联员工<a class=\"header-anchor\" href=\"#%E4%B8%BA%E5%AE%A2%E6%88%B7%E5%85%B3%E8%81%94%E5%91%98%E5%B7%A5\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【客户】→ 找到目标客户 → 【修改】→ 【关联业务员】</p>\n<blockquote>\n<p><strong>注意</strong>：只能将客户关联给已添加到店铺中的<strong>用户</strong>或<strong>业务员</strong>。</p>\n</blockquote>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/44a30eb73a0a7aee2a5f98c58070e88b.png\" alt=\"关联业务员\"></p>\n<hr>\n<h2 id=\"%E6%89%B9%E9%87%8F%E6%9B%B4%E6%94%B9%E5%85%B3%E8%81%94%E4%B8%9A%E5%8A%A1%E5%91%98\" tabindex=\"-1\">批量更改关联业务员<a class=\"header-anchor\" href=\"#%E6%89%B9%E9%87%8F%E6%9B%B4%E6%94%B9%E5%85%B3%E8%81%94%E4%B8%9A%E5%8A%A1%E5%91%98\" aria-hidden=\"true\"></a></h2>\n<p><strong>业务场景</strong>：需要大量关联客户时，使用批量操作减少工作量。</p>\n<p><strong>路径：</strong> 【客户】→ 勾选目标客户 → 【批量操作】→ 【更改关联业务员】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/088995446612aff579654b700db86d82.png\" alt=\"批量更改关联业务员\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16882,
+    "publish_time": "2026-04-17T08:20:08.659Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2108-12-25T06:13:22.000Z",
+    "tags": [
+      {
+        "id": 22,
+        "name": "客户列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

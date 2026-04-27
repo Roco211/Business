@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1488,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "商品套餐操作教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>当您有需要将商品组合销售时，如新品和畅销品组合、临期商品组合、节日活动套餐等；</p>\n<p>这时候可以使用智慧记AI进销存的<strong>商品套餐</strong>功能，在开单时能够快速选择，提高开单效率。以下为商品套餐操作教程</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/06f68cfd8163d39feb98dd9db8fbb40f.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>新增套餐</strong>：</p>\n<p><strong>第一步，进入【商品】-【套餐】-【新增套餐】</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/f03be06f42a7209ddf2edada745eaf68.png\" alt=\"Description\"></p>\n<p><strong>第二步，添加套餐的信息</strong></p>\n<p>（1）基本信息：如名称、条码、商品类别、图片。注意：套餐没有单位、规格；</p>\n<p>（2）套餐组成：添加该套餐的组成商品，支持手动和扫码添加。不允许添加批次商品和其他套餐；</p>\n<p>（3）套餐定价：根据套餐组成中的商品参考价来定价，其中零售价和批发价必填，为空不能保存；</p>\n<p>（4）套餐使用逻辑：保存后，商品库存不会直接减少；开单后，自动扣减库存中的商品；</p>\n<p><strong>套餐查询和修改</strong>：</p>\n<p><strong>操作路径：【商品】-【套餐】-【查看】/【修改】/【停用】/【删除】</strong></p>\n<p>（1）套餐查询：右上角搜索框支持根据套餐名称、条码、备注进行搜索</p>\n<p>（2）删除：套餐允许删除，删除后已保存单据中信息不变；删除后开单时无法找到该套餐</p>\n<p>（3）修改：未开单套餐允许修改所有资料，已开单套餐不允许修改套餐组成</p>\n<p>（4）停用：停用后开单时无法找到该套餐</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/c830231f05136e6e379c0329c9b62cd7.png\" alt=\"Description\"></p>\n<p><strong>套餐开单</strong>：</p>\n<p>支持套餐开单的单据包括：销售订单、销售单和销售退货单，<strong>开单时选择套餐的方式和选择商品一致</strong>，支持搜索框和弹窗中选择套餐。</p>\n<p>以销售单为例，操作路径：【销售】-【新增销售单】-【选择商品套餐】</p>\n<p>（1）套餐中点击【详情】可查看组成该套餐的商品</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/073e3c6d005d7b8240f74dd6a35a9265.png\" alt=\"Description\"></p>\n<p>（2）选择数量，库存会直接扣减单据中<strong>组成套餐的商品库存</strong></p>\n<p><strong>注意，套餐不支持在报表中查询</strong></p>\n<p><strong>打印模板</strong>：</p>\n<p>打印模板【表格信息】新增【套餐组成】字段，需要手动勾选</p>\n<p><strong>操作路径：【设置】-【基础设置】-【打印设置】，找到需要添加套餐的模板类型，点击进入【编辑打印模板】，勾选【套餐组成】</strong></p>\n<p>勾选后，打印出的套餐组成和单据中一致，即为组成单个套餐的商品、规格、数量</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/2453cc06937ad4111a85971d1e6d84ca.png\" alt=\"Description\">\n<strong>套餐权限</strong>：</p>\n<p><strong>操作路径：【设置】-【角色权限】-【修改】-【功能权限】-【商品】-【套餐】，选择需要的权限</strong></p>\n<p>注意：店长角色默认勾选该权限，其他角色默认不勾选</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202410/2deb5ddd27ae7aba094aa533efe3a199.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2617,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15959,
+    "publish_time": "2024-12-06T08:48:26.677Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2109-12-30T06:34:32.000Z",
+    "tags": [
+      {
+        "id": 64,
+        "name": "新增套餐"
+      },
+      {
+        "id": 65,
+        "name": "套餐列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2617,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

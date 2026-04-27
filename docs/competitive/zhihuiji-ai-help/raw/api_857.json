@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 857,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "查找、隐藏和停用供应商",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>查找供应商</strong></p>\n<p><strong>路径</strong>：【进货】-【供应商】</p>\n<p>进入该页面，可看到所有的供应商名录；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/345d34706f04afe6382d009e7d89fc9b.png\" alt=\"\"></p>\n<p>右上角有个”查询“按钮，可以输入供应商名称，联系人，手机号以及备注信息来查找；</p>\n<p>如输入联系人姓名”黄“，可出现对应的供应商。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/fdb71231ce7db8da3a48dcc02bd042bd.png\" alt=\"\"></p>\n<p><strong>隐藏停用供应商</strong></p>\n<p><strong>路径</strong>：【进货】-【供应商】</p>\n<p>如有近期不再从那里进货的供应商，可以先做停用处理。</p>\n<p>然后勾选左上角的”隐藏停用供应商“，那么在供应商列表中就不会再出现</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/ab87b62dd0b94153a0a6b5dc3adc3475.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2599,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15924,
+    "publish_time": "2023-11-17T07:08:02.271Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2107-12-28T08:49:21.000Z",
+    "tags": [
+      {
+        "id": 42,
+        "name": "供应商列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2599,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

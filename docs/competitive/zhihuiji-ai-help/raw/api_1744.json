@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1744,
+    "type": "help",
+    "format": "html",
+    "alias": "",
+    "title": "批量打印销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>业务场景</strong>：</p>\n<p>场景1：客户前一天在家或用手机开单，第二天到店统一打印多张单据，方便快速配货。</p>\n<p>场景2：客户为按月结算时，统一打印当月单据，快速找到欠款单据并给客户核对。</p>\n<p>操作步骤：销售单列表，勾选单据后，点击【批量打印】，即可在打印弹窗可选择打印模板、打印机、设置打印份数。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/a264639fe7e81f11cc1c2f38dd49d319.jpg\" alt=\"\"></p>\n<p>点击预览可以预览每一份销售单的内容。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/1d19dc4a1a25526cc58137e61b6b3720.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9733,
+    "publish_time": "2023-06-19T08:58:38.417Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-05T09:54:16.203Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

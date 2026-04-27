@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1442,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "邀请员工&设置角色权限",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/4f904a93e57c2a250d7c0f8889957b87.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n邀请员工&amp;设置角色权限教学视频\n</video></p>\n<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>想让员工帮忙开单，又有敏感信息不能让员工看到？<br>\n<strong>只需两步：先设权限，再邀请员工。</strong></p>\n<hr>\n<h2 id=\"%E2%9A%99%EF%B8%8F-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E5%88%9B%E5%BB%BA%E8%A7%92%E8%89%B2\" tabindex=\"-1\">⚙️ 第一步：创建角色<a class=\"header-anchor\" href=\"#%E2%9A%99%EF%B8%8F-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E5%88%9B%E5%BB%BA%E8%A7%92%E8%89%B2\" aria-hidden=\"true\"></a></h2>\n<p>路径：【设置】→【角色权限】→【新增角色】</p>\n<p>① <strong>填角色名称</strong><br>\n比如：销售员、仓管、店长</p>\n<p>② <strong>勾权限</strong>  <br>\n✅ <strong>勾选能用的功能</strong>（例：销售）  <br>\n❌ <strong>不想给的不勾</strong>（例：进货、库存）</p>\n<p>③ <strong>设敏感数据</strong>  <br>\n✅ <strong>想看的权限才勾</strong>，不想给员工看的 <strong>不勾</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/c3bf98e8299b4a3117c4f32a8fc986c3.png\" alt=\"新增角色\"></p>\n<hr>\n<h2 id=\"%F0%9F%91%A5-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E9%82%80%E8%AF%B7%E5%91%98%E5%B7%A5%EF%BC%88%E6%89%AB%E7%A0%81%E5%8A%A0%E5%85%A5%EF%BC%89\" tabindex=\"-1\">👥 第二步：邀请员工（扫码加入）<a class=\"header-anchor\" href=\"#%F0%9F%91%A5-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E9%82%80%E8%AF%B7%E5%91%98%E5%B7%A5%EF%BC%88%E6%89%AB%E7%A0%81%E5%8A%A0%E5%85%A5%EF%BC%89\" aria-hidden=\"true\"></a></h2>\n<p>路径：【设置】→【员工管理】→【新增用户】</p>\n<p>① <strong>填信息</strong><br>\n👤 姓名 | 📱 手机号 | 🏷️ 选角色（刚才建的） | 🏬 选门店<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/ac72afe16ee7ac72d8f3359574dc25b5.png\" alt=\"\"></p>\n<p>② <strong>扫码接受</strong><br>\n点击确定后，让员工 <strong>微信扫码</strong> → 登录 → 点击「确定加入」<br>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/2d09fed90ccce353c1cf7d714ce48d81.png\" alt=\"\"></p>\n<p>③ <strong>开始使用</strong><br>\n📱 员工用手机号+验证码登录 <strong>手机/电脑端</strong><br>\n🔒 <strong>只能操作你给权限的功能与数据，看不到无权限的功能与敏感数据</strong>\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202603/cf401b84e8e1926bb45fa587f10be119.jpg\" alt=\"登录页面\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2632,
+    "status": 2,
+    "recommend": 0,
+    "hits": 19581,
+    "publish_time": "2026-03-10T09:25:08.523Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2026-03-10T03:45:54.000Z",
+    "tags": [
+      {
+        "id": 38,
+        "name": "角色权限"
+      },
+      {
+        "id": 59,
+        "name": "员工管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2632,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

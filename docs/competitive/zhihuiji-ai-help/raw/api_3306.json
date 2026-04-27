@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3306,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店商品标签使用指南",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/6cb8644b4c9d2e19526f6c3568174307.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>云店商品标签功能，支持您为商品打上自定义标签（如“清仓专区”、“爆款推荐”），从而在云店首页（专属版）或选购页中，灵活配置并展示这些带标签的商品，打造个性化的营销专区。</p>\n<p><strong>请注意</strong>：本功能仅对已开通云店的用户开放。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/0b951917d5ffb0e742eb50e98ede1a0c.jpg\" alt=\"云店商品标签功能路径与选购页预览\"></p>\n<h2 id=\"%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B\" tabindex=\"-1\">使用流程<a class=\"header-anchor\" href=\"#%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86%E6%A0%87%E7%AD%BE\" tabindex=\"-1\">创建与管理标签<a class=\"header-anchor\" href=\"#%E5%88%9B%E5%BB%BA%E4%B8%8E%E7%AE%A1%E7%90%86%E6%A0%87%E7%AD%BE\" aria-hidden=\"true\"></a></h3>\n<p><strong>新建标签并添加商品</strong></p>\n<ul>\n<li><strong>操作路径</strong>：【商品】-【云店商品标签】</li>\n<li>点击 <strong>【新增商品标签】</strong>。</li>\n<li>输入标签名称，并直接选择需要加入该标签的商品。</li>\n<li>点击 <strong>【确定】</strong> 完成创建。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/7286149bec9d764384d16b01edd7d8d0.png\" alt=\"新增商品标签按钮位置\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f65ae86ed5fddf0ab72db2abd4fe1bb3.png\" alt=\"输入商品标签名称弹窗\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/a20ef066de5f6ab097dd9437dcefd786.png\" alt=\"选择要加入标签的商品\"></p>\n<p><strong>管理已创建的标签</strong></p>\n<p>在标签列表中，可对已有标签进行 <strong>【编辑】</strong>（修改名称）或 <strong>【删除】</strong> 操作。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/bc1f92eeb1fa1fd1cba8c10e793d859a.png\" alt=\"编辑与删除标签按钮位置\"></p>\n<h3 id=\"%E7%AE%A1%E7%90%86%E6%A0%87%E7%AD%BE%E4%B8%8E%E5%95%86%E5%93%81%E7%9A%84%E5%85%B3%E8%81%94\" tabindex=\"-1\">管理标签与商品的关联<a class=\"header-anchor\" href=\"#%E7%AE%A1%E7%90%86%E6%A0%87%E7%AD%BE%E4%B8%8E%E5%95%86%E5%93%81%E7%9A%84%E5%85%B3%E8%81%94\" aria-hidden=\"true\"></a></h3>\n<p><strong>单个商品设置/修改标签</strong></p>\n<ul>\n<li><strong>操作路径</strong>：【商品】-【商品】</li>\n<li>在新增或修改商品时，于编辑页面直接选择 <strong>云店商品标签</strong>。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/d47473823e26f541108e3df79c2136bb.png\" alt=\"单个商品编辑页面选择标签\"></p>\n<p><strong>批量修改商品标签</strong></p>\n<p>（1）在商品列表，勾选目标商品或利用查询条件筛选。</p>\n<p>（2）点击 <strong>【批量操作】</strong> -&gt; <strong>【修改云店商品标签】</strong>。</p>\n<p>（3）在弹窗中：</p>\n<p>选择 <strong>【批量添加标签】</strong> 或 <strong>【批量删除标签】</strong>。</p>\n<p>可选择已创建的标签，或直接 <strong>【新增商品标签】</strong>。</p>\n<p>（4）点击 <strong>【确认】</strong> 完成。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/c014f8ab7edafc9f71862f6e8c60bcac.png\" alt=\"批量修改路径\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/885ca18cd42efd943ca4fd78bfe256c8.png\" alt=\"批量修改标签操作弹窗\"></p>\n<p><strong>按标签查询商品</strong></p>\n<p>在商品列表，支持通过 <strong>云店商品标签</strong> 条件筛选查看商品，商品列表页也会展示商品已关联的标签。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/9d0eb458863e9e7b915bf076e6555594.png\" alt=\"按商品标签筛选与列表展示\"></p>\n<h3 id=\"%E5%9C%A8%E5%BA%97%E9%93%BA%E4%B8%AD%E5%B1%95%E7%A4%BA%E6%A0%87%E7%AD%BE%E5%95%86%E5%93%81\" tabindex=\"-1\">在店铺中展示标签商品<a class=\"header-anchor\" href=\"#%E5%9C%A8%E5%BA%97%E9%93%BA%E4%B8%AD%E5%B1%95%E7%A4%BA%E6%A0%87%E7%AD%BE%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p><strong>在选购页展示</strong></p>\n<p>对指定标签启用 <strong>【选购页展示】</strong> 后，该标签及其商品将展示在云店选购页的顶部。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/564c32456e6bf6662bc93a318be9df59.jpg\" alt=\"选购页展示设置开关与预览效果\"></p>\n<p><strong>在首页展示（仅限云店专属版）</strong></p>\n<p>在进行 <strong><a href=\"https://www.zhihuiji.cn/help/doc/3304\">首页装修</a></strong> 时，您可以通过以下方式展示标签商品：</p>\n<ul>\n<li>在海报或导航组件中，设置跳转到指定的标签页面。</li>\n<li>添加 <strong>“商品”</strong> 或 <strong>“商品分组”</strong> 组件，选择按 <strong>“标签”</strong> 展示对应专区的商品。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/889ec52dc4c7be19f95218c53dc76fe6.jpg\" alt=\"首页装修时选择标签与预览效果\"></p>\n<h3 id=\"%E8%B0%83%E6%95%B4%E6%A0%87%E7%AD%BE%E5%95%86%E5%93%81%E6%8E%92%E5%BA%8F\" tabindex=\"-1\">调整标签商品排序<a class=\"header-anchor\" href=\"#%E8%B0%83%E6%95%B4%E6%A0%87%E7%AD%BE%E5%95%86%E5%93%81%E6%8E%92%E5%BA%8F\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li><strong>操作路径</strong>：【云店】-【云店商品排序】</li>\n<li>选择目标标签后，可对其下的商品进行<strong>拖拽排序</strong>，或使用 <strong>【置顶】</strong>、<strong>【置底】</strong> 功能快速调整顺序。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/8ad2bbb1bab82ec5db5e0ec6a6fd62de.png\" alt=\"云店商品排序功能路径与操作界面\"></p>\n<hr>\n<p><strong>关联阅读：</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3304\">云店首页装修（仅限专属版）</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/2890\">如何设置云店选购页</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2949,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3627,
+    "publish_time": "2026-01-05T07:25:46.849Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-18T06:24:53.526Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2949,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

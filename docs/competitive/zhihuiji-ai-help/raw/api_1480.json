@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1480,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」库存查询",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>库存查询操作路径</strong>：首页【库存查询】→ 可以选择【库存查询】和【保质期查询】。</p>\n<p>在【库存查询】页面点商品名称，可以查询商品的【库存分布】和【库存流水】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/693fb08663a058f59cf141efcdab99c3.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10634,
+    "publish_time": "2026-01-06T05:54:17.115Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2022-07-18T06:43:34.607Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3062,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么供应商累计欠款与进货单待付金额不一致？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>供应商累计欠款与进货单待付金额不一致：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/c9271c342710b0a2965bab0bf4ae5ad9.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/60ecd5368a94e60f336e4aa272095a4c.png\" alt=\"Description\"></p>\n<p>原因是：<strong>供应商列表的供应商欠款=供应商对账单累计欠款=供应商初始欠款+进货单待付金额-进货退货单待付金额-付款单中未按单付款的金额+调整单调整的金额</strong>（注：未启用「客户/供应商双身份」）</p>\n<p>供应商累计欠款与进货单待付金额不一致可检查以下页面：</p>\n<p>1、供应商详情检查是否有初始欠款</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/47fcde5177ac77607c010834f82e31a8.png\" alt=\"Description\"></p>\n<p>2、进货退货单是否有待付金额，该金额为负数，需从供应商欠款中减去该负数，即欠款金额会增加</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/d20d9358d04d237091ad1528c37a12f3.png\" alt=\"Description\"></p>\n<p>3、付款单未按单付款的金额，有两种情况：</p>\n<p>①单据是直接付款，未关联单据，那么付款的金额需从欠款金额减去；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/8d051ac9058685941439f8691f2c545c.png\" alt=\"Description\">\n②单据是按单付款，已关联单据，但是付的金额大于单据合计金额，那么多出来的钱也需从欠款中减去</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/0a137a821a2f8e768fc9a3d897e37152.png\" alt=\"Description\"></p>\n<p>4、调整单：通过供应商详情可以直接调整欠款金额，会生成调整单</p>\n<p>可以在供应商对账单明细中，查找“调整单”类型的记录，欠款金额为正数就是增加欠款，负数就是减少欠款</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/c6d26869d75e6bf582e93e94dddba580.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/22d1a570b4e99155c73896f740eec9b5.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2599,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3940,
+    "publish_time": "2025-06-27T09:11:17.424Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-26T02:51:39.367Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2599,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

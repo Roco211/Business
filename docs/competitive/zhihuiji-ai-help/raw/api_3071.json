@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3071,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何设置员工登录后查看到的销售额仅统计员工自己的单据？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>设置员工登录后查看到的销售额仅统计员工自己的单据，且不希望员工能查看到其他员工单据的统计数据，可以在设置-角色权限，编辑员工的角色权限时：</p>\n<p>1、敏感数据中，不勾选「查看其他用户的销售单」，勾选「查看首页关键数据」\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/8b3c2c82b1ee510277297d079e9bb9d8.png\" alt=\"Description\"></p>\n<p>2、分析模块不勾选权限\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/2bcda0c8848f8ca554718666a734e120.png\" alt=\"Description\"></p>\n<p>按以上设置后，员工登录智慧记AI进销存APP，可以通过更多-经营概况，查看到根据员工自己作为业务员的单据统计到的销售额、笔数、毛利数据，且不能看到其他员工单据的统计数据\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202507/a1d1d9de54c21c62bad34b723c3cb7e3.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2633,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4025,
+    "publish_time": "2025-07-08T09:08:36.488Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-07-08T08:37:14.846Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2633,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3410,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "负出库成本规则",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>库存统计报告：期初金额 + 新增金额  - 减少金额 ≠ 期末金额</strong></p>\n<p><strong>解决方案：</strong> 检查负出库记录，由于负出库成本算法跟正出库不一致，等式无法成立。建议不要负出库，可以把进货单日期调整到前面日期。</p>\n<p><strong>正出库成本规则：</strong> 默认取上次进货后的库存结余成本，无进货则取商品初始成本价；</p>\n<p><strong>负出库成本规则：</strong> 补货不会影响此前成本，仍默认取最新进货的结余成本；补货时库存变0，则默认补货单价为此时结余成本。</p>\n<p><strong>例：新增金额16元，减少金额10元，期末金额8元</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/7a3511c8173ca6be62e0447fb9386d86.png\" alt=\"Description\"></p>\n<p><strong>负库存时补货：</strong> 最新进货成本1元 * 结余数量8 = 结余金额8元，此时等式不成立。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/b3a718ad94e20b19b3e6477965346adf.png\" alt=\"Description\"></p>\n<p><strong>调整进货单日期，改成非负出库：</strong> 上次进货后的库存结余成本1.231..元 * 结余数量8 = 结余金额约9.846元，此时等式成立。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/e6fe2149236a81fce1dc96a8ac7e0266.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2681,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3246,
+    "publish_time": "2025-12-31T00:47:15.385Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-30T09:22:45.681Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2681,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

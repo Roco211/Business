@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2688,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "APP商城",
+    "keywords": "",
+    "description": "",
+    "content": "<p>操作路径：点击左上角的个人中心-立即续费，可以选择版本订阅，购买增值服务和硬件。还可以点击订单记录查看购买过的订单信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202403/2b59b059656f5475d7c61a6ac5a08343.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202403/6973324a0f206140059675968d5ea7c2.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2726,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4849,
+    "publish_time": "2024-04-09T05:57:46.802Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-09T05:57:46.802Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2726,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

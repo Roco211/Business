@@ -1,0 +1,42 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2863,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "删除已发生业务的商品",
+    "keywords": "",
+    "description": "",
+    "content": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/bcc204601578af42b53530867779c57f.mp4",
+    "is_video": 1,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/30e9c0804d2a6961dc45a806f0448c28.jpg",
+    "category_id": 1826,
+    "status": 2,
+    "recommend": 0,
+    "hits": 2736,
+    "publish_time": "2024-12-20T02:20:56.224Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-12-11T02:00:41.249Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1826,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

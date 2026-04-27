@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2107,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "进货后快速修改商品售价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>场景：进货价波动时，快速调整售价，避免亏本销售。</p>\n<p>（1）操作路径：点击库存-进货-新增进货单-保存，当进货价格有发生改变，保存成功的界面会显示多少个商品的进货价发生变化，点击调整售价按钮可以进入到调整售价界面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/5a9e2dabb6f0502ecddd6044b575876b.png\" alt=\"Description\"></p>\n<p>（2）进入到调整售价界面，会显示每个商品的进货价比上次的进货价增加或者降低了多少，点击改售价按钮可以进入到改售价界面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/411930792ea2c1b74f525a9c7303bc39.png\" alt=\"Description\"></p>\n<p>（3）进入到改售价界面，可以修改每个价格等级的售价，会显示原来每个价格等级的售价供参考。修改好价格点击确定，然后再点击保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/e14d907ab9160da28cc95eb64e321f1c.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2865,
+    "status": 2,
+    "recommend": 0,
+    "hits": 7403,
+    "publish_time": "2024-04-09T06:48:56.940Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-15T02:15:59.395Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2865,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

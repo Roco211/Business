@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2815,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店商品分享",
+    "keywords": "",
+    "description": "",
+    "content": "<p>方式一：点击要分享的商品详情--右上角小箭头--分享当前图片到\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/74a1563164afe7acb49da7d410f20326.png\" alt=\"Description\"></p>\n<p>方式二：点击商品中间的小箭头，如下图所示：\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202408/506bb3556d0dcf6b24ac8e68b05f01cb.png\" alt=\"Description\"></p>\n<p><strong>使用场景：</strong>\n1.客户不知道订什么货，为客户定向推荐商品；\n2.新品上市/促销商品，分享到朋友圈进行推广，吸引客户下单；\n3.想推荐商品给同行/朋友，带来业绩增长。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2873,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4904,
+    "publish_time": "2024-08-13T06:14:10.504Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-13T06:09:29.000Z",
+    "tags": [
+      {
+        "id": 139,
+        "name": "云店"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2873,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

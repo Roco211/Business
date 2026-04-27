@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 961,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "供应商账单使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>供应商对账</strong></p>\n<p><strong>路径</strong>：【分析】-【供应商对账】</p>\n<p>可以筛选单据日期、门店、供应商进行查询。</p>\n<p>该功能主要针对的是进货已开单、但未付款的业务场景，可以得知还有多少款项未支付。</p>\n<p>点击“明细”，可以看到当前的欠款是如何产生的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/cad271fb404b05716a2dc2e5751bb92e.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202312/d9a464df2c722da08560cf0972e3e7af.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2627,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15064,
+    "publish_time": "2023-12-04T03:38:02.453Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2021-05-17T08:17:35.881Z",
+    "tags": [
+      {
+        "id": 56,
+        "name": "应付对账单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2627,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

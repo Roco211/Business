@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2857,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "更换手机号时提示“账号已存在”怎么办？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>适用场景</strong>：当老板或营业员更换绑定手机号时，系统提示“该账号已存在”。</p>\n<p><strong>解决步骤</strong>：请按照以下流程操作：</p>\n<ol>\n<li><strong>下载并登录</strong>：在手机上打开<strong>智慧记AI进销存</strong>App，使用<strong>需要被绑定的新手机号</strong>登录。</li>\n</ol>\n<p>⚠️<strong>重要提示</strong>：此步骤是登录<strong>那个提示“已存在”的新号码账号</strong>，而非您当前正在使用的老账号。</p>\n<ol start=\"2\">\n<li><strong>账号注销</strong>：【我的】→【个人信息】→【账号注销】，仔细阅读提示后确定注销。</li>\n</ol>\n<p>🚨<strong>风险警告</strong>：账号注销是不可逆的。一旦注销，该账号下的所有数据（包括但不限于单据记录、客户信息等）将<strong>永久清空且无法恢复</strong>，请务必谨慎操作。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/f3c3c7573f5f03bcd52953fd38526cbf.png\" alt=\"Description\"></p>\n<ol start=\"3\">\n<li><strong>返回更换</strong>：成功注销新号码账号后，请返回您最初需要操作的设备（老板或营业员的老账号），重新进行更换手机号的操作即可。</li>\n</ol>\n<p><strong>核心建议</strong></p>\n<ul>\n<li><strong>优先选择未注册号码</strong>：在更换手机号时，尽量直接使用一个全新的、未在智慧记AI进销存注册过的手机号，可避免此问题。</li>\n<li><strong>评估账号价值</strong>：在注销前，请务必确认该手机号对应的账号内<strong>是否开通了会员</strong>。<strong>强烈建议不要注销含有会员权益的账号</strong>，以免造成财产损失。</li>\n<li><strong>确认操作对象</strong>：操作全程请清晰区分<strong>当前老账号</strong>和<strong>待注销的新号码账号</strong>，切勿误登录、误注销。</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2588,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4608,
+    "publish_time": "2026-01-04T09:06:45.131Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-11-21T02:34:09.356Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2588,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3266,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "成本调整",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>使用场景：</strong> 当库存商品的账面成本与实际成本发生重大差异，并且无法通过调整历史单据来修改</p>\n<p>1.盘点盈亏（库存残次/变质/过期）</p>\n<p>2.商品调价，对于时尚品、电子产品、生鲜等，市场价或公允价值持续下跌，且预计难以恢复</p>\n<p><strong>操作步骤：</strong> 分析--库存统计--成本明细--成本调整</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b675da4383313988c9ed987bd211c8d8.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/b91b39f3f9b21ff8c7b8c4ce72359096.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong></p>\n<p>1.成本调整需要一段时间才能生效，调整后请稍后查看</p>\n<p>2.成本调整操作后不可撤回，请谨慎操作</p>\n<p>3.成本调整是调整当时的成本，不会影响商品以前的成本</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2645,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3799,
+    "publish_time": "2025-11-04T03:00:45.550Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-04T02:57:44.318Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2645,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

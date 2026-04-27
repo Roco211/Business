@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2108,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」商品查价",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【商品查价】→ 选择客户 → 输入商品名称</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/7df03c214209f004181e33ae00b7b068.png\" alt=\"商品查价路径\"></p>\n<p><strong>查询结果展示：</strong></p>\n<ul>\n<li><strong>建议售价</strong>：系统推荐价格</li>\n<li><strong>等级售价</strong>：该商品各价格等级对应价格</li>\n<li><strong>历史记录</strong>：该商品近期的销售和进货记录</li>\n</ul>\n<p><strong>💡 适用场景：</strong></p>\n<p>客户现场询价时，快速查询商品价格并报给客户。</p>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1260\">「手机端」如何开销售单</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1479\">「手机端」如何设置并使用抹零</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2110,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9072,
+    "publish_time": "2025-12-05T09:31:53.440Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-08-15T02:19:53.409Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2110,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

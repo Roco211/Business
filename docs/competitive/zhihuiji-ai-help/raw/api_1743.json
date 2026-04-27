@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1743,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "打印报价单",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作步骤：</strong></p>\n<p>1.设置-打印设置-设置报价单的打印模板。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/0a486ddd8e53c59d5c79c3380f979ca6.jpg\" alt=\"\"></p>\n<p>2.开报价单界面底部有保存后打印的按钮，勾选后保存单据后会自动打印，默认是不勾选的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/ef911915c17b9421fc76968dd30f7738.jpg\" alt=\"\"></p>\n<p>3.查看报价单，右上角点击打印，然后选择打印模板，可以点击预览或者点打印。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/a8be16d690e9f2bfdcbb42713dd2d8c5.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2596,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9405,
+    "publish_time": "2023-07-06T03:09:23.254Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-05T09:47:02.153Z",
+    "tags": [
+      {
+        "id": 46,
+        "name": "报价单列表"
+      },
+      {
+        "id": 74,
+        "name": "报价"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2596,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

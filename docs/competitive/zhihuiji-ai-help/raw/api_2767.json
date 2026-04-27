@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2767,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店上架商品",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%9C%A8%E6%99%BA%E6%85%A7%E8%AE%B0ai%E8%BF%9B%E9%94%80%E5%AD%98%E5%95%86%E5%93%81%E6%A8%A1%E5%9D%97%E6%94%AF%E6%8C%81%E5%8D%95%E7%8B%AC%E4%B8%8A%E6%9E%B6%2F%E6%89%B9%E9%87%8F%E4%B8%8A%E6%9E%B6\" tabindex=\"-1\">在智慧记AI进销存商品模块支持单独上架/批量上架<a class=\"header-anchor\" href=\"#%E5%9C%A8%E6%99%BA%E6%85%A7%E8%AE%B0ai%E8%BF%9B%E9%94%80%E5%AD%98%E5%95%86%E5%93%81%E6%A8%A1%E5%9D%97%E6%94%AF%E6%8C%81%E5%8D%95%E7%8B%AC%E4%B8%8A%E6%9E%B6%2F%E6%89%B9%E9%87%8F%E4%B8%8A%E6%9E%B6\" aria-hidden=\"true\"></a></h2>\n<p>并且支持上架套餐</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202405/fff49e833d827147c6b118f14bf55084.png\" alt=\"Description\"></p>\n<h2 id=\"%E7%82%B9%E5%87%BB%E5%95%86%E5%93%81%E4%BF%AE%E6%94%B9-%E5%8F%AF%E4%BB%A5%E4%BF%AE%E6%94%B9-%E8%AF%A5%E5%95%86%E5%93%81%E5%9C%A8%E4%BA%91%E5%BA%97%E7%9A%84%E4%BF%A1%E6%81%AF\" tabindex=\"-1\">点击商品修改 可以修改 该商品在云店的信息<a class=\"header-anchor\" href=\"#%E7%82%B9%E5%87%BB%E5%95%86%E5%93%81%E4%BF%AE%E6%94%B9-%E5%8F%AF%E4%BB%A5%E4%BF%AE%E6%94%B9-%E8%AF%A5%E5%95%86%E5%93%81%E5%9C%A8%E4%BA%91%E5%BA%97%E7%9A%84%E4%BF%A1%E6%81%AF\" aria-hidden=\"true\"></a></h2>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202405/d65e5e2fd8c4220649f5031abbbe088d.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2949,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5771,
+    "publish_time": "2025-10-23T02:50:47.358Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-05-08T15:56:12.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2949,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

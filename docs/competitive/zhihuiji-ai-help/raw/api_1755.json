@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1755,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "设置每页打印固定行数",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>用户场景：</strong> 当商品较少时，纸张很空，不美观，想要通过设置行数来控制位置</p>\n<p><strong>操作步骤：</strong></p>\n<p>1、设置-打印设置-选择打印模板进入到打印模板编辑器，然后点击表格，右侧信息设置-勾选固定行数和行高。然后设置每页固定打印的行数和行高。</p>\n<p>2、设置好的行数，会直接显示在画布中。</p>\n<p>3、设置行高后，超过行高的内容会被系统截断；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/a47cd1358620ed36b55ae5dc07826142.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/18aa41bdb18a77d25fe1f3b607255821.jpg\" alt=\"\"></p>\n<p>设置好每页固定行数后，销售单预览的效果如下：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/bb5ffed057587b168b32c1f83a110d7d.jpg\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11496,
+    "publish_time": "2023-07-06T03:04:43.192Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-06-06T06:42:15.042Z",
+    "tags": [
+      {
+        "id": 4,
+        "name": "打印设置"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

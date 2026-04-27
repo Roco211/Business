@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1284,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」新增仓库",
+    "keywords": "",
+    "description": "",
+    "content": "<ul>\n<li>智慧记AI进销存单店版、多店版支持多仓库</li>\n</ul>\n<p><strong>1. 启用多仓库：</strong> 【我的】→【设置】→【基础设置】→ 开启【多仓库】按钮。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/a57f6190277cea085689108eed10f2f2.png\" alt=\"Description\"></p>\n<p><strong>2. 新增仓库：</strong>【我的】→【店铺管理】→【仓库管理】-右上角【+】-填入仓库信息后，点击右上角【保存】。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202601/b5b62ddfe448a88b84c84661ec1151ff.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2726,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11391,
+    "publish_time": "2026-01-04T06:57:45.473Z",
+    "useful_count": 1,
+    "useless_count": 0,
+    "create_time": "2022-02-17T02:34:41.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2726,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

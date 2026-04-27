@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 888,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "删除和停用客户",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>删除客户</strong></p>\n<p><strong>业务场景</strong>：日常业务中，不慎添加了错误的客户，需要对客户进行删除。</p>\n<p><strong>路径</strong>：【首页】-【客户】-找到客户-【删除】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/b382dcd7d576e3e51494b6cf0dd31485.png\" alt=\"\"></p>\n<p><strong>功能说明</strong>：</p>\n<p>1、删除客户时，需要先处理完所有关联单据后，包括检查5大模块：销售订单、销售单、收款单、收支单。参考：<a href=\"https://www.zhihuiji.cn/help/doc/3298\">https://www.zhihuiji.cn/help/doc/3298</a></p>\n<p>2、删除客户时，提示“已关联单据，不允许删除”，说明仍未全部删除业务单据。</p>\n<p><strong>停用客户</strong></p>\n<p><strong>业务场景</strong>：实际业务上不需要用到的客户，但是不想删除业务单据，仍然保留客户资料。停用客户，能够减少开单时冗余客户选择的干扰。</p>\n<p><strong>路径</strong>：【首页】-【客户】-找到客户-【停用】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/06e3a615d1cabf5336e8e7c742a0b39c.png\" alt=\"\"></p>\n<p><strong>功能说明</strong>：</p>\n<p>1、停用客户，不会影响到已保存的单据欠款。</p>\n<p>2、停用客户，可以批量停用/启用</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 16126,
+    "publish_time": "2025-12-09T05:44:04.794Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-26T05:56:11.000Z",
+    "tags": [
+      {
+        "id": 22,
+        "name": "客户列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3249,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "可以统计含税利润吗？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>智慧记AI进销存默认按税前金额（未含税）统计利润，如需按税后（已含税）口径统计，请注意以下几点：</p>\n<p><strong>1、进货成本：</strong> 进货单只有一个进货价，无法设置两个成本，即填写“税前净价”就是不含税成本，<strong>填写“税后价”就是含税成本</strong>；</p>\n<p><strong>2、销售价：</strong> 销售单虽可分别显示税前净价（未含税）与税后价（已含税），但系统仅支持前者统计利润，暂不支持后者。如需按已含税的销售额呈现利润，则<strong>开单时不要设置税额相关列，“单价”直接填写已含税的税后价；</strong>——税率税额默认0或手动改0，查看税额可填写到备注</p>\n<p><strong>3、销售利润统计：</strong> 系统将根据以上税后数据【商品销售额（默认已含税）】，扣除税额和成本后自动完成利润统计。——由于税率税额0，填写含税价相当于直接计算含税利润</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/9a554420a16504996b86eba11b5c4e01.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/2b4f1faa67a529b60738266cda68722b.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3748,
+    "publish_time": "2026-02-25T02:28:50.059Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-10-28T02:39:45.033Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

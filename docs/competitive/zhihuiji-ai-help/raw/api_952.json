@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 952,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "【实例】业绩提成的应用",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>业务场景</strong></p>\n<p>将企业盈利按照一定的比例在企业和员工之间分成的方式，这种方式能够调动员工的积极性，提高公</p>\n<p>司的人员效益。</p>\n<p><strong>开通【业绩提成】订阅服务</strong></p>\n<p>业绩提成为单独付费服务，不含在付费版本中。</p>\n<p>【首页】左侧菜单【订阅】-【服务订阅】-【业绩提成】，付费之后可使用该功能。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202211/302fea5715c907da4fc908521946ed26.jpg\" alt=\"\"></p>\n<p><strong>操作指引</strong></p>\n<p><strong>例</strong>：李老板门店有3名员工，需要给员工们设置业绩提成的规则，方便每个月结算工资</p>\n<ul>\n<li><strong>设定新的提成规则</strong></li>\n</ul>\n<p><strong>路径</strong>：【销售】-【业绩提成】-【业绩设置】-【新增规则】</p>\n<p><strong>说明</strong>：在此页面可以设置提成规则的【名称】、【提成方式】、【分账金额】、【计算规则】、【超额奖</p>\n<p>励】、【适用员工】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/5368df1a633688552f86c86b3db83874.png\" alt=\"\"></p>\n<ul>\n<li><strong>员工绑定提成规则</strong></li>\n</ul>\n<p><strong>路径</strong>：【销售】-【业绩提成】-【业绩设置】-选择加入的提成规则-【修改】-【适用员工】</p>\n<p><strong>说明</strong>：每一个提成规则都可以选择适用的员工。（可以选择多名员工绑定同一个规则）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/ac518bf6123d0a2f2f7b73658a6195eb.png\" alt=\"\"></p>\n<ul>\n<li><strong>系统自动计算提成</strong></li>\n</ul>\n<p><strong>说明</strong>：系统会在业务员开单后，根据事先设定好的提成规则，自动计算出提成金额。同理，超额奖励也是同</p>\n<p>等计算方式</p>\n<ul>\n<li><strong>查看业绩提成表</strong></li>\n</ul>\n<p><strong>路径：</strong>【销售】-【业绩提成】</p>\n<p><strong>说明：</strong> 可以清晰看出员工的【提成金额】等信息</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/7116122b5e68d746ac3c3c93074b1032.png\" alt=\"\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2597,
+    "status": 2,
+    "recommend": 0,
+    "hits": 13481,
+    "publish_time": "2023-07-06T05:54:01.015Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-12-19T05:59:29.000Z",
+    "tags": [
+      {
+        "id": 7,
+        "name": "服务订阅"
+      },
+      {
+        "id": 66,
+        "name": "业绩提成"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2597,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

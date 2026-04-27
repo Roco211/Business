@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 858,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "怎么调整库存数量？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/765e2ec655565eb5efb1f4dad066e61a.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>场景： 软件里面记录的库存和实际库存不一致需要调整库存</p>\n<h2 id=\"%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%81%9A%E7%9B%98%E7%82%B9%E5%8D%95%E4%BF%AE%E6%94%B9\" tabindex=\"-1\">方法一：做盘点单修改<a class=\"header-anchor\" href=\"#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%81%9A%E7%9B%98%E7%82%B9%E5%8D%95%E4%BF%AE%E6%94%B9\" aria-hidden=\"true\"></a></h2>\n<p>做盘点单修改数量可以批量商品同时修改。</p>\n<p><strong>路径</strong>：【库存】-【盘点】-【新增盘点单】</p>\n<p>1.可以选择锁定仓库。锁定之后，盘点这段时间内不允许发生出入库业务操作，除非解锁或者是盘点结束。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202204/6a9795fb986e2dbb503a9270e00c9a56.jpg\" alt=\"\"></p>\n<p>2.在下面的盘点单中选择要盘点的商品，会显示现存量，这时输入实际数量，系统会自动判断当前的盈亏数量。修改好实际数量点击保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202204/2bb4dd12c5f029c8d4006eed5ab5f979.jpg\" alt=\"\"></p>\n<h2 id=\"%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E6%9F%A5%E7%9C%8B%E5%95%86%E5%93%81%E7%95%8C%E9%9D%A2%E8%B0%83%E6%95%B4%E5%BD%93%E5%89%8D%E5%BA%93%E5%AD%98%E6%95%B0%E9%87%8F\" tabindex=\"-1\">方法二：查看商品界面调整当前库存数量<a class=\"header-anchor\" href=\"#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E6%9F%A5%E7%9C%8B%E5%95%86%E5%93%81%E7%95%8C%E9%9D%A2%E8%B0%83%E6%95%B4%E5%BD%93%E5%89%8D%E5%BA%93%E5%AD%98%E6%95%B0%E9%87%8F\" aria-hidden=\"true\"></a></h2>\n<p>商品查看界面调整数量只能对单个商品进行修改数量。</p>\n<p>1.路径：点击左侧导航【商品】-【商品】-找到要修改的商品名称后的【查看】按钮。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/0e4cdc1cb83f4dec0aac8200c54afa39.png\" alt=\"Description\"></p>\n<p>2.进入到查看商品界面，滑动到当前库存数量界面，点击数量旁边的编辑按钮修改。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202412/ca18b87a00121e13988c247720a6ffde.png\" alt=\"Description\"></p>\n<p>3.输入实际库存数量，然后点击确认即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/01c83a2534fc507c613f685da79e5553.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong></p>\n<p>（1）在查看商品里修改数量，不会生成盘点单，不产生盈亏，不计入经营利润，操作记录和库存流水可查；</p>\n<p>（2）做盘点单修改会产生盈亏金额，是会影响到经营利润。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2679,
+    "status": 2,
+    "recommend": 0,
+    "hits": 29557,
+    "publish_time": "2025-11-04T01:41:08.518Z",
+    "useful_count": 0,
+    "useless_count": 1,
+    "create_time": "2021-05-14T07:13:58.000Z",
+    "tags": [
+      {
+        "id": 48,
+        "name": "盘点单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2679,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

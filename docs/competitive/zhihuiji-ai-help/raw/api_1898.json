@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1898,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "库存查询教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>路径：库存-库存查询</p>\n<ul>\n<li>可以隐藏停用商品，隐藏无库存商品。</li>\n<li>可以选择仓库，商品类别，供应商，品牌，重量查询，或者输入商品名称/条形码/货号查询。</li>\n</ul>\n<p>库存查询可以显示全部商品的总数量和总金额。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/86c9f704f26975a3e73c4c6d14fc643d.png\" alt=\"库存查询\"></p>\n<p>点击库存分布，可以查询到这个商品每个仓库/门店的库存数量。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/0e7eed2f57f4f1ab9677a06ccba39386.png\" alt=\"库存分布\"></p>\n<p>如果需要导出库存数量可以点击导出按钮导出后然后下载即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/6c5db8d213560ad13612ad6d5cdd1dd2.png\" alt=\"导出\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2603,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12560,
+    "publish_time": "2025-12-24T02:11:10.278Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-24T02:11:07.000Z",
+    "tags": [
+      {
+        "id": 34,
+        "name": "库存查询"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2603,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

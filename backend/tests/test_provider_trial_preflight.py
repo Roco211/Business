@@ -27,7 +27,9 @@ def test_provider_trial_preflight_reports_missing_config_without_secrets(monkeyp
     assert payload["overall_status"] == "degraded"
     assert payload["network_trial"] == "skipped"
     assert "missing_api_key" in payload["reasons"]
-    assert "missing_model" in payload["reasons"]
+    assert "missing_model" not in payload["reasons"]
+    assert payload["config"]["provider"] == "deepseek"
+    assert payload["config"]["model"] == "deepseek-v4-flash"
     assert "api_key_present" in payload["config"]
     dumped = json.dumps(payload, ensure_ascii=False)
     assert "sk-" not in dumped

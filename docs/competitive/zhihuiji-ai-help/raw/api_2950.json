@@ -1,0 +1,42 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2950,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何结清单据？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://space-1319132088.cos.ap-beijing.myqcloud.com/vedios/help/51.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n",
+    "is_video": 0,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/0d2391b98fe7810eb10004a3b8e65a65.jpg",
+    "category_id": 1826,
+    "status": 2,
+    "recommend": 0,
+    "hits": 2142,
+    "publish_time": "2025-03-26T09:14:19.255Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-03-19T02:31:54.547Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1826,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

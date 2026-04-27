@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 855,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增、修改、停用、删除供应商",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/f36345dea5538001e32e4652f3c11a86.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E4%BE%9B%E5%BA%94%E5%95%86\" tabindex=\"-1\">新增供应商<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E4%BE%9B%E5%BA%94%E5%95%86\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【进货】-【供应商】-【新增供应商】</p>\n<p>依次填写对应的基础信息和辅助信息，点击保存即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/712dff895827c234e3dd2cde2fbaf07c.png\" alt=\"\"></p>\n<h2 id=\"%E4%BF%AE%E6%94%B9%2F%E5%81%9C%E7%94%A8%E4%BE%9B%E5%BA%94%E5%95%86%E4%BF%A1%E6%81%AF\" tabindex=\"-1\">修改/停用供应商信息<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%2F%E5%81%9C%E7%94%A8%E4%BE%9B%E5%BA%94%E5%95%86%E4%BF%A1%E6%81%AF\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【进货】-【供应商】</p>\n<p>可输入供应商名称、联系人、手机号、备注，来查找相应的供应商</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/1223de183743cedabbdccdcefcfe9220.jpg\" alt=\"\"></p>\n<p><strong>修改：</strong> 如需要修改，在供应商列表中选择“修改”操作，就可以重新编辑供应商的信息了。</p>\n<p><strong>停用：</strong> 如需要停用，在供应商列表中选择“停用”操作；停用后可重新点击“启用”。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/a4066fb97dc1d9fc2715bb1cd206b48d.png\" alt=\"\"></p>\n<p>##查找供应商</p>\n<p><strong>路径</strong>：【进货】-【供应商】</p>\n<p>进入该页面，可看到所有的供应商名录；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/345d34706f04afe6382d009e7d89fc9b.png\" alt=\"\"></p>\n<p>右上角有个”查询“按钮，可以输入供应商名称，联系人，手机号以及备注信息来查找；</p>\n<p>如输入联系人姓名”黄“，可出现对应的供应商。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/fdb71231ce7db8da3a48dcc02bd042bd.png\" alt=\"\"></p>\n<h2 id=\"%E9%9A%90%E8%97%8F%E5%81%9C%E7%94%A8%E4%BE%9B%E5%BA%94%E5%95%86\" tabindex=\"-1\">隐藏停用供应商<a class=\"header-anchor\" href=\"#%E9%9A%90%E8%97%8F%E5%81%9C%E7%94%A8%E4%BE%9B%E5%BA%94%E5%95%86\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径</strong>：【进货】-【供应商】</p>\n<p>如有近期不再从那里进货的供应商，可以先做停用处理。</p>\n<p>然后勾选左上角的”隐藏停用供应商“，那么在供应商列表中就不会再出现</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202311/ab87b62dd0b94153a0a6b5dc3adc3475.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2599,
+    "status": 2,
+    "recommend": 0,
+    "hits": 15055,
+    "publish_time": "2024-02-28T02:18:58.138Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-12-30T07:35:08.000Z",
+    "tags": [
+      {
+        "id": 42,
+        "name": "供应商列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2736,
+        "name": "进货",
+        "alias": ""
+      },
+      {
+        "id": 2599,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

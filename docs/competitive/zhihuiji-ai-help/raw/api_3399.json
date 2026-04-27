@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3399,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "库存查询显示商品自定义属性",
+    "keywords": "",
+    "description": "",
+    "content": "<p>在库存查询页面的商品明细中，如需展示已设置的自定义属性（如“产地”、“材质”等），可通过表头设置添加相应字段。</p>\n<p><strong>操作路径：</strong> 库存查询页面 → 点击商品明细表头左上角齿轮图标【设置】→ 添加所需自定义属性字段 →【确定】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/9f69b46e107e938a1d26f91b7ec97c98.png\" alt=\"设置方法\"></p>\n<hr>\n<p><strong>关联阅读</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/1824\">新增，修改和删除商品属性</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2603,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3322,
+    "publish_time": "2025-12-24T02:10:10.503Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-24T02:10:10.503Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2603,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

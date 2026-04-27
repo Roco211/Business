@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1477,
+    "type": "help",
+    "format": "html",
+    "alias": "",
+    "title": "公司内部转账",
+    "keywords": "",
+    "description": "",
+    "content": "<p>资金转账可以用来处理公司内部资金流转，下面来看看具体操作</p>\n<p><strong>操作路径</strong>：【资金】-【转账】，选择【转出账户】和【转入账户】，输入金额和备注，点击【保存】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202207/e43b68856e2a80e340ee9644a472ae0f.jpg\" alt=\"\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202207/69358bb2f71350ec07a092d665d7bf70.jpg\" alt=\"\"></p>\n<p>即完成一次资金转账。</p>\n<p><strong>相关问题</strong>：</p>\n<p><a href=\"/help-zhj-space/manual/2128-876\">怎么在智慧记AI进销存新增账户</a></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2621,
+    "status": 2,
+    "recommend": 0,
+    "hits": 11782,
+    "publish_time": "2023-06-19T09:09:28.894Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-07-08T08:48:57.067Z",
+    "tags": [
+      {
+        "id": 62,
+        "name": "转账"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2621,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2966,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "农药商品扫码出入库",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" tabindex=\"-1\">功能简介<a class=\"header-anchor\" href=\"#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B\" aria-hidden=\"true\"></a></h2>\n<p>本功能专为农药商家设计，支持通过扫描农药商品二维码快速完成商品信息录入和出入库操作，提升工作效率。</p>\n<h2 id=\"%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" tabindex=\"-1\">重要注意事项<a class=\"header-anchor\" href=\"#%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9\" aria-hidden=\"true\"></a></h2>\n<ul>\n<li><strong>仅支持32位农资农药类商品</strong>二维码</li>\n<li><strong>大部分农药商品</strong>：扫码后可自动带出商品名称和信息</li>\n<li><strong>少量特殊情况</strong>：因登记证号问题可能无法自动识别，需要手动录入补充</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/a440480b8f566f5d0acef7e399a976ed.jpg\" alt=\"支持的二维码示意图\"></p>\n<h2 id=\"%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" tabindex=\"-1\">操作步骤<a class=\"header-anchor\" href=\"#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4\" aria-hidden=\"true\"></a></h2>\n<h3 id=\"%E8%A1%8C%E4%B8%9A%E8%AE%BE%E7%BD%AE\" tabindex=\"-1\">行业设置<a class=\"header-anchor\" href=\"#%E8%A1%8C%E4%B8%9A%E8%AE%BE%E7%BD%AE\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【设置】-【店铺信息】</p>\n<ul>\n<li>在行业类型中选择【农资农药】，并保存</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/83f95b6e80a7ffd5a3ae5913b7754ae8.png\" alt=\"行业设置界面\"></p>\n<h3 id=\"%E6%89%AB%E7%A0%81%E5%BD%95%E5%85%A5%E5%95%86%E5%93%81\" tabindex=\"-1\">扫码录入商品<a class=\"header-anchor\" href=\"#%E6%89%AB%E7%A0%81%E5%BD%95%E5%85%A5%E5%95%86%E5%93%81\" aria-hidden=\"true\"></a></h3>\n<p><strong>操作路径</strong>：【商品】-【新增商品】</p>\n<ol>\n<li>确保已切换至<strong>英文输入法</strong></li>\n<li>使用扫码设备扫描农药商品二维码</li>\n<li>系统自动带出对应的商品信息</li>\n<li>补充其他必要信息后保存</li>\n</ol>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/05f6fe5d70d0dd4665e658a39ed0936c.png\" alt=\"扫码录入界面\"></p>\n<h3 id=\"%E6%89%AB%E7%A0%81%E5%87%BA%E5%85%A5%E5%BA%93\" tabindex=\"-1\">扫码出入库<a class=\"header-anchor\" href=\"#%E6%89%AB%E7%A0%81%E5%87%BA%E5%85%A5%E5%BA%93\" aria-hidden=\"true\"></a></h3>\n<ul>\n<li>完成商品录入后，在开单出入库时可直接扫描同一二维码</li>\n<li>扫码出入库时，需确保已切换至<strong>英文输入法</strong></li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/1dd2fe805dcc05a54f94e50777470348.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4796,
+    "publish_time": "2025-11-13T02:08:38.740Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2020-01-01T01:39:45.000Z",
+    "tags": [
+      {
+        "id": 3,
+        "name": "商品列表"
+      },
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2826,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增业务员",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">业务场景<a class=\"header-anchor\" href=\"#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>业务员负责招商，但<strong>不登录使用软件</strong>。开单时由制单员开单并指定业务员，用于划分业绩提成。</p>\n<hr>\n<h2 id=\"%E6%96%B0%E5%A2%9E%E4%B8%9A%E5%8A%A1%E5%91%98\" tabindex=\"-1\">新增业务员<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E4%B8%9A%E5%8A%A1%E5%91%98\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【设置】→【员工管理】→【业务员】→【新增业务员】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/d8955142e3208c4f89dd8d0fcf234499.png\" alt=\"新增业务员\"></p>\n<hr>\n<h2 id=\"%E9%94%80%E5%94%AE%E5%8D%95%E6%B7%BB%E5%8A%A0%E4%B8%9A%E5%8A%A1%E5%91%98\" tabindex=\"-1\">销售单添加业务员<a class=\"header-anchor\" href=\"#%E9%94%80%E5%94%AE%E5%8D%95%E6%B7%BB%E5%8A%A0%E4%B8%9A%E5%8A%A1%E5%91%98\" aria-hidden=\"true\"></a></h2>\n<p>开单时，在单据的“业务员”字段中，可选择<strong>用户</strong>或<strong>业务员</strong>。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/9ccf356c1f64be0b1734f41d85188fe6.png\" alt=\"单据选择业务员\"></p>\n<hr>\n<h2 id=\"%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF\" tabindex=\"-1\">应用场景<a class=\"header-anchor\" href=\"#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF\" aria-hidden=\"true\"></a></h2>\n<p>业务员功能应用于以下模块：</p>\n<table>\n<thead>\n<tr>\n<th>模块</th>\n<th>说明</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>销售</td>\n<td>销售单选择业务员，列表支持按业务员筛选</td>\n</tr>\n<tr>\n<td>收款</td>\n<td>收款单选择业务员，列表支持按业务员筛选</td>\n</tr>\n<tr>\n<td>销售统计</td>\n<td>按单据/商品/客户统计，均支持业务员筛选</td>\n</tr>\n<tr>\n<td>员工业绩</td>\n<td>用于提成计算及提成规则中的人员选择</td>\n</tr>\n<tr>\n<td>资金流水</td>\n<td>支持按业务员筛选</td>\n</tr>\n</tbody>\n</table>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2632,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9442,
+    "publish_time": "2026-04-17T08:11:27.043Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-09-02T06:13:11.473Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2632,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

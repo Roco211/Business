@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2706,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "供应商对账",
+    "keywords": "",
+    "description": "",
+    "content": "<p>路径：点击底部右下角【更多】-【对账】-顶部【供应商对账】。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/d656c98e2e41dd76ed3fea16472b73f0.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/d2e8425ed1ca2d3e9d8791a0ad67cd65.png\" alt=\"Description\"></p>\n<p>点击供应商可以进入到供应商对账明细界面，点击底部的付款按钮可以跳转到付款单界面。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202404/5b896a83011e6d45683e6cfb1303d3e9.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2226,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4498,
+    "publish_time": "2024-04-16T06:59:25.469Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-04-16T06:59:25.469Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2226,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

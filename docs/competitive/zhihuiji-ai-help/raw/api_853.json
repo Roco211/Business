@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 853,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售预定订单：复制、作废",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>复制销售预定订单</strong></p>\n<p><strong>复制销售预定订单路径</strong>：【销售】-【销售订单】-【查看】-【复制】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/7eaf614de6230fee10530b62641e4683.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：客户在店里开的销售订单，若想再次下单，老板们可直接点击【复制】，无需再次录入商品。提高店铺开单效率。</p>\n<p><strong>作废销售预定订单</strong></p>\n<p><strong>作废销售预定订单路径</strong>：【销售】-【销售订单】-【查看历史单据】- 找到单据【查看】-【作废】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/79bcb03ced592e520e7b6fb8c325297d.png\" alt=\"Description\"></p>\n<p><strong>业务场景</strong>：基于实际业务需求，有时候客户订的货不要了，需要删除/作废掉销售订单</p>\n<p><strong>功能说明</strong>：</p>\n<p>1、作废的销售预定订单，若有支付的订金，也会一同被作废</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2594,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14543,
+    "publish_time": "2025-01-23T06:38:51.751Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2108-12-28T06:50:14.000Z",
+    "tags": [
+      {
+        "id": 149,
+        "name": "销售预订列表"
+      },
+      {
+        "id": 150,
+        "name": "新增销售预订"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2594,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

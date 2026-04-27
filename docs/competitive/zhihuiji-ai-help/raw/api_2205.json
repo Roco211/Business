@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2205,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "批次查询",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【库存】-【批次查询】</p>\n<p>选择批次编号，选择对应的商品名称，仓库，供应商，品牌，重量，点击右侧的”查询“按钮即可查询到对应的商品批次。</p>\n<p>举例：</p>\n<p>相同一包零食，包装升级换代了，但是价格不变；001编号代表的是旧款，002编号代表的是新款；可得知各自的库存。</p>\n<p>可用在手机数码、服装等多个行业，不同批次的产品可能某些方面的参数或者质量有不同的地方，有了批次管理可以更加精准管理货品。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/65e732e5a12e686a12895eba063d40bb.png\" alt=\"Description\"></p>\n<p><strong>注意：需要在新增商品时候，勾选了启用批次管理，然后在进货时，输入商品的批次，才能在这里查询到信息。</strong></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2607,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8088,
+    "publish_time": "2023-09-19T01:48:00.193Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-19T01:33:41.505Z",
+    "tags": [
+      {
+        "id": 100,
+        "name": "批次查询"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2607,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

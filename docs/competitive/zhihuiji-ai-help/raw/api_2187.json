@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2187,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "拆分单教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/c508d6467b09e22046189360ddba1b16.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"%E6%8B%86%E5%88%86%E5%8D%95\" tabindex=\"-1\">拆分单<a class=\"header-anchor\" href=\"#%E6%8B%86%E5%88%86%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p><strong>使用场景：</strong> 由于销售不佳、有质量问题被退回，需要拆分出零件进行更换和维修；或者某个成品库存不足、需要拆分其他产品的零件进行临时补充。</p>\n<p><strong>功能介绍：</strong> 支持开拆分单，将一个商品拆分为多个商品。</p>\n<p><strong>注意：拆分单属于服务订阅产品，需要购买后才能使用。</strong></p>\n<h3 id=\"%E6%96%B0%E5%A2%9E%E6%8B%86%E5%88%86%E5%8D%95\" tabindex=\"-1\">新增拆分单<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E6%8B%86%E5%88%86%E5%8D%95\" aria-hidden=\"true\"></a></h3>\n<p>操作路径：【库存】-【拆分】-【+】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/07d77b02c9daa036108deade239186c9.png\" alt=\"Description\"></p>\n<p>1.选择拆分员，选择日期；</p>\n<p>2.输入组合件商品信息，只能选择单个商品；</p>\n<p>3.选择子件商品信息，可以选择多个商品；</p>\n<p>4.输入拆分费用，选择结算账户；</p>\n<p>5.点击保存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/f8fedf75172a4a130948ec456e2671d7.png\" alt=\"Description\"></p>\n<p><strong>注意：</strong></p>\n<p>1、做完拆分单后，拆分件数量会减少，子件数量会增加。</p>\n<p>2、子件成本金额合计=组合件金额+拆分费；</p>\n<p>3、子件成本分摊规则：将差额按照子件金额占当前合计金额的比例分摊累加到子件金额中，然后反算子件单位成本。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/2c6b9ab657210cba16d36534f9ff0b38.png\" alt=\"Description\"></p>\n<h3 id=\"%E6%8B%86%E5%88%86%E5%8D%95%E5%88%97%E8%A1%A8\" tabindex=\"-1\">拆分单列表<a class=\"header-anchor\" href=\"#%E6%8B%86%E5%88%86%E5%8D%95%E5%88%97%E8%A1%A8\" aria-hidden=\"true\"></a></h3>\n<p>1.支持选择日期、单据编号、拆分件商品名称、备注、拆分员查询。</p>\n<p>2.可以勾选隐藏作废单据。</p>\n<p>3.可以查看，修改和作废拆分单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/046b4ed833832360e8bfdee87f30ccd3.png\" alt=\"Description\"></p>\n<h2 id=\"%E9%85%8D%E6%96%B9\" tabindex=\"-1\">配方<a class=\"header-anchor\" href=\"#%E9%85%8D%E6%96%B9\" aria-hidden=\"true\"></a></h2>\n<p><strong>使用场景：</strong> 一个成品的零件用量是固定的。每次加工都是消耗等比例的零件数量。其他叫法包括：BOM表、物料清单。</p>\n<p><strong>功能介绍：</strong> 支持提前创建配方，开单快速应用。</p>\n<h3 id=\"%E6%96%B0%E5%A2%9E%E9%85%8D%E6%96%B9\" tabindex=\"-1\">新增配方<a class=\"header-anchor\" href=\"#%E6%96%B0%E5%A2%9E%E9%85%8D%E6%96%B9\" aria-hidden=\"true\"></a></h3>\n<p>操作路径：拆分单列表-新增拆分单旁的【配方】-新增配方</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/95c0ba4626e1fa22ffe66d961816aa80.png\" alt=\"Description\"></p>\n<p>1.选择组合件商品信息；</p>\n<p>2.选择子件商品信息；</p>\n<p>3.点击保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/99cf03f26964ee457c20ec6dee558dd2.png\" alt=\"Description\"></p>\n<p>或者在新增拆分单时也可以勾选存为配方。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/54cc56d319f9287d0bb4fac7209ea154.png\" alt=\"Description\"></p>\n<h3 id=\"%E9%85%8D%E6%96%B9%E5%88%97%E8%A1%A8\" tabindex=\"-1\">配方列表<a class=\"header-anchor\" href=\"#%E9%85%8D%E6%96%B9%E5%88%97%E8%A1%A8\" aria-hidden=\"true\"></a></h3>\n<p>1.可以新增配方；</p>\n<p>2.可以输入组合件名称/货号/条码查询配方；</p>\n<p>3.点击配方下的修改可以修改配方的信息；</p>\n<p>4.点击配方下的删除可以删除该配方。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/9efbfac5e87863f4e3ba816115883451.png\" alt=\"Description\"></p>\n<h3 id=\"%E9%80%89%E7%94%A8%E9%85%8D%E6%96%B9\" tabindex=\"-1\">选用配方<a class=\"header-anchor\" href=\"#%E9%80%89%E7%94%A8%E9%85%8D%E6%96%B9\" aria-hidden=\"true\"></a></h3>\n<p>1.新增拆分单界面，右上角选择配方。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/6c761aeafb083feaed2e22b61b2b0f3d.png\" alt=\"Description\"></p>\n<p>2.更改组合件商品数量，子件数量等比例变化；</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/da1f4262a6f740c21105565d6c689375.png\" alt=\"Description\"></p>\n<p>3.修改/删除子件商品数量，配方关联关系会消失，再去改组合件商品数量，子件商品数量不会等比例变化。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/afa65cdf62427fa175e495d81eafb4ba.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2731,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10564,
+    "publish_time": "2024-02-28T07:47:36.117Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-06T02:13:53.400Z",
+    "tags": [
+      {
+        "id": 98,
+        "name": "拆分单列表"
+      },
+      {
+        "id": 99,
+        "name": "新增拆分单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2731,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1947,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "销售报价单教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>业务场景：报价单是销售最先给客户提供的价格信息，暂未涉及资金往来。</p>\n<p>常用报价场景：适用于家居建材。报价单类似口头协议，流程上先有报价单；接下来需进一步协商达成一致，报价单才进入正式销售环节，产生销售意向后，生成销售订单；成交，生成销售单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/ec72310780c7dd54720fb54ca65ebe35.png\" alt=\"Description\"></p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/f2e78bdbcaea11446e44387123486f9a.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n操作路径：</p>\n<p>方式1：菜单栏【销售】-【报价单】列表-【新增报价单】；</p>\n<p>方式2：菜单栏【销售】-【报价】-【+】新增报价单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/82fb37d12e0b9ad6289f4cfd6a79a4e9.png\" alt=\"Description\"></p>\n<p>1.新增报价单和新增销售单类似，选择门店，输入客户名称，选择商品，保存。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/b32d51a3d4ebdea34ad043f204a5812f.png\" alt=\"Description\">\n2.报价单列表：可搜索或查询不同维度下的报价单信息。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/6fbe4f37d5877d32e3bca583dd3e298e.png\" alt=\"Description\">\n3.查看报价单：支持修改，复制，作废，转销售，导出PDF,分享和打印。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/73e3165c8965b1426a430e3968948fd6.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2596,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9560,
+    "publish_time": "2024-02-27T03:04:05.707Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-17T07:52:04.128Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2596,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1907,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "多仓库管理教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/4bbb3c86996954723d3ff3829f321bcd.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频\n</video></p>\n<p>先在开启多仓库后才能显示仓库管理界面。</p>\n<p>路径：设置-系统设置-勾选启用多仓库。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/7e982afdf4cc106a5632a6c6e942cf03.png\" alt=\"Description\"></p>\n<p>新增仓库：点击设置-仓库管理-新增仓库，仓库名称和关联门店是必填的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/de2cab7a673e363725e859b3c2af5b9f.png\" alt=\"Description\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/7d190eb043feb6854bc1997aa1009ba4.png\" alt=\"Description\"></p>\n<p>修改仓库:点击仓库名称后面的修改按钮，即可修改仓库信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/0776f3b19965e23d8b85113dac894ea1.png\" alt=\"Description\"></p>\n<p>删除仓库：点击仓库名称后面的删除按钮，该仓库没有被使用过才支持删除。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/f7a63672f3e21732ab305cd0156e1b29.png\" alt=\"Description\"></p>\n<p>权限配置：管理员默认拥有全部仓库权限，如需给其他员工添加仓库权限，可通过设置-员工管理，修改员工的仓库权限。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/6620fd7b70325315e59d77f3f71cc6ba.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2631,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10133,
+    "publish_time": "2025-06-06T08:07:16.279Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-10T08:45:05.689Z",
+    "tags": [
+      {
+        "id": 26,
+        "name": "仓库管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2631,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3335,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户/供应商欠款调整",
+    "keywords": "",
+    "description": "",
+    "content": "<p>为确保业务的连贯性和数据真实可追溯，所有欠款均应通过标准业务单据自动核算：欠款产生做【销售单/进货单】，核销做【收款单/付款单】。<strong>直接调整欠款会破坏业务闭环，主要用于解决历史遗留问题，而且调整记录不支持修改或删除</strong>，严禁作为常规操作手段。</p>\n<p><strong>应用场景：</strong></p>\n<ul>\n<li>刚开始使用系统时，因为不熟悉操作导致初期账务不一致、历史数据大量错误等特殊情况，单据排查工作量大；</li>\n<li>与客户或供应商协商后，决定直接豁免部分欠款（如零头抹平），或确认某笔款项确实无法收回/支付。——此操作会中断单据关联，导致原【销售单/进货单】状态始终显示为“<strong>未结清</strong>”，建议收款时填写优惠金额进行核销，参考教程：<a href=\"https://www.zhihuiji.cn/help/doc/860\">https://www.zhihuiji.cn/help/doc/860</a></li>\n</ul>\n<h2 id=\"%E7%9B%B4%E6%8E%A5%E8%B0%83%E6%95%B4%E6%AC%A0%E6%AC%BE\" tabindex=\"-1\">直接调整欠款<a class=\"header-anchor\" href=\"#%E7%9B%B4%E6%8E%A5%E8%B0%83%E6%95%B4%E6%AC%A0%E6%AC%BE\" aria-hidden=\"true\"></a></h2>\n<p><strong>调整客户欠款：</strong>【客户】-【客户】列表-【查看】-【客户详情-应收欠款-去调整】-【欠款调整-实际欠款/调整欠款】，最终以【实际欠款】为准</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/196803e8c218483f6f1e52e8a3152c7e.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/202abcc0a4d3844e6aee90f611316682.png\" alt=\"Description\"></p>\n<p><strong>调整供应商欠款：</strong>【进货】-【供应商】列表-【查看】-【供应商详情-应付欠款-去调整】-【欠款调整-实际欠款/调整欠款】，最终以【实际欠款】为准</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/8cc57f5de77c42ff98536099e703e84b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/35801645557e54df506b6b403842ec47.png\" alt=\"Description\"></p>\n<h2 id=\"%E5%AF%B9%E8%B4%A6\" tabindex=\"-1\">对账<a class=\"header-anchor\" href=\"#%E5%AF%B9%E8%B4%A6\" aria-hidden=\"true\"></a></h2>\n<p>所有欠款调整操作具有不可逆性，<strong>记录无法被修改或删除</strong>，也会同步至客户/供应商对账单，确保账目公开透明。请谨慎操作。</p>\n<p>以客户对账为例：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/ab6f8eb935eb99a773e42d49bcefb7da.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/afbc56248aeba920daa77bc16638df78.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2618,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3869,
+    "publish_time": "2025-12-01T02:27:39.237Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-26T07:16:14.630Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2618,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

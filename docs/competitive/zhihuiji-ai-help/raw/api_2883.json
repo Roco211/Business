@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2883,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增报价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>当需要给客户提前设置好价格，开单时能直接带出正确的价格时，可以在报价管理提前设置好报价。</p>\n<p>操作路径：：左侧栏设置-系统设置-客户/供应商设置，勾选管理客户报价，并在销售时带出客户最新报价和折扣。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/5312ccadea0550bcc701a77952d982ea.png\" alt=\"Description\"></p>\n<p>然后点击左侧栏【客户】-【报价管理】-【新增报价】，可以根据客户或者根据商品报价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/0cc0f02ea7606fc5af28a3a8d9f8d6ae.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/98178376a1381197cb40c845ba13573d.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%A0%B9%E6%8D%AE%E5%AE%A2%E6%88%B7%E6%8A%A5%E4%BB%B7\" tabindex=\"-1\">根据客户报价<a class=\"header-anchor\" href=\"#%E6%A0%B9%E6%8D%AE%E5%AE%A2%E6%88%B7%E6%8A%A5%E4%BB%B7\" aria-hidden=\"true\"></a></h2>\n<p>（1）输入要报价的客户名称</p>\n<p>（2）选择要报价的商品</p>\n<p>（3）输入最新报价</p>\n<p>（4）点击保存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/1e80744afc9c33a2529fe0e0fab05dac.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%A0%B9%E6%8D%AE%E5%95%86%E5%93%81%E6%8A%A5%E4%BB%B7\" tabindex=\"-1\">根据商品报价<a class=\"header-anchor\" href=\"#%E6%A0%B9%E6%8D%AE%E5%95%86%E5%93%81%E6%8A%A5%E4%BB%B7\" aria-hidden=\"true\"></a></h2>\n<p>（1）输入要报价的商品</p>\n<p>（2）选择要报价的客户</p>\n<p>（3）输入最新报价</p>\n<p>（4）点击保存</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/aeb0039295c4d02338ec8107cf3bee27.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2875,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4859,
+    "publish_time": "2025-01-17T02:53:08.796Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-15T06:18:43.260Z",
+    "tags": [
+      {
+        "id": 145,
+        "name": "报价管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2875,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3398,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "调整开单选择商品页面的表头",
+    "keywords": "",
+    "description": "",
+    "content": "<p>开单时，在“选择商品”页面可自定义显示的字段，方便您快速查看关键信息。</p>\n<p><strong>支持单据：</strong> 销售单/销售预订单/销售退货单、进货单/进货预订单/进货退货单</p>\n<p><strong>操作路径：</strong> 开单时点击【选择】→ 点击页面左上角齿轮图标【设置】→ 调整显示字段 →【确定】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/18403d174e78340af1924f59f678c6b6.png\" alt=\"点击选择按钮\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/2a73093ffdd3190fcbba3f61c3092d98.png\" alt=\"点击齿轮按钮\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/875890cc9a5f2277778ef5f549ca7845.png\" alt=\"调整表头后点击确定\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3313,
+    "publish_time": "2025-12-24T02:00:56.970Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-24T02:00:56.970Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

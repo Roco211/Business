@@ -73,7 +73,7 @@ def test_service_singleton():
         svc1 = get_llm_service()
         svc2 = get_llm_service()
         print(f"  svc1 is svc2: {svc1 is svc2}")
-        print(f"  Mock mode: {svc1._use_mock}")
+        print(f"  Provider: {svc1.provider.provider_name if svc1.provider else 'not configured'}")
         return True
     except Exception as e:
         print(f"  Error: {e}")

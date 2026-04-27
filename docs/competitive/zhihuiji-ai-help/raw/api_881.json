@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 881,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "整单打折",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>整单折扣</strong></p>\n<p><strong>操作路径</strong>：【首页】-【销售】-【折扣】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202105/88d826f5f40adb3aaa111e8171f3dac5.png\" alt=\"\"></p>\n<p><strong>业务场景</strong>：满足老板日常经营中，需要给客户优惠折扣时使用。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14456,
+    "publish_time": "2023-07-06T05:50:30.515Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2022-12-24T02:37:33.000Z",
+    "tags": [
+      {
+        "id": 11,
+        "name": "新增销售单"
+      },
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

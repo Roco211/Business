@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1131,
+    "type": "help",
+    "format": "html",
+    "alias": "",
+    "title": "导出统计报表",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>一、功能介绍</strong></p>\n<p>为充分满足客户灵活查看和处理数据、进行数据分析，财务对账等场景下需求，增加报表导出功能。</p>\n<p>目前支持①销售统计报告导出（按单据/商品/客户统计）、②进货统计报告导出（按商品/供应商统计）、③员工业绩统计导出、④库存统计导出、⑤经营利润导出 这五类报表的数据导出。</p>\n<p>二、<strong>操作路径</strong></p>\n<p>下面以销售统计报告导出为例，若您需要导出一份按照单据统计的销售统计报告，则点击：</p>\n<p>【分析】-【销售统计】-【按单据统计】-【导出】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202111/f9af2fde5f82b4a1dde707d232518181.png\" alt=\"\"></p>\n<p>待弹出的【导出记录】显示“导出成功”后</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202111/f9af2fde5f82b4a1dde707d232518181.png\" alt=\"\"></p>\n<p>点击下载即可导出您所选择的按单据统计的销售统计报告。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2641,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14531,
+    "publish_time": "2023-06-19T09:10:10.086Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2021-11-09T06:26:41.896Z",
+    "tags": [
+      {
+        "id": 55,
+        "name": "销售统计"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2641,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

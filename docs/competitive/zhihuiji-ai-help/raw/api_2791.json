@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2791,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "开通支付的申请入口",
+    "keywords": "",
+    "description": "",
+    "content": "<p>感谢您选择在智慧记AI进销存开通支付服务。为了提供更便捷的体验，智慧记AI进销存电脑端和手机端均设置了支付申请入口提交支付申请。</p>\n<p>申请支付的常见问题：<a href=\"https://www.zhihuiji.cn/help/doc/2271\">https://www.zhihuiji.cn/help/doc/2271</a></p>\n<h2 id=\"%E7%94%B5%E8%84%91%E7%AB%AF%E7%94%B3%E8%AF%B7%E5%85%A5%E5%8F%A3\" tabindex=\"-1\">电脑端申请入口<a class=\"header-anchor\" href=\"#%E7%94%B5%E8%84%91%E7%AB%AF%E7%94%B3%E8%AF%B7%E5%85%A5%E5%8F%A3\" aria-hidden=\"true\"></a></h2>\n<p>登录方式一：智慧记AI进销存网页版：<a href=\"https://space.zhihuiji.cn/\">https://space.zhihuiji.cn/</a></p>\n<p>登录方式二：下载智慧记AI进销存客户端：<a href=\"https://www.zhihuiji.cn/download\">https://www.zhihuiji.cn/download</a></p>\n<hr>\n<ul>\n<li><strong>智慧记AI进销存申请路径：</strong> 左侧导航栏【资金】-【账户】-【在线账户】-【新增在线账户】，用手机微信扫描二维码申请在线账户</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/fb849be9e0fb3fbdec42938a32467943.png\" alt=\"Description\"></p>\n<hr>\n<ul>\n<li><strong>云店申请路径：</strong> 左侧导航栏【云店】-【云店设置】-【支付设置】-【云店支持支付方式-微信支付】【在线账户】-【在线账户申请】，用手机微信扫描二维码申请在线账户</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/4b44eb1a1135be1ef312133dec0ba219.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%8B%E6%9C%BA%E7%AB%AF%E7%94%B3%E8%AF%B7%E5%85%A5%E5%8F%A3\" tabindex=\"-1\">手机端申请入口<a class=\"header-anchor\" href=\"#%E6%89%8B%E6%9C%BA%E7%AB%AF%E7%94%B3%E8%AF%B7%E5%85%A5%E5%8F%A3\" aria-hidden=\"true\"></a></h2>\n<p>登录方式一：苹果手机到appstore，安卓手机到应用市场，搜“智慧记AI进销存”下载安装</p>\n<p>登录方式二：扫描二维码，下载手机APP安装</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/196debe8d183f6d0cb66fc71f19d7ec4.png\" alt=\"Description\"></p>\n<hr>\n<p><strong>智慧记AI进销存申请路径：</strong> 底部导航栏【更多】-菜单栏【资金-账户】-【在线账户】-【立即申请】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/99f107cb207162a90256d551af78b005.png\" alt=\"Description\"></p>\n<hr>\n<p><strong>云店申请路径：</strong> 底部导航栏【更多】-菜单栏【云店】-【云店设置】-【支付-支付方式】-【微信支付】，申请支付</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202406/544137b377088a13ec348e9bb3db0e33.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2647,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9006,
+    "publish_time": "2026-02-25T02:36:13.439Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-06-01T10:37:24.605Z",
+    "tags": [
+      {
+        "id": 156,
+        "name": "账户概览"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2647,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

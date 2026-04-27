@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3381,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "「手机端」设置库存预警",
+    "keywords": "",
+    "description": "",
+    "content": "<p>手机端支持设置库存预警功能，帮助您精准掌握库存状态，及时补货，避免缺货或积压。</p>\n<p><strong>操作路径：</strong>【商品】 → 【新增/编辑商品】 → 【库存预警】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/1cef83695c041265f77ae1b8f7e6c5c8.png\" alt=\"单规格设置库存预警\"></p>\n<p><strong>设置库存预警值：</strong>\n您可以为商品设置三个关键的库存阈值，并保存生效：</p>\n<ul>\n<li><strong>最低库存</strong>：当<strong>库存量 &lt; 设置值</strong>时触发“<strong>低于最低库存</strong>”预警，提示需紧急补货。</li>\n<li><strong>安全库存</strong>：当<strong>库存量 &lt; 设置值</strong>时触发“<strong>低于安全库存</strong>”预警，提示库存已低于建议水平。</li>\n<li><strong>最高库存</strong>：当<strong>库存量 &gt; 设置值</strong>时触发“<strong>高于最高库存</strong>”预警，提示库存可能存在积压。</li>\n</ul>\n<p><strong>多仓库设置（如已启用）：</strong>\n若您的店铺已启用多仓库功能：</p>\n<ul>\n<li>您可以为不同的仓库分别设置不同的预警值。</li>\n<li>或勾选「<strong>所有仓库预警值相同</strong>」进行统一设置。</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/d8e2dd688f64f9778459202c1cc72dfe.png\" alt=\"单仓库与多仓库设置对比\"></p>\n<hr>\n<p><strong>💡 温馨提示：</strong></p>\n<ul>\n<li>所有设置过预警并达到条件的商品，均可在【库存预警】页面统一查看与管理（路径：【更多】→【库存】→【库存预警】）。</li>\n<li>建议根据商品的销售与补货情况，定期回顾并调整预警值，以保持最优库存水平。</li>\n</ul>\n<hr>\n<p><strong>需要了解更多？</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3378\">「手机端」如何为多规格商品设置库存预警</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3376\">「手机端」批量设置库存预警</a></li>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/3379\">「手机端」如何查看与管理库存预警</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2111,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4912,
+    "publish_time": "2025-12-18T09:55:37.227Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-18T09:04:29.138Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2107,
+        "name": "手机APP操作手册",
+        "alias": ""
+      },
+      {
+        "id": 2111,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

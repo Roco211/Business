@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1948,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "自定义销售单表头",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>业务场景：</strong> 根据销售需求增减业务，优化开单流程，自定义开单界面。</p>\n<p>点击销售单列表或者新增销售单界面表头左侧的设置按钮。</p>\n<p>自定义表头由已显示字段和可选字段两部分合并组成，可点击“+”加入显示字段，或者“x”关闭显示；拖拽可调整字段顺序，简单易用。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/b6b0dd328f122707c9c11f76ac54c081.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202411/bcaf5b5da107984f664c0e4366f4bc2e.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9577,
+    "publish_time": "2024-11-07T02:24:14.452Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-17T08:06:27.129Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

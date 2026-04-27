@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2888,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "打印销售单列表",
+    "keywords": "",
+    "description": "",
+    "content": "<h2 id=\"%E8%AE%BE%E7%BD%AE%E9%94%80%E5%94%AE%E5%8D%95%E5%88%97%E8%A1%A8%E6%89%93%E5%8D%B0%E6%A0%B7%E5%BC%8F\" tabindex=\"-1\">设置销售单列表打印样式<a class=\"header-anchor\" href=\"#%E8%AE%BE%E7%BD%AE%E9%94%80%E5%94%AE%E5%8D%95%E5%88%97%E8%A1%A8%E6%89%93%E5%8D%B0%E6%A0%B7%E5%BC%8F\" aria-hidden=\"true\"></a></h2>\n<p>点击设置-打印设置-选择销售单列表模板</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/530342fca50f1d54b6f7b754cabaceed.png\" alt=\"Description\"></p>\n<p>点击表格，右侧信息设置-列设置，可以勾选要打印的信息。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/9da77f7bb65162d5ba7ffa7e7455d7b0.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%93%E5%8D%B0%E9%94%80%E5%94%AE%E5%8D%95%E5%88%97%E8%A1%A8\" tabindex=\"-1\">打印销售单列表<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E9%94%80%E5%94%AE%E5%8D%95%E5%88%97%E8%A1%A8\" aria-hidden=\"true\"></a></h2>\n<p>点击左侧栏销售-销售-打印列表。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/2febadebb164baa932cee77202b9cead.png\" alt=\"Description\"></p>\n<p>可以预览效果，然后点击打印即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/639dcf5fb8d5aba15ab0ce639946cd0c.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 5365,
+    "publish_time": "2025-01-17T02:54:27.791Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-16T06:57:34.928Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

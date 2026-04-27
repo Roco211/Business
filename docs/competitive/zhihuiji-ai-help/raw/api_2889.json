@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2889,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "新增商品怎么隐藏不需要显示的内容？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/115e3851f8e03c3d79c5223742bf8d77.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>新增商品界面，点击右上角的【点击设置】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/98b0ec8496cf2f99b66eaa4877323c9c.png\" alt=\"Description\"></p>\n<p>勾选要显示的信息，然后点击确定。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/239d0d7a618e3302bd1389af816ed6cf.png\" alt=\"Description\"></p>\n<p>也可以新增自定义属性</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/06da619f0c55c891acc89d67bdfd4b19.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2678,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4483,
+    "publish_time": "2025-11-12T02:53:21.952Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-16T07:18:56.984Z",
+    "tags": [
+      {
+        "id": 14,
+        "name": "新增商品"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2678,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 931,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "更换绑定的手机号和密码",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>路径</strong>：【首页】-右上角【账号信息】-【账户密码】-手机号【更换】/密码【修改】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/316197d3455f287e8769e55f1df31676.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2122,
+    "status": 2,
+    "recommend": 0,
+    "hits": 19873,
+    "publish_time": "2025-10-28T03:20:07.008Z",
+    "useful_count": 2,
+    "useless_count": 1,
+    "create_time": "2110-12-28T14:08:51.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2122,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

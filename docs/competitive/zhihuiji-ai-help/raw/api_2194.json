@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2194,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "发货状态使用教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/ef05db10c2a7c12a5e8e081f71bf52d9.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>使用场景：</strong> 商户的交易过程，顾客先交定金，商户去备货发货，最后再收尾款的分步的流程，所以根据单据信息去提前备货和定期发货，是商户工作过程中必不可少的工作流程之一；</p>\n<p>1.<strong>操作路径：</strong> 设置-系统设置-勾选销售单显示发货状态，默认是不勾选的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/99662d6fd02725c6abbe3f384624ef5c.png\" alt=\"Description\"></p>\n<p>2.查询发货信息：系统设置勾选后，销售单列表会显示发货状态；顶部支持高级搜索筛选发货状态（开启后历史单据默认已发货）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/36a6ff1d869cc76a532e1bccc7c48182.png\" alt=\"Description\"></p>\n<p>3.批量发货：勾选单据，点击批量发货，提示发货成功，状态从“未发货” 改为“已发货”</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/ec4ea612d354f7c0b9e62d58c32ea76e.png\" alt=\"Description\"></p>\n<p>4.单个发货：查看某销售单详情，点击底部的发布按钮即可对该单进行发货，点击取消发货即可变成未发货状态。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/8905ad81f1bbbdb71253cfb72c22931f.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202309/894a390001dd0e16a864b51b6a1b2db7.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2593,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8830,
+    "publish_time": "2024-02-27T02:49:29.463Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-09-13T11:21:24.577Z",
+    "tags": [
+      {
+        "id": 13,
+        "name": "销售单列表"
+      },
+      {
+        "id": 78,
+        "name": "查看销售单"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2593,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

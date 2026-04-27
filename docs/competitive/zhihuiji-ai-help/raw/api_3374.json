@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3374,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "单位换算结果详解",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>场景：</strong> 开单、拣货、交货、对账时，通常按商品拆分成整件和零头的方式进行沟通，提升操作效率，更符合商业习惯，比如冻鸡翅“几大件零几小个”。</p>\n<ul>\n<li>包装食品出入库，仓库人员<strong>直接按“2箱3瓶”拣货，客户提货或验收一目了然</strong>，免去人工换算；</li>\n<li>大件商品对账与结算，与客户或供应商核对往来数量，避免因理解偏差产生纠纷，比如“5板零8件”是158个散件还是几整板。</li>\n</ul>\n<h2 id=\"%E6%B7%BB%E5%8A%A0%E5%8D%95%E4%BD%8D%E6%8D%A2%E7%AE%97%E7%BB%93%E6%9E%9C\" tabindex=\"-1\">添加单位换算结果<a class=\"header-anchor\" href=\"#%E6%B7%BB%E5%8A%A0%E5%8D%95%E4%BD%8D%E6%8D%A2%E7%AE%97%E7%BB%93%E6%9E%9C\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 开单界面，点击左上角“齿轮”图标设置【自定义表头】-【可选表头-单位换算结果】找到并添加-【已显示表头】将显示在列表中。</p>\n<p>以销售单为例：\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/f99f399b113420473ef3f3d8e24b2b54.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%8D%A2%E7%AE%97%E6%98%BE%E7%A4%BA%E8%A7%84%E5%88%99\" tabindex=\"-1\">换算显示规则<a class=\"header-anchor\" href=\"#%E6%8D%A2%E7%AE%97%E6%98%BE%E7%A4%BA%E8%A7%84%E5%88%99\" aria-hidden=\"true\"></a></h2>\n<p>在销售和进货业务单据中，系统将根据商品的主辅单位关系自动换算数量，为现场作业与对账提供直观的复合单位。换算结果显示依据：<strong>开单数量能否凑足【一个大单位】</strong></p>\n<ul>\n<li><strong>凑足时，换算显示【大单位+小单位】的组合格式</strong>，若以“箱”计量更大为例（1箱=10瓶）：</li>\n</ul>\n<p>销售23瓶，换算显示2箱3瓶；</p>\n<p>销售1箱，换算仍显示1箱，而不显示10瓶。</p>\n<ul>\n<li><strong>未凑足，换算仅显示【小单位】格式</strong>，若以“件”相对重量小为例（1件=0.6吨）：</li>\n</ul>\n<p>销售0.3吨，换算显示0.5件；</p>\n<p>销售1.5件，换算仍显示1.5件，而不显示0.9吨。</p>\n<p><strong>仓库拣货核对实例：</strong> 若需精确统计散装数，建议直接使用散装单位开单（如“瓶”）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/462a567681a5e0de8624850cd59f35ca.png\" alt=\"Description\"></p>\n<p><strong>重量应用实例：</strong> 若需精确统计纯重量，建议直接使用重量单位开单（如“吨”）</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/fae9b29957ccc9ca7393361acb922818.png\" alt=\"Description\"></p>\n<h2 id=\"%E6%89%93%E5%8D%B0%E6%8D%A2%E7%AE%97%E7%BB%93%E6%9E%9C\" tabindex=\"-1\">打印换算结果<a class=\"header-anchor\" href=\"#%E6%89%93%E5%8D%B0%E6%8D%A2%E7%AE%97%E7%BB%93%E6%9E%9C\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 导航栏【设置-打印设置】-【打印模板】编辑界面-点击表格区域，勾选右侧【列设置-换算结果】-【保存】</p>\n<p>以销售单为例：</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/a33814e60e2cc4d4b13d8d2a93104247.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/9181383839384440f832d216a2941bab.jpg\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2677,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4549,
+    "publish_time": "2025-12-24T03:20:48.478Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-12T10:36:46.816Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2677,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

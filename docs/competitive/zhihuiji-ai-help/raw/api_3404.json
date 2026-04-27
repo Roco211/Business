@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3404,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店订单备注自动带入销售单",
+    "keywords": "",
+    "description": "",
+    "content": "<p>客户在云店下单时填写的备注信息，在后台将订单转为销售单时，可自动填入销售单的备注栏。</p>\n<p><strong>操作路径：</strong>【销售】→【云店订单】→ 接单后操作【发货】</p>\n<p><strong>规则说明：</strong></p>\n<ol>\n<li>\n<p><strong>云店订单备注为空时</strong>：转为销售单，系统自动填入<strong>客户下单时填写的原备注</strong>。</p>\n</li>\n<li>\n<p><strong>云店订单备注有内容时</strong>：转为销售单，系统自动填入<strong>订单备注内容</strong>，不填入客户原备注。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/4cbbd95421289824bf04851ff030b3a7.png\" alt=\"客户备注与后台查看\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/677b6badb1510c07bf34d6be928196b6.png\" alt=\"转销售单页面\"></p>\n</li>\n</ol>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2903,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3327,
+    "publish_time": "2025-12-25T01:31:23.669Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-25T01:31:23.669Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2903,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

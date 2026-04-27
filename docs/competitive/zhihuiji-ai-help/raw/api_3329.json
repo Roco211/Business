@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3329,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何修改商品",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>操作路径：</strong>【商品】-【商品】- 找到商品 - 点击【修改】</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/83f7e8edd9dd7457a1990f07f3ebc76d.png\" alt=\"修改商品入口\"></p>\n<ol>\n<li>在商品列表中找到需要修改的商品。</li>\n<li>点击该商品右侧的【修改】按钮。</li>\n<li>在编辑页面更新商品信息。</li>\n<li>点击【保存】完成修改。</li>\n</ol>\n<p><strong>请注意</strong></p>\n<p>修改商品价格后，<strong>仅对之后新开的单据生效</strong>，不会影响已保存的历史单据，商品名称等基础信息的修改会同步更新至历史单据。</p>\n<hr>\n<p><strong>更多帮助</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/899\">商品基础管理指南</a> - 系统学习商品新增、修改、查询、删除全流程</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2611,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3814,
+    "publish_time": "2025-11-25T03:02:18.193Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-11-29T07:29:40.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2611,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

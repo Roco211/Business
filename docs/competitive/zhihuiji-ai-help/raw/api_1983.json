@@ -1,0 +1,61 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1983,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "调拨单教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/0a6f102ab3eafdbd8df87fda8e619f89.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<h2 id=\"1.%E6%96%B0%E5%A2%9E%E8%B0%83%E6%8B%A8%E5%8D%95\" tabindex=\"-1\">1.新增调拨单<a class=\"header-anchor\" href=\"#1.%E6%96%B0%E5%A2%9E%E8%B0%83%E6%8B%A8%E5%8D%95\" aria-hidden=\"true\"></a></h2>\n<p>路径：点击左侧导航库存-调拨右侧的+号，或者点击库存-调拨-新增调拨单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/b8c290d95b77f4865f154d718db5ac7b.png\" alt=\"Description\"></p>\n<h2 id=\"2.%E8%B0%83%E6%8B%A8%E5%8D%95%E8%AF%A6%E6%83%85\" tabindex=\"-1\">2.调拨单详情<a class=\"header-anchor\" href=\"#2.%E8%B0%83%E6%8B%A8%E5%8D%95%E8%AF%A6%E6%83%85\" aria-hidden=\"true\"></a></h2>\n<p>新增调拨单保存成功后会显示调拨单详情界面，可以点击修改，作废，复制，查看历史单据。还可以导出到PDF和打印。也可以点击修改备注和上传单据图片，最多能上传5张图片。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/2ce5038ece2e8d935c5d186c8243a22d.png\" alt=\"Description\"></p>\n<h2 id=\"3.%E8%B0%83%E6%8B%A8%E5%8D%95%E5%88%97%E8%A1%A8\" tabindex=\"-1\">3.调拨单列表<a class=\"header-anchor\" href=\"#3.%E8%B0%83%E6%8B%A8%E5%8D%95%E5%88%97%E8%A1%A8\" aria-hidden=\"true\"></a></h2>\n<p>点击库存-调拨可以进入到调拨单列表界面。可以按照单据日期，单据编号，调出或者调入仓库/门店，调拨人，商品名称和备注查询，也可以点击导出调拨单明细。右侧可以查看，修改和作废调拨单。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f30083b0aa323e9c2b2a78c179a6f3ce.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2605,
+    "status": 2,
+    "recommend": 0,
+    "hits": 12348,
+    "publish_time": "2026-04-22T02:31:51.608Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-25T02:58:08.962Z",
+    "tags": [
+      {
+        "id": 75,
+        "name": "调拨单"
+      },
+      {
+        "id": 76,
+        "name": "调拨"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2605,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

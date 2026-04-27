@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2885,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "导入改价",
+    "keywords": "",
+    "description": "",
+    "content": "<p>操作路径：点击左侧栏客户-报价管理-导入改价</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/81b0e69299270b595ee37ba9333fd7bb.png\" alt=\"Description\"></p>\n<p>然后点击下载表格。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/e09b2e8208b5bd1ac8b9be22258c649b.png\" alt=\"Description\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/24f354aa23b11f922039c8346b91f232.png\" alt=\"Description\"></p>\n<p>打开表格，修改最新报价保存，然后再导入到软件里。</p>\n<p>注意：只能修改导出的这些报价再导入回去，不能新增报价。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202501/6a1a4fbdfb395aedfa81669111983672.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2875,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4688,
+    "publish_time": "2025-01-17T02:57:23.588Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-01-16T01:31:48.116Z",
+    "tags": [
+      {
+        "id": 145,
+        "name": "报价管理"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2126,
+        "name": "客户",
+        "alias": ""
+      },
+      {
+        "id": 2875,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

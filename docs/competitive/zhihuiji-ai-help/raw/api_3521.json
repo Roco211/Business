@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3521,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "打印模板：商品表格字段设置",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/5705c49eb3381da49247f18a6b64b730.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video>\n<strong>路径：</strong> 【设置】→【打印设置】→ 编辑打印模板</p>\n<p>点击表格区域，在右侧<strong>勾选</strong>需要打印的字段，拖拽可调整排序。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/c24ed4e92d173f1f029be8a88a1bd086.png\" alt=\"进入模板编辑页面\"></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/6cf3138e9880f247fdbf19ed75b260b5.png\" alt=\"设置打印表格字段\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2636,
+    "status": 2,
+    "recommend": 0,
+    "hits": 105,
+    "publish_time": "2026-04-07T05:36:30.287Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-07T03:27:11.398Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2123,
+        "name": "设置",
+        "alias": ""
+      },
+      {
+        "id": 2636,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

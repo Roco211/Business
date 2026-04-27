@@ -89,10 +89,10 @@ def run_provider_trial_preflight(
     import app.core.config and therefore does not load backend/.env implicitly.
     """
     source = environ if environ is not None else os.environ
-    provider = _env(source, "LLM_PROVIDER", "LLM_PROVIDER_NAME") or "mock"
-    api_url = _env(source, "LLM_PROVIDER_API_URL", "LLM_API_URL", "VOLCANO_API_URL")
+    provider = _env(source, "LLM_PROVIDER", "LLM_PROVIDER_NAME") or "deepseek"
+    api_url = _env(source, "LLM_PROVIDER_API_URL", "LLM_API_URL", "VOLCANO_API_URL") or "https://api.deepseek.com/v1/chat/completions"
     api_key = _env(source, "LLM_PROVIDER_API_KEY", "LLM_API_KEY", "VOLCANO_API_KEY")
-    model = _env(source, "LLM_PROVIDER_MODEL", "LLM_MODEL", "VOLCANO_MODEL")
+    model = _env(source, "LLM_PROVIDER_MODEL", "LLM_MODEL", "VOLCANO_MODEL") or "deepseek-v4-flash"
     timeout_seconds = float(_env(source, "LLM_TIMEOUT_SECONDS") or "30")
     max_tokens = int(_env(source, "LLM_MAX_TOKENS") or "128")
     temperature = float(_env(source, "LLM_TEMPERATURE") or "0.2")

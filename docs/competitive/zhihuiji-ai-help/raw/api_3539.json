@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3539,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么员工看到的库存不对？",
+    "keywords": "",
+    "description": "",
+    "content": "<p>员工看到的库存，是<strong>自己有权限的仓库</strong>的库存。如果员工的仓库权限不包含某些仓库，就看不到这些仓库的库存数据。</p>\n<p>如需让员工查看全部库存，可为员工勾选<strong>所有仓库权限</strong>。</p>\n<p><strong>路径：</strong> 【设置】→【员工管理】→ 找到对应员工 → 点击【修改】→ 勾选全部仓库 → 确定</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/6620fd7b70325315e59d77f3f71cc6ba.png\" alt=\"仓库权限设置\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2679,
+    "status": 2,
+    "recommend": 0,
+    "hits": 19,
+    "publish_time": "2026-04-22T03:38:33.760Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2026-04-22T03:38:33.760Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2127,
+        "name": "库存",
+        "alias": ""
+      },
+      {
+        "id": 2679,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "crawled_at": "2026-04-27T18:29:45.194494+00:00",
+  "entry_url": "https://www.zhihuiji.cn/help/zhj-space",
+  "seed_urls": [
+    "https://www.zhihuiji.cn/help/zhj-space/1636",
+    "https://www.zhihuiji.cn/help/zhj-space/1826"
+  ],
+  "method": "requests + BeautifulSoup/html2text; parsed SSR window.__INITIAL_STATE__, then fetched /api/help/{id}.",
+  "output_dir": "/root/business-clone/docs/competitive/zhihuiji-ai-help",
+  "pages_dir": "/root/business-clone/docs/competitive/zhihuiji-ai-help/pages",
+  "raw_dir": "/root/business-clone/docs/competitive/zhihuiji-ai-help/raw",
+  "discovered_count": 429,
+  "saved_page_count": 429,
+  "doc_count": 398,
+  "video_count": 31,
+  "failure_count": 0,
+  "failures": []
+}

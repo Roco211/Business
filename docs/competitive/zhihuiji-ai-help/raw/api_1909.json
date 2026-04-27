@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1909,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "资金流水教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>1.路径：点击左侧资金-资金流水。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/f0e95ca0d734da44f94b17f3b88cd2ab.png\" alt=\"Description\"></p>\n<p>2.可以选择单据日期，门店，账户和业务员查询，同时也可以输入单据编号，关联单据编号和备注查询。点击导出按钮可以导出到Excel表格。</p>\n<p>单据编号是指有填写金额交易的单据编号，关联单据编号是指有关联收款/付款单的销售/进货单的单据编号。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/6b8ae36de1ac1ea8179619f53e825a2e.png\" alt=\"Description\"></p>\n<p>3.资金流水底部可以翻页查看，也可以选择每页显示的条数。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202307/4d5a9791cd4aab239a5b7543fd390594.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2628,
+    "status": 2,
+    "recommend": 0,
+    "hits": 9813,
+    "publish_time": "2023-07-25T08:44:42.463Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-10T08:48:06.849Z",
+    "tags": [
+      {
+        "id": 77,
+        "name": "资金流水"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2628,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

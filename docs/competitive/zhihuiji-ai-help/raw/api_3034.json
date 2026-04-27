@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3034,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "小程序开通——小程序授权云店",
+    "keywords": "",
+    "description": "",
+    "content": "<p>注册认证完小程序后，小程序需要一键<strong>授权</strong>给智慧记AI进销存代生成云店，具体步骤如下：</p>\n<p>1、首先在智慧记AI进销存电脑端的首页导航栏里，点击“云店”→左下角的“微信小程序”后会出现以下界面，用管理员的微信扫描右边的二维码进行授权</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202506/386b5794cf7bce385af0802853ba2579.png\" alt=\"Description\"></p>\n<p>2、在手机端点击想要绑定的小程序，一定要选择底下小程序那一栏哦。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/65f1c3dd287a2e2b798345082423d373.png\" alt=\"Description\"></p>\n<p>选中之后会出现下面这两个页面，也就表示你已经授权成功了。一般需要耐心等候1-3个工作日，就可以用小程序云店了。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202306/b54e26aad4b1640d999eecffcd5055a7.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2879,
+    "status": 2,
+    "recommend": 0,
+    "hits": 4807,
+    "publish_time": "2025-06-06T00:42:16.790Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-06-05T03:11:24.000Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2879,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

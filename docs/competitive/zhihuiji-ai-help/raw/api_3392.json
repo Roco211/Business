@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3392,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "批量打印销售退货单",
+    "keywords": "",
+    "description": "",
+    "content": "<p>批量打印销售退货单，适用于需要集中处理多张退货单据的场景。</p>\n<p><strong>操作路径：</strong>【销售】→【销售退货】→ 勾选要打印的单据 →【批量打印】→ 确认模板与打印机、打印份数→ 点击打印</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/8b647c76346d230d02275dbb5ae65362.png\" alt=\"批量打印销售退货单\">\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/fae00b044b2b4bfbbbf26c5aab4dd0ca.png\" alt=\"确认打印模板后点击打印\"></p>\n<p><strong>💡 注意事项：</strong>\n销售退货单与销售单默认共用同一打印模板，请确认已选择正确的“退货单”模板。如需单独设置，请查看 <a href=\"https://www.zhihuiji.cn/help/doc/2102\">如何设置退货单打印模板</a>。</p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2595,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3279,
+    "publish_time": "2025-12-23T09:00:43.586Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-23T08:50:50.140Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2125,
+        "name": "销售",
+        "alias": ""
+      },
+      {
+        "id": 2595,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 1905,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "库存统计教程",
+    "keywords": "",
+    "description": "",
+    "content": "<p>业务场景：当要查看商品的进出货明细以及成本的明细就可以查看库存统计。</p>\n<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202503/3373c097655294598e404525c6d1e277.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p>路径：分析-库存统计</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/ac00b9e56d6a6e3e1975f0d912692bb2.png\" alt=\"Description\"></p>\n<p>1.客户输入日期，仓库，商品名称/货号查询。</p>\n<p>2.点击导出可以导出库存统计报表。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/01f2830563de98f798ca3e9ea51c4933.png\" alt=\"Description\"></p>\n<p>3.点击商品名称后面的【库存流水】，可以查看到该商品的进出货明细。如果觉得库存查询的数量不对，查询这里的库存流水就知道库存数量怎么来的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/0dab6c41f4f5c3ed3fe67db3e08d4d2f.png\" alt=\"Description\"></p>\n<p>4.点击商品名称后面的【成本明细】，可以查看到该商品的成本价。如果销售统计的利润不对，查看这里的成本明细就知道成本价怎么来的。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202308/20026d72fa1a73f70ea70708e7c19a10.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2645,
+    "status": 2,
+    "recommend": 0,
+    "hits": 10466,
+    "publish_time": "2025-04-14T08:26:53.894Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2023-07-10T08:43:38.902Z",
+    "tags": [
+      {
+        "id": 87,
+        "name": "库存统计"
+      },
+      {
+        "id": 88,
+        "name": "库存流水"
+      },
+      {
+        "id": 89,
+        "name": "成本明细"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2645,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

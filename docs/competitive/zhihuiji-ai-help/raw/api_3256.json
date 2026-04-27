@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3256,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "云店已设置访问限制，有的新客扫码云店的二维码，为什么不需要审批就能直接进入云店查看数据？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>原因：客户给顾客提供的二维码有误导致的</strong></p>\n<p>如果客户是点开“客户--查看--尚未成为云店客户”这里的二维码，这里是直接邀请客户注册成为云店客户，所以不需要审批。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/828996b9eebfa0ffb1b3f69c5b3ee7c4.png\" alt=\"Description\"></p>\n<p>如果是需要审批的客户，需要发送“云店--我的云店--右下角二维码”这里的二维码给客户</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202510/5703507ef1479347b1eed73f6d25001f.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2905,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3602,
+    "publish_time": "2025-10-29T02:56:07.010Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-10-29T02:56:07.010Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2870,
+        "name": "云店",
+        "alias": ""
+      },
+      {
+        "id": 2905,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

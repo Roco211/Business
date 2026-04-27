@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2570,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "如何导入多规格商品",
+    "keywords": "",
+    "description": "",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/de88b9e080871d03e86955457edbdd84.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频描述\n</video></p>\n<p><strong>操作路径：</strong>【商品】-【商品】-【导入新增】\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/75046d2f14314d40c9197531e3eea71d.png\" alt=\"导入新增入口\"></p>\n<p><strong>(1) 下载模板</strong></p>\n<p>选择下载 <strong>“多规格商品导入模板”</strong>。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202511/f8fc6987041ec56c39f515f6a59b9a31.png\" alt=\"下载多规格模板\"></p>\n<p><strong>(2) 填写规格（关键步骤）</strong></p>\n<ul>\n<li><strong>规格名称</strong>：在“多规格”列填写，如 <code>颜色/尺码</code>（用英文“/”分隔）。</li>\n<li><strong>规格内容</strong>：根据名称顺序，在对应列填写具体值，如 <code>红色</code>、<code>S</code>。</li>\n<li><strong>填写示例</strong>：商品“铁制红箱1#”有2种颜色和2种尺寸，需创建4种组合。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/64e82710f9fde8afe31df17e99ecfb60.png\" alt=\"填写示例\"></li>\n</ul>\n<p><strong>(3) 上传文件</strong></p>\n<p>保存填好的<code>.xlsx</code>文件，回到导入页面点击上传，完成导入。</p>\n<p><strong>常见问题</strong></p>\n<p><strong>问题一：多规格与规格内容不匹配</strong></p>\n<ul>\n<li><strong>现象</strong>：系统提示“多规格与规格内容不匹配”。</li>\n<li><strong>解决</strong>：检查并补全每个规格名称对应的所有规格值。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/e7996aa63dfdc29be309414a0e735c22.png\" alt=\"错误示例1\"></li>\n</ul>\n<p><strong>问题二：规格内容组合重复</strong></p>\n<ul>\n<li><strong>现象</strong>：系统提示“规格内容组合重复”。</li>\n<li><strong>解决</strong>：在表格中查找并删除完全相同的规格组合行。\n<img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202402/b6812d3ddc31f9de33f04dea18bdbe04.png\" alt=\"错误示例2\"></li>\n</ul>\n<hr>\n<p><strong>系统学习</strong></p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/918\">商品规格使用指南</a> - 学习如何创建和管理规格库</li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2612,
+    "status": 2,
+    "recommend": 0,
+    "hits": 8515,
+    "publish_time": "2025-11-26T08:54:02.897Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2024-02-27T07:03:31.375Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2124,
+        "name": "商品",
+        "alias": ""
+      },
+      {
+        "id": 2612,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

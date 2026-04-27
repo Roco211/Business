@@ -1,0 +1,52 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 3364,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "客户对账单的期初欠款没有显示出来是为什么？",
+    "keywords": "",
+    "description": "",
+    "content": "<p><strong>客户对账单的期初欠款没有显示出来一般是以下两个原因导致的：</strong></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/07c66c126fd4685960a9a9f9a0c5e9bd.png\" alt=\"Description\"></p>\n<p><strong>原因一：</strong> 自定义表头把 “累计欠款” 隐藏了，到自定义表头把 ”累计欠款“ 加上即可。</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/9bda5529cf1063d6ac4d29a0db95ed2c.png\" alt=\"Description\"></p>\n<p><strong>原因二：</strong> 查询的时候选择了某一个门店了，没有选择全部门店</p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/16dd61f0bafd2b893beeac9fa340f407.png\" alt=\"Description\"></p>\n",
+    "is_video": 0,
+    "thumbnail": "",
+    "category_id": 2680,
+    "status": 2,
+    "recommend": 0,
+    "hits": 3517,
+    "publish_time": "2025-12-09T02:36:54.111Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2025-12-09T02:36:54.111Z",
+    "tags": [],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2128,
+        "name": "资金",
+        "alias": ""
+      },
+      {
+        "id": 2680,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "code": 200,
+  "msg": "成功",
+  "data": {
+    "id": 2088,
+    "type": "help",
+    "format": "markdown",
+    "alias": "",
+    "title": "为什么销售利润/毛利不对？",
+    "keywords": "",
+    "description": "毛利不对",
+    "content": "<p><video src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202512/bf361728a56b248f885f7bd47118f0f1.mp4\" controls=\"controls\" class=\"my-video\" style=\"max-width:100%\">\n\n\n视频\n</video></p>\n<h2 id=\"%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F\" tabindex=\"-1\">计算公式<a class=\"header-anchor\" href=\"#%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F\" aria-hidden=\"true\"></a></h2>\n<blockquote>\n<p><strong>销售毛利 = 商品销售额 − 销售商品成本 − 销售税额</strong></p>\n</blockquote>\n<p>毛利不对，通常是因为<strong>商品成本</strong>不准确。请按以下步骤检查：</p>\n<hr>\n<h2 id=\"%E8%BF%9B%E5%85%A5%E6%88%90%E6%9C%AC%E6%98%8E%E7%BB%86%E9%A1%B5%E9%9D%A2\" tabindex=\"-1\">进入成本明细页面<a class=\"header-anchor\" href=\"#%E8%BF%9B%E5%85%A5%E6%88%90%E6%9C%AC%E6%98%8E%E7%BB%86%E9%A1%B5%E9%9D%A2\" aria-hidden=\"true\"></a></h2>\n<p><strong>路径：</strong> 【库存】→【库存查询】→ 搜索商品 → 点击【成本明细】</p>\n<p>注：如果不确定具体商品，可点此查看<a href=\"https://www.zhihuiji.cn/help/doc/3535\">如何查看毛利异常的商品？</a></p>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/4e398b4de50a9d1658e6eae7cbe6d669.png\" alt=\"进入成本明细页面\"></p>\n<hr>\n<h3 id=\"%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%A3%80%E6%9F%A5%E4%BB%A5%E4%B8%8B%E5%86%85%E5%AE%B9\" tabindex=\"-1\">按顺序检查以下内容<a class=\"header-anchor\" href=\"#%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%A3%80%E6%9F%A5%E4%BB%A5%E4%B8%8B%E5%86%85%E5%AE%B9\" aria-hidden=\"true\"></a></h3>\n<table>\n<thead>\n<tr>\n<th>步骤</th>\n<th>检查内容</th>\n<th>问题处理</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>①</td>\n<td>对应销售单的成本是否正确</td>\n<td>若不正确，继续下一步</td>\n</tr>\n<tr>\n<td>②</td>\n<td>销售单<strong>之前</strong>的进货成本是否正确</td>\n<td>若不正确，修改进货单中的单价</td>\n</tr>\n<tr>\n<td>③</td>\n<td>销售单前无进货记录，或存在初始库存<br>→ 检查<strong>初始成本价</strong></td>\n<td>若不正确，可点此查看<a href=\"https://www.zhihuiji.cn/help/doc/3536\">如何修改商品初始成本价</a></td>\n</tr>\n</tbody>\n</table>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/b3ba779c83d55c322bff8040a87cfb98.png\" alt=\"核对成本明细\"></p>\n<hr>\n<h2 id=\"%E4%BF%AE%E6%94%B9%E5%90%8E%E5%88%B7%E6%96%B0%E6%95%B0%E6%8D%AE\" tabindex=\"-1\">修改后刷新数据<a class=\"header-anchor\" href=\"#%E4%BF%AE%E6%94%B9%E5%90%8E%E5%88%B7%E6%96%B0%E6%95%B0%E6%8D%AE\" aria-hidden=\"true\"></a></h2>\n<p>进货单价或初始成本修改完成后：</p>\n<ul>\n<li>刷新<strong>成本明细页面</strong>，查看更新后的销售单成本价</li>\n<li>刷新<strong>销售统计页面</strong>，查看更新后的毛利数据</li>\n</ul>\n<p><img src=\"https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/c8d4df378d34732641ee109646866231.png\" alt=\"销售统计页面\"></p>\n<hr>\n<p>关联阅读</p>\n<ul>\n<li><a href=\"https://www.zhihuiji.cn/help/doc/927\">商品成本是怎么核算的？</a></li>\n</ul>\n",
+    "is_video": 0,
+    "thumbnail": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202604/b64b004cd6d3d47037009c1f45feb82d.jpg",
+    "category_id": 2681,
+    "status": 2,
+    "recommend": 0,
+    "hits": 14163,
+    "publish_time": "2026-04-20T08:50:48.731Z",
+    "useful_count": 0,
+    "useless_count": 0,
+    "create_time": "2049-11-01T01:06:43.000Z",
+    "tags": [
+      {
+        "id": 55,
+        "name": "销售统计"
+      }
+    ],
+    "author": {
+      "id": 3,
+      "nickname": "智慧记",
+      "avatar": "https://ks3-cn-beijing.ksyun.com/zhjwebsite/uploads/202008/6797cedb90c5331c5949fa573f6b3277.png"
+    },
+    "category_tree": [
+      {
+        "id": 783,
+        "name": "智慧记·AI进销存",
+        "alias": "zhj-space"
+      },
+      {
+        "id": 1636,
+        "name": "手册",
+        "alias": ""
+      },
+      {
+        "id": 2129,
+        "name": "分析",
+        "alias": ""
+      },
+      {
+        "id": 2681,
+        "name": "",
+        "alias": ""
+      }
+    ]
+  }
+}

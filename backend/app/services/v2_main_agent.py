@@ -114,8 +114,10 @@ class DeepSeekMainAgent:
     def __init__(self, llm_service: LLMService | None = None):
         self._llm_service = llm_service
         self._provider = None
+        self._use_mock = llm_service is None or llm_service._use_mock
         if llm_service and not llm_service._use_mock:
             self._provider = llm_service._provider
+            self._use_mock = False
 
     def _get_provider(self):
         if self._provider is None:
@@ -138,8 +140,22 @@ class DeepSeekMainAgent:
         Returns:
             AgentPlan: 包含意图类型、员工角色、工具调用计划
         """
-        # Fast path: 高置信度的规则匹配，避免简单查询也走 LLM
         rule_intent = self._rule_based_intent(user_message)
+
+        # Mock/local-demo path: do not call external provider when no real LLM is configured.
+        # This keeps demo/test runs deterministic and avoids accidental network calls.
+        if self._use_mock:
+            if rule_intent.intent_type == "unknown":
+                return AgentPlan(
+                    intent_type="general_chat",
+                    employee_role=self._get_employee_role("general_chat"),
+                    tool_calls=[],
+                    needs_confirmation=False,
+                    direct_reply="我可以帮你查营业额、看库存预警、查热销排行，也可以先生成入库/出库待确认草稿。你想先看哪一项？",
+                )
+            return self._plan_from_rule(rule_intent, user_message)
+
+        # Fast path: 高置信度的规则匹配，避免简单查询也走 LLM
         if rule_intent.confidence >= 0.85 and rule_intent.intent_type != "unknown":
             return self._plan_from_rule(rule_intent, user_message)
 
@@ -162,8 +178,8 @@ class DeepSeekMainAgent:
             plan = self._parse_plan(content, user_message)
             return plan
 
-        except LLMProviderError as exc:
-            logger.error("DeepSeek planning failed: %s", exc.message)
+        except (LLMProviderError, ValueError) as exc:
+            logger.error("DeepSeek planning failed: %s", getattr(exc, "message", str(exc)))
             # Fallback to rule-based plan
             return self._plan_from_rule(rule_intent, user_message)
 
@@ -373,6 +389,8 @@ class DeepSeekMainAgent:
 
     def _should_use_fast_reply(self, plan: AgentPlan, tool_results: list[dict]) -> bool:
         """Return True for high-frequency deterministic queries."""
+        if any(result.get("type") in {"stock_tx_pending", "stock_tx_error", "stock_not_found"} for result in tool_results):
+            return True
         if plan.intent_type in {"revenue_query", "sales_query", "alert_query"}:
             return True
         if plan.intent_type == "stock_query" and tool_results:
@@ -386,8 +404,27 @@ class DeepSeekMainAgent:
                 return plan.direct_reply
             return "请问有什么可以帮您的？"
 
-        result = tool_results[0]
+        result = tool_results[-1] if tool_results[-1].get("type") in {"stock_tx_pending", "stock_tx_error"} else tool_results[0]
 
+        if result.get("type") == "stock_tx_error":
+            if result.get("error") == "库存不足":
+                return (
+                    f"库存不足，{result.get('item_name', '该商品')}当前只有"
+                    f"{result.get('current_quantity', 0):.0f}{result.get('unit', '个')}，"
+                    f"不能出库{result.get('requested_quantity', 0)}{result.get('unit', '个')}。"
+                )
+            return f"操作失败：{result.get('error', '请稍后重试')}"
+
+        if result.get("type") == "stock_tx_pending":
+            return (
+                f"已生成{result.get('action', '库存操作')}待确认单，请确认后再落账。\n"
+                f"商品：{result.get('item_name')}\n"
+                f"数量：{result.get('quantity')}{result.get('unit', '个')}\n"
+                f"确认单：{result.get('confirmation_id')}"
+            )
+
+        if result.get("type") == "stock_not_found":
+            return f"未找到商品“{result.get('item_name', '')}”，请确认商品名称是否正确。"
         if plan.intent_type == "revenue_query" and result.get("type") == "revenue_summary":
             return (
                 f"过去30天营业额为¥{result.get('total_revenue', 0):.2f}，"

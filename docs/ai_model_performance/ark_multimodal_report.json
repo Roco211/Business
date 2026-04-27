@@ -1,0 +1,153 @@
+{
+  "generated_at_epoch": 1777323240.876,
+  "provider": "volcano-ark",
+  "model": "doubao-seed-2-0-pro-260215",
+  "api_url": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+  "api_key_configured": true,
+  "secrets_redacted": true,
+  "artifacts": {
+    "receipt_png": "/tmp/business_ai_model_eval/receipt.png",
+    "tone_wav": "/tmp/business_ai_model_eval/tone.wav"
+  },
+  "cases": [
+    {
+      "name": "ark_text_chat",
+      "success_count": 1,
+      "failure_count": 0,
+      "success_rate": 1.0,
+      "latency_ms": {
+        "min": 2901.26,
+        "avg": 2901.26,
+        "max": 2901.26
+      },
+      "confidence": {
+        "avg": 0.99,
+        "min": 0.99,
+        "max": 0.99
+      },
+      "samples": [
+        {
+          "index": 1,
+          "ok": true,
+          "elapsed_ms": 2901.26,
+          "preview": "{\"ok\":true,\"confidence\":0.99,\"capability\":\"text\"}",
+          "confidence": 0.99,
+          "usage": {
+            "completion_tokens": 60,
+            "prompt_tokens": 70,
+            "total_tokens": 130,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 42
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ocr_purchase_receipt",
+      "success_count": 1,
+      "failure_count": 0,
+      "success_rate": 1.0,
+      "latency_ms": {
+        "min": 13047.18,
+        "avg": 13047.18,
+        "max": 13047.18
+      },
+      "confidence": {
+        "avg": 0.99,
+        "min": 0.99,
+        "max": 0.99
+      },
+      "samples": [
+        {
+          "index": 1,
+          "ok": true,
+          "elapsed_ms": 13047.18,
+          "confidence": 0.99,
+          "item_count": 2,
+          "items": [
+            {
+              "item_name": "M8 SCREW",
+              "quantity": 20.0,
+              "unit": "BOX",
+              "price": 8.5
+            },
+            {
+              "item_name": "HAMMER",
+              "quantity": 2.0,
+              "unit": "PCS",
+              "price": 35.0
+            }
+          ],
+          "total_amount": 240.0,
+          "raw_text_preview": "PURCHASE RECEIPT\nM8 SCREW 20 BOX 8.50\nHAMMER 2 PCS 35.00\nTOTAL 240.00"
+        }
+      ]
+    },
+    {
+      "name": "vision_product_recognition",
+      "success_count": 1,
+      "failure_count": 0,
+      "success_rate": 1.0,
+      "latency_ms": {
+        "min": 13622.08,
+        "avg": 13622.08,
+        "max": 13622.08
+      },
+      "confidence": {
+        "avg": 0.99,
+        "min": 0.99,
+        "max": 0.99
+      },
+      "samples": [
+        {
+          "index": 1,
+          "ok": true,
+          "elapsed_ms": 13622.08,
+          "confidence": 0.99,
+          "candidate_count": 2,
+          "candidates": [
+            {
+              "item_name": "M8螺丝",
+              "confidence": 0.99,
+              "packaging_hint": "20盒"
+            },
+            {
+              "item_name": "锤子",
+              "confidence": 0.99,
+              "packaging_hint": "2件"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "asr_transcription",
+      "success_count": 0,
+      "failure_count": 1,
+      "success_rate": 0.0,
+      "latency_ms": {
+        "min": null,
+        "avg": null,
+        "max": null
+      },
+      "confidence": {
+        "avg": null,
+        "min": null,
+        "max": null
+      },
+      "samples": [
+        {
+          "index": 1,
+          "ok": false,
+          "elapsed_ms": 1125.25,
+          "error_type": "AsrProviderError",
+          "error": "Client error '400 Bad Request' for url 'https://ark.cn-beijing.volces.com/api/v3/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400; response={\"error\":{\"code\":\"InvalidParameter\",\"message\":\"The parameter `messages.content.input_audio` specified in the request are not valid: audio input is not supported by this model. Request id: 021777323240378cd21dc0901f486ba2ed629f607d89bfbc198bd\",\"param\":\"messages.content.input_audio\",\"type\":\"BadRequest\"}}"
+        }
+      ]
+    }
+  ]
+}

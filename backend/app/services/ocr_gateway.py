@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.runtime.guardrails import provider_trial_violation
+from app.services.ark_multimodal_provider import ARK_CHAT_COMPLETIONS_URL, ArkOcrProvider
 from app.services.ocr_mock_provider import MockOcrProvider
 from app.services.ocr_real_provider import RealOcrProvider
 from app.services.ocr_types import (
@@ -13,7 +14,7 @@ from app.services.ocr_types import (
 )
 
 
-SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider"}
+SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider", "volcano", "doubao", "ark", "ark-doubao"}
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,24 @@ def build_ocr_gateway(settings: Settings) -> OcrGateway:
                 retryable=False,
             )
         return OcrGateway(primary_provider=MockOcrProvider())
+
+    if provider_name in {"volcano", "doubao", "ark", "ark-doubao"}:
+        if not settings.ocr_provider_api_key or not settings.ocr_provider_model:
+            raise OcrProviderError(
+                "ocr_unavailable",
+                "missing OCR provider configuration",
+                retryable=False,
+            )
+        fallback_provider = MockOcrProvider() if settings.ocr_allow_mock_fallback else None
+        return OcrGateway(
+            primary_provider=ArkOcrProvider(
+                api_url=settings.ocr_provider_api_url or ARK_CHAT_COMPLETIONS_URL,
+                api_key=settings.ocr_provider_api_key,
+                model=settings.ocr_provider_model,
+                timeout_seconds=settings.ocr_timeout_seconds,
+            ),
+            fallback_provider=fallback_provider,
+        )
 
     if provider_name == "real-provider":
         if (

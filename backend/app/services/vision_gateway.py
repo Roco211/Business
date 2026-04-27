@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.runtime.guardrails import provider_trial_violation
+from app.services.ark_multimodal_provider import ARK_CHAT_COMPLETIONS_URL, ArkVisionProvider
 from app.services.vision_mock_provider import MockVisionProvider
 from app.services.vision_real_provider import RealVisionProvider
 from app.services.vision_types import (
@@ -12,7 +13,7 @@ from app.services.vision_types import (
     VisionRecognition,
 )
 
-SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider"}
+SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider", "volcano", "doubao", "ark", "ark-doubao"}
 
 
 @dataclass(frozen=True)
@@ -71,6 +72,24 @@ def build_vision_gateway(settings: Settings) -> VisionGateway:
             "vision_unavailable",
             f"unsupported vision provider: {settings.vision_provider}",
             retryable=False,
+        )
+
+    if provider_name in {"volcano", "doubao", "ark", "ark-doubao"}:
+        if not settings.vision_provider_api_key or not settings.vision_provider_model:
+            raise VisionProviderError(
+                "vision_unavailable",
+                "missing vision provider configuration",
+                retryable=False,
+            )
+        fallback_provider = MockVisionProvider() if allow_mock else None
+        return VisionGateway(
+            primary_provider=ArkVisionProvider(
+                api_url=settings.vision_provider_api_url or ARK_CHAT_COMPLETIONS_URL,
+                api_key=settings.vision_provider_api_key,
+                model=settings.vision_provider_model,
+                timeout_seconds=settings.vision_timeout_seconds,
+            ),
+            fallback_provider=fallback_provider,
         )
 
     if (

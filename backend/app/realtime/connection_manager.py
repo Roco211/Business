@@ -7,9 +7,8 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, WebSocket
 
-from app.contracts.session_stream import SessionStreamEventEnvelope
+from app.contracts.v2.conversation import V2SessionStreamEventData
 from app.core.ids import new_prefixed_id
-from app.services.session_stream import list_session_events_after
 
 PendingEventLoader = Callable[[object, str, int], list[Any]]
 
@@ -18,12 +17,8 @@ def _default_pending_event_loader(
     db_session: object,
     session_id: str,
     after_seq: int,
-) -> list[SessionStreamEventEnvelope]:
-    return list_session_events_after(
-        db_session,
-        session_id=session_id,
-        after_seq=after_seq,
-    )
+) -> list[V2SessionStreamEventData]:
+    return []
 
 
 class SessionStreamConnectionManager:
@@ -101,7 +96,7 @@ class SessionStreamConnectionManager:
             with suppress(asyncio.CancelledError):
                 await keepalive_task
 
-    async def publish(self, *, session_id: str, event: SessionStreamEventEnvelope) -> None:
+    async def publish(self, *, session_id: str, event: V2SessionStreamEventData) -> None:
         async with self._lock:
             recipients = list(self._connections.get(session_id, set()))
 
@@ -210,7 +205,7 @@ class SessionStreamConnectionManager:
             await websocket.close(code=unauthorized_close_code)
         return False
 
-    async def _send_event(self, websocket: WebSocket, event: SessionStreamEventEnvelope) -> None:
+    async def _send_event(self, websocket: WebSocket, event: V2SessionStreamEventData) -> None:
         await websocket.send_json(event.model_dump(mode="json"))
 
     def _build_ephemeral_event(
@@ -219,8 +214,8 @@ class SessionStreamConnectionManager:
         session_id: str,
         event_type: str,
         seq: int,
-    ) -> SessionStreamEventEnvelope:
-        return SessionStreamEventEnvelope(
+    ) -> V2SessionStreamEventData:
+        return V2SessionStreamEventData(
             event_id=new_prefixed_id("ws_evt"),
             seq=seq,
             event_type=event_type,

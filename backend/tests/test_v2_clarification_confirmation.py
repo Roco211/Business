@@ -206,7 +206,7 @@ def _create_api_identity_context(client, db_session) -> tuple[str, str]:
         json={"email": "owner@example.com", "password": "dev-password"},
     )
     assert login_response.status_code == 200
-    token = login_response.json()["data"]["access_token"]
+    token = (login_response.json()["data"].get("accessToken") or login_response.json()["data"].get("access_token"))
 
     context_response = client.post(
         "/api/v2/context/select",
@@ -214,7 +214,7 @@ def _create_api_identity_context(client, db_session) -> tuple[str, str]:
         json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
     )
     assert context_response.status_code == 200
-    return token, context_response.json()["data"]["context_token"]
+    return token, (context_response.json()["data"].get("contextToken") or context_response.json()["data"].get("context_token"))
 
 
 def _list_v2_stream_events(client, *, token: str, context_token: str, session_id: str) -> list[dict[str, object]]:

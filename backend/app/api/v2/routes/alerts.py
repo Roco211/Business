@@ -1,10 +1,9 @@
-"""V2 Alerts API routes for low-stock alerts."""
+"""V2 Alerts API routes backed by V2 inventory stock snapshots."""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps.v2_context import (
@@ -15,9 +14,18 @@ from app.api.deps.v2_context import (
 )
 from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_db_session
-from app.models import Alert
+from app.services.v2_alerts import generate_v2_low_stock_alerts
 
 router = APIRouter(prefix="/api/v2/alerts", tags=["v2-alerts"])
+
+
+def _context_mismatch() -> JSONResponse:
+    return JSONResponse(
+        status_code=403,
+        content=V2ErrorEnvelope(
+            error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
+        ).model_dump(),
+    )
 
 
 @router.get("")
@@ -30,50 +38,37 @@ async def list_alerts(
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ):
-    """List low-stock alerts for a shop.
-    
-    Args:
-        shop_id: Shop ID to filter alerts
-        status: Filter by alert status (pending, acknowledged, resolved)
-        limit: Max results per page
-        offset: Pagination offset
-    """
-    if account.account_id != context.account_id:
-        return JSONResponse(
-            status_code=403,
-            content=V2ErrorEnvelope(
-                error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
-            ).model_dump(),
-        )
+    if account.account_id != context.account_id or context.shop_id != shop_id:
+        return _context_mismatch()
 
-    query = select(Alert).where(Alert.shop_id == shop_id)
-    
-    if status:
-        query = query.where(Alert.status == status)
-    
-    query = query.order_by(Alert.created_at.desc()).limit(limit).offset(offset)
-    
-    result = db_session.execute(query)
-    alerts = result.scalars().all()
-    
+    generated = generate_v2_low_stock_alerts(db_session, shop_id)
+    if status and status not in {"pending", "open"}:
+        generated = []
+    paged = generated[offset : offset + limit]
+
     return V2DataEnvelope(
         data={
             "alerts": [
                 {
-                    "alert_id": a.alert_id,
-                    "alert_type": a.alert_type,
-                    "item_id": a.item_id,
-                    "status": a.status,
-                    "stock": float(a.stock) if a.stock else None,
-                    "threshold": float(a.threshold) if a.threshold else None,
-                    "created_at": a.created_at.isoformat() if a.created_at else None,
+                    "alert_id": f"v2_low_stock_{alert.item_id}",
+                    "alert_type": alert.alert_type,
+                    "item_id": alert.item_id,
+                    "item_name": alert.item_name,
+                    "sku": alert.sku,
+                    "status": "pending",
+                    "severity": alert.severity,
+                    "message": alert.message,
+                    "stock": alert.stock,
+                    "threshold": alert.threshold,
+                    "created_at": None,
                 }
-                for a in alerts
+                for alert in paged
             ],
             "pagination": {
                 "limit": limit,
                 "offset": offset,
-                "count": len(alerts),
+                "count": len(paged),
+                "total": len(generated),
             },
         }
     ).model_dump()
@@ -85,35 +80,17 @@ async def acknowledge_alert(
     shop_id: Annotated[str, Query()],
     account: V2AuthenticatedAccount = Depends(require_v2_authenticated_account),
     context: V2ExecutionContext = Depends(require_v2_execution_context),
-    db_session: Session = Depends(get_db_session),
 ):
-    """Acknowledge an alert."""
-    if account.account_id != context.account_id:
-        return JSONResponse(
-            status_code=403,
-            content=V2ErrorEnvelope(
-                error=V2ErrorBody(code="context_account_mismatch", message="Context account mismatch")
-            ).model_dump(),
-        )
+    if account.account_id != context.account_id or context.shop_id != shop_id:
+        return _context_mismatch()
 
-    query = select(Alert).where(
-        Alert.alert_id == alert_id,
-        Alert.shop_id == shop_id
+    return JSONResponse(
+        status_code=410,
+        content=V2ErrorEnvelope(
+            error=V2ErrorBody(
+                code="dynamic_alert_ack_not_supported",
+                message="V2 alerts are generated dynamically from inventory snapshots and do not require acknowledgement.",
+                details=[{"field": "alert_id", "message": alert_id}],
+            )
+        ).model_dump(),
     )
-    result = db_session.execute(query)
-    alert = result.scalar_one_or_none()
-    
-    if not alert:
-        return JSONResponse(
-            status_code=404,
-            content=V2ErrorEnvelope(
-                error=V2ErrorBody(code="alert_not_found", message="Alert not found")
-            ).model_dump(),
-        )
-    
-    alert.status = "acknowledged"
-    db_session.commit()
-    
-    return V2DataEnvelope(
-        data={"alert_id": alert_id, "status": "acknowledged"}
-    ).model_dump()

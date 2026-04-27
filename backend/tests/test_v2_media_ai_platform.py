@@ -108,14 +108,14 @@ def _seed_v2_media_login_and_context(client, db_session) -> tuple[str, str]:
         json={"email": "owner@example.com", "password": "dev-password"},
     )
     assert login_response.status_code == 200
-    token = login_response.json()["data"]["access_token"]
+    token = (login_response.json()["data"].get("accessToken") or login_response.json()["data"].get("access_token"))
     context_response = client.post(
         "/api/v2/context/select",
         headers={"Authorization": f"Bearer {token}"},
         json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
     )
     assert context_response.status_code == 200
-    return token, context_response.json()["data"]["context_token"]
+    return token, (context_response.json()["data"].get("contextToken") or context_response.json()["data"].get("context_token"))
 
 
 class _StubObjectStorage:
@@ -1297,7 +1297,9 @@ def test_v2_receipt_clarification_answer_preserves_provenance_through_confirmati
     assert awaiting_task_response.json()["data"]["intent_type"] == "inventory.stock_in"
     assert approve_response.status_code == 200
     assert approve_response.json()["data"]["draft_payload"] == expected_draft_payload
-    assert approve_response.json()["data"]["resolution_payload"] == {"fields": answer_payload}
+    resolution_payload = approve_response.json()["data"]["resolution_payload"]
+    assert resolution_payload["fields"] == expected_draft_payload
+    assert resolution_payload["execution_result"]["entity_type"] == "inventory_ledger_event"
     assert audit_log is not None
     assert audit_log.metadata_json["source_type"] == "receipt-document"
     assert audit_log.metadata_json["source_id"] == document_id

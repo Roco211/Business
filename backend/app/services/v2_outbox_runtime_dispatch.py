@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 
 from app.workers.v2_outbox_tasks import drain_v2_outbox
@@ -14,6 +15,10 @@ def _publish_v2_outbox_drain(
     max_batches: int = 10,
     retry_after_seconds: int | None = 60,
 ) -> bool:
+    task_name = str(getattr(drain_v2_outbox, "name", ""))
+    if os.getenv("V2_OUTBOX_CELERY_ENQUEUE_ENABLED", "0").strip() != "1" and task_name == "app.workers.v2_outbox_tasks.drain_v2_outbox":
+        logger.debug("Skip real Celery V2 outbox drain enqueue because V2_OUTBOX_CELERY_ENQUEUE_ENABLED is not enabled")
+        return False
     try:
         drain_v2_outbox.apply_async(
             args=(tenant_id, shop_id),

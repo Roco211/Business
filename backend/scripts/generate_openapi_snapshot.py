@@ -5,7 +5,7 @@ from pathlib import Path
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = BACKEND_ROOT.parent
-OUTPUT_PATH = REPO_ROOT / "project_docs" / "generated" / "openapi-v1.json"
+OUTPUT_PATH = REPO_ROOT / "project_docs" / "generated" / "openapi-v2.json"
 
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))

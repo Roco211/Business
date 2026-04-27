@@ -37,7 +37,6 @@ def create_celery_app() -> Celery:
         broker=settings.redis_url,
         backend=settings.redis_url,
         include=(
-            "app.workers.runtime_tasks",
             "app.workers.v2_outbox_tasks",
             "app.workers.v2_outbox_due_tasks",
         ),

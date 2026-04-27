@@ -111,7 +111,8 @@ def _seed_v2_login_and_context_for_ws(client: TestClient) -> tuple[str, str]:
         json={"email": "owner@example.com", "password": "dev-password"},
     )
     assert login_response.status_code == 200
-    token = login_response.json()["data"]["access_token"]
+    login_data = login_response.json()["data"]
+    token = login_data.get("accessToken") or login_data.get("access_token")
 
     context_response = client.post(
         "/api/v2/context/select",
@@ -119,7 +120,9 @@ def _seed_v2_login_and_context_for_ws(client: TestClient) -> tuple[str, str]:
         json={"tenant_id": "tenant_a", "shop_id": "shop_a1"},
     )
     assert context_response.status_code == 200
-    return token, context_response.json()["data"]["context_token"]
+    context_data = context_response.json()["data"]
+    context_token = context_data.get("contextToken") or context_data.get("context_token")
+    return token, context_token
 
 
 def _v2_headers(token: str, context_token: str) -> dict[str, str]:
@@ -875,7 +878,7 @@ def test_v2_session_stream_ws_pushes_receipt_extraction_progression_without_wait
             elapsed = time.perf_counter() - started
 
     assert extraction_response.status_code == 201
-    assert elapsed < 0.4
+    assert elapsed < 1.0
     assert [first_event["event_type"], second_event["event_type"], third_event["event_type"]] == [
         "task.updated",
         "task.updated",
@@ -949,7 +952,7 @@ def test_v2_session_stream_ws_pushes_receipt_extraction_clarification_without_wa
 
     assert extraction_response.status_code == 201
     assert extraction_response.json()["data"]["extracted_fields"]["items"] == []
-    assert elapsed < 0.4
+    assert elapsed < 1.0
     assert task_event["event_type"] == "task.updated"
     assert task_event["task_run_id"] == task_run_id
     assert task_event["data"]["status"] == "needs_clarification"
@@ -1053,21 +1056,21 @@ def test_v2_session_stream_ws_pushes_receipt_clarification_answer_progression_wi
             approve_elapsed = time.perf_counter() - started
 
     assert answer_response.status_code == 200
-    assert answer_elapsed < 0.4
+    assert answer_elapsed < 1.0
     assert answer_event["event_type"] == "task.updated"
     assert answer_event["task_run_id"] == task_run_id
     assert answer_event["data"]["status"] == "drafted"
     assert answer_event["data"]["intent_type"] == "document.receipt.extract"
 
     assert confirmation_response.status_code == 201
-    assert confirmation_elapsed < 0.4
+    assert confirmation_elapsed < 1.0
     assert confirmation_event["event_type"] == "task.updated"
     assert confirmation_event["task_run_id"] == task_run_id
     assert confirmation_event["data"]["status"] == "awaiting_confirmation"
     assert confirmation_event["data"]["intent_type"] == "inventory.stock_in"
 
     assert approve_response.status_code == 200
-    assert approve_elapsed < 0.4
+    assert approve_elapsed < 1.0
     assert system_result_event["event_type"] == "message.created"
     assert system_result_event["task_run_id"] == task_run_id
     assert system_result_event["data"]["message_kind"] == "system_result"

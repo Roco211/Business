@@ -69,4 +69,7 @@ def test_alembic_upgrade_uses_database_url_env_override(monkeypatch, tmp_path) -
 
     engine = create_engine(database_url, future=True)
     inspector = inspect(engine)
-    assert "shops" in inspector.get_table_names()
+    table_names = set(inspector.get_table_names())
+    assert "v2_shops" in table_names
+    assert "v2_accounts" in table_names
+    assert "shops" not in table_names

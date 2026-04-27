@@ -5,7 +5,7 @@ from app.main import create_app
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SNAPSHOT_PATH = REPO_ROOT / "project_docs" / "generated" / "openapi-v1.json"
+SNAPSHOT_PATH = REPO_ROOT / "project_docs" / "generated" / "openapi-v2.json"
 
 
 def _load_snapshot() -> dict[str, object]:

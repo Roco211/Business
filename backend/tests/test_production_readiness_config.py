@@ -50,6 +50,9 @@ def test_app_adds_cors_security_headers_and_rate_limit(monkeypatch):
 
 
 def test_app_logs_unhandled_errors_with_request_id(monkeypatch, caplog):
+    import logging
+
+    caplog.set_level(logging.ERROR, logger="app.main")
     monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
     monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
 
@@ -148,7 +151,7 @@ def test_sanitize_for_log_redacts_sensitive_values():
 def test_app_emits_structured_request_log_with_request_id(monkeypatch, caplog):
     import logging
 
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.INFO, logger="app.main")
     monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
     monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
     monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "1")
@@ -179,6 +182,9 @@ def test_app_emits_structured_request_log_with_request_id(monkeypatch, caplog):
 
 
 def test_app_logs_unhandled_errors_with_sanitized_structured_payload(monkeypatch, caplog):
+    import logging
+
+    caplog.set_level(logging.ERROR, logger="app.main")
     monkeypatch.setenv("APP_RATE_LIMIT_PER_MINUTE", "0")
     monkeypatch.setenv("APP_SECURITY_HEADERS_ENABLED", "0")
     monkeypatch.setenv("APP_STRUCTURED_LOGGING_ENABLED", "1")

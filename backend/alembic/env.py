@@ -5,12 +5,12 @@ from sqlalchemy import engine_from_config, pool
 
 from app.db.base import Base
 from app.db.alembic_config import resolve_alembic_database_url
-from app.models import SessionRecord, Shop # noqa: F401
+import app.models  # noqa: F401
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

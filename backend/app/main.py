@@ -9,7 +9,6 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.api.deps.auth import AuthUnauthorizedError
 from app.api.deps.v2_context import V2ContextRequiredError, V2ForbiddenError, V2UnauthorizedError
 from app.core.config import get_settings
 from app.core.observability import build_request_log_payload, emit_structured_log
@@ -18,7 +17,6 @@ from app.core.production_middleware import (
     create_rate_limiter,
     security_headers_middleware,
 )
-from app.contracts.common import ErrorBody, ErrorEnvelope
 from app.contracts.v2.common import V2ErrorBody, V2ErrorEnvelope
 from app.db.session import get_session_factory
 from app.api.router import api_router
@@ -85,8 +83,8 @@ def register_error_logging_middleware(app: FastAPI) -> None:
                 logger.error("Unhandled request error request_id=%s method=%s path=%s", request_id, request.method, request.url.path)
             return JSONResponse(
                 status_code=500,
-                content=ErrorEnvelope(
-                    error=ErrorBody(
+                content=V2ErrorEnvelope(
+                    error=V2ErrorBody(
                         code="internal_server_error",
                         message="Internal server error",
                         details=[{"field": "request_id", "message": request_id}],
@@ -121,23 +119,14 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(
             status_code=500,
-            content=ErrorEnvelope(
-                error=ErrorBody(
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(
                     code="internal_server_error",
                     message="Internal server error",
-                    details=[{"request_id": request_id}],
+                    details=[{"field": "request_id", "message": request_id}],
                 )
             ).model_dump(),
             headers={"X-Request-ID": request_id},
-        )
-
-    @app.exception_handler(AuthUnauthorizedError)
-    async def _handle_auth_unauthorized(_, __) -> JSONResponse:
-        return JSONResponse(
-            status_code=401,
-            content=ErrorEnvelope(
-                error=ErrorBody(code="unauthorized", message="Unauthorized", details=[])
-            ).model_dump(),
         )
 
     @app.exception_handler(V2UnauthorizedError)

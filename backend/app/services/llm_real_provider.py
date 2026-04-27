@@ -108,6 +108,7 @@ class OpenAILLMProvider:
         self,
         messages: list[dict[str, str]],
         stream: bool = False,
+        max_tokens: int | None = None,
     ) -> LLMResponse:
         """Send chat completion request.
 
@@ -139,7 +140,7 @@ class OpenAILLMProvider:
         data = {
             "model": self.model,
             "messages": optimized_messages,
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens if max_tokens is not None else self.max_tokens,
             "temperature": self.temperature,
             "stream": stream,
         }
@@ -432,6 +433,8 @@ def create_llm_provider(
     if not _api_url:
         if env_provider == "volcano":
             _api_url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+        elif env_provider == "deepseek":
+            _api_url = "https://api.deepseek.com/v1/chat/completions"
         elif env_provider in ("openrouter", "openai"):
             _api_url = "https://openrouter.ai/api/v1/chat/completions"
         else:
@@ -440,6 +443,8 @@ def create_llm_provider(
     if not _model:
         if env_provider == "volcano":
             _model = "ep-20260416043519-v4vzq"  # Default endpoint ID
+        elif env_provider == "deepseek":
+            _model = "deepseek-chat"  # DeepSeek V3
         elif env_provider in ("openrouter", "openai"):
             _model = "nvidia/nemotron-3-super-120b-a12b:free"
         else:

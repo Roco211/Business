@@ -1,4 +1,4 @@
-"""V2 Chat API with SSE streaming for AI assistant interactions."""
+"""V2 Chat API with DeepSeek Main Agent orchestration and SSE streaming."""
 from __future__ import annotations
 
 import json
@@ -15,22 +15,25 @@ from app.api.deps.v2_context import (
     require_v2_authenticated_account,
     require_v2_execution_context,
 )
-from app.contracts.v2.common import V2DataEnvelope, V2ErrorBody, V2ErrorEnvelope
-from app.core.config import get_settings
+from app.contracts.v2.common import V2DataEnvelope
 from app.db.session import get_db_session
 from app.services.v2_chat_session import get_chat_session_store
-from app.services.v2_llm import LLMService, get_llm_service
+from app.services.v2_main_agent import get_main_agent, AgentPlan, ToolCall
+from app.services.v2_llm import get_llm_service
 from app.services.v2_conversation import create_v2_confirmation, create_v2_message_and_task_run
 from app.services.v2_analytics import (
     get_revenue_summary,
     get_sales_ranking,
     get_low_stock_alerts,
-    get_daily_revenue_series,
 )
 from app.models.v2_inventory import V2InventoryItem, V2InventoryStockSnapshot
 
 router = APIRouter(prefix="/api/v2", tags=["v2-chat"])
 
+
+# ───────────────────────────────────────────────
+# 1. Non-streaming endpoint (DeepSeek Main Agent)
+# ───────────────────────────────────────────────
 
 @router.post("/chat", response_model=V2DataEnvelope[dict])
 def chat_v2(
@@ -39,10 +42,10 @@ def chat_v2(
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[dict]:
-    """Non-streaming chat endpoint for simple queries with session support."""
+    """Non-streaming chat endpoint with DeepSeek Main Agent orchestration."""
     user_message = payload.get("message", "")
     session_id = payload.get("session_id")
-    
+
     # Get or create chat session
     session_store = get_chat_session_store()
     session_id, chat_session = session_store.get_or_create(
@@ -50,53 +53,41 @@ def chat_v2(
         account_id=account.account_id,
         shop_id=context.shop_id,
     )
-    
-    # Save user message to history
     chat_session.add_turn("user", user_message)
-    
-    llm_service = get_llm_service()
-    intent = llm_service.parse_intent(user_message, db_session, history=chat_session.to_messages())
-    
-    # Execute stock transaction if applicable
-    tx_reply = _execute_stock_transaction(intent, db_session, context, account, user_message)
-    
-    # Query inventory if needed
-    query_result = _query_inventory_for_intent(intent, db_session, context)
-    
-    # Generate response with history context. Query tools are deterministic; LLM turns their
-    # results into a natural business explanation. Write operations remain confirmation-first.
-    if tx_reply:
-        reply = tx_reply
-    elif query_result:
-        response = llm_service.generate_business_response(
-            query_result=query_result,
-            original_text=user_message,
-            intent_type=intent.intent_type,
-            history=chat_session.to_messages(),
-        )
-        reply = response.content
-    else:
-        response = llm_service.generate_general_reply(
-            original_text=user_message,
-            intent_type=intent.intent_type,
-            history=chat_session.to_messages(),
-        )
-        reply = response.content
-    
-    # Save assistant response to history
-    chat_session.add_turn("assistant", reply)
-    
+
+    # DeepSeek Main Agent: plan + execute + synthesize
+    main_agent = get_main_agent()
+    plan = main_agent.plan(user_message, db_session, history=chat_session.to_messages())
+
+    # Execute planned tools
+    tool_results = _execute_plan(plan, db_session, context, account, user_message)
+
+    # Synthesize response
+    agent_response = main_agent.synthesize(
+        user_message=user_message,
+        plan=plan,
+        tool_results=tool_results,
+        history=chat_session.to_messages(),
+    )
+
+    chat_session.add_turn("assistant", agent_response.content)
+
     return V2DataEnvelope(
         data={
             "message_id": str(uuid.uuid4()),
-            "reply": reply,
-            "intent": intent.intent_type,
-            "item_name": intent.item_name,
-            "confidence": intent.confidence,
+            "reply": agent_response.content,
+            "intent": agent_response.intent_type,
+            "employee": agent_response.employee_role,
+            "confidence": agent_response.confidence,
             "session_id": session_id,
+            "tool_results": agent_response.tool_results,
         }
     )
 
+
+# ───────────────────────────────────────────────
+# 2. SSE Streaming endpoint (DeepSeek Main Agent)
+# ───────────────────────────────────────────────
 
 @router.post("/chat/stream")
 def chat_stream_v2(
@@ -106,81 +97,61 @@ def chat_stream_v2(
     context: V2ExecutionContext = Depends(require_v2_execution_context),
     db_session: Session = Depends(get_db_session),
 ) -> StreamingResponse:
-    """SSE streaming chat endpoint for real-time AI responses with session support."""
+    """SSE streaming chat endpoint with DeepSeek Main Agent orchestration."""
     user_message = payload.get("message", "")
     session_id = payload.get("session_id")
-    
-    # Get or create chat session
+
     session_store = get_chat_session_store()
     session_id, chat_session = session_store.get_or_create(
         session_id=session_id,
         account_id=account.account_id,
         shop_id=context.shop_id,
     )
-    
-    # Save user message to history
     chat_session.add_turn("user", user_message)
-    
+
     async def event_generator() -> AsyncGenerator[str, None]:
-        llm_service = get_llm_service()
-        
-        # 1. Send intent recognition event with employee role
-        intent = llm_service.parse_intent(user_message, db_session, history=chat_session.to_messages())
-        role = _get_employee_role(intent.intent_type)
+        main_agent = get_main_agent()
+
+        # 1. Planning phase: DeepSeek understands intent
+        plan = main_agent.plan(user_message, db_session, history=chat_session.to_messages())
         yield _sse_event("intent", {
-            "intent_type": intent.intent_type,
-            "item_name": intent.item_name,
-            "quantity": intent.quantity,
-            "confidence": intent.confidence,
-            "employee": role,
+            "intent_type": plan.intent_type,
+            "employee": plan.employee_role,
+            "needs_confirmation": plan.needs_confirmation,
+            "tools": [t.tool_name for t in plan.tool_calls],
             "session_id": session_id,
         })
-        
-        # 2. Execute stock transaction if applicable
-        tx_reply = _execute_stock_transaction(intent, db_session, context, account, user_message)
-        
-        # 3. Query inventory
-        query_result = _query_inventory_for_intent(intent, db_session, context)
-        if query_result:
-            yield _sse_event("inventory", {**query_result, "employee": role})
-        
-        # 4. Generate and stream response with history context. Query tools are deterministic;
-        # LLM turns their results into a natural business explanation.
-        reply_text = ""
-        if tx_reply:
-            reply_text = tx_reply
-            for event in _stream_text(reply_text):
-                yield event
-        elif query_result:
-            response = llm_service.generate_business_response(
-                query_result=query_result,
-                original_text=user_message,
-                intent_type=intent.intent_type,
-                history=chat_session.to_messages(),
-            )
-            reply_text = response.content
-            for event in _stream_text(reply_text):
-                yield event
-        else:
-            response = llm_service.generate_general_reply(
-                original_text=user_message,
-                intent_type=intent.intent_type,
-                history=chat_session.to_messages(),
-            )
-            reply_text = response.content
-            for event in _stream_text(reply_text):
-                yield event
-        
-        # Save assistant response to history
-        chat_session.add_turn("assistant", reply_text)
-        
-        # 4. Send completion event with role
+
+        # 2. Tool execution phase
+        tool_results = _execute_plan(plan, db_session, context, account, user_message)
+        for result in tool_results:
+            yield _sse_event("tool_result", {
+                "type": result.get("type"),
+                "employee": plan.employee_role,
+            })
+
+        # 3. Synthesis phase: DeepSeek synthesizes final reply
+        agent_response = main_agent.synthesize(
+            user_message=user_message,
+            plan=plan,
+            tool_results=tool_results,
+            history=chat_session.to_messages(),
+        )
+
+        # Stream the synthesized response
+        for event in _stream_text(agent_response.content):
+            yield event
+
+        chat_session.add_turn("assistant", agent_response.content)
+
+        # 4. Completion
         yield _sse_event("done", {
             "message_id": str(uuid.uuid4()),
-            "employee": role,
+            "employee": agent_response.employee_role,
             "session_id": session_id,
+            "confidence": agent_response.confidence,
         })
-    
+
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
@@ -192,90 +163,77 @@ def chat_stream_v2(
     )
 
 
-def _query_inventory_for_intent(
-    intent,
+# ───────────────────────────────────────────────
+# 3. Tool Execution Engine
+# ───────────────────────────────────────────────
+
+def _execute_plan(
+    plan: AgentPlan,
     db_session: Session,
     context,
+    account,
+    user_message: str,
+) -> list[dict]:
+    """Execute all planned tool calls and return results."""
+    results: list[dict] = []
+
+    for tool_call in plan.tool_calls:
+        result = _execute_tool(tool_call, db_session, context, account, user_message)
+        if result:
+            results.append(result)
+
+    # Handle write operations (stock_in/stock_out) that need confirmation
+    if plan.intent_type in ("stock_in", "stock_out") and plan.tool_calls:
+        tx_result = _execute_stock_transaction_from_plan(plan, db_session, context, account, user_message)
+        if tx_result:
+            results.append(tx_result)
+
+    return results
+
+
+def _execute_tool(
+    tool_call: ToolCall,
+    db_session: Session,
+    context,
+    account,
+    user_message: str,
 ) -> dict | None:
-    """Query inventory or analytics based on parsed intent."""
+    """Execute a single tool call."""
+    tool_name = tool_call.tool_name
+    params = tool_call.parameters
+
+    if tool_name == "query_inventory":
+        return _tool_query_inventory(params, db_session, context)
+    if tool_name == "query_revenue":
+        return _tool_query_revenue(params, db_session, context)
+    if tool_name == "query_sales_ranking":
+        return _tool_query_sales_ranking(params, db_session, context)
+    if tool_name == "query_low_stock_alerts":
+        return _tool_query_low_stock_alerts(params, db_session, context)
+    if tool_name in ("draft_stock_in", "draft_stock_out"):
+        # Write operations handled separately for confirmation-first
+        return None
+    if tool_name == "general_chat":
+        return None
+
+    logger = __import__("logging").getLogger(__name__)
+    logger.warning("Unknown tool: %s", tool_name)
+    return None
+
+
+def _tool_query_inventory(params: dict, db_session: Session, context) -> dict | None:
     from sqlalchemy import select
-    
-    if intent.intent_type == "revenue_query":
-        summary = get_revenue_summary(
-            db_session,
-            tenant_id=context.tenant_id,
-            shop_id=context.shop_id,
-            days=30,
-        )
-        return {
-            "type": "revenue_summary",
-            "total_revenue": summary.total_revenue,
-            "total_cost": summary.total_cost,
-            "gross_profit": summary.gross_profit,
-            "transaction_count": summary.transaction_count,
-            "items_sold": summary.items_sold,
-        }
-    
-    if intent.intent_type == "sales_query":
-        ranking = get_sales_ranking(
-            db_session,
-            tenant_id=context.tenant_id,
-            shop_id=context.shop_id,
-            days=30,
-            limit=5,
-        )
-        return {
-            "type": "sales_ranking",
-            "ranking": [
-                {
-                    "rank": item.rank,
-                    "item_name": item.item_name,
-                    "total_sold": item.total_sold,
-                    "total_revenue": item.total_revenue,
-                }
-                for item in ranking
-            ],
-        }
-    
-    if intent.intent_type == "alert_query":
-        alerts = get_low_stock_alerts(
-            db_session,
-            tenant_id=context.tenant_id,
-            shop_id=context.shop_id,
-            limit=10,
-        )
-        return {
-            "type": "low_stock_alerts",
-            "alerts": [
-                {
-                    "item_name": alert.item_name,
-                    "current_quantity": alert.current_quantity,
-                    "threshold": alert.threshold,
-                    "shortage": alert.shortage,
-                    "unit": alert.unit,
-                }
-                for alert in alerts
-            ],
-            "count": len(alerts),
-        }
-    
-    if intent.intent_type not in ("stock_query", "stock_in", "stock_out"):
+    item_name = params.get("item_name")
+    if not item_name:
         return None
-    
-    if not intent.item_name:
-        return None
-    
-    # Find matching item
+
     stmt = (
         select(V2InventoryItem, V2InventoryStockSnapshot)
         .join(V2InventoryStockSnapshot, V2InventoryStockSnapshot.inventory_item_id == V2InventoryItem.inventory_item_id)
-        .where(
-            V2InventoryStockSnapshot.shop_id == context.shop_id,
-        )
+        .where(V2InventoryStockSnapshot.shop_id == context.shop_id)
     )
-    
     for item, snapshot in db_session.execute(stmt).all():
-        if intent.item_name in item.name or item.name in intent.item_name:
+        if item_name in item.name or item.name in item_name:
             return {
                 "type": "stock",
                 "item_id": item.inventory_item_id,
@@ -285,33 +243,75 @@ def _query_inventory_for_intent(
                 "unit": item.default_unit or "个",
                 "threshold": float(snapshot.low_stock_threshold) if snapshot.low_stock_threshold else None,
             }
-    
-    return None
+    return {"type": "stock_not_found", "item_name": item_name}
 
 
-def _execute_stock_transaction(
-    intent,
+def _tool_query_revenue(params: dict, db_session: Session, context) -> dict:
+    days = params.get("days", 30)
+    summary = get_revenue_summary(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, days=days)
+    return {
+        "type": "revenue_summary",
+        "total_revenue": summary.total_revenue,
+        "total_cost": summary.total_cost,
+        "gross_profit": summary.gross_profit,
+        "transaction_count": summary.transaction_count,
+        "items_sold": summary.items_sold,
+        "days": days,
+    }
+
+
+def _tool_query_sales_ranking(params: dict, db_session: Session, context) -> dict:
+    days = params.get("days", 30)
+    limit = params.get("limit", 5)
+    ranking = get_sales_ranking(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, days=days, limit=limit)
+    return {
+        "type": "sales_ranking",
+        "ranking": [
+            {"rank": item.rank, "item_name": item.item_name, "total_sold": item.total_sold, "total_revenue": item.total_revenue}
+            for item in ranking
+        ],
+        "days": days,
+    }
+
+
+def _tool_query_low_stock_alerts(params: dict, db_session: Session, context) -> dict:
+    limit = params.get("limit", 10)
+    alerts = get_low_stock_alerts(db_session, tenant_id=context.tenant_id, shop_id=context.shop_id, limit=limit)
+    return {
+        "type": "low_stock_alerts",
+        "alerts": [
+            {"item_name": a.item_name, "current_quantity": a.current_quantity, "threshold": a.threshold, "shortage": a.shortage, "unit": a.unit}
+            for a in alerts
+        ],
+        "count": len(alerts),
+    }
+
+
+def _execute_stock_transaction_from_plan(
+    plan: AgentPlan,
     db_session: Session,
     context,
     account,
     user_message: str,
-) -> str | None:
-    """Create a pending confirmation for chat-driven stock writes.
-
-    Chat writes are AI-interpreted actions, so they must not mutate inventory
-    directly. They produce a task_run + pending confirmation; approval performs
-    the deterministic ledger commit.
-    """
+) -> dict | None:
+    """Create pending confirmation for stock writes (confirmation-first)."""
     from decimal import Decimal
     from sqlalchemy import select
-
     from app.models.v2_conversation import V2ConversationSession
     from app.services.v2_conversation import create_v2_session
 
-    if intent.intent_type not in ("stock_in", "stock_out"):
+    # Find the draft tool call
+    draft_tool = None
+    for tc in plan.tool_calls:
+        if tc.tool_name in ("draft_stock_in", "draft_stock_out"):
+            draft_tool = tc
+            break
+    if not draft_tool:
         return None
 
-    if not intent.item_name or not intent.quantity:
+    item_name = draft_tool.parameters.get("item_name")
+    quantity = draft_tool.parameters.get("quantity")
+    if not item_name or not quantity:
         return None
 
     stmt = (
@@ -323,27 +323,29 @@ def _execute_stock_transaction(
             V2InventoryStockSnapshot.shop_id == context.shop_id,
         )
     )
-
     matched = None
     for item, snapshot in db_session.execute(stmt).all():
-        if intent.item_name in item.name or item.name in intent.item_name:
+        if item_name in item.name or item.name in item_name:
             matched = (item, snapshot)
             break
-
     if not matched:
-        return None
+        return {"type": "stock_tx_error", "error": f"未找到商品: {item_name}"}
 
     item, snapshot = matched
     current_qty = Decimal(snapshot.current_quantity) if snapshot.current_quantity else Decimal(0)
-    quantity = Decimal(str(intent.quantity))
+    qty = Decimal(str(quantity))
 
-    if intent.intent_type == "stock_out" and current_qty < quantity:
-        return (
-            f"❌ 出库失败！库存不足。\n"
-            f"商品：{item.name}\n"
-            f"当前库存：{float(current_qty)} {item.default_unit or '个'}\n"
-            f"请求出库：{intent.quantity} {item.default_unit or '个'}"
-        )
+    intent_type = plan.intent_type  # "stock_in" or "stock_out"
+
+    if intent_type == "stock_out" and current_qty < qty:
+        return {
+            "type": "stock_tx_error",
+            "error": "库存不足",
+            "item_name": item.name,
+            "current_quantity": float(current_qty),
+            "requested_quantity": int(quantity),
+            "unit": item.default_unit or "个",
+        }
 
     try:
         chat_session_id = f"chat_tx_{account.account_id}"
@@ -369,15 +371,15 @@ def _execute_stock_transaction(
                 )
             )
         if session is None:
-            return None
+            return {"type": "stock_tx_error", "error": "创建会话失败"}
 
-        if intent.intent_type == "stock_in":
+        if intent_type == "stock_in":
             confirmation_type = "inventory.stock_in"
             message_kind = "stock_in"
             draft_payload = {
                 "item_id": item.inventory_item_id,
                 "item_name": item.name,
-                "quantity": intent.quantity,
+                "quantity": int(quantity),
                 "unit": item.default_unit or "个",
                 "price": float(snapshot.current_price) if snapshot.current_price else 0,
                 "source_text": user_message,
@@ -389,7 +391,7 @@ def _execute_stock_transaction(
                 "inventory_item_id": item.inventory_item_id,
                 "item_name": item.name,
                 "expected_quantity": float(current_qty),
-                "stock_out_quantity": intent.quantity,
+                "stock_out_quantity": int(quantity),
                 "unit": item.default_unit or "个",
                 "reason": "chat stock out",
                 "source_text": user_message,
@@ -407,7 +409,7 @@ def _execute_stock_transaction(
             intent_type=confirmation_type,
         )
         if not msg_task:
-            return None
+            return {"type": "stock_tx_error", "error": "创建任务失败"}
 
         _, task_run = msg_task
         confirmation = create_v2_confirmation(
@@ -419,64 +421,25 @@ def _execute_stock_transaction(
             draft_payload=draft_payload,
         )
 
-        action_label = "入库" if intent.intent_type == "stock_in" else "出库"
-        return (
-            f"⏳ 已生成{action_label}待确认单，请确认后再落账。\n"
-            f"商品：{item.name}\n"
-            f"数量：{intent.quantity} {item.default_unit or '个'}\n"
-            f"确认单：{confirmation.confirmation_id}"
-        )
+        action_label = "入库" if intent_type == "stock_in" else "出库"
+        return {
+            "type": "stock_tx_pending",
+            "action": action_label,
+            "item_name": item.name,
+            "quantity": int(quantity),
+            "unit": item.default_unit or "个",
+            "confirmation_id": confirmation.confirmation_id,
+            "current_quantity": float(current_qty),
+        }
 
     except Exception as exc:
         db_session.rollback()
-        return f"❌ 操作失败：{exc}"
+        return {"type": "stock_tx_error", "error": str(exc)}
 
 
-def _build_fallback_reply(intent, query_result: dict | None = None) -> str:
-    """Build fallback reply when no inventory data is found."""
-    if intent.intent_type == "revenue_query":
-        if query_result:
-            return (
-                f"过去30天营业概况：\n"
-                f"总营业额：¥{query_result['total_revenue']:.2f}\n"
-                f"总成本：¥{query_result['total_cost']:.2f}\n"
-                f"毛利润：¥{query_result['gross_profit']:.2f}\n"
-                f"交易笔数：{query_result['transaction_count']}笔\n"
-                f"售出商品：{query_result['items_sold']:.0f}件"
-            )
-        return "暂无营收数据，请先进行销售出库操作。"
-    
-    if intent.intent_type == "sales_query":
-        if query_result and query_result.get("ranking"):
-            lines = ["过去30天热销排行："]
-            for item in query_result["ranking"]:
-                lines.append(f"{item['rank']}. {item['item_name']} - 售出{item['total_sold']:.0f}件 (¥{item['total_revenue']:.2f})")
-            return "\n".join(lines)
-        return "暂无销售数据，请先进行销售出库操作。"
-    
-    if intent.intent_type == "alert_query":
-        if query_result and query_result.get("alerts"):
-            lines = [f"⚠️ 发现{query_result['count']}个商品库存不足："]
-            for alert in query_result["alerts"]:
-                lines.append(
-                    f"• {alert['item_name']}: 当前{alert['current_quantity']}{alert['unit']}，"
-                    f"低于阈值{alert['threshold']}{alert['unit']}，缺{alert['shortage']}{alert['unit']}"
-                )
-            return "\n".join(lines)
-        return "✅ 所有商品库存充足，暂无预警。"
-    
-    if intent.intent_type == "unknown":
-        return "抱歉，我不理解您的意思。您可以问我：查库存、进货、出货、查营业额、热销排行、库存预警。"
-    elif intent.intent_type == "stock_query":
-        if intent.item_name:
-            return f"未找到商品 \"{intent.item_name}\"，请确认商品名称是否正确。"
-        return "请告诉我您想查询什么商品的库存。"
-    elif intent.intent_type == "stock_in":
-        return f"收到入库请求：{intent.item_name or '未知商品'} x {intent.quantity or '?'}，请确认。"
-    elif intent.intent_type == "stock_out":
-        return f"收到出库请求：{intent.item_name or '未知商品'} x {intent.quantity or '?'}，请确认。"
-    return "请问有什么可以帮您的？"
-
+# ───────────────────────────────────────────────
+# 4. SSE Helpers
+# ───────────────────────────────────────────────
 
 def _sse_event(event_type: str, data: dict) -> str:
     """Format SSE event."""
@@ -484,27 +447,7 @@ def _sse_event(event_type: str, data: dict) -> str:
 
 
 def _stream_text(text: str, chunk_size: int = 3):
-    """Stream text in chunks that respect character boundaries.
-    
-    Uses chunk_size=3 for Chinese text to balance smooth typing effect
-    with SSE efficiency. For mixed content, this avoids splitting
-    UTF-8 code points since Python strings are Unicode code point sequences.
-    """
+    """Stream text in chunks respecting character boundaries."""
     for i in range(0, len(text), chunk_size):
         chunk = text[i:i + chunk_size]
         yield _sse_event("token", {"token": chunk})
-
-
-def _get_employee_role(intent_type: str) -> dict:
-    """Get AI employee role info based on intent type."""
-    roles = {
-        "stock_query": {"name": "库存守护员", "color": "#10B981", "badge": "库存"},
-        "stock_in": {"name": "库存守护员", "color": "#10B981", "badge": "入库"},
-        "stock_out": {"name": "库存守护员", "color": "#10B981", "badge": "出库"},
-        "price_query": {"name": "价格参谋", "color": "#F59E0B", "badge": "价格"},
-        "sales_query": {"name": "销售分析员", "color": "#3B82F6", "badge": "销售"},
-        "revenue_query": {"name": "营业数据员", "color": "#8B5CF6", "badge": "营收"},
-        "alert_query": {"name": "库存守护员", "color": "#EF4444", "badge": "预警"},
-        "unknown": {"name": "AI参谋", "color": "#6B7280", "badge": "助手"},
-    }
-    return roles.get(intent_type, roles["unknown"])

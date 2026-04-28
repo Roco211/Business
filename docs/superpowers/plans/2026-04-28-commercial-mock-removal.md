@@ -212,7 +212,7 @@ git commit -m "guard: block mock providers in production"
 
 ---
 
-## Task 2: 对象存储接入真实 S3-compatible/TOS
+## Task 2: 对象存储接入真实 S3-compatible/TOS/COS
 
 **Files:**
 - Modify: `backend/app/services/object_storage.py`
@@ -277,13 +277,23 @@ PYTHONPATH=backend python3 -m pytest backend/tests/test_object_storage_provider.
 ```bash
 OBJECT_STORAGE_PROVIDER=s3-compatible
 OBJECT_STORAGE_BUCKET=business-prod-media
-OBJECT_STORAGE_ENDPOINT_URL=https://tos-cn-beijing.volces.com
-OBJECT_STORAGE_REGION=cn-beijing
+OBJECT_STORAGE_ENDPOINT_URL=https://cos.ap-guangzhou.myqcloud.com
+OBJECT_STORAGE_REGION=ap-guangzhou
 OBJECT_STORAGE_ACCESS_KEY_ID=
 OBJECT_STORAGE_SECRET_ACCESS_KEY=
-OBJECT_STORAGE_PUBLIC_BASE_URL=https://media.example.com
+OBJECT_STORAGE_PUBLIC_BASE_URL=https://business-prod-media.cos.ap-guangzhou.myqcloud.com
 OBJECT_STORAGE_PRESIGN_TTL_SECONDS=600
+
+# Tencent COS aliases are also supported:
+# OBJECT_STORAGE_PROVIDER=cos
+# COS_BUCKET=business-prod-media-1250000000
+# COS_REGION=ap-guangzhou
+# COS_ENDPOINT_URL=https://cos.ap-guangzhou.myqcloud.com
+# COS_SECRET_ID=
+# COS_SECRET_KEY=
+# COS_PUBLIC_BASE_URL=https://business-prod-media-1250000000.cos.ap-guangzhou.myqcloud.com
 ```
+
 
 local-demo 单独注释：
 
@@ -294,19 +304,19 @@ local-demo 单独注释：
 
 - [ ] Step 5: 用用户提供的真实对象存储配置做一次非破坏性验收
 
-当前状态：待用户提供真实 TOS/OSS/COS/S3-compatible endpoint、region、bucket、access key、secret key、public base URL 后执行；不得在仓库或日志记录真实值。
+当前状态：代码已支持通用 S3-compatible 变量和腾讯 COS 别名变量（`OBJECT_STORAGE_PROVIDER=cos`、`COS_BUCKET`、`COS_REGION`、`COS_ENDPOINT_URL`、`COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_PUBLIC_BASE_URL`）。真实非破坏性验收仍待用户通过部署 secret 或本地未跟踪 `.env` 注入真实 COS 配置；不得在仓库或日志记录真实值。
 
 命令格式，不记录真实值：
 
 ```bash
 cd /root/business-clone
-OBJECT_STORAGE_PROVIDER=s3-compatible \
-OBJECT_STORAGE_BUCKET=... \
-OBJECT_STORAGE_ENDPOINT_URL=... \
-OBJECT_STORAGE_REGION=... \
-OBJECT_STORAGE_ACCESS_KEY_ID=[REDACTED] \
-OBJECT_STORAGE_SECRET_ACCESS_KEY=[REDACTED] \
-OBJECT_STORAGE_PUBLIC_BASE_URL=... \
+OBJECT_STORAGE_PROVIDER=cos \
+COS_BUCKET=... \
+COS_REGION=... \
+COS_ENDPOINT_URL=... \
+COS_SECRET_ID=[REDACTED] \
+COS_SECRET_KEY=[REDACTED] \
+COS_PUBLIC_BASE_URL=... \
 PYTHONPATH=backend python3 - <<'PY'
 from app.core.config import get_settings
 from app.services.object_storage import build_object_storage
@@ -316,7 +326,7 @@ target = provider.create_upload_target(
     object_key="health-check/business-object-storage-check.txt",
     content_type="text/plain",
 )
-print({"ok": True, "upload_url_prefix": target.upload_url.split(':', 1)[0], "public_url_configured": bool(target.public_url)})
+print({"ok": True, "upload_url_scheme": target.upload_url.split(':', 1)[0], "public_url_configured": bool(target.public_url)})
 PY
 ```
 
@@ -326,14 +336,15 @@ PY
 
 ```bash
 cd /root/business-clone
-PYTHONPATH=backend python3 -m pytest backend/tests/test_object_storage_provider.py backend/tests/test_v2_media_ai_platform.py -q
+PYTHONPATH=backend python3 -m pytest backend/tests/test_object_storage_provider.py backend/tests/test_v2_media_ai_platform.py backend/tests/test_production_mock_guardrails.py -q
+# 37 passed, 1 warning
 ```
 
-- [ ] Step 7: 提交
+- [x] Step 7: 提交
 
 ```bash
-git add backend/app/services/object_storage.py backend/app/core/config.py backend/.env.example backend/tests/test_object_storage_provider.py backend/tests/test_v2_media_ai_platform.py
-git commit -m "feat: require real object storage for production"
+git add backend/app/core/config.py backend/.env.example backend/tests/test_object_storage_provider.py backend/tests/test_production_mock_guardrails.py docs/commercial/TENCENT_COS_SETUP.md docs/superpowers/plans/2026-04-28-commercial-mock-removal.md
+git commit -m "feat: support Tencent COS object storage"
 ```
 
 ---

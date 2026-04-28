@@ -111,6 +111,8 @@ class Settings:
 
     def normalized_object_storage_provider(self) -> str:
         normalized = self.object_storage_provider.strip().lower()
+        if normalized in {"cos", "tencent-cos", "tencent_cos", "qcloud-cos", "qcloud_cos"}:
+            return "s3-compatible"
         return normalized or "mock"
 
     def object_storage_live_required_config(self) -> dict[str, str]:
@@ -236,12 +238,20 @@ def get_settings() -> Settings:
             os.getenv("V2_OUTBOX_DUE_SWEEP_RETRY_AFTER_SECONDS", "60")
         ),
         object_storage_provider=os.getenv("OBJECT_STORAGE_PROVIDER", "mock"),
-        object_storage_bucket=os.getenv("OBJECT_STORAGE_BUCKET"),
-        object_storage_region=os.getenv("OBJECT_STORAGE_REGION"),
-        object_storage_endpoint_url=os.getenv("OBJECT_STORAGE_ENDPOINT_URL"),
-        object_storage_access_key=os.getenv("OBJECT_STORAGE_ACCESS_KEY_ID") or os.getenv("OBJECT_STORAGE_ACCESS_KEY"),
-        object_storage_secret_key=os.getenv("OBJECT_STORAGE_SECRET_ACCESS_KEY") or os.getenv("OBJECT_STORAGE_SECRET_KEY"),
-        object_storage_public_base_url=os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL"),
+        object_storage_bucket=os.getenv("OBJECT_STORAGE_BUCKET") or os.getenv("COS_BUCKET"),
+        object_storage_region=os.getenv("OBJECT_STORAGE_REGION") or os.getenv("COS_REGION"),
+        object_storage_endpoint_url=os.getenv("OBJECT_STORAGE_ENDPOINT_URL") or os.getenv("COS_ENDPOINT_URL"),
+        object_storage_access_key=(
+            os.getenv("OBJECT_STORAGE_ACCESS_KEY_ID")
+            or os.getenv("OBJECT_STORAGE_ACCESS_KEY")
+            or os.getenv("COS_SECRET_ID")
+        ),
+        object_storage_secret_key=(
+            os.getenv("OBJECT_STORAGE_SECRET_ACCESS_KEY")
+            or os.getenv("OBJECT_STORAGE_SECRET_KEY")
+            or os.getenv("COS_SECRET_KEY")
+        ),
+        object_storage_public_base_url=os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL") or os.getenv("COS_PUBLIC_BASE_URL"),
         object_storage_presign_ttl_seconds=int(os.getenv("OBJECT_STORAGE_PRESIGN_TTL_SECONDS", "900")),
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
         default_owner_actor_id=os.getenv("DEFAULT_OWNER_ACTOR_ID", "owner_default"),

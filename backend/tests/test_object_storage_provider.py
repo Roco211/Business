@@ -48,6 +48,50 @@ def test_production_s3_requires_bucket_endpoint_and_credentials():
     assert "configured" not in message
 
 
+def test_tencent_cos_provider_alias_uses_s3_compatible_provider():
+    settings = Settings(
+        app_env="production",
+        object_storage_provider="tencent-cos",
+        object_storage_bucket="business-prod-1250000000",
+        object_storage_region="ap-guangzhou",
+        object_storage_endpoint_url="https://cos.ap-guangzhou.myqcloud.com",
+        object_storage_access_key="cos-secret-id",
+        object_storage_secret_key="cos-secret-key",
+        object_storage_public_base_url="https://business-prod-1250000000.cos.ap-guangzhou.myqcloud.com",
+    )
+
+    provider = build_object_storage(settings)
+
+    assert isinstance(provider, S3CompatibleObjectStorageProvider)
+    assert provider.bucket == "business-prod-1250000000"
+    assert provider.region == "ap-guangzhou"
+    assert provider.endpoint_url == "https://cos.ap-guangzhou.myqcloud.com"
+    assert provider.public_base_url == "https://business-prod-1250000000.cos.ap-guangzhou.myqcloud.com"
+
+
+def test_settings_reads_tencent_cos_environment_aliases(monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("OBJECT_STORAGE_PROVIDER", "cos")
+    monkeypatch.setenv("COS_BUCKET", "business-prod-1250000000")
+    monkeypatch.setenv("COS_REGION", "ap-shanghai")
+    monkeypatch.setenv("COS_ENDPOINT_URL", "https://cos.ap-shanghai.myqcloud.com")
+    monkeypatch.setenv("COS_SECRET_ID", "cos-secret-id")
+    monkeypatch.setenv("COS_SECRET_KEY", "cos-secret-key")
+    monkeypatch.setenv("COS_PUBLIC_BASE_URL", "https://media.example.com")
+
+    settings = get_settings()
+
+    assert settings.object_storage_provider == "cos"
+    assert settings.normalized_object_storage_provider() == "s3-compatible"
+    assert settings.object_storage_bucket == "business-prod-1250000000"
+    assert settings.object_storage_region == "ap-shanghai"
+    assert settings.object_storage_endpoint_url == "https://cos.ap-shanghai.myqcloud.com"
+    assert settings.object_storage_access_key == "cos-secret-id"
+    assert settings.object_storage_secret_key == "cos-secret-key"
+    assert settings.object_storage_public_base_url == "https://media.example.com"
+
+
 def test_s3_compatible_provider_builds_presigned_upload_target_with_public_url():
     fake_s3_client = FakeS3Client()
     provider = S3CompatibleObjectStorageProvider(

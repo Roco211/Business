@@ -61,6 +61,43 @@ def test_production_rejects_server_asr_mock_fallback():
     assert "ASR_ALLOW_MOCK_FALLBACK" in _keys(settings.production_mock_violations())
 
 
+def test_production_accepts_client_asr_real_deepseek_ark_and_cos_config():
+    settings = _settings(
+        app_env="production",
+        app_runtime_mode="production",
+        object_storage_provider="cos",
+        object_storage_bucket="business-prod-media-1250000000",
+        object_storage_endpoint_url="https://cos.ap-guangzhou.myqcloud.com",
+        object_storage_region="ap-guangzhou",
+        object_storage_access_key="configured",
+        object_storage_secret_key="configured",
+        ocr_provider="volcano",
+        ocr_provider_api_url="https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+        ocr_provider_api_key="configured",
+        ocr_provider_model="doubao-seed-2-0-pro-260215",
+        ocr_allow_mock_fallback=False,
+        vision_provider="volcano",
+        vision_provider_api_url="https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+        vision_provider_api_key="configured",
+        vision_provider_model="doubao-seed-2-0-pro-260215",
+        vision_allow_mock_fallback=False,
+        asr_provider="client",
+        asr_allow_mock_fallback=False,
+        llm_provider="deepseek",
+        llm_provider_api_url="https://api.deepseek.com/v1/chat/completions",
+        llm_provider_api_key="configured",
+        llm_provider_model="deepseek-v4-flash",
+        llm_allow_mock_fallback=False,
+        sms_provider="volcengine",
+        sms_api_url="https://sms.example.com",
+        sms_access_key_id="configured",
+        sms_secret_access_key="configured",
+        sms_sign_name="configured",
+        sms_template_id="configured",
+    )
+
+    assert settings.production_mock_violations() == []
+
 def test_production_accepts_client_asr_real_deepseek_ark_and_s3_config():
     settings = _settings(
         app_env="production",

@@ -60,7 +60,7 @@ class ObjectStorageProvider(Protocol):
         *,
         object_key: str,
         content_type: str,
-        size_bytes: int,
+        size_bytes: int = 0,
     ) -> ObjectStorageUploadTarget:
         ...
 
@@ -139,7 +139,7 @@ class MockObjectStorageProvider:
         *,
         object_key: str,
         content_type: str,
-        size_bytes: int,
+        size_bytes: int = 0,
     ) -> ObjectStorageUploadTarget:
         del content_type, size_bytes
         return ObjectStorageUploadTarget(
@@ -186,8 +186,10 @@ class S3CompatibleObjectStorageProvider:
         bucket: str,
         region: str,
         endpoint_url: str,
-        access_key: str,
-        secret_key: str,
+        access_key: str | None = None,
+        secret_key: str | None = None,
+        access_key_id: str | None = None,
+        secret_access_key: str | None = None,
         public_base_url: str | None,
         presign_ttl_seconds: int,
         s3_client: Any | None = None,
@@ -195,8 +197,8 @@ class S3CompatibleObjectStorageProvider:
         self.bucket = bucket
         self.region = region
         self.endpoint_url = endpoint_url
-        self.access_key = access_key
-        self.secret_key = secret_key
+        self.access_key = access_key_id or access_key or ""
+        self.secret_key = secret_access_key or secret_key or ""
         self.public_base_url = public_base_url
         self.presign_ttl_seconds = presign_ttl_seconds
         self._s3_client = s3_client
@@ -233,7 +235,7 @@ class S3CompatibleObjectStorageProvider:
         *,
         object_key: str,
         content_type: str,
-        size_bytes: int,
+        size_bytes: int = 0,
     ) -> ObjectStorageUploadTarget:
         del size_bytes
         try:
@@ -293,7 +295,13 @@ class S3CompatibleObjectStorageProvider:
             checksum_sha256=checksum_sha256,
         )
 
+    def read_object_bytes(self, *, object_key: str) -> bytes:
+        return self._read_object_bytes(object_key)
+
     def _sha256_for_object(self, object_key: str) -> str:
+        return hashlib.sha256(self._read_object_bytes(object_key)).hexdigest()
+
+    def _read_object_bytes(self, object_key: str) -> bytes:
         try:
             get_object_response = self._get_client().get_object(Bucket=self.bucket, Key=object_key)
         except Exception as exc:
@@ -314,7 +322,7 @@ class S3CompatibleObjectStorageProvider:
         if not isinstance(payload, (bytes, bytearray)):
             raise ObjectStorageUnavailableError(f"uploaded object payload was not bytes: {object_key}")
 
-        return hashlib.sha256(bytes(payload)).hexdigest()
+        return bytes(payload)
 
 
 def _missing_required_s3_config(settings: Settings) -> list[str]:

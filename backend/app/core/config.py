@@ -14,10 +14,10 @@ if ENV_PATH.exists():
 @dataclass(frozen=True)
 class Settings:
     app_env: str
-    app_host: str
-    app_port: int
-    redis_url: str
-    database_url: str
+    app_host: str = "0.0.0.0"
+    app_port: int = 8001
+    redis_url: str = "redis://redis:6379/0"
+    database_url: str = "sqlite:///./business.db"
     app_cors_origins_raw: str = ""
     rate_limit_per_minute: int = 0
     rate_limit_backend: str = "memory"
@@ -44,8 +44,8 @@ class Settings:
     object_storage_bucket: str | None = os.getenv("OBJECT_STORAGE_BUCKET")
     object_storage_region: str | None = os.getenv("OBJECT_STORAGE_REGION")
     object_storage_endpoint_url: str | None = os.getenv("OBJECT_STORAGE_ENDPOINT_URL")
-    object_storage_access_key: str | None = os.getenv("OBJECT_STORAGE_ACCESS_KEY")
-    object_storage_secret_key: str | None = os.getenv("OBJECT_STORAGE_SECRET_KEY")
+    object_storage_access_key: str | None = os.getenv("OBJECT_STORAGE_ACCESS_KEY_ID") or os.getenv("OBJECT_STORAGE_ACCESS_KEY")
+    object_storage_secret_key: str | None = os.getenv("OBJECT_STORAGE_SECRET_ACCESS_KEY") or os.getenv("OBJECT_STORAGE_SECRET_KEY")
     object_storage_public_base_url: str | None = os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL")
     object_storage_presign_ttl_seconds: int = int(os.getenv("OBJECT_STORAGE_PRESIGN_TTL_SECONDS", "900"))
     default_shop_id: str = os.getenv("DEFAULT_SHOP_ID", "shop_default")
@@ -55,6 +55,13 @@ class Settings:
     seed_owner_password: str | None = os.getenv("SEED_OWNER_PASSWORD")
     seed_owner_display_name: str = os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner")
     auth_session_ttl_minutes: int = int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120"))
+    sms_provider: str = os.getenv("SMS_PROVIDER", "demo")
+    sms_api_url: str | None = os.getenv("SMS_API_URL")
+    sms_access_key_id: str | None = os.getenv("SMS_ACCESS_KEY_ID")
+    sms_secret_access_key: str | None = os.getenv("SMS_SECRET_ACCESS_KEY")
+    sms_sign_name: str | None = os.getenv("SMS_SIGN_NAME")
+    sms_template_id: str | None = os.getenv("SMS_TEMPLATE_ID")
+    sms_code_ttl_seconds: int = int(os.getenv("SMS_CODE_TTL_SECONDS", "300"))
     asr_provider: str = os.getenv("ASR_PROVIDER", "mock")
     asr_provider_api_url: str | None = os.getenv("ASR_PROVIDER_API_URL")
     asr_provider_api_key: str | None = os.getenv("ASR_PROVIDER_API_KEY")
@@ -111,6 +118,63 @@ class Settings:
             "access_key": self.object_storage_access_key or "",
             "secret_key": self.object_storage_secret_key or "",
         }
+
+    def normalized_app_env(self) -> str:
+        return self.app_env.strip().lower() or "development"
+
+    def is_production(self) -> bool:
+        return self.normalized_app_env() == "production"
+
+    def demo_phone_login_enabled(self) -> bool:
+        return (not self.is_production()) and self.normalized_runtime_mode() in {"local-demo", "demo", "development"}
+
+    def sms_required_config(self) -> dict[str, str]:
+        return {
+            "api_url": self.sms_api_url or "",
+            "access_key_id": self.sms_access_key_id or "",
+            "secret_access_key": self.sms_secret_access_key or "",
+            "sign_name": self.sms_sign_name or "",
+            "template_id": self.sms_template_id or "",
+        }
+
+    def production_mock_violations(self) -> list[dict[str, str]]:
+        if not self.is_production():
+            return []
+
+        violations: list[dict[str, str]] = []
+
+        def add(key: str, message: str) -> None:
+            violations.append({"key": key, "message": message})
+
+        if self.normalized_runtime_mode() in {"local-demo", "demo", "development", "test"}:
+            add("APP_RUNTIME_MODE", "production cannot run in demo/local runtime mode")
+            add("DEMO_PHONE_LOGIN", "production cannot enable the 888888 demo phone login")
+
+        if self.sms_provider.strip().lower() in {"", "demo", "mock"}:
+            add("SMS_PROVIDER", "production requires a real SMS provider")
+
+        if self.normalized_object_storage_provider() == "mock":
+            add("OBJECT_STORAGE_PROVIDER", "production requires real object storage")
+
+        if self.llm_provider.strip().lower() in {"", "mock"}:
+            add("LLM_PROVIDER", "production requires real LLM provider")
+        if self.llm_allow_mock_fallback:
+            add("LLM_ALLOW_MOCK_FALLBACK", "production cannot allow LLM mock fallback")
+
+        if self.ocr_provider.strip().lower() in {"", "mock"}:
+            add("OCR_PROVIDER", "production requires real OCR provider")
+        if self.ocr_allow_mock_fallback:
+            add("OCR_ALLOW_MOCK_FALLBACK", "production cannot allow OCR mock fallback")
+
+        if self.vision_provider.strip().lower() in {"", "mock"}:
+            add("VISION_PROVIDER", "production requires real Vision provider")
+        if self.vision_allow_mock_fallback:
+            add("VISION_ALLOW_MOCK_FALLBACK", "production cannot allow Vision mock fallback")
+
+        if self.asr_provider.strip().lower() not in {"", "client", "client-asr", "disabled", "none"} and self.asr_allow_mock_fallback:
+            add("ASR_ALLOW_MOCK_FALLBACK", "production cannot allow ASR mock fallback when server ASR is enabled")
+
+        return violations
 
     def live_pilot_allowed_shop_ids(self) -> list[str]:
         raw = self.live_pilot_allowed_shop_ids_raw.strip()
@@ -172,8 +236,8 @@ def get_settings() -> Settings:
         object_storage_bucket=os.getenv("OBJECT_STORAGE_BUCKET"),
         object_storage_region=os.getenv("OBJECT_STORAGE_REGION"),
         object_storage_endpoint_url=os.getenv("OBJECT_STORAGE_ENDPOINT_URL"),
-        object_storage_access_key=os.getenv("OBJECT_STORAGE_ACCESS_KEY"),
-        object_storage_secret_key=os.getenv("OBJECT_STORAGE_SECRET_KEY"),
+        object_storage_access_key=os.getenv("OBJECT_STORAGE_ACCESS_KEY_ID") or os.getenv("OBJECT_STORAGE_ACCESS_KEY"),
+        object_storage_secret_key=os.getenv("OBJECT_STORAGE_SECRET_ACCESS_KEY") or os.getenv("OBJECT_STORAGE_SECRET_KEY"),
         object_storage_public_base_url=os.getenv("OBJECT_STORAGE_PUBLIC_BASE_URL"),
         object_storage_presign_ttl_seconds=int(os.getenv("OBJECT_STORAGE_PRESIGN_TTL_SECONDS", "900")),
         default_shop_id=os.getenv("DEFAULT_SHOP_ID", "shop_default"),
@@ -183,6 +247,13 @@ def get_settings() -> Settings:
         seed_owner_password=os.getenv("SEED_OWNER_PASSWORD"),
         seed_owner_display_name=os.getenv("SEED_OWNER_DISPLAY_NAME", "Default Owner"),
         auth_session_ttl_minutes=int(os.getenv("AUTH_SESSION_TTL_MINUTES", "120")),
+        sms_provider=os.getenv("SMS_PROVIDER", "demo"),
+        sms_api_url=os.getenv("SMS_API_URL"),
+        sms_access_key_id=os.getenv("SMS_ACCESS_KEY_ID"),
+        sms_secret_access_key=os.getenv("SMS_SECRET_ACCESS_KEY"),
+        sms_sign_name=os.getenv("SMS_SIGN_NAME"),
+        sms_template_id=os.getenv("SMS_TEMPLATE_ID"),
+        sms_code_ttl_seconds=int(os.getenv("SMS_CODE_TTL_SECONDS", "300")),
         asr_provider=os.getenv("ASR_PROVIDER", "mock"),
         asr_provider_api_url=os.getenv("ASR_PROVIDER_API_URL"),
         asr_provider_api_key=os.getenv("ASR_PROVIDER_API_KEY"),

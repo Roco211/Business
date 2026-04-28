@@ -57,7 +57,7 @@ docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 log "building backend image"
 docker build -t "$IMAGE_NAME" -f "$BACKEND_DIR/Dockerfile" "$ROOT_DIR"
 
-log "starting backend container with mock providers"
+log "starting backend container with mock providers for local acceptance only"
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p "${HOST_PORT}:8001" \

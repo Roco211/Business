@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps.v2_context import (
@@ -38,12 +39,54 @@ from app.services.v2_identity import (
 router = APIRouter(prefix="/api/v2", tags=["v2-identity"])
 
 
+class V2SendVerificationCodeRequest(BaseModel):
+    phone: str
+
+
+class V2SendVerificationCodeData(BaseModel):
+    ok: bool
+    expires_in_seconds: int
+
+
 def _unauthorized() -> JSONResponse:
     return JSONResponse(
         status_code=401,
         content=V2ErrorEnvelope(
             error=V2ErrorBody(code="unauthorized", message="Unauthorized")
         ).model_dump(),
+    )
+
+
+@router.post("/auth/verification-codes", response_model=V2DataEnvelope[V2SendVerificationCodeData])
+def send_verification_code_v2(
+    payload: V2SendVerificationCodeRequest,
+    settings: Settings = Depends(get_settings),
+) -> V2DataEnvelope[V2SendVerificationCodeData] | JSONResponse:
+    if not payload.phone.strip():
+        return JSONResponse(
+            status_code=400,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="invalid_phone", message="Invalid phone")
+            ).model_dump(),
+        )
+
+    from app.services import sms_provider, verification_codes
+
+    store = verification_codes.get_default_verification_code_store()
+    code = store.issue_code(phone=payload.phone, ttl_seconds=settings.sms_code_ttl_seconds)
+    try:
+        provider = sms_provider.get_default_sms_provider(settings)
+        provider.send_verification_code(phone=payload.phone, code=code)
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content=V2ErrorEnvelope(
+                error=V2ErrorBody(code="sms_unavailable", message="SMS provider unavailable")
+            ).model_dump(),
+        )
+
+    return V2DataEnvelope(
+        data=V2SendVerificationCodeData(ok=True, expires_in_seconds=settings.sms_code_ttl_seconds)
     )
 
 
@@ -60,19 +103,27 @@ def login_v2(
             return _unauthorized()
         account = authenticate_v2_account(db_session, payload.email, payload.password)
     elif payload.auth_method == "phone_code":
-        # Demo mode: accept any phone with code "888888"
-        if not payload.phone or payload.verification_code != "888888":
+        if not payload.phone or not payload.verification_code:
             return _unauthorized()
-        # For demo: use default owner account directly without phone lookup
-        from app.core.config import get_settings
-        settings = get_settings()
+
         from app.models import V2Account
-        # Try to find by default owner email in settings first, otherwise get first active account
-        demo_email = settings.seed_owner_email or "owner@example.com"
-        account = db_session.query(V2Account).filter(V2Account.email == demo_email).first()
-        if account is None:
-            # Fallback: get any active account
-            account = db_session.query(V2Account).filter(V2Account.status == "active").first()
+
+        if settings.demo_phone_login_enabled() and payload.verification_code == "888888":
+            demo_email = settings.seed_owner_email or "owner@example.com"
+            account = db_session.query(V2Account).filter(V2Account.email == demo_email).first()
+            if account is None:
+                # Local-demo fallback only: get any active account.
+                account = db_session.query(V2Account).filter(V2Account.status == "active").first()
+        else:
+            from app.services import verification_codes
+
+            store = verification_codes.get_default_verification_code_store()
+            if not store.consume_code(phone=payload.phone, code=payload.verification_code):
+                return _unauthorized()
+            # Temporary production-safe binding until phone column is added: use the
+            # configured owner account only, never an arbitrary first active account.
+            owner_email = settings.seed_owner_email or "owner@example.com"
+            account = db_session.query(V2Account).filter(V2Account.email == owner_email).first()
         if account is None:
             return _unauthorized()
     elif payload.auth_method == "phone_password":

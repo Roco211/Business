@@ -1,8 +1,6 @@
 """Bootstrap V2 Trial Data - 创建演示数据用于pilot验证"""
 import os
 
-os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from decimal import Decimal
@@ -17,6 +15,11 @@ def generate_id():
 def utc_now():
     from app.services.v2_time import utc_now_naive
     return utc_now_naive()
+
+def ensure_not_production() -> None:
+    if os.getenv("APP_ENV", "development").strip().lower() == "production":
+        raise SystemExit("Refusing to seed trial data in production")
+
 
 def setup_v2_tables():
     database_url = os.getenv("DATABASE_URL", "sqlite:///./aism-dev.db")
@@ -194,7 +197,8 @@ def seed_trial_data(db):
     print(f"   Low-stock alert: 电动螺丝刀 (qty=3 < threshold=5)")
 
 if __name__ == "__main__":
-    print("🚀 Bootstrapping V2 Trial Data...")
+    ensure_not_production()
+    print("Bootstrapping V2 Trial Data for local-demo/trial only...")
     engine = setup_v2_tables()
     SessionLocal = sessionmaker(bind=engine)
     db = SessionLocal()

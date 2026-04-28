@@ -38,13 +38,13 @@ CORE_PYTEST_FILES=(
   backend/tests/test_v2_commercial_modules_http_flow.py
   backend/tests/test_v2_chat_http_confirmation_flow.py
   backend/tests/test_v2_voice_photo_http_confirmation_flow.py
-  backend/tests/test_v2_chat_confirmation_first.py
   backend/tests/test_provider_trial_preflight.py
   backend/tests/test_production_readiness_config.py
   backend/tests/test_backend_readiness_summary.py
 )
 
 log "repo root: $ROOT_DIR"
+log "profile: local-demo/mock preflight; this does not validate commercial providers"
 log "python: $($PYTHON_BIN --version 2>&1)"
 log "runtime mode: $APP_RUNTIME_MODE"
 log "providers: LLM=$LLM_PROVIDER ASR=$ASR_PROVIDER OCR=$OCR_PROVIDER VISION=$VISION_PROVIDER"

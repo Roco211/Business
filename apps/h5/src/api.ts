@@ -45,6 +45,13 @@ async function downloadCsv(path: string, filename: string, auth: AuthState): Pro
   window.URL.revokeObjectURL(url)
 }
 
+export async function sendVerificationCode(phone: string): Promise<{ ok: boolean; expires_in_seconds: number }> {
+  return request<{ ok: boolean; expires_in_seconds: number }>('/api/v2/auth/verification-codes', {
+    method: 'POST',
+    body: JSON.stringify({ phone })
+  })
+}
+
 export async function loginWithPhone(phone: string, verificationCode: string): Promise<{ accessToken: string; refreshToken?: string; accountId?: string }> {
   const data = await request<{ accessToken?: string; access_token?: string; refreshToken?: string; refresh_token?: string; accountId?: string; account_id?: string }>('/api/v2/auth/login', {
     method: 'POST',

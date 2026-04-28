@@ -1071,6 +1071,18 @@
         "title": "V2DataEnvelope[V2ProjectionReplayData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2ReadinessData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2ReadinessData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2ReadinessData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2SalesOrderDetailData_": {
         "properties": {
           "data": {
@@ -2049,6 +2061,27 @@
           }
         },
         "title": "V2ProjectionReplayRequest",
+        "type": "object"
+      },
+      "V2ReadinessData": {
+        "properties": {
+          "checks": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "overall_status": {
+            "title": "Overall Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "overall_status",
+          "checks"
+        ],
+        "title": "V2ReadinessData",
         "type": "object"
       },
       "V2RefreshRequest": {
@@ -9500,6 +9533,27 @@
         "summary": "Resolve Stock Check V2",
         "tags": [
           "v2-stock-checks"
+        ]
+      }
+    },
+    "/api/v2/system/readiness": {
+      "get": {
+        "operationId": "v2_system_readiness_api_v2_system_readiness_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2ReadinessData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "V2 System Readiness",
+        "tags": [
+          "v2-system"
         ]
       }
     },

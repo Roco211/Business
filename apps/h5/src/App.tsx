@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth } from './api'
+import { api, bootstrapContext, loadAuth, loginWithPhone, saveAuth, sendVerificationCode } from './api'
 import type { Activity, AiEmployee, AuthState, Confirmation, Customer, CustomerRepurchaseAnalysis, DailyAdvisorReport, ExecutionRecapList, FinanceSummary, FinanceTransaction, InventoryItem, LedgerEvent, NotificationItem, Overview, PurchaseOrder, SalesOrder, StockItem, Suggestion, Supplier } from './types'
 import { UiBadge, UiButton, UiCard, UiTextArea } from './ui'
 import './styles.css'
@@ -10,6 +10,8 @@ type Page = 'dashboard' | 'daily-report' | 'execution-recaps' | 'trial-acceptanc
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 
 type NavItem = { page: Page; label: string; icon: string; badge?: string; permission?: string }
+
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === '1'
 
 const navItems: NavItem[] = [
   { page: 'dashboard', label: '工作台', icon: '⌂' },
@@ -201,8 +203,24 @@ function App() {
 }
 
 function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, code: string) => Promise<void>; error: string; loading: boolean }) {
-  const [phone, setPhone] = useState('13800000000')
-  const [code, setCode] = useState('888888')
+  const [phone, setPhone] = useState(DEMO_MODE ? '13800000000' : '')
+  const [code, setCode] = useState(DEMO_MODE ? '888888' : '')
+  const [sendingCode, setSendingCode] = useState(false)
+  const [codeMessage, setCodeMessage] = useState(DEMO_MODE ? '本地演示可直接使用验证码 888888' : '')
+
+  async function handleSendCode() {
+    setSendingCode(true)
+    setCodeMessage('')
+    try {
+      const result = await sendVerificationCode(phone)
+      setCodeMessage(`验证码已发送，${Math.round(result.expires_in_seconds / 60)}分钟内有效`)
+    } catch (err) {
+      setCodeMessage(err instanceof Error ? err.message : '验证码发送失败')
+    } finally {
+      setSendingCode(false)
+    }
+  }
+
   return (
     <div className="login-page">
       <section className="login-card">
@@ -211,7 +229,9 @@ function LoginScreen({ onLogin, error, loading }: { onLogin: (phone: string, cod
         <p>用自然语言管理商品、库存、经营数据和AI确认闭环，先试用再上线。</p>
         <label>手机号<input value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
         <label>验证码<input value={code} onChange={(e) => setCode(e.target.value)} /></label>
-        <button className="primary-button" disabled={loading} onClick={() => void onLogin(phone, code)}>{loading ? '登录中...' : '演示登录（888888）'}</button>
+        {!DEMO_MODE && <button className="ghost-button" disabled={sendingCode || !phone.trim()} onClick={() => void handleSendCode()}>{sendingCode ? '发送中...' : '获取验证码'}</button>}
+        {codeMessage && <div className="helper-text">{codeMessage}</div>}
+        <button className="primary-button" disabled={loading} onClick={() => void onLogin(phone, code)}>{loading ? '登录中...' : (DEMO_MODE ? '演示登录（888888）' : '登录')}</button>
         {error && <div className="error-text">{error}</div>}
       </section>
     </div>

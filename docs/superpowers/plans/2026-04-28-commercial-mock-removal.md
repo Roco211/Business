@@ -302,9 +302,16 @@ local-demo 单独注释：
 # OBJECT_STORAGE_PROVIDER=mock
 ```
 
-- [ ] Step 5: 用用户提供的真实对象存储配置做一次非破坏性验收
+- [x] Step 5: 用用户提供的真实对象存储配置做一次非破坏性验收
 
-当前状态：代码已支持通用 S3-compatible 变量和腾讯 COS 别名变量（`OBJECT_STORAGE_PROVIDER=cos`、`COS_BUCKET`、`COS_REGION`、`COS_ENDPOINT_URL`、`COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_PUBLIC_BASE_URL`）。真实非破坏性验收仍待用户通过部署 secret 或本地未跟踪 `.env` 注入真实 COS 配置；不得在仓库或日志记录真实值。
+当前状态：已使用本地未跟踪 `.env` 中的腾讯 COS 配置完成真实非破坏性验收；不得在仓库或日志记录真实值。已验证：
+
+- `OBJECT_STORAGE_PROVIDER=cos` / 腾讯 COS 别名变量可正常构建 S3-compatible provider
+- 生成 HTTPS 预签名上传 URL 成功
+- 上传临时文本对象成功，HEAD/大小/SHA256 校验成功，并已删除临时对象
+- 随机下载 3 张图片上传到 COS 成功，PUT 状态 200，HEAD/大小/SHA256 校验成功
+- 腾讯 COS `PathStyleDomainForbidden` 问题已通过 virtual-hosted-style 访问修复并提交：`b1440a4 fix: use virtual addressing for Tencent COS`
+- 当前 COS bucket 对公网直连 URL 返回 403，说明写入/后端校验可用，但若前端要直接展示 `public_url`，还需要开启公有读、CDN，或后续改为签名下载 URL
 
 命令格式，不记录真实值：
 

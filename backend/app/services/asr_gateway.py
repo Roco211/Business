@@ -8,7 +8,18 @@ from app.services.asr_mock_provider import MockAsrProvider
 from app.services.asr_real_provider import RealAsrProvider
 from app.services.asr_types import AsrMediaInput, AsrProvider, AsrProviderError, AsrTranscription
 
+class ClientAsrDisabledProvider:
+    def transcribe(self, media_input: AsrMediaInput) -> AsrTranscription:
+        del media_input
+        raise AsrProviderError(
+            "asr_unavailable",
+            "server ASR is disabled; use client ASR text input instead",
+            retryable=False,
+        )
+
+
 SUPPORTED_REAL_PROVIDER_NAMES = {"real-provider", "volcano", "doubao", "ark", "ark-doubao"}
+CLIENT_ASR_PROVIDER_NAMES = {"client", "client-asr", "disabled", "none", ""}
 
 
 @dataclass(frozen=True)
@@ -42,6 +53,8 @@ def build_asr_gateway(settings: Settings) -> AsrGateway:
 
     if provider_name == "mock":
         return AsrGateway(primary_provider=MockAsrProvider())
+    if provider_name in CLIENT_ASR_PROVIDER_NAMES:
+        return AsrGateway(primary_provider=ClientAsrDisabledProvider())
     if provider_name not in SUPPORTED_REAL_PROVIDER_NAMES:
         raise AsrProviderError(
             "asr_unavailable",

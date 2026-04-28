@@ -494,7 +494,7 @@ git commit -m "feat: replace demo phone login with real verification codes"
 
 ### Steps
 
-- [ ] Step 1: 写失败测试
+- [x] Step 1: 写失败测试
 
 ```python
 def test_production_ocr_empty_provider_fails():
@@ -515,21 +515,23 @@ def test_local_demo_ocr_can_use_mock():
     assert gateway.primary_provider.__class__.__name__ == "MockOcrProvider"
 ```
 
-- [ ] Step 2: 修改 config 默认值
+- [x] Step 2: 修改 config 默认值
 
 建议：
 
 - `.env.example` 保持真实 volcano
 - `Settings` 中 OCR/Vision fallback 默认可根据 APP_ENV 区分：production 默认 False，development/local-demo 可 True
 
-- [ ] Step 3: 确保 Ark provider 配置缺失时报错，不回退 mock
+- [x] Step 3: 确保 Ark provider 配置缺失时报错，不回退 mock
 
 `ocr_gateway.py` / `vision_gateway.py`：
 
 - provider 是 `volcano/doubao/ark` 但缺 key：如果 fallback disabled，报错
 - provider 是 `mock` 但 fallback disabled：报错
 
-- [ ] Step 4: 运行测试
+- [x] Step 4: 运行测试
+
+已执行：`PYTHONPATH=backend python3 -m pytest backend/tests/test_ocr_gateway.py backend/tests/test_vision_gateway.py backend/tests/test_provider_trial_preflight.py backend/tests/test_ark_multimodal_provider.py -q`，结果 41 passed。
 
 ```bash
 cd /root/business-clone
@@ -537,6 +539,8 @@ PYTHONPATH=backend python3 -m pytest backend/tests/test_ocr_gateway.py backend/t
 ```
 
 - [ ] Step 5: 用真实 Ark Key 做非破坏性 OCR/Vision 健康检查
+
+当前状态：待生产 Ark API Key/Endpoint 配置后执行；不得打印 key。
 
 使用现有：
 
@@ -573,7 +577,7 @@ P0 不再依赖服务端 ASR mock。客户端用手机系统语音输入得到�
 
 ### Steps
 
-- [ ] Step 1: 写测试
+- [x] Step 1: 写测试
 
 ```python
 def test_chat_accepts_client_asr_text(client, auth_headers):
@@ -591,14 +595,14 @@ def test_chat_accepts_client_asr_text(client, auth_headers):
     assert data["reply"]
 ```
 
-- [ ] Step 2: Chat request contract 增加字段
+- [x] Step 2: Chat request contract 增加字段
 
 ```python
 input_type: Literal["text", "voice_text"] = "text"
 source: str | None = None
 ```
 
-- [ ] Step 3: chat.py 记录来源但不调用 ASR
+- [x] Step 3: chat.py 记录来源但不调用 ASR
 
 如果 `input_type=voice_text`：
 
@@ -606,7 +610,7 @@ source: str | None = None
 - 正常交给 DeepSeek Main Agent
 - audit/model call log 记录 source=`client_asr`
 
-- [ ] Step 4: 服务端 ASR gateway production 默认禁用
+- [x] Step 4: 服务端 ASR gateway production 默认禁用
 
 推荐配置：
 
@@ -617,12 +621,16 @@ ASR_ALLOW_MOCK_FALLBACK=0
 
 `ASR_PROVIDER=mock` 仅 local-demo/test。
 
-- [ ] Step 5: H5 增加语音文本来源标记
+- [x] Step 5: H5 增加语音文本来源标记
 
 短期无需录音上传，只提示用户使用手机键盘语音输入。
 如果未来做原生 App，再接系统 ASR SDK。
 
-- [ ] Step 6: 测试
+- [x] Step 6: 测试
+
+已执行：`PYTHONPATH=backend python3 -m pytest backend/tests/test_v2_client_asr_chat.py backend/tests/test_v2_chat_http_confirmation_flow.py backend/tests/test_asr_gateway.py backend/tests/test_production_mock_guardrails.py -q`，结果 37 passed, 1 warning。
+
+已执行：`cd apps/h5 && npm run build`，结果通过。
 
 ```bash
 cd /root/business-clone
@@ -630,10 +638,12 @@ PYTHONPATH=backend python3 -m pytest backend/tests/test_v2_client_asr_chat.py ba
 cd apps/h5 && npm run build
 ```
 
-- [ ] Step 7: 提交
+- [x] Step 7: 提交
+
+已提交：`feat: use client ASR text for voice chat`
 
 ```bash
-git add backend/app/api/v2/routes/chat.py backend/app/core/config.py apps/h5/src/App.tsx apps/h5/src/api.ts backend/tests/test_v2_client_asr_chat.py
+git add backend/app/api/v2/routes/chat.py backend/app/core/config.py backend/app/services/asr_gateway.py apps/h5/src/App.tsx apps/h5/src/api.ts apps/h5/src/styles.css backend/tests/test_v2_client_asr_chat.py backend/tests/test_asr_gateway.py
 git commit -m "feat: use client ASR text for voice chat"
 ```
 

@@ -5,7 +5,7 @@ import json
 import uuid
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -43,7 +43,10 @@ def chat_v2(
     db_session: Session = Depends(get_db_session),
 ) -> V2DataEnvelope[dict]:
     """Non-streaming chat endpoint with DeepSeek Main Agent orchestration."""
-    user_message = payload.get("message", "")
+    chat_input = _normalize_chat_input(payload)
+    user_message = chat_input["message"]
+    input_type = chat_input["input_type"]
+    source = chat_input["source"]
     session_id = payload.get("session_id")
 
     # Get or create chat session
@@ -80,6 +83,8 @@ def chat_v2(
             "employee": agent_response.employee_role,
             "confidence": agent_response.confidence,
             "session_id": session_id,
+            "input_type": input_type,
+            "source": source,
             "tool_results": agent_response.tool_results,
         }
     )
@@ -98,7 +103,10 @@ def chat_stream_v2(
     db_session: Session = Depends(get_db_session),
 ) -> StreamingResponse:
     """SSE streaming chat endpoint with DeepSeek Main Agent orchestration."""
-    user_message = payload.get("message", "")
+    chat_input = _normalize_chat_input(payload)
+    user_message = chat_input["message"]
+    input_type = chat_input["input_type"]
+    source = chat_input["source"]
     session_id = payload.get("session_id")
 
     session_store = get_chat_session_store()
@@ -120,6 +128,8 @@ def chat_stream_v2(
             "needs_confirmation": plan.needs_confirmation,
             "tools": [t.tool_name for t in plan.tool_calls],
             "session_id": session_id,
+            "input_type": input_type,
+            "source": source,
         })
 
         # 2. Tool execution phase
@@ -149,6 +159,8 @@ def chat_stream_v2(
             "message_id": str(uuid.uuid4()),
             "employee": agent_response.employee_role,
             "session_id": session_id,
+            "input_type": input_type,
+            "source": source,
             "confidence": agent_response.confidence,
         })
 
@@ -161,6 +173,24 @@ def chat_stream_v2(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+def _normalize_chat_input(payload: dict) -> dict[str, str | None]:
+    input_type = str(payload.get("input_type") or "text").strip().lower()
+    source = payload.get("source")
+    source = str(source).strip() if source is not None else None
+    if input_type not in {"text", "voice_text"}:
+        raise HTTPException(status_code=422, detail="unsupported chat input_type")
+
+    user_message = str(payload.get("message") or "").strip()
+    if not user_message:
+        raise HTTPException(status_code=422, detail="message is required")
+
+    if input_type == "voice_text":
+        source = source or "client_asr"
+        if source != "client_asr":
+            raise HTTPException(status_code=422, detail="voice_text requires source=client_asr")
+    return {"message": user_message, "input_type": input_type, "source": source}
 
 
 # ───────────────────────────────────────────────

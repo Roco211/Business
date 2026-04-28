@@ -309,3 +309,5 @@ html,body,#root{min-width:0;max-width:100%;overflow-x:hidden;touch-action:manipu
   .task-summary-grid,.task-info-grid{grid-template-columns:1fr;}
   .task-stage-rail span{min-width:132px;}
 }
+.voice-text-hint{display:flex;align-items:center;gap:10px;margin:8px 0 12px;color:#5f6472;font-size:13px}.voice-text-toggle{border:1px solid #d8def0;background:#fff;color:#44506a;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}.voice-text-toggle.active{background:#eef4ff;border-color:#8bb6ff;color:#2563eb}.voice-text-hint span{line-height:1.5}
+@media(max-width:760px){.voice-text-hint{align-items:flex-start;flex-direction:column}.voice-text-toggle{width:100%;min-height:42px}}

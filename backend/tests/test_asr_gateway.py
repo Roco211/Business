@@ -120,6 +120,16 @@ def test_build_asr_gateway_returns_mock_gateway_for_mock_provider() -> None:
     assert gateway.fallback_provider is None
 
 
+def test_build_asr_gateway_returns_disabled_gateway_for_client_provider() -> None:
+    gateway = build_asr_gateway(
+        _build_settings(app_env="production", app_runtime_mode="production", asr_provider="client", asr_allow_mock_fallback=False)
+    )
+    with pytest.raises(AsrProviderError) as excinfo:
+        gateway.transcribe(AsrMediaInput(media_ids=["voice_query_demo"], text_hint="hello"))
+    assert excinfo.value.code == "asr_unavailable"
+    assert "client ASR" in str(excinfo.value)
+
+
 def test_trial_mode_rejects_mock_asr_provider() -> None:
     with pytest.raises(AsrProviderError) as excinfo:
         build_asr_gateway(

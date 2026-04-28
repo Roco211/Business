@@ -392,6 +392,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
   const [result, setResult] = useState<CommandResult | null>(null)
   const [running, setRunning] = useState(false)
   const [approvingInline, setApprovingInline] = useState(false)
+  const [voiceTextMode, setVoiceTextMode] = useState(false)
 
   function looksLikeSalesDraft(text: string) {
     return /卖出|销售|开单|收款|客户|卖了/.test(text) && /单价|客户|把|个|件|箱|元|\d/.test(text)
@@ -522,8 +523,9 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
     }
   }
 
-  async function runCommand(text = command) {
+  async function runCommand(text = command, options: { voiceText?: boolean } = {}) {
     const trimmed = text.trim()
+    const useVoiceText = options.voiceText ?? voiceTextMode
     if (!trimmed || running) return
     setCommand(trimmed)
     setRunning(true)
@@ -536,7 +538,7 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
         const data = await api.createSalesOrderDraft(auth, trimmed)
         setResult(salesDraftResult(data.confirmation.confirmation_id, data.confirmation.confirmation_type, trimmed))
       } else {
-        const data = await api.chat(auth, trimmed)
+        const data = await api.chat(auth, trimmed, useVoiceText ? { inputType: 'voice_text', source: 'client_asr' } : undefined)
         const confirmationId = data.confirmation_id || (data.reply || '').match(/确认单[:：]\s*(\S+)/)?.[1]
         if (confirmationId) {
           setResult(salesDraftResult(confirmationId, data.intent || undefined, trimmed))
@@ -600,8 +602,12 @@ function AiCommandCenter({ auth, onNavigate, onChanged, variant = 'inline' }: { 
           </div>}
         </div>
         <div className="command-input-row ai-input-row mobile-ai-sticky-input">
-          <UiTextArea value={command} onChange={(e) => setCommand(e.target.value)} placeholder="直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
+          <UiTextArea value={command} onChange={(e) => setCommand(e.target.value)} placeholder={voiceTextMode ? '手机语音输入后会变成文字，我按语音文字理解：查库存、记销售、问营业额…' : '直接输入：今天生意怎么样？哪些东西快没货？帮我记一笔销售…'} onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void runCommand() }} />
           <UiButton variant="primary" disabled={running || !command.trim()} onClick={() => void runCommand()}>{running ? '思考中...' : '发送给AI'}</UiButton>
+        </div>
+        <div className="voice-text-hint">
+          <button type="button" className={voiceTextMode ? 'voice-text-toggle active' : 'voice-text-toggle'} onClick={() => setVoiceTextMode((value) => !value)}>{voiceTextMode ? '语音文字模式已开' : '手机语音输入'}</button>
+          <span>{voiceTextMode ? '后端只接收手机系统转好的文字，不上传录音。' : '可点开后使用手机键盘自带语音输入。'}</span>
         </div>
         <div className="command-chips">
           {quickCommands.map((text) => <UiButton variant="ghost" key={text} onClick={() => void runCommand(text)} disabled={running}>{text}</UiButton>)}
@@ -632,7 +638,7 @@ function OnboardingDemoFlow({ refEl, auth, onNavigate, onChanged }: { refEl: Rea
     setRevenueReply('')
     setConfirmationId('')
     try {
-      const revenue = await api.chat(auth, '今天营业额多少？')
+      const revenue = await api.chat(auth, '今天营业额多少？', { inputType: 'text' })
       setRevenueReply(revenue.reply || '经营数据分析员已完成营业额查询。')
       const draft = await api.createSalesOrderDraft(auth, '卖出1把电动螺丝刀，单价99，客户老王')
       setConfirmationId(draft.confirmation.confirmation_id)

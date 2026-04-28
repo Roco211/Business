@@ -62,12 +62,15 @@ class Settings:
     sms_sign_name: str | None = os.getenv("SMS_SIGN_NAME")
     sms_template_id: str | None = os.getenv("SMS_TEMPLATE_ID")
     sms_code_ttl_seconds: int = int(os.getenv("SMS_CODE_TTL_SECONDS", "300"))
-    asr_provider: str = os.getenv("ASR_PROVIDER", "mock")
+    asr_provider: str = os.getenv("ASR_PROVIDER") or ("client" if os.getenv("APP_ENV") == "production" else "mock")
     asr_provider_api_url: str | None = os.getenv("ASR_PROVIDER_API_URL")
     asr_provider_api_key: str | None = os.getenv("ASR_PROVIDER_API_KEY")
     asr_provider_model: str | None = os.getenv("ASR_PROVIDER_MODEL")
     asr_timeout_seconds: float = float(os.getenv("ASR_TIMEOUT_SECONDS", "15"))
-    asr_allow_mock_fallback: bool = os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False")
+    asr_allow_mock_fallback: bool = (
+        os.getenv("ASR_ALLOW_MOCK_FALLBACK", "0" if os.getenv("APP_ENV") == "production" else "1")
+        not in ("0", "false", "False")
+    )
     ocr_provider: str = os.getenv("OCR_PROVIDER", "")
     ocr_provider_api_url: str | None = os.getenv("OCR_PROVIDER_API_URL")
     ocr_provider_api_key: str | None = os.getenv("OCR_PROVIDER_API_KEY")
@@ -254,12 +257,15 @@ def get_settings() -> Settings:
         sms_sign_name=os.getenv("SMS_SIGN_NAME"),
         sms_template_id=os.getenv("SMS_TEMPLATE_ID"),
         sms_code_ttl_seconds=int(os.getenv("SMS_CODE_TTL_SECONDS", "300")),
-        asr_provider=os.getenv("ASR_PROVIDER", "mock"),
+        asr_provider=os.getenv("ASR_PROVIDER") or ("client" if os.getenv("APP_ENV") == "production" else "mock"),
         asr_provider_api_url=os.getenv("ASR_PROVIDER_API_URL"),
         asr_provider_api_key=os.getenv("ASR_PROVIDER_API_KEY"),
         asr_provider_model=os.getenv("ASR_PROVIDER_MODEL"),
         asr_timeout_seconds=float(os.getenv("ASR_TIMEOUT_SECONDS", "15")),
-        asr_allow_mock_fallback=os.getenv("ASR_ALLOW_MOCK_FALLBACK", "1") not in ("0", "false", "False"),
+        asr_allow_mock_fallback=(
+            os.getenv("ASR_ALLOW_MOCK_FALLBACK", "0" if os.getenv("APP_ENV") == "production" else "1")
+            not in ("0", "false", "False")
+        ),
         ocr_provider=ocr_provider,
         ocr_provider_api_url=os.getenv("OCR_PROVIDER_API_URL"),
         ocr_provider_api_key=os.getenv("OCR_PROVIDER_API_KEY"),

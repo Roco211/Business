@@ -122,7 +122,7 @@ export const api = {
   getAudit: (auth: AuthState, itemId: string) => request<{ events: LedgerEvent[]; count: number }>(`/api/v2/inventory/items/${itemId}/audit?limit=20`, {}, auth),
   stockIn: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-in', { method: 'POST', body: JSON.stringify(input) }, auth),
   stockOut: (auth: AuthState, input: { inventory_item_id: string; quantity: number; unit: string; price?: number; reason?: string }) => request<unknown>('/api/v2/inventory/stock-out', { method: 'POST', body: JSON.stringify(input) }, auth),
-  chat: (auth: AuthState, message: string) => request<{ reply: string; intent?: string; confirmation_id?: string }>('/api/v2/chat', { method: 'POST', body: JSON.stringify({ message }) }, auth),
+  chat: (auth: AuthState, message: string, options: { inputType?: 'text' | 'voice_text'; source?: string } = {}) => request<{ reply: string; intent?: string; confirmation_id?: string; input_type?: string; source?: string }>('/api/v2/chat', { method: 'POST', body: JSON.stringify({ message, input_type: options.inputType || 'text', source: options.source }) }, auth),
   listConfirmations: (auth: AuthState) => request<{ confirmations: Confirmation[]; count: number }>('/api/v2/confirmations?status=pending&limit=50', {}, auth),
   approveConfirmation: (auth: AuthState, confirmationId: string) => request<Confirmation>(`/api/v2/confirmations/${confirmationId}/approve`, { method: 'POST', body: JSON.stringify({ resolution_payload: {} }) }, auth),
   rejectConfirmation: (auth: AuthState, confirmationId: string) => request<Confirmation>(`/api/v2/confirmations/${confirmationId}/reject`, { method: 'POST' }, auth)

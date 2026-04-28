@@ -4,13 +4,16 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from decimal import Decimal
 import json
-import random
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.services.v2_ai_confirmation import create_v2_ai_stock_in_confirmation
 from app.services.v2_inventory import list_v2_inventory_items
+from app.services.ocr_gateway import get_default_ocr_gateway
+from app.services.ocr_types import OcrMediaInput
+from app.services.vision_gateway import get_default_vision_gateway
+from app.services.vision_types import VisionMediaInput
 
 
 class PhotoProcessingError(ValueError):
@@ -83,7 +86,9 @@ async def process_photo_stock_query(
             data={
                 "raw_text": extracted.get("raw_text", ""),
                 "confidence": extracted.get("confidence", 0.0),
-                "cleaned_text": extracted.get("cleaned_text", "")
+                "cleaned_text": extracted.get("cleaned_text", ""),
+                "provider": extracted.get("provider", ""),
+                "used_fallback": extracted.get("used_fallback", False),
             },
         )
 
@@ -208,7 +213,7 @@ async def process_photo_stock_in(
         )
 
         # Step 2: Extract receipt data
-        extracted = await _extract_receipt_stub(image_data, mime_type)
+        extracted = await _extract_receipt_from_image(image_data, mime_type)
 
         yield PhotoQueryEvent(
             event_type="extraction",
@@ -281,48 +286,87 @@ async def process_photo_stock_in(
 
 
 async def _extract_text_from_image(image_data: bytes, mime_type: str) -> dict:
-    """Extract text from image using OCR.
+    """Extract product information from an image through the Vision gateway."""
+    _validate_image_input(image_data, mime_type)
 
-    Returns a dict containing:
-    - raw_text: 原始识别文本
-    - cleaned_text: 清洁后的文本
-    - item_name: 结构化物品名称
-    - category: 物品类别(可选)
-    - confidence: 置信度
+    recognition = get_default_vision_gateway().recognize_product(
+        VisionMediaInput(
+            media_id="inline-photo-stock-query",
+            public_url=None,
+            content_type=mime_type,
+            file_name=None,
+            image_bytes=image_data,
+        )
+    )
+    candidates = list(recognition.candidates)
+    top_candidate = candidates[0] if candidates else None
+    item_name = top_candidate.item_name if top_candidate is not None else ""
+    confidence = top_candidate.confidence if top_candidate is not None else 0.0
+    packaging_hint = top_candidate.packaging_hint if top_candidate is not None else None
+    return {
+        "raw_text": item_name,
+        "cleaned_text": item_name,
+        "item_name": item_name,
+        "category": packaging_hint,
+        "confidence": confidence,
+        "provider": recognition.provider_name,
+        "used_fallback": recognition.used_fallback,
+        "candidates": [
+            {
+                "item_name": candidate.item_name,
+                "confidence": candidate.confidence,
+                "packaging_hint": candidate.packaging_hint,
+            }
+            for candidate in candidates
+        ],
+        "raw_payload": recognition.raw_payload,
+    }
 
-    Stub implementation - production would use Volcano Engine Vision API.
-    """
-    # Validate mime type
+
+async def _extract_receipt_from_image(image_data: bytes, mime_type: str) -> dict:
+    """Extract purchase receipt data through the OCR gateway."""
+    _validate_image_input(image_data, mime_type)
+
+    extraction = get_default_ocr_gateway().extract_purchase_receipt(
+        OcrMediaInput(
+            media_id="inline-photo-stock-in",
+            public_url=None,
+            content_type=mime_type,
+            file_name=None,
+            image_bytes=image_data,
+        )
+    )
+    raw_payload = extraction.raw_payload or {}
+    supplier = raw_payload.get("supplier") or raw_payload.get("supplier_name")
+    items = [
+        {
+            "name": line.item_name,
+            "quantity": line.quantity,
+            "unit": line.unit or "件",
+            "price": line.price if line.price is not None else 0,
+        }
+        for line in extraction.line_items
+        if line.item_name
+    ]
+    return {
+        "provider": extraction.provider_name,
+        "document_type": extraction.document_type,
+        "raw_text": extraction.raw_text,
+        "supplier": supplier,
+        "items": items,
+        "total_amount": extraction.total_amount,
+        "low_confidence_fields": list(extraction.low_confidence_fields),
+        "used_fallback": extraction.used_fallback,
+        "raw_payload": raw_payload,
+    }
+
+
+def _validate_image_input(image_data: bytes, mime_type: str) -> None:
     valid_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
     if mime_type not in valid_types:
         raise PhotoProcessingError(f"Unsupported image type: {mime_type}")
-
     if not image_data:
         raise PhotoProcessingError("Empty image data")
-
-    # Stub: Return simulated extraction result
-    return {
-        "raw_text": "螺丝刀 十字 JIS标准 50把",
-        "cleaned_text": "螺丝刀 十字 JIS标准",
-        "item_name": "十字螺丝刀",
-        "category": "工具",
-        "confidence": 0.85,
-        "attributes": {
-            "model": "JIS标准",
-            "quantity_in_text": "50把",
-        }
-    }
-
-
-async def _extract_receipt_stub(image_data: bytes, mime_type: str) -> dict:
-    """Stub for receipt extraction."""
-    return {
-        "supplier": "测试供应商",
-        "items": [
-            {"name": "螺丝刀", "quantity": 50, "unit": "把", "price": 5.0}
-        ],
-        "total_amount": 250.0,
-    }
 
 
 def _parse_item_from_text(extracted: dict | str | None) -> str | None:

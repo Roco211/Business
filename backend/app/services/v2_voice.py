@@ -3,11 +3,14 @@
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 import json
+import re
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.services.v2_ai_confirmation import create_v2_ai_stock_in_confirmation
+from app.services.asr_gateway import get_default_asr_gateway
+from app.services.asr_types import AsrMediaInput, AsrProviderError
 from app.services.v2_inventory import list_v2_inventory_items
 from app.services.v2_llm import (
     LLMService,
@@ -89,30 +92,34 @@ async def transcribe_audio(
     audio_data: bytes,
     mime_type: str,
 ) -> TranscriptionResult:
-    """ASR transcription stub - to be replaced with Volcano Engine integration.
+    """Transcribe uploaded audio through the configured ASR gateway.
 
-    Args:
-        audio_data: Binary audio data (webm, wav, etc.)
-        mime_type: Mime type of audio data (audio/webm, audio/wav)
-
-    Returns:
-        TranscriptionResult with transcribed text and confidence
-
-    Raises:
-        VoiceASRError: If transcription fails
+    Production defaults to client ASR, so calling this old server-audio path will
+    fail closed unless an explicit real server ASR provider is configured.
     """
-    # Stub implementation - in production this would call Volcano Engine ASR
     if not audio_data:
         raise VoiceASRError("Empty audio data")
 
     if mime_type not in {"audio/webm", "audio/wav", "audio/mp3", "audio/mpeg", "audio/ogg"}:
         raise VoiceASRError(f"Unsupported mime type: {mime_type}")
 
-    # Return a simulated transcription based on mime_type
-    # In production, this would send audio_data to ASR service
+    try:
+        transcription = get_default_asr_gateway().transcribe(
+            AsrMediaInput(
+                media_ids=["inline-voice-upload"],
+                content_type=mime_type,
+                audio_bytes=audio_data,
+            )
+        )
+    except AsrProviderError as exc:
+        raise VoiceASRError(exc.message) from exc
+
+    if not transcription.text.strip():
+        raise VoiceASRError("ASR returned empty transcription")
+
     return TranscriptionResult(
-        text="螺丝刀还有几个",
-        confidence=0.95,
+        text=transcription.text,
+        confidence=transcription.confidence if transcription.confidence is not None else 0.0,
     )
 
 
@@ -204,8 +211,8 @@ async def process_voice_stock_query(
 
     Yields:
         VoiceQueryEvent for SSE streaming:
-        - event: transcription, data: {"text": "螺丝刀还有几个"}
-        - event: intent, data: {"intent": "stock_query", "item_name": "螺丝刀"}
+        - event: transcription, data: {"text": "..."}
+        - event: intent, data: {"intent": "stock_query", "item_name": "..."}
         - event: result, data: {"item": {...}, "stock": {"quantity": 45}}
         - event: complete, data: {}
 
@@ -384,19 +391,24 @@ async def process_voice_stock_in(
             )
             return
 
-        # Step 3: Extract items from text (stub)
+        # Step 3: Extract stock-in items from the transcribed text.
         yield VoiceQueryEvent(
             event_type="processing",
             data={"stage": "extraction", "message": "正在提取商品信息..."},
         )
-        
-        # Stub: simulate extraction
-        items = [
-            {"name": "螺丝刀", "quantity": 50, "unit": "把", "price": 5.0},
-            {"name": "扳手", "quantity": 30, "unit": "把", "price": 12.0},
-        ]
-        supplier = "测试供应商"
-        
+
+        items = _extract_stock_in_items_from_text(
+            transcription.text,
+            item_name=intent_result.item_name,
+        )
+        if not items:
+            yield VoiceQueryEvent(
+                event_type="error",
+                data={"error": "no_items_found", "message": "未能从语音文字中识别出入库商品"},
+            )
+            return
+        supplier = _extract_supplier_from_text(transcription.text)
+
         yield VoiceQueryEvent(
             event_type="extraction",
             data={"items": items, "supplier": supplier, "found_count": len(items)},
@@ -464,3 +476,52 @@ async def process_voice_stock_in(
             event_type="error",
             data={"error": "processing_failed", "message": str(exc)},
         )
+
+
+def _extract_stock_in_items_from_text(text: str, *, item_name: str | None) -> list[dict[str, float | str]]:
+    normalized_text = text.strip()
+    normalized_item_name = item_name.strip() if isinstance(item_name, str) and item_name.strip() else ""
+    if not normalized_text or not normalized_item_name:
+        return []
+
+    quantity = _extract_number_before_unit(normalized_text, default=1.0)
+    unit = _extract_unit(normalized_text) or "件"
+    price = _extract_price(normalized_text)
+    return [
+        {
+            "name": normalized_item_name,
+            "quantity": quantity,
+            "unit": unit,
+            "price": price,
+        }
+    ]
+
+
+def _extract_number_before_unit(text: str, *, default: float) -> float:
+    match = re.search(r"(\d+(?:\.\d+)?)\s*(把|个|件|箱|瓶|袋|盒|套|双|副|台|支|米|公斤|kg|KG)", text)
+    if not match:
+        return default
+    return float(match.group(1))
+
+
+def _extract_unit(text: str) -> str | None:
+    match = re.search(r"\d+(?:\.\d+)?\s*(把|个|件|箱|瓶|袋|盒|套|双|副|台|支|米|公斤|kg|KG)", text)
+    if not match:
+        return None
+    unit = match.group(1)
+    return "公斤" if unit.lower() == "kg" else unit
+
+
+def _extract_price(text: str) -> float:
+    match = re.search(r"(?:单价|价格|每(?:个|件|台|把)?|￥|¥)\s*(\d+(?:\.\d+)?)\s*(?:元|块)?", text)
+    if not match:
+        return 0.0
+    return float(match.group(1))
+
+
+def _extract_supplier_from_text(text: str) -> str | None:
+    match = re.search(r"(?:供应商|从)\s*([\u4e00-\u9fa5A-Za-z0-9_-]{2,24})", text)
+    if not match:
+        return None
+    supplier = match.group(1).strip("，,。；;：:")
+    return supplier or None

@@ -664,16 +664,27 @@ git commit -m "feat: use client ASR text for voice chat"
 
 ### Steps
 
-- [ ] Step 1: 查找调用方
+- [x] Step 1: 查找调用方
+
+已确认旧运行时调用方：
+- `backend/app/api/v2/routes/photo.py` 调用 `process_photo_stock_query` / `process_photo_stock_in`
+- `backend/app/api/v2/routes/voice.py` 调用 `process_voice_stock_query` / `process_voice_stock_in`
 
 ```bash
 cd /root/business-clone
-rg "process_photo_stock_in|_extract_text_from_image|extract_receipt|v2_photo" backend/app backend/tests
+rg "process_photo_stock_in|_extract_text_from_image|extract_receipt|v2_photo|transcribe_audio|process_voice_stock_in|v2_voice" backend/app backend/tests
 ```
 
-- [ ] Step 2: 写失败测试
+- [x] Step 2: 写失败测试
 
-测试要证明上传/图片处理不会返回固定样例：
+已在 `backend/tests/test_v2_voice_photo_confirmation_first.py` 增加 P0 回归测试：
+- 图片库存查询必须调用 Vision gateway，不能返回固定 `螺丝刀 十字 JIS标准`
+- 图片票据入库必须调用 OCR gateway，不能返回固定 `测试供应商` / `250.0`
+- 旧语音转写必须调用 ASR gateway，不能固定返回 `螺丝刀还有几个`
+- 语音入库必须从转写文本和 intent 提取商品，不能固定返回 `螺丝刀` / `扳手`
+
+测试已先红灯，确认覆盖旧 stub。
+
 
 ```python
 def test_photo_stock_in_uses_ocr_gateway_not_stub(monkeypatch, client, auth_headers):
@@ -700,32 +711,39 @@ def test_photo_stock_in_uses_ocr_gateway_not_stub(monkeypatch, client, auth_head
     assert called["ocr"] is True
 ```
 
-- [ ] Step 3: 删除或改造 stub 函数
+- [x] Step 3: 删除或改造 stub 函数
 
-删除/替换这些逻辑：
+已删除/替换这些运行时固定返回逻辑：
 
-- `Stub: Return simulated extraction result`
-- `Stub for receipt extraction`
-- 固定返回 `螺丝刀` / `测试供应商` / `250.0`
+- `v2_photo.py` 的图片库存查询固定 `螺丝刀 十字 JIS标准` / `十字螺丝刀`
+- `v2_photo.py` 的票据入库固定 `测试供应商` / `螺丝刀` / `250.0`
+- `v2_voice.py` 的语音转写固定 `螺丝刀还有几个`
+- `v2_voice.py` 的语音入库固定 `螺丝刀` / `扳手` / `测试供应商`
 
 改为：
 
 - 商品图：调用 `get_default_vision_gateway().recognize_product(...)`
 - 采购票据：调用 `get_default_ocr_gateway().extract_purchase_receipt(...)`
-- 识别后生成待确认单，不直接入库
+- 旧语音转写：调用 `get_default_asr_gateway().transcribe(...)`；生产默认 `ASR_PROVIDER=client` 时服务端上传音频会返回不可用错误，不再模拟转写
+- 旧语音入库：从真实 ASR 文本和 intent/item_name 提取待确认单，不再固定写死多行商品
+- 识别后继续生成待确认单，不直接入库
 
-- [ ] Step 4: 运行测试
+- [x] Step 4: 运行测试
 
 ```bash
 cd /root/business-clone
-PYTHONPATH=backend python3 -m pytest backend/tests/test_v2_voice_photo_http_confirmation_flow.py backend/tests/test_v2_media_ai_platform.py backend/tests/test_ark_multimodal_provider.py -q
+PYTHONPATH=backend python3 -m pytest backend/tests/test_v2_voice_photo_confirmation_first.py backend/tests/test_v2_voice_photo_http_confirmation_flow.py backend/tests/test_v2_media_ai_platform.py backend/tests/test_ark_multimodal_provider.py backend/tests/test_asr_gateway.py -q
+# 62 passed, 1 warning in 48.82s
 ```
 
-- [ ] Step 5: 提交
+P0 固定数据搜索确认：`v2_photo.py` / `v2_voice.py` 中不再存在原固定业务样例；保留的 mock provider / fixture 均属于 local-demo/test 隔离范围。
+
+- [x] Step 5: 提交
 
 ```bash
-git add backend/app/services/v2_photo.py backend/app/api/v2 backend/tests/test_v2_voice_photo_http_confirmation_flow.py backend/tests/test_v2_media_ai_platform.py
-git commit -m "refactor: route photo extraction through real AI gateways"
+git add backend/app/services/v2_photo.py backend/app/services/v2_voice.py backend/tests/test_v2_voice_photo_confirmation_first.py docs/superpowers/plans/2026-04-28-commercial-mock-removal.md
+git commit -m "refactor: remove p0 photo and voice stubs"
+# a839e13
 ```
 
 ---

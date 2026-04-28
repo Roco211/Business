@@ -14,4 +14,7 @@ backend/.venv/
 backend/devdata/pilot_shift_bundles/
 backend/devdata/trial_calibration/
 backend/devdata/trial_calibration_artifacts/
+*.db
+*.db-shm
+*.db-wal
 pytest-cache-files-*/

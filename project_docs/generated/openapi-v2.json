@@ -1107,6 +1107,18 @@
         "title": "V2DataEnvelope[V2SalesOrderListData]",
         "type": "object"
       },
+      "V2DataEnvelope_V2SendVerificationCodeData_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/V2SendVerificationCodeData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "V2DataEnvelope[V2SendVerificationCodeData]",
+        "type": "object"
+      },
       "V2DataEnvelope_V2SessionData_": {
         "properties": {
           "data": {
@@ -2373,6 +2385,37 @@
         "title": "V2SalesOrderSummaryData",
         "type": "object"
       },
+      "V2SendVerificationCodeData": {
+        "properties": {
+          "expires_in_seconds": {
+            "title": "Expires In Seconds",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "expires_in_seconds"
+        ],
+        "title": "V2SendVerificationCodeData",
+        "type": "object"
+      },
+      "V2SendVerificationCodeRequest": {
+        "properties": {
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "title": "V2SendVerificationCodeRequest",
+        "type": "object"
+      },
       "V2SessionData": {
         "properties": {
           "initiated_by_account_id": {
@@ -3596,6 +3639,47 @@
           }
         },
         "summary": "Refresh V2",
+        "tags": [
+          "v2-identity"
+        ]
+      }
+    },
+    "/api/v2/auth/verification-codes": {
+      "post": {
+        "operationId": "send_verification_code_v2_api_v2_auth_verification_codes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/V2SendVerificationCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V2DataEnvelope_V2SendVerificationCodeData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Verification Code V2",
         "tags": [
           "v2-identity"
         ]

@@ -471,12 +471,11 @@ sendVerificationCode: (phone: string) => request<{ ok: boolean; expires_in_secon
 })
 ```
 
-- [ ] Step 5: 真实短信沙箱/测试号验收
+- [ ] Step 5: 真实短信沙箱/测试号验收（暂缓，不阻塞当前商业化验收）
 
-当前状态：待用户提供短信服务商、签名、模板 ID、测试手机号与凭证后执行；命令和日志不得打印真实密钥。
+当前状态：用户暂时无法提供真实短信服务，Task3 的真实短信验收明确排除在当前执行范围之外。代码层仍保留生产门禁：production 不能使用 888888 演示登录，`SMS_PROVIDER=demo/mock` 仍会被 `production_mock_violations()` 标记。真实 provider 总验收脚本允许通过 `SMS_REAL_PREFLIGHT=0` 将短信列为 known deferred；待后续提供短信服务商、签名、模板 ID、测试手机号与凭证后再执行真实短信验收。
 
-用户提供短信服务后，用真实测试手机号发送一次验证码。
-命令中不打印密钥。
+用户提供短信服务后，用真实测试手机号发送一次验证码；命令和日志不得打印真实密钥。
 
 - [x] Step 6: 测试
 
@@ -991,7 +990,7 @@ git commit -m "feat: gate H5 demo login behind demo mode"
 
 ### Steps
 
-- [ ] Step 1: 文档化真实 provider 环境变量
+- [x] Step 1: 文档化真实 provider 环境变量
 
 写入 `docs/commercial/REAL_PROVIDER_ACCEPTANCE.md`：
 
@@ -1034,7 +1033,14 @@ SMS_SIGN_NAME=...
 SMS_TEMPLATE_ID=...
 ```
 
-- [ ] Step 2: 总验收命令
+- [ ] Step 2: 总验收命令（进行中：短信暂缓，AI Key 缺失阻塞真实 provider 全通过）
+
+当前状态：
+
+- `SMS_REAL_PREFLIGHT=0` 已支持真实短信暂缓。
+- `production_mock_violations` 已通过（过滤已知暂缓的 `SMS_PROVIDER` 后）。
+- 腾讯 COS `object_storage_presign` 已通过。
+- 当前阻塞：本地 `.env` 中 `LLM_PROVIDER_API_KEY`、`OCR_PROVIDER_API_KEY`、`VISION_PROVIDER_API_KEY` 仍为空，因此 provider config summary 未通过。需要通过部署 secret 或本地 `.env` 注入，不得提交到仓库。
 
 ```bash
 cd /root/business-clone
@@ -1044,7 +1050,9 @@ cd apps/h5 && npm run build
 cd /root/business-clone && bash backend/scripts/run_real_provider_preflight.sh
 ```
 
-- [ ] Step 3: 密钥扫描
+- [x] Step 3: 密钥扫描
+
+已加入 `docs/commercial/REAL_PROVIDER_ACCEPTANCE.md`；提交前需实际执行并确认 `SECRET_SCAN_OK`。
 
 ```bash
 cd /root/business-clone
@@ -1078,11 +1086,18 @@ print('SECRET_SCAN_OK')
 PY
 ```
 
-- [ ] Step 4: 提交验收文档
+- [x] Step 4: 提交验收文档
+
+本次提交包含：
+
+- `docs/commercial/REAL_PROVIDER_ACCEPTANCE.md`
+- `backend/scripts/run_real_provider_preflight.sh`
+- `backend/tests/test_preflight_scripts_static.py`
+- `docs/superpowers/plans/2026-04-28-commercial-mock-removal.md`
 
 ```bash
-git add docs/commercial/REAL_PROVIDER_ACCEPTANCE.md backend/scripts/run_real_provider_preflight.sh
-git commit -m "docs: add real provider commercial acceptance checklist"
+git add docs/commercial/REAL_PROVIDER_ACCEPTANCE.md backend/scripts/run_real_provider_preflight.sh backend/tests/test_preflight_scripts_static.py docs/superpowers/plans/2026-04-28-commercial-mock-removal.md
+git commit -m "chore: document real provider acceptance with sms deferred"
 ```
 
 ---

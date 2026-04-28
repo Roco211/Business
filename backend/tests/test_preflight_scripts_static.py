@@ -23,10 +23,20 @@ def test_backend_preflight_is_explicitly_local_demo_mock_only():
 def test_real_provider_preflight_exists_and_does_not_force_mock_providers():
     script = _read("backend/scripts/run_real_provider_preflight.sh")
 
+    assert "test_v2_chat_confirmation_first.py" not in script
     assert "LLM_PROVIDER=mock" not in script
     assert "OCR_PROVIDER=mock" not in script
     assert "VISION_PROVIDER=mock" not in script
     assert "production_mock_violations" in script
+    assert "object_storage_presign" in script
+
+
+def test_real_provider_preflight_can_defer_sms_without_disabling_guardrail_code():
+    script = _read("backend/scripts/run_real_provider_preflight.sh")
+
+    assert "SMS_REAL_PREFLIGHT" in script
+    assert "real SMS preflight deferred" in script
+    assert 'v.get("key") != "SMS_PROVIDER"' in script
 
 
 def test_docker_acceptance_warns_mock_local_only():

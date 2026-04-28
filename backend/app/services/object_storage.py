@@ -193,6 +193,7 @@ class S3CompatibleObjectStorageProvider:
         public_base_url: str | None,
         presign_ttl_seconds: int,
         s3_client: Any | None = None,
+        addressing_style: str = "auto",
     ) -> None:
         self.bucket = bucket
         self.region = region
@@ -201,6 +202,7 @@ class S3CompatibleObjectStorageProvider:
         self.secret_key = secret_access_key or secret_key or ""
         self.public_base_url = public_base_url
         self.presign_ttl_seconds = presign_ttl_seconds
+        self.addressing_style = addressing_style
         self._s3_client = s3_client
 
     def _get_client(self) -> Any:
@@ -208,6 +210,7 @@ class S3CompatibleObjectStorageProvider:
             return self._s3_client
         try:
             import boto3
+            from botocore.config import Config
         except ModuleNotFoundError as exc:  # pragma: no cover - environment-dependent
             raise ObjectStorageConfigurationError(
                 "boto3 is required for s3-compatible object storage"
@@ -219,6 +222,7 @@ class S3CompatibleObjectStorageProvider:
                 endpoint_url=self.endpoint_url,
                 aws_access_key_id=self.access_key,
                 aws_secret_access_key=self.secret_key,
+                config=Config(signature_version="s3v4", s3={"addressing_style": self.addressing_style}),
             )
         except Exception as exc:  # pragma: no cover - boto3 transport setup failure
             raise ObjectStorageUnavailableError("failed to initialize s3 object storage client") from exc
@@ -325,6 +329,14 @@ class S3CompatibleObjectStorageProvider:
         return bytes(payload)
 
 
+def _s3_addressing_style(settings: Settings) -> str:
+    provider = settings.object_storage_provider.strip().lower()
+    endpoint = (settings.object_storage_endpoint_url or "").strip().lower()
+    if provider in {"cos", "tencent-cos", "tencent_cos", "qcloud-cos", "qcloud_cos"} or "myqcloud.com" in endpoint:
+        return "virtual"
+    return "auto"
+
+
 def _missing_required_s3_config(settings: Settings) -> list[str]:
     return [
         field_name
@@ -370,6 +382,7 @@ def build_object_storage(settings: Settings) -> ObjectStorageProvider:
         secret_key=settings.object_storage_secret_key or "",
         public_base_url=settings.object_storage_public_base_url,
         presign_ttl_seconds=settings.object_storage_presign_ttl_seconds,
+        addressing_style=_s3_addressing_style(settings),
     )
 
 

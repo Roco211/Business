@@ -97,4 +97,5 @@ bash backend/scripts/run_real_provider_preflight.sh
 
 - `OBJECT_STORAGE_PROVIDER=mock` 会被 readiness / mock guardrails 标记为违规。
 - COS/S3-compatible 必须配置 bucket、region、endpoint、access key、secret key。
+- 腾讯 COS 会拒绝 path-style 访问并返回 `PathStyleDomainForbidden`，代码会对 `OBJECT_STORAGE_PROVIDER=cos` 或 `myqcloud.com` endpoint 自动使用 virtual-hosted-style 生成预签名 URL。
 - local-demo/test 仍可使用 mock object storage，但不能作为商业化验收依据。

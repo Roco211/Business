@@ -67,6 +67,7 @@ def test_tencent_cos_provider_alias_uses_s3_compatible_provider():
     assert provider.region == "ap-guangzhou"
     assert provider.endpoint_url == "https://cos.ap-guangzhou.myqcloud.com"
     assert provider.public_base_url == "https://business-prod-1250000000.cos.ap-guangzhou.myqcloud.com"
+    assert provider.addressing_style == "virtual"
 
 
 def test_settings_reads_tencent_cos_environment_aliases(monkeypatch):
